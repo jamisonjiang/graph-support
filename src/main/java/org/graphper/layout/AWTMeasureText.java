@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 
-public class AWTMeasureText extends MeasureText {
+public class AWTMeasureText implements MeasureText {
 
   private static final Logger log = LoggerFactory.getLogger(AWTMeasureText.class);
 

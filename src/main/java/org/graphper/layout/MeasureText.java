@@ -26,30 +26,30 @@ import org.graphper.def.FlatPoint;
  * <p>By default, {@link AWTMeasureText} will be used as the measurement method. If it is found
  * that the current environment does not support {@code java.awt}, a very rough measurement method
  * {@link RoughMeasureText} will be used. If you have a better way, please implement this interface
- * and register the corresponding implementation in <a href="https://docs.oracle.com/cd/F32325_01/
- * doc.192/f32328/c_payments_spi.htm#SIMCG-TheSimphonyPaymentInterfaceSPI-DA817CDC">SPI</a>.
+ * and register the corresponding implementation in <a
+ * href="https://docs.oracle.com/cd/F32325_01/doc.192/f32328/c_payments_spi.htm#SIMCG-TheSimphonyPaymentInterfaceSPI-DA817CDC">SPI</a>.
  *
  * @author Jamison Jiang
  * @see AWTMeasureText
  * @see RoughMeasureText
  */
-public abstract class MeasureText {
+public interface MeasureText {
 
   /**
    * When there are multiple available implementations, use this attribute to sort, and the one with
    * the smaller value will be used first, and if they are the same, one will be randomly selected
    * for use.
    *
-   * @return the priority of the current measurement method
+   * @return <tt>true</tt> if the priority of the current measurement method
    */
-  public abstract int order();
+  int order();
 
   /**
    * Returns whether the current environment supports the corresponding measurement method.
    *
-   * @return <tt>true<tt/> if current environment support
+   * @return <tt>true</tt> if current environment support
    */
-  public abstract boolean envSupport();
+  boolean envSupport();
 
   /**
    * Calculate the actual size of the label container based on the font and size of the label.
@@ -59,5 +59,5 @@ public abstract class MeasureText {
    * @param fontSize font size
    * @return label size
    */
-  public abstract FlatPoint measure(String text, String fontName, double fontSize);
+  FlatPoint measure(String text, String fontName, double fontSize);
 }

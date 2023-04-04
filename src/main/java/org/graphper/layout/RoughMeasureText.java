@@ -19,7 +19,7 @@ package org.graphper.layout;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 
-public class RoughMeasureText extends MeasureText {
+public class RoughMeasureText implements MeasureText {
 
   @Override
   public int order() {

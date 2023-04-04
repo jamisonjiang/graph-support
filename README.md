@@ -35,13 +35,13 @@ After building, go to `target/test-classes/visual/graph-visual.html` to see all 
 
 ### Import
 
-The address of the Maven central repository is being applied for. Now you can push to the local maven repository, and then import it in the following way.
+This project is available via Maven:
 
 ```xml
 <dependency>
-  <groupId>org.graphper</groupId>
-  <artifactId>graph-support</artifactId>
-  <version>1.0.0</version>
+    <groupId>org.graphper</groupId>
+    <artifactId>graph-support</artifactId>
+    <version>1.0.1</version>
 </dependency>
 ```
 
