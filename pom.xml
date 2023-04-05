@@ -36,6 +36,33 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Jamison Jiang</name>
+            <email>jamisongo01.jiang@gmail.com</email>
+            <organization>Sonatype</organization>
+            <organizationUrl>http://www.sonatype.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/jamisonjiang/graph-support</connection>
+        <developerConnection>scm:git:https://github.com/jamisonjiang/graph-support</developerConnection>
+        <url>https://github.com/jamisonjiang/graph-support</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <java-version>1.8</java-version>
         <compiler-version>3.6.0</compiler-version>
@@ -46,6 +73,7 @@
         <slf4j-version>1.7.32</slf4j-version>
         <junit-version>4.13.2</junit-version>
         <junit-param-version>5.8.2</junit-param-version>
+        <gpg-version>1.6</gpg-version>
         <sonatype-version>1.6.7</sonatype-version>
         <assembly-version>2.4.1</assembly-version>
         <log4j-version>1.8.0-alpha2</log4j-version>
@@ -123,6 +151,20 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${gpg-version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${source-version}</version>
                 <executions>
@@ -168,6 +210,23 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${sonatype-version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${assembly-version}</version>
             </plugin>
         </plugins>
     </build>
