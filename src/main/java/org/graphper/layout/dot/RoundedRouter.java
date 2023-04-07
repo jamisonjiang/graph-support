@@ -144,7 +144,7 @@ class RoundedRouter extends CurveFitBoxRouter {
 
     if (d1 < radian || d2 < radian) {
       MultiBezierCurve curves = Curves.fitCurves(Arrays.asList(p1, p3),
-                                                 lt != null ? Vectors.sub(p1, lt) : null,
+                                                 lt != null ? Vectors.sub(p2, lt) : null,
                                                  rt != null ? Vectors.sub(p3, rt) : null, 0);
 
       return checkFixBox(lineRouterBoxes, curves);

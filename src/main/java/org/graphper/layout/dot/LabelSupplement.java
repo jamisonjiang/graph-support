@@ -151,6 +151,9 @@ class LabelSupplement {
     removeLines.add(line);
 
     for (int i = 0; i < line.getParallelNums(); i++) {
+      if (line.isSameRank()) {
+        continue;
+      }
       DLine edge = line.parallelLine(i);
 
       DNode virtual;
