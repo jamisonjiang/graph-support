@@ -18,11 +18,10 @@ package org.graphper.layout.dot;
 
 import java.util.List;
 import java.util.function.IntPredicate;
-import org.graphper.def.FlatPoint;
-import org.graphper.def.UnfeasibleException;
 import org.graphper.def.Curves;
 import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
+import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 
 abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
@@ -119,7 +118,7 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
       ThirdOrderBezierCurve curve = curves.get(j);
 
       // Estimate number of line segments from curve curvature.
-      int segmentNum = curveLineSegmentNum(curve);
+      int segmentNum = 2;
       for (int i = boxStart; i <= boxEnd; i++) {
 
         if (i < 0 || i >= lineRouterBoxes.size()) {
@@ -277,33 +276,6 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
   private boolean approximatelyInBox(RouterBox routerBox, FlatPoint p) {
     return approximatelyInRange(routerBox.getLeftBorder(), routerBox.getRightBorder(), p.getX())
         && approximatelyInRange(routerBox.getUpBorder(), routerBox.getDownBorder(), p.getY());
-  }
-
-  private int curveLineSegmentNum(ThirdOrderBezierCurve curve) {
-    FlatPoint vector = Vectors.sub(curve.getV4(), curve.getV1());
-    FlatPoint leftTangent = Vectors.sub(curve.getV2(), curve.getV1());
-    FlatPoint rightTangent = Vectors.sub(curve.getV3(), curve.getV4());
-
-    double dist = vector.dist();
-    double curvature = ((leftTangent.dist() / dist) + (rightTangent.dist() / dist)) / 2;
-
-    FlatPoint intersection;
-    try {
-      intersection = Vectors.lineInters(curve.getV1(), curve.getV2(), curve.getV3(), curve.getV4());
-      curvature += (angleRatio(leftTangent, vector) + (leftTangent.dist() / Vectors
-          .sub(intersection, curve.getV1()).dist())) / 2;
-      curvature += (angleRatio(rightTangent, vector) + (rightTangent.dist() / Vectors
-          .sub(intersection, curve.getV4()).dist())) / 2;
-      curvature /= 3;
-    } catch (UnfeasibleException ignored) {
-    }
-
-    int n = (int) (curvature * 10);
-    return n == 0 ? 1 : n << 1;
-  }
-
-  private double angleRatio(FlatPoint v1, FlatPoint v2) {
-    return Math.abs(slopToDegree(v1) - slopToDegree(v2)) / 90;
   }
 
   private double slopToDegree(FlatPoint p) {
