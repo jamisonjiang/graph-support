@@ -17,11 +17,12 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
-import org.graphper.def.FlatPoint;
+import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.util.Asserts;
 
 /**
@@ -195,7 +196,8 @@ public class Cluster extends GraphContainer implements Serializable {
                               "Horizontal margin (" + horMargin + ") can not less than 0");
       Asserts.illegalArgument(verMargin < 0,
                               "Vertical margin (" + verMargin + ") can not less than 0");
-      clusterAttrs.margin = new FlatPoint(verMargin * Graphviz.PIXEL, horMargin * Graphviz.PIXEL);
+      clusterAttrs.margin = new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL,
+                                                  horMargin * Graphviz.PIXEL);
       return self();
     }
 
@@ -233,6 +235,69 @@ public class Cluster extends GraphContainer implements Serializable {
     public B penWidth(double penWidth) {
       Asserts.illegalArgument(penWidth < 0, "penWidth can not be less than 0");
       clusterAttrs.penWidth = penWidth;
+      return self();
+    }
+
+    /**
+     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
+     * generated {@link Table} will be in the position of the label.
+     *
+     * @param table table
+     * @return cluster builder
+     */
+    public B table(Table table) {
+      clusterAttrs.table = table;
+      return self();
+    }
+
+    /**
+     * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
+     * cluster, the program will calculate the size of the label, and then automatically put the
+     * label in the appropriate position of the cluster. If {@link Assemble} is set, assemble will
+     * be placed where the label was originally placed.
+     *
+     * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
+     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
+     * (by default, it does not automatically calculate the size of the cell according to the label
+     * of the cell), which requires the setter to completely accurate calculation of all
+     * parameters.
+     *
+     * <p>This is an example of setting two cells side by assemble.
+     * <pre>{@code
+     *     Graphviz.digraph()
+     *         .startClus()
+     *         .addNode(Node.builder().label("Node in cluster").build())
+     *         .margin(0.5, 0.5)
+     *         .assemble(
+     *             Assemble.builder()
+     *                 .width(1)
+     *                 .height(0.4)
+     *                 .addCell(0, 0,
+     *                          Node.builder()
+     *                              .width(0.5)
+     *                              .height(0.4)
+     *                              .label("LEFT")
+     *                              .build())
+     *                 .addCell(0.5, 0,
+     *                          Node.builder()
+     *                              .width(0.5)
+     *                              .height(0.4)
+     *                              .label("RIGHT")
+     *                              .build())
+     *                 .build()
+     *         )
+     *         .endClus()
+     *         .build();
+     * }
+     * </pre>
+     *
+     * @param assemble assemble
+     * @return cluster builder
+     */
+    public B assemble(Assemble assemble) {
+      clusterAttrs.assemble = assemble;
       return self();
     }
 

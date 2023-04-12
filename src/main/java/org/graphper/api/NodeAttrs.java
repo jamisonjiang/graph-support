@@ -18,7 +18,9 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeStyle;
@@ -50,6 +52,8 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   String label;
 
+  Labeljust labeljust;
+
   Labelloc labelloc;
 
   FlatPoint margin;
@@ -71,6 +75,10 @@ public class NodeAttrs implements Serializable, Cloneable {
   FlatPoint imageSize;
 
   Double penWidth;
+
+  Table table;
+
+  Assemble assemble;
 
   public NodeAttrs() {
   }
@@ -125,6 +133,10 @@ public class NodeAttrs implements Serializable, Cloneable {
     return width;
   }
 
+  public Labeljust getLabeljust() {
+    return labeljust;
+  }
+
   public Labelloc getLabelloc() {
     return labelloc;
   }
@@ -153,6 +165,14 @@ public class NodeAttrs implements Serializable, Cloneable {
     return penWidth;
   }
 
+  public Table getTable() {
+    return table;
+  }
+
+  public Assemble getAssemble() {
+    return assemble;
+  }
+
   @Override
   public NodeAttrs clone() {
     try {
@@ -171,32 +191,35 @@ public class NodeAttrs implements Serializable, Cloneable {
       return false;
     }
     NodeAttrs nodeAttrs = (NodeAttrs) o;
-    return Objects.equals(id, nodeAttrs.id) &&
-        Objects.equals(height, nodeAttrs.height) &&
-        Objects.equals(width, nodeAttrs.width) &&
-        Objects.equals(color, nodeAttrs.color) &&
-        Objects.equals(fillColor, nodeAttrs.fillColor) &&
-        Objects.equals(fontColor, nodeAttrs.fontColor) &&
-        Objects.equals(fontName, nodeAttrs.fontName) &&
-        Objects.equals(label, nodeAttrs.label) &&
-        labelloc == nodeAttrs.labelloc &&
-        Objects.equals(margin, nodeAttrs.margin) &&
-        Objects.equals(shape, nodeAttrs.shape) &&
-        Objects.equals(fixedSize, nodeAttrs.fixedSize) &&
-        Objects.equals(fontSize, nodeAttrs.fontSize) &&
-        Objects.equals(style, nodeAttrs.style) &&
-        Objects.equals(sides, nodeAttrs.sides) &&
-        Objects.equals(href, nodeAttrs.href) &&
-        Objects.equals(image, nodeAttrs.image) &&
-        Objects.equals(imageSize, nodeAttrs.imageSize) &&
-        Objects.equals(penWidth, nodeAttrs.penWidth);
+    return Objects.equals(id, nodeAttrs.id)
+        && Objects.equals(height, nodeAttrs.height)
+        && Objects.equals(width, nodeAttrs.width)
+        && Objects.equals(color, nodeAttrs.color)
+        && Objects.equals(fillColor, nodeAttrs.fillColor)
+        && Objects.equals(fontColor, nodeAttrs.fontColor)
+        && Objects.equals(fontName, nodeAttrs.fontName)
+        && Objects.equals(label, nodeAttrs.label)
+        && labeljust == nodeAttrs.labeljust
+        && labelloc == nodeAttrs.labelloc
+        && Objects.equals(margin, nodeAttrs.margin)
+        && Objects.equals(shape, nodeAttrs.shape)
+        && Objects.equals(fixedSize, nodeAttrs.fixedSize)
+        && Objects.equals(fontSize, nodeAttrs.fontSize)
+        && Objects.equals(style, nodeAttrs.style)
+        && Objects.equals(sides, nodeAttrs.sides)
+        && Objects.equals(href, nodeAttrs.href)
+        && Objects.equals(image, nodeAttrs.image)
+        && Objects.equals(imageSize, nodeAttrs.imageSize)
+        && Objects.equals(penWidth, nodeAttrs.penWidth)
+        && Objects.equals(table, nodeAttrs.table)
+        && Objects.equals(assemble, nodeAttrs.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hash(id, height, width, color, fillColor, fontColor, fontName, label, labelloc, margin,
-              shape, fixedSize, fontSize, style, sides, href, image, imageSize, penWidth);
+    return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labeljust,
+                        labelloc, margin, shape, fixedSize, fontSize, style, sides, href, image,
+                        imageSize, penWidth, table, assemble);
   }
 
   @Override
@@ -210,6 +233,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", fontColor=" + fontColor +
         ", fontName='" + fontName + '\'' +
         ", label='" + label + '\'' +
+        ", labeljust=" + labeljust +
         ", labelloc=" + labelloc +
         ", margin=" + margin +
         ", shape=" + shape +
@@ -221,6 +245,8 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", image='" + image + '\'' +
         ", imageSize=" + imageSize +
         ", penWidth=" + penWidth +
+        ", table=" + table +
+        ", assemble=" + assemble +
         '}';
   }
 }

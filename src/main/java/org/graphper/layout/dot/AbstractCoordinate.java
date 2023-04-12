@@ -169,7 +169,7 @@ abstract class AbstractCoordinate {
       }
     }
 
-    // if need flip, RankNode ranksep may be need update
+    // If need flip, RankNode ranksep may be need update
     flipUpdateRankSep();
 
     // graph container size init

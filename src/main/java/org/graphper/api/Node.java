@@ -18,16 +18,18 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
-import org.graphper.def.FlatPoint;
+import org.graphper.api.attributes.Port;
+import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
-import org.graphper.api.attributes.NodeShapeEnum;
-import org.graphper.api.attributes.Port;
 
 /**
  * Graphviz nodes.
@@ -269,7 +271,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     }
 
     /**
-     * Set the font color of cluster.
+     * Set the font color of node.
      *
      * @param fontColor font color
      * @return node builder
@@ -287,6 +289,18 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      */
     public NodeBuilder fontName(String fontName) {
       nodeAttrs.fontName = fontName;
+      return this;
+    }
+
+    /**
+     * Set the {@link Labeljust} of the node, used to control the horizontal position of the
+     * {@link NodeAttrs#getLabel()} of the node.
+     *
+     * @param labeljust labeljust to be added to this node
+     * @return node builder
+     */
+    public NodeBuilder labeljust(Labeljust labeljust) {
+      nodeAttrs.labeljust = labeljust;
       return this;
     }
 
@@ -326,7 +340,8 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
                               "Horizontal margin (" + horMargin + ") can not less than 0");
       Asserts.illegalArgument(verMargin < 0,
                               "Vertical margin (" + verMargin + ") can not less than 0");
-      nodeAttrs.margin = new FlatPoint(verMargin * Graphviz.PIXEL, horMargin * Graphviz.PIXEL);
+      nodeAttrs.margin = new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL,
+                                               horMargin * Graphviz.PIXEL);
       return this;
     }
 
@@ -370,8 +385,8 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
 
     /**
      * Set the number of sides of the node's polygon. When the shape of the node is
-     * {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute to
-     * control the number of polygons, at least 4 sides are required, and no more than 20 sides.
+     * {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute to control the number of polygons,
+     * at least 4 sides are required, and no more than 20 sides.
      *
      * @param sides the number of sides of the node's polygon
      * @return node builder
@@ -421,7 +436,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     public NodeBuilder imageSize(double height, double width) {
       Asserts.illegalArgument(height <= 0, "Image height can not less than 0");
       Asserts.illegalArgument(width <= 0, "Image width can not less than 0");
-      nodeAttrs.imageSize = new FlatPoint(height * Graphviz.PIXEL, width * Graphviz.PIXEL);
+      nodeAttrs.imageSize = new UnmodifyFlatPoint(height * Graphviz.PIXEL, width * Graphviz.PIXEL);
       return this;
     }
 
@@ -430,11 +445,75 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      *
      * @param penWidth border width
      * @return node builder
-     * @throws IllegalArgumentException pen width less than 0 or equals to 0
+     * @throws IllegalArgumentException pen width less than 0
      */
     public NodeBuilder penWidth(double penWidth) {
-      Asserts.illegalArgument(penWidth <= 0, "penWidth must be greater than 0");
+      Asserts.illegalArgument(penWidth < 0, "penWidth can not be less than 0");
       nodeAttrs.penWidth = penWidth;
+      return this;
+    }
+
+    /**
+     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
+     * generated {@link Table} will be in the position of the label.
+     *
+     * @param table table
+     * @return node builder
+     */
+    public NodeBuilder table(Table table) {
+      Asserts.nullArgument(table, "table");
+      nodeAttrs.table = table;
+      return this;
+    }
+
+    /**
+     * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
+     * node, the program will calculate the size of the label, and then automatically put the label
+     * in the appropriate position of the node. If {@link Assemble} is set, assemble will be placed
+     * where the label was originally placed.
+     *
+     * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
+     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
+     * (by default, it does not automatically calculate the size of the cell according to the label
+     * of the cell), which requires the setter to completely accurate calculation of all
+     * parameters.
+     *
+     * <p>This is an example of setting two cells side by assemble.
+     * <pre>{@code
+     *    Graphviz.digraph()
+     *         .addNode(
+     *             Node.builder()
+     *                 .assemble(
+     *                     Assemble.builder()
+     *                         .width(1)
+     *                         .height(0.4)
+     *                         .addCell(0, 0,
+     *                                  Node.builder()
+     *                                      .width(0.5)
+     *                                      .height(0.4)
+     *                                      .label("LEFT")
+     *                                      .build())
+     *                         .addCell(0.5, 0,
+     *                                  Node.builder()
+     *                                      .width(0.5)
+     *                                      .height(0.4)
+     *                                      .label("RIGHT")
+     *                                      .build())
+     *                         .build()
+     *                 )
+     *                 .build()
+     *         )
+     *         .build();
+     * }
+     * </pre>
+     *
+     * @param assemble assemble
+     * @return node builder
+     */
+    public NodeBuilder assemble(Assemble assemble) {
+      nodeAttrs.assemble = assemble;
       return this;
     }
 

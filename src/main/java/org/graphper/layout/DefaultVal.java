@@ -51,6 +51,20 @@ class DefaultVal {
       .nodeAttrs();
 
   /**
+   * The default value of the node cell.
+   */
+  static final NodeAttrs DEFAULT_CELL_ATTRS = Node
+      .builder()
+      .shape(NodeShapeEnum.RECT)
+      .margin(0.1, 0.1)
+      .labelloc(Labelloc.CENTER)
+      .fontSize(12)
+      .fixedSize(true)
+      .fontColor(Color.BLACK)
+      .build()
+      .nodeAttrs();
+
+  /**
    * The default value of the line. This default value will be used when the line has not manually
    * set the corresponding attribute, and there is no corresponding value set by any line template.
    */

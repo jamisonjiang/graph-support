@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
@@ -58,6 +59,10 @@ public class ClusterAttrs implements Serializable, Cloneable {
   String href;
 
   double penWidth = 1;
+
+  Table table;
+
+  Assemble assemble;
 
   public String getId() {
     return id;
@@ -111,6 +116,14 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return penWidth;
   }
 
+  public Table getTable() {
+    return table;
+  }
+
+  public Assemble getAssemble() {
+    return assemble;
+  }
+
   @Override
   public ClusterAttrs clone() {
     try {
@@ -132,20 +145,24 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return Double.compare(that.fontSize, fontSize) == 0
         && Double.compare(that.penWidth, penWidth) == 0
         && Objects.equals(id, that.id)
-        && Objects.equals(label, that.label) && labelloc == that.labelloc
-        && labeljust == that.labeljust && Objects.equals(style, that.style)
+        && Objects.equals(label, that.label)
+        && labelloc == that.labelloc
+        && labeljust == that.labeljust
+        && Objects.equals(style, that.style)
         && Objects.equals(bgColor, that.bgColor)
         && Objects.equals(color, that.color)
         && Objects.equals(fontColor, that.fontColor)
         && Objects.equals(fontName, that.fontName)
-        && Objects.equals(margin, that.margin) && Objects.equals(href, that.href);
+        && Objects.equals(margin, that.margin)
+        && Objects.equals(href, that.href)
+        && Objects.equals(table, that.table)
+        && Objects.equals(assemble, that.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, label, labelloc, labeljust, style,
-                        bgColor, color, fontColor, fontName,
-                        margin, fontSize, href, penWidth);
+    return Objects.hash(id, label, labelloc, labeljust, style, bgColor, color, fontColor, fontName,
+                        margin, fontSize, href, penWidth, table, assemble);
   }
 
   @Override
@@ -164,6 +181,8 @@ public class ClusterAttrs implements Serializable, Cloneable {
         ", fontSize=" + fontSize +
         ", href='" + href + '\'' +
         ", penWidth=" + penWidth +
+        ", table=" + table +
+        ", assemble=" + assemble +
         '}';
   }
 }

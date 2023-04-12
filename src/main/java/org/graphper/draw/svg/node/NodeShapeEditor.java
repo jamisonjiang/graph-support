@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.Assemble;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.ext.CylinderPropCalc;
@@ -34,8 +35,8 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
-import org.graphper.layout.CellLabelCompiler.LabelCell;
-import org.graphper.layout.CellLabelCompiler.RootCell;
+import org.graphper.layout.Cell;
+import org.graphper.layout.Cell.RootCell;
 import org.graphper.api.attributes.NodeShapeEnum;
 
 public class NodeShapeEditor extends AbstractNodeShapeEditor {
@@ -284,8 +285,8 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private void record(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean radianCorner) {
-    RootCell labelCell = nodeDrawProp.getLabelCell();
-    if (labelCell == null) {
+    RootCell Cell = nodeDrawProp.getCell();
+    if (Cell == null) {
       return;
     }
 
@@ -301,15 +302,17 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       border.setAttribute(SvgConstants.POINTS, SvgEditor.generateBox(nodeDrawProp));
     }
 
-    List<Element> cellElements = new ArrayList<>(labelCell.childrenSize());
+    List<Element> cellElements = new ArrayList<>(Cell.childrenSize());
     cellElements.add(border);
 
-    // Draw cell
-    record(nodeDrawProp, labelCell, brush, nodeId, new int[]{1}, cellElements);
+    if (!nodeDrawProp.haveChildrenCell()) {
+      // Draw cell
+      record(nodeDrawProp, Cell, brush, nodeId, new int[]{1}, cellElements);
+    }
     brush.addGroup(SvgConstants.SHAPE_GROUP_KEY, cellElements);
   }
 
-  private void record(NodeDrawProp nodeDrawProp, LabelCell cell, SvgBrush brush,
+  private void record(NodeDrawProp nodeDrawProp, Cell cell, SvgBrush brush,
                       String nodeId, int[] cellNo, List<Element> cellElements) {
     if (cell.isLeaf()) {
       return;
@@ -317,7 +320,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
     int no = ++cellNo[0];
     for (int i = 0; i < cell.childrenSize(); i++) {
-      LabelCell child = cell.getChild(i);
+      Cell child = cell.getChild(i);
       record(nodeDrawProp, child, brush, nodeId, cellNo, cellElements);
 
       // Get the leftUp position by offset
@@ -348,7 +351,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     return SvgEditor.roundedBox(RecordPropCalc.CORNER_LEN, nodeDrawProp);
   }
 
-  private void setRecordSplitEle(String cellId, LabelCell parent, LabelCell child, SvgBrush brush,
+  private void setRecordSplitEle(String cellId, Cell parent, Cell child, SvgBrush brush,
                                  double upBorder, double leftBorder, List<Element> cellElements) {
     double cellRightBorder = leftBorder + child.getWidth();
     Element cellEle = brush.getOrCreateChildElementById(cellId, SvgConstants.PATH_ELE);
@@ -384,7 +387,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
                                      nodeAttrs.getFontColor(), nodeAttrs.getFontName(), lineConsumer));
   }
 
-  private boolean needIgnoreDrawSplit(int idx, int size, LabelCell current) {
+  private boolean needIgnoreDrawSplit(int idx, int size, Cell current) {
     return (current.isHor() && idx == size - 1) || (!current.isHor() && idx == 0);
   }
 }

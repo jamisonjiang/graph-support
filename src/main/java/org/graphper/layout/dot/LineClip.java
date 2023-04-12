@@ -19,6 +19,7 @@ package org.graphper.layout.dot;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import org.graphper.layout.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.graphper.def.FlatPoint;
@@ -45,8 +46,7 @@ import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.CellLabelCompiler.LabelCell;
-import org.graphper.layout.CellLabelCompiler.RootCell;
+import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.LabelSizeHelper;
 
 public abstract class LineClip {
@@ -126,7 +126,7 @@ public abstract class LineClip {
       if (clusterDrawProp != null) {
         path = pathClip.clusterClip(clusterDrawProp, path);
       } else {
-        path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp), path, true);
+        path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp, true), path, true);
       }
     }
 
@@ -146,7 +146,7 @@ public abstract class LineClip {
         if (clusterDrawProp != null) {
           path = pathClip.clusterClip(clusterDrawProp, path);
         } else {
-          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp), path, false);
+          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp, false), path, false);
         }
       }
     }
@@ -543,17 +543,15 @@ public abstract class LineClip {
     return new FlatPoint(startPoint.getX() + labelSize.getWidth() * distRatio, startPoint.getY());
   }
 
-  private ShapePosition getClipShapePosition(LineDrawProp line, NodeDrawProp node) {
-    if (node.getLabelCell() == null) {
+  private ShapePosition getClipShapePosition(LineDrawProp line, NodeDrawProp node, boolean isTail) {
+    if (node.getCell() == null) {
       return node;
     }
 
     String cellId = null;
-    if (node.getNode() == line.getLine().tail()) {
+    if (isTail) {
       cellId = line.lineAttrs().getTailCell();
-    }
-
-    if (node.getNode() == line.getLine().head()) {
+    } else {
       cellId = line.lineAttrs().getHeadCell();
     }
 
@@ -561,8 +559,8 @@ public abstract class LineClip {
       return node;
     }
 
-    RootCell labelCell = node.getLabelCell();
-    LabelCell cell = labelCell.getCellById(cellId);
+    RootCell Cell = node.getCell();
+    Cell cell = Cell.getCellById(cellId);
     if (cell == null) {
       return node;
     }

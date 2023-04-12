@@ -19,6 +19,7 @@ package org.graphper.api;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
@@ -87,6 +88,10 @@ public class LineAttrs implements Serializable, Cloneable {
   String href;
 
   Double penWidth;
+
+  Table table;
+
+  Assemble assemble;
 
   LineAttrs() {
   }
@@ -199,6 +204,14 @@ public class LineAttrs implements Serializable, Cloneable {
     return headCell;
   }
 
+  public Table getTable() {
+    return table;
+  }
+
+  public Assemble getAssemble() {
+    return assemble;
+  }
+
   @Override
   public LineAttrs clone() {
     try {
@@ -217,28 +230,34 @@ public class LineAttrs implements Serializable, Cloneable {
       return false;
     }
     LineAttrs lineAttrs = (LineAttrs) o;
-    return Objects.equals(id, lineAttrs.id) && Objects.equals(controlPoints,
-                                                              lineAttrs.controlPoints)
+    return Objects.equals(id, lineAttrs.id)
+        && Objects.equals(controlPoints, lineAttrs.controlPoints)
         && Objects.equals(showboxes, lineAttrs.showboxes)
-        && arrowHead == lineAttrs.arrowHead && arrowTail == lineAttrs.arrowTail
-        && Objects.equals(arrowSize, lineAttrs.arrowSize) && Objects.equals(color,
-                                                                            lineAttrs.color)
-        && dir == lineAttrs.dir && Objects.equals(fontColor, lineAttrs.fontColor)
-        && Objects.equals(fontSize, lineAttrs.fontSize) && Objects.equals(
-        fontName, lineAttrs.fontName) && Objects.equals(headclip, lineAttrs.headclip)
-        && Objects.equals(tailclip, lineAttrs.tailclip) && Objects.equals(minlen,
-                                                                          lineAttrs.minlen)
-        && Objects.equals(weight, lineAttrs.weight) && Objects.equals(label,
-                                                                      lineAttrs.label)
-        && Objects.equals(style, lineAttrs.style) && Objects.equals(lhead,
-                                                                    lineAttrs.lhead)
-        && Objects.equals(ltail, lineAttrs.ltail) && Objects.equals(radian,
-                                                                    lineAttrs.radian)
+        && arrowHead == lineAttrs.arrowHead
+        && arrowTail == lineAttrs.arrowTail
+        && Objects.equals(arrowSize, lineAttrs.arrowSize)
+        && Objects.equals(color, lineAttrs.color)
+        && dir == lineAttrs.dir
+        && Objects.equals(fontColor, lineAttrs.fontColor)
+        && Objects.equals(fontSize, lineAttrs.fontSize)
+        && Objects.equals(fontName, lineAttrs.fontName)
+        && Objects.equals(headclip, lineAttrs.headclip)
+        && Objects.equals(tailclip, lineAttrs.tailclip)
+        && Objects.equals(minlen, lineAttrs.minlen)
+        && Objects.equals(weight, lineAttrs.weight)
+        && Objects.equals(label, lineAttrs.label)
+        && Objects.equals(style, lineAttrs.style)
+        && Objects.equals(lhead, lineAttrs.lhead)
+        && Objects.equals(ltail, lineAttrs.ltail)
+        && Objects.equals(radian, lineAttrs.radian)
         && Arrays.equals(floatLabels, lineAttrs.floatLabels)
         && tailPort == lineAttrs.tailPort && headPort == lineAttrs.headPort
-        && Objects.equals(tailCell, lineAttrs.tailCell) && Objects.equals(
-        headCell, lineAttrs.headCell) && Objects.equals(href, lineAttrs.href)
-        && Objects.equals(penWidth, lineAttrs.penWidth);
+        && Objects.equals(tailCell, lineAttrs.tailCell)
+        && Objects.equals(headCell, lineAttrs.headCell)
+        && Objects.equals(href, lineAttrs.href)
+        && Objects.equals(penWidth, lineAttrs.penWidth)
+        && Objects.equals(table, lineAttrs.table)
+        && Objects.equals(assemble, lineAttrs.assemble);
   }
 
   @Override
@@ -246,7 +265,7 @@ public class LineAttrs implements Serializable, Cloneable {
     int result = Objects.hash(id, controlPoints, showboxes, arrowHead, arrowTail, arrowSize, color,
                               dir, fontColor, fontSize, fontName, headclip, tailclip, minlen,
                               weight, label, style, lhead, ltail, radian, tailPort, headPort,
-                              tailCell, headCell, href, penWidth);
+                              tailCell, headCell, href, penWidth, table, assemble);
     result = 31 * result + Arrays.hashCode(floatLabels);
     return result;
   }
@@ -281,6 +300,8 @@ public class LineAttrs implements Serializable, Cloneable {
         ", headCell='" + headCell + '\'' +
         ", href='" + href + '\'' +
         ", penWidth=" + penWidth +
+        ", table=" + table +
+        ", assemble=" + assemble +
         '}';
   }
 }

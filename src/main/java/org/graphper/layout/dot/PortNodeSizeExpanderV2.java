@@ -28,8 +28,8 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.CellLabelCompiler.LabelCell;
-import org.graphper.layout.CellLabelCompiler.RootCell;
+import org.graphper.layout.Cell;
+import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -267,8 +267,8 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     refreshVolume(labelCenter.getX() + halfWidth, labelCenter.getY() + halfHeight);
   }
 
-  private LabelCell getCell(NodeDrawProp nodeDrawProp, String cellId) {
-    RootCell rootCell = nodeDrawProp.getLabelCell();
+  private Cell getCell(NodeDrawProp nodeDrawProp, String cellId) {
+    RootCell rootCell = nodeDrawProp.getCell();
     if (rootCell == null) {
       return null;
     }
@@ -290,8 +290,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     groupKey.tailCell = getCell(nodeDrawProp, tailCell);
     groupKey.headCell = getCell(nodeDrawProp, headCell);
 
-    groupKey.tailPoint = PortHelper.endPoint(tailCell, tailPort,
-                                             node.getNode(), drawGraph, node);
+    groupKey.tailPoint = PortHelper.endPoint(tailCell, tailPort, node.getNode(), drawGraph, node);
     if (groupKey.samePoint()) {
       groupKey.headPoint = groupKey.tailPoint;
     } else {
@@ -426,9 +425,9 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
     private Port headPort;
 
-    private LabelCell tailCell;
+    private Cell tailCell;
 
-    private LabelCell headCell;
+    private Cell headCell;
 
     private FlatPoint tailPoint;
 

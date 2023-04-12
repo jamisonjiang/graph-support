@@ -20,7 +20,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import org.graphper.def.BiConcatIterable;
 import org.graphper.util.Asserts;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
@@ -53,8 +55,8 @@ public class DrawGraph extends Rectangle implements Serializable {
   public DrawGraph(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphvizDrawProp = new GraphvizDrawProp(graphviz);
-    this.nodeDrawPropMap = new HashMap<>(graphviz.nodeNum());
-    this.lineDrawPropMap = new HashMap<>(graphviz.lineNum());
+    this.nodeDrawPropMap = new LinkedHashMap<>();
+    this.lineDrawPropMap = new LinkedHashMap<>();
   }
 
   public void nodePut(Node node, NodeDrawProp nodeDrawProp) {
@@ -102,7 +104,14 @@ public class DrawGraph extends Rectangle implements Serializable {
     return graphvizDrawProp;
   }
 
-  public Collection<NodeDrawProp> nodes() {
+  public Iterable<NodeDrawProp> nodes() {
+    return nodes(false);
+  }
+
+  public Iterable<NodeDrawProp> nodes(boolean filterCell) {
+    if (filterCell) {
+      return new BiConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());
+    }
     return nodeDrawPropMap.values();
   }
 

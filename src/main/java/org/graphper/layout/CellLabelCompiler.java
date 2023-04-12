@@ -25,9 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.CharUtils;
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.ext.Box;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.Vectors;
+import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.CollectionUtils;
 import org.graphper.api.attributes.NodeShapeEnum;
 
@@ -86,7 +85,7 @@ public class CellLabelCompiler {
 
   private final boolean defaultHor;
 
-  private RootCell labelCell;
+  private RootCell Cell;
 
   private CellLabelCompiler(String label, String fontName, double fontSize,
                             FlatPoint margin, FlatPoint minCellSize, boolean defaultHor) {
@@ -103,7 +102,7 @@ public class CellLabelCompiler {
   }
 
   /**
-   * Compile the label of the cell type and convert it into an {@link LabelCell} object with a tree
+   * Compile the label of the cell type and convert it into an {@link Cell} object with a tree
    * structure. The initial default split direction is horizontal.Nodes with common nodes in the
    * tree split the same cell, and each nesting of nodes means the conversion of the split
    * direction.
@@ -117,7 +116,7 @@ public class CellLabelCompiler {
   }
 
   /**
-   * Compile the label of the cell type and convert it into an {@link LabelCell} object with a tree
+   * Compile the label of the cell type and convert it into an {@link Cell} object with a tree
    * structure. Set an initial default split direction (horizontal or vertical).Nodes with common
    * nodes in the tree split the same cell, and each nesting of nodes means the conversion of the
    * split direction.
@@ -132,7 +131,7 @@ public class CellLabelCompiler {
   }
 
   /**
-   * Compile the label of the cell type and convert it into an {@link LabelCell} object with a tree
+   * Compile the label of the cell type and convert it into an {@link Cell} object with a tree
    * structure. Set an initial default split direction (horizontal or vertical).Nodes with common
    * nodes in the tree split the same cell, and each nesting of nodes means the conversion of the
    * split direction.
@@ -150,18 +149,18 @@ public class CellLabelCompiler {
                                  FlatPoint margin, FlatPoint minCellSize, boolean defaultVer)
       throws LabelFormatException {
     return new CellLabelCompiler(label, fontName, fontSize, margin,
-                                 minCellSize, defaultVer).labelCell;
+                                 minCellSize, defaultVer).Cell;
   }
 
   private RootCell init() throws LabelFormatException {
-    if (labelCell != null) {
-      return labelCell;
+    if (Cell != null) {
+      return Cell;
     }
 
     List<LabelToken> tokens = tokenizer(label);
     LabelAstNode ast = generateAstNodes(tokens);
-    initLabelCell(ast);
-    return labelCell;
+    initCell(ast);
+    return Cell;
   }
 
   private List<LabelToken> tokenizer(String label) {
@@ -248,7 +247,7 @@ public class CellLabelCompiler {
         // Liquidation label token
         addLabelToken(labelAppend, tokens);
         // If the previous one is |, add an empty label token
-        if (lastIsSplit(tokens)) {
+        if (lastIsSplitOrIdRight(tokens)) {
           tokens.add(new LabelToken(TEXT, null));
         }
         tokens.add(new LabelToken(PARENT, CharUtils.RIGHT_BRACE));
@@ -450,7 +449,7 @@ public class CellLabelCompiler {
     return null;
   }
 
-  private void initLabelCell(LabelAstNode ast) {
+  private void initCell(LabelAstNode ast) {
     // AST legal check
     expressAccess(ast, 0, null);
 
@@ -458,7 +457,7 @@ public class CellLabelCompiler {
     LabelAstNode pre = null;
     double maxWidth = 0;
     double maxHeight = 0;
-    this.labelCell = new RootCell(defaultHor);
+    this.Cell = new RootCell(defaultHor);
     TableAlign tableSizeAlign = null;
     if (tableAlign) {
       tableSizeAlign = new TableAlign();
@@ -469,7 +468,7 @@ public class CellLabelCompiler {
         throw newFormatError();
       }
 
-      LabelCell c = accessNode(labelCell, pre, (LabelAstNode) node, tableSizeAlign);
+      Cell c = accessNode(Cell, pre, (LabelAstNode) node, tableSizeAlign);
       pre = (LabelAstNode) node;
 
       if (c != null) {
@@ -478,7 +477,7 @@ public class CellLabelCompiler {
       }
     }
 
-    postSizeHandle(tableSizeAlign, labelCell, maxWidth, maxHeight);
+    postSizeHandle(tableSizeAlign, Cell, maxWidth, maxHeight);
 
     alignMinSize(tableSizeAlign);
   }
@@ -487,14 +486,14 @@ public class CellLabelCompiler {
     double widthIncr = 0;
     double heightIncr = 0;
     if (minCellSize != null) {
-      widthIncr = minCellSize.getWidth() - labelCell.getWidth();
-      heightIncr = minCellSize.getHeight() - labelCell.getHeight();
+      widthIncr = minCellSize.getWidth() - Cell.getWidth();
+      heightIncr = minCellSize.getHeight() - Cell.getHeight();
     }
 
-    alignMinSize(tableSizeAlign, labelCell, widthIncr, heightIncr, labelCell.offset);
+    alignMinSize(tableSizeAlign, Cell, widthIncr, heightIncr, Cell.offset);
   }
 
-  private void alignMinSize(TableAlign tableSizeAlign, LabelCell cell,
+  private void alignMinSize(TableAlign tableSizeAlign, Cell cell,
                             double widthIncr, double heightIncr, FlatPoint offset) {
     if (tableSizeAlign != null) {
       FlatPoint sizeAdded = tableSizeAlign.getSizeAdded(cell);
@@ -516,7 +515,7 @@ public class CellLabelCompiler {
     }
 
     double childAlignSize = 0;
-    for (LabelCell child : cell.getChildren()) {
+    for (Cell child : cell.getChildren()) {
       if (cell.isHor()) {
         childAlignSize += getCellHeight(tableSizeAlign, child);
       } else {
@@ -533,7 +532,7 @@ public class CellLabelCompiler {
     }
 
     double axisOffset = 0;
-    for (LabelCell child : cell.getChildren()) {
+    for (Cell child : cell.getChildren()) {
       FlatPoint childOffset;
       if (cell.isHor()) {
         childOffset = new FlatPoint(offset.getX(), offset.getY() + axisOffset);
@@ -552,7 +551,7 @@ public class CellLabelCompiler {
     }
   }
 
-  private LabelCell accessNode(LabelCell current, LabelAstNode pre,
+  private Cell accessNode(Cell current, LabelAstNode pre,
                                LabelAstNode node, TableAlign tableSizeAlign) {
     if (CollectionUtils.isEmpty(node.params)) {
       throw newFormatError();
@@ -562,11 +561,11 @@ public class CellLabelCompiler {
       return null;
     }
 
-    LabelCell c = new LabelCell(!current.isHor);
+    Cell c = new Cell(!current.isHor);
     if (pre != null && pre.isId() && node.isText()) {
       c.id = pre.getIdValue();
       if (StringUtils.isNotEmpty(c.id)) {
-        labelCell.put(c.id, c);
+        Cell.put(c.id, c);
       }
     }
 
@@ -587,21 +586,21 @@ public class CellLabelCompiler {
     }
 
     postSizeHandle(tableSizeAlign, c, maxWidth, maxHeight);
-    current.addChild(c, tableSizeAlign);
+    addChild(current, c, tableSizeAlign);
     return c;
   }
 
-  private void postSizeHandle(TableAlign tableSizeAlign, LabelCell cell,
+  private void postSizeHandle(TableAlign tableSizeAlign, Cell cell,
                               double maxWidth, double maxHeight) {
     // Align the size in same level
     if (tableSizeAlign != null) {
       tableSizeAlign.clearChildCellRecord();
     }
 
-    for (LabelCell child : cell.getChildren()) {
+    for (Cell child : cell.getChildren()) {
       if (tableSizeAlign != null) {
         for (int i = 0; i < child.childrenSize(); i++) {
-          LabelCell cc = child.getChild(i);
+          Cell cc = child.getChild(i);
           double sideLen = cc.isHor
               ? getCellWidth(tableSizeAlign, cc)
               : getCellHeight(tableSizeAlign, cc);
@@ -623,11 +622,11 @@ public class CellLabelCompiler {
 
     double width = 0;
     double height = 0;
-    for (LabelCell child : cell.getChildren()) {
+    for (Cell child : cell.getChildren()) {
       double childWidth = 0;
       double childHeight = 0;
       for (int i = 0; i < child.childrenSize(); i++) {
-        LabelCell cc = child.getChild(i);
+        Cell cc = child.getChild(i);
         double max = tableSizeAlign.getChildCellMax(child.childrenSize(), i);
         if (cc.isHor()) {
           tableSizeAlign.addWidth(cc, max - cc.width);
@@ -654,7 +653,7 @@ public class CellLabelCompiler {
     cell.width = Math.max(cell.width, width);
   }
 
-  private void setCellSize(LabelCell c) {
+  private void setCellSize(Cell c) {
     FlatPoint size;
     if (StringUtils.isEmpty(c.label)) {
       size = DEFAULT_SIZE.clone();
@@ -752,6 +751,27 @@ public class CellLabelCompiler {
     return sb.length() == 0;
   }
 
+  private void addChild(Cell parent, Cell child, TableAlign tableAlign) {
+    if (child == null) {
+      return;
+    }
+    if (parent.children == null) {
+      parent.children = new ArrayList<>(2);
+    }
+    child.parent = parent;
+    parent.children.add(child);
+
+    double w = getCellWidth(tableAlign, child);
+    double h = getCellHeight(tableAlign, child);
+    if (child.isHor) {
+      parent.width += w;
+      parent.height = Math.max(h, parent.height);
+    } else {
+      parent.height += h;
+      parent.width = Math.max(w, parent.width);
+    }
+  }
+
   private boolean nextIsLabel(List<Object> params, int idx) {
     Object next = nextParam(params, idx);
     if (!(next instanceof LabelAstNode)) {
@@ -761,19 +781,19 @@ public class CellLabelCompiler {
   }
 
   private boolean preIsIdExpress(List<Object> params, int idx) {
-    Object next = preParam(params, idx);
-    if (!(next instanceof LabelAstNode)) {
+    Object pre = preParam(params, idx);
+    if (!(pre instanceof LabelAstNode)) {
       return false;
     }
-    return ((LabelAstNode) next).isId();
+    return ((LabelAstNode) pre).isId();
   }
 
   private boolean preIsSplit(List<Object> params, int idx) {
-    Object next = preParam(params, idx);
-    if (!(next instanceof LabelAstNode)) {
+    Object pre = preParam(params, idx);
+    if (!(pre instanceof LabelAstNode)) {
       return false;
     }
-    return ((LabelAstNode) next).isSplit();
+    return ((LabelAstNode) pre).isSplit();
   }
 
   private boolean nextIsSplit(List<Object> params, int idx) {
@@ -820,6 +840,10 @@ public class CellLabelCompiler {
 
   private boolean needFillNoneLabel(List<LabelToken> tokens) {
     return lastIsLeft(tokens) || lastIsSplit(tokens) || lastIsIdRight(tokens);
+  }
+
+  public boolean lastIsSplitOrIdRight(List<LabelToken> tokens) {
+    return lastIsSplit(tokens) || lastIsIdRight(tokens);
   }
 
   private boolean lastIsSplit(List<LabelToken> tokens) {
@@ -874,7 +898,7 @@ public class CellLabelCompiler {
     return sb.charAt(lastIdx(sb)) == CharUtils.SPACE;
   }
 
-  private static double getCellWidth(TableAlign tableSizeAlign, LabelCell cell) {
+  private static double getCellWidth(TableAlign tableSizeAlign, Cell cell) {
     if (tableSizeAlign == null) {
       return cell.getWidth();
     }
@@ -882,154 +906,12 @@ public class CellLabelCompiler {
     return cell.getWidth() + tableSizeAlign.widthAdded(cell);
   }
 
-  private static double getCellHeight(TableAlign tableSizeAlign, LabelCell cell) {
+  private static double getCellHeight(TableAlign tableSizeAlign, Cell cell) {
     if (tableSizeAlign == null) {
       return cell.getHeight();
     }
 
     return cell.getHeight() + tableSizeAlign.heightAdded(cell);
-  }
-
-  // ------------------------------------------------- public static class -------------------------------------------------
-  public static class LabelCell {
-
-    private final boolean isHor;
-
-    private String id;
-
-    private String label;
-
-    private double width;
-
-    private double height;
-
-    protected FlatPoint offset;
-
-    private LabelCell parent;
-
-    private List<LabelCell> children;
-
-    public LabelCell(boolean isHor) {
-      this.isHor = isHor;
-    }
-
-    public boolean isHor() {
-      return isHor;
-    }
-
-    public String getId() {
-      return id;
-    }
-
-    public String getLabel() {
-      return label;
-    }
-
-    public FlatPoint getOffset() {
-      return offset;
-    }
-
-    public double getWidth() {
-      return width;
-    }
-
-    public double getHeight() {
-      return height;
-    }
-
-    public LabelCell getParent() {
-      return parent;
-    }
-
-    public int childrenSize() {
-      if (children == null) {
-        return 0;
-      }
-      return children.size();
-    }
-
-    public LabelCell getChild(int i) {
-      if (children == null) {
-        return null;
-      }
-      if (i < 0 || i >= children.size()) {
-        return null;
-      }
-      return children.get(i);
-    }
-
-    public List<LabelCell> getChildren() {
-      if (CollectionUtils.isEmpty(children)) {
-        return Collections.emptyList();
-      }
-      return Collections.unmodifiableList(children);
-    }
-
-    void addChild(LabelCell child, TableAlign tableAlign) {
-      if (child == null) {
-        return;
-      }
-      if (children == null) {
-        children = new ArrayList<>(2);
-      }
-      child.parent = this;
-      children.add(child);
-
-      double w = getCellWidth(tableAlign, child);
-      double h = getCellHeight(tableAlign, child);
-      if (child.isHor) {
-        width += w;
-        height = Math.max(h, height);
-      } else {
-        height += h;
-        width = Math.max(w, width);
-      }
-    }
-
-    public boolean isLeaf() {
-      return CollectionUtils.isEmpty(children);
-    }
-
-    public FlatPoint getCenter(Box box) {
-      if (box == null || offset == null) {
-        return new FlatPoint(width / 2, height / 2);
-      }
-
-      double upBorder = box.getUpBorder();
-      double leftBorder = box.getLeftBorder();
-      upBorder += offset.getY();
-      leftBorder += offset.getX();
-      return new FlatPoint(leftBorder + width / 2, upBorder + height / 2);
-    }
-  }
-
-  public static class RootCell extends LabelCell {
-
-    private Map<String, LabelCell> idRecord;
-
-    private RootCell(boolean isHor) {
-      super(isHor);
-      this.offset = Vectors.ZERO;
-    }
-
-    void put(String id, LabelCell cell) {
-      if (StringUtils.isEmpty(id) || cell == null) {
-        return;
-      }
-
-      if (idRecord == null) {
-        idRecord = new HashMap<>(2);
-      }
-      idRecord.put(id, cell);
-    }
-
-    public LabelCell getCellById(String id) {
-      if (idRecord == null) {
-        return null;
-      }
-
-      return idRecord.get(id);
-    }
   }
 
   // ------------------------------------------------- private static class -------------------------------------------------
@@ -1087,7 +969,7 @@ public class CellLabelCompiler {
       return type == SPLIT;
     }
 
-    boolean isExpress() {
+    boolean  isExpress() {
       return type == PARENT;
     }
 
@@ -1128,28 +1010,28 @@ public class CellLabelCompiler {
 
   private static class TableAlign {
 
-    private Map<LabelCell, FlatPoint> sizeAddedRecord;
+    private Map<Cell, FlatPoint> sizeAddedRecord;
 
     private Map<Integer, List<Double>> childCellMaxRecord;
 
-    private double widthAdded(LabelCell cell) {
+    private double widthAdded(Cell cell) {
       FlatPoint sizeAdded = getSizeAdded(cell);
       return sizeAdded != null ? sizeAdded.getWidth() : 0;
     }
 
-    private double heightAdded(LabelCell cell) {
+    private double heightAdded(Cell cell) {
       FlatPoint sizeAdded = getSizeAdded(cell);
       return sizeAdded != null ? sizeAdded.getHeight() : 0;
     }
 
-    private FlatPoint getSizeAdded(LabelCell cell) {
+    private FlatPoint getSizeAdded(Cell cell) {
       if (sizeAddedRecord == null) {
         return null;
       }
       return sizeAddedRecord.get(cell);
     }
 
-    private void addHeight(LabelCell cell, double heightAdded) {
+    private void addHeight(Cell cell, double heightAdded) {
       if (sizeAddedRecord == null) {
         sizeAddedRecord = new HashMap<>(2);
       }
@@ -1161,7 +1043,7 @@ public class CellLabelCompiler {
       added.setHeight(added.getHeight() + heightAdded);
     }
 
-    private void addWidth(LabelCell cell, double widthAdded) {
+    private void addWidth(Cell cell, double widthAdded) {
       if (sizeAddedRecord == null) {
         sizeAddedRecord = new HashMap<>(2);
       }

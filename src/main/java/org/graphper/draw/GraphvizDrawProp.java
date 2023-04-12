@@ -19,6 +19,7 @@ package org.graphper.draw;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.graphper.api.Assemble;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.OrthoVisGraph.Segment;
@@ -42,6 +43,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   public GraphvizDrawProp(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphviz = graphviz;
+    convertTable(graphviz.graphAttrs().getTable());
   }
 
   /**
@@ -70,6 +72,11 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   @Override
   protected String containerId() {
     return graphviz.id();
+  }
+
+  @Override
+  protected Assemble assemble() {
+    return graphviz.graphAttrs().getAssemble();
   }
 
   /**

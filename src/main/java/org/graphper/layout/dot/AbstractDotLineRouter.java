@@ -227,7 +227,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
    * curve to ensure that the curve fits the specified shape.
    *
    * @param shapePosition shape position information
-   * @param bezierCurve   the curve to be clip
+   * @param bezierCurve   the curve to be clipped
    * @return curve after clip
    */
   public static ThirdOrderBezierCurve besselCurveClipShape(ShapePosition shapePosition,

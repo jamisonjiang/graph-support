@@ -115,10 +115,6 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
     Asserts.nullArgument(id, "id");
     Asserts.nullArgument(element, "element");
     Asserts.illegalArgument(Objects.equals(oldId, id), "The id equals to oldKey");
-    SvgElement svgElement = elementMap.get(id);
-    if (svgElement != null) {
-      throw new IllegalArgumentException("Id was occupied");
-    }
 
     elementMap.put(id, element);
     if (oldId != null) {
