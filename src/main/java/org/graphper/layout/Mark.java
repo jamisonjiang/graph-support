@@ -28,10 +28,9 @@ import java.util.Set;
  */
 public abstract class Mark<T> {
 
-  protected final Set<T> marked;
+  protected Set<T> marked;
 
   protected Mark() {
-    this.marked = new HashSet<>();
   }
 
   protected Mark(int initialCapacity) {
@@ -41,14 +40,23 @@ public abstract class Mark<T> {
   protected void mark(T node) {
     Objects.requireNonNull(node);
 
+    if (marked == null) {
+      marked = new HashSet<>();
+    }
     marked.add(node);
   }
 
   protected boolean isMark(T node) {
+    if (marked == null) {
+      return false;
+    }
     return marked.contains(node);
   }
 
   protected void clear() {
+    if (marked == null) {
+      return;
+    }
     marked.clear();
   }
 }

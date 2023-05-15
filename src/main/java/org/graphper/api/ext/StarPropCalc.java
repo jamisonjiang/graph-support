@@ -31,8 +31,8 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
 
   public static final double AXIS_ARC = 2 * UNIT_ARC;
 
-  public static final double IN_OUT_RATIO = ValueUtils.cos(36) + ValueUtils.cos(54) * ValueUtils
-      .tan(72);
+  public static final double IN_OUT_RATIO = ValueUtils.cos(36)
+      + ValueUtils.cos(54) * ValueUtils.tan(72);
 
   @Override
   public FlatPoint minContainerSize(double innerHeight, double innerWidth) {

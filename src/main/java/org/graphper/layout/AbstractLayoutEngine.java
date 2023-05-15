@@ -25,11 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
-import org.graphper.util.ClassUtils;
-import org.graphper.util.CollectionUtils;
-import org.graphper.util.GraphvizUtils;
+import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.ClusterAttrs;
 import org.graphper.api.GraphAttrs;
@@ -43,6 +39,7 @@ import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
@@ -50,7 +47,13 @@ import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.RenderEngine;
-import org.graphper.layout.CellLabelCompiler.RootCell;
+import org.graphper.layout.Cell.RootCell;
+import org.graphper.util.Asserts;
+import org.graphper.util.ClassUtils;
+import org.graphper.util.CollectionUtils;
+import org.graphper.util.GraphvizUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Layout engine common template.
@@ -59,10 +62,17 @@ import org.graphper.layout.CellLabelCompiler.RootCell;
  */
 public abstract class AbstractLayoutEngine implements LayoutEngine {
 
+  private static final Logger log = LoggerFactory.getLogger(AbstractLayoutEngine.class);
+
   /**
    * Node default attribute value map.
    */
   private static final Map<String, Object> DEFAULT_NODE_ATTRS_MAP;
+
+  /**
+   * Node default attribute value map.
+   */
+  private static final Map<String, Object> DEFAULT_CELL_ATTRS_MAP;
 
   /**
    * Line default attribute value map.
@@ -72,9 +82,78 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   static {
     try {
       DEFAULT_NODE_ATTRS_MAP = ClassUtils.propValMap(DefaultVal.DEFAULT_NODE_ATTRS);
+      DEFAULT_CELL_ATTRS_MAP = ClassUtils.propValMap(DefaultVal.DEFAULT_CELL_ATTRS);
       DEFAULT_LINE_ATTRS_MAP = ClassUtils.propValMap(DefaultVal.DEFAULT_LINE_ATTRS);
     } catch (IllegalAccessException e) {
       throw new RuntimeException("Unable to set default properties", e);
+    }
+  }
+
+  public static void nodeLabelSet(NodeDrawProp nodeDrawProp, DrawGraph drawGraph,
+                                  boolean needSetCenter) {
+    if (nodeDrawProp == null || drawGraph == null) {
+      return;
+    }
+
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    FlatPoint labelCenter;
+    if (Boolean.TRUE.equals(nodeDrawProp.nodeAttrs().getFixedSize())) {
+      labelCenter = new FlatPoint(nodeDrawProp.getX(), nodeDrawProp.getY());
+    } else {
+      labelCenter = nodeShape.labelCenter(nodeDrawProp.getLabelSize(), nodeDrawProp);
+    }
+
+    double x = labelCenter.getX();
+    double y = labelCenter.getY();
+
+    Labelloc labelloc = nodeDrawProp.nodeAttrs().getLabelloc();
+    if (labelloc != null && nodeDrawProp.getLabelSize() != null) {
+      FlatPoint labelSize = nodeDrawProp.getLabelSize();
+      x += nodeDrawProp.getLabelHorOffset();
+      y += nodeDrawProp.getLabelVerOffset();
+
+      if (!needSetCenter) {
+        drawGraph.updateXAxisRange(x - labelSize.getWidth() / 2);
+        drawGraph.updateXAxisRange(x + labelSize.getWidth() / 2);
+        drawGraph.updateYAxisRange(y - labelSize.getWidth() / 2);
+        drawGraph.updateYAxisRange(y + labelSize.getWidth() / 2);
+      }
+    }
+
+    if (needSetCenter) {
+      nodeDrawProp.setLabelCenter(new FlatPoint(x, y));
+    }
+
+    Assemble assemble = nodeDrawProp.getAssemble();
+    if (assemble == null || nodeDrawProp.getLabelCenter() == null) {
+      return;
+    }
+
+    setCellNodeOffset(drawGraph, labelCenter, assemble, false);
+  }
+
+  protected static void setCellNodeOffset(DrawGraph drawGraph, FlatPoint labelCenter,
+                                          Assemble assemble, boolean userLabelSize) {
+    if (assemble == null) {
+      return;
+    }
+
+    FlatPoint labelSize = assemble.size();
+    for (Node cell : assemble.getCells()) {
+      NodeDrawProp cellProp = drawGraph.getNodeDrawProp(cell);
+      if (cellProp == null) {
+        continue;
+      }
+      if (userLabelSize) {
+        cellProp.initCellPos(labelSize, labelCenter, assemble);
+      } else {
+        cellProp.initCellPos();
+      }
+      drawGraph.updateXAxisRange(cellProp.getLeftBorder() - 5);
+      drawGraph.updateXAxisRange(cellProp.getRightBorder() + 5);
+      drawGraph.updateYAxisRange(cellProp.getUpBorder() - 5);
+      drawGraph.updateYAxisRange(cellProp.getDownBorder() + 5);
+      nodeLabelSet(cellProp, drawGraph, true);
     }
   }
 
@@ -85,7 +164,6 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Create DrawGraph and initialize some properties of GraphvizDrawProp.
     DrawGraph drawGraph = new DrawGraph(graphviz);
-    handleGraphviz(drawGraph.getGraphvizDrawProp());
     Object attachment = attachment(drawGraph);
 
     // Various id records
@@ -111,8 +189,12 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         containerConsumer::accept,
         this::dfsNeedContinue
     );
+
     // Finally execute the root container (Graphviz).
     nodeLineClusterHandle(attachment, drawGraph, graphviz, nodeId, lineId, clusterId);
+
+    // Graphviz handle
+    handleGraphviz(attachment, nodeId, drawGraph);
 
     // The corresponding layout engine executes.
     layout(drawGraph, attachment);
@@ -224,16 +306,24 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
   // -------------------------------- private method --------------------------------
 
-  private void handleGraphviz(GraphvizDrawProp graphvizDrawProp) {
+  private void handleGraphviz(Object attachment, Map<Node, Integer> nodeId, DrawGraph drawGraph) {
+    GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
     Graphviz graphviz = graphvizDrawProp.getGraphviz();
-    String label = graphviz.graphAttrs().getLabel();
-    if (label == null) {
-      return;
+    GraphAttrs graphAttrs = graphviz.graphAttrs();
+    Assemble assemble = graphvizDrawProp.getAssemble();
+
+    FlatPoint labelSize = null;
+    if (assemble == null) {
+      String label = graphAttrs.getLabel();
+      if (label != null) {
+        // Set label of graphviz
+        labelSize = labelContainer(label, graphAttrs.getFontName(), graphAttrs.getFontSize());
+      }
+    } else {
+      labelSize = assemble.size();
+      assembleHandle(attachment, drawGraph, null, nodeId, assemble);
     }
 
-    // Set label of graphviz
-    GraphAttrs graphAttrs = graphviz.graphAttrs();
-    FlatPoint labelSize = labelContainer(label, graphAttrs.getFontName(), graphAttrs.getFontSize());
     graphvizDrawProp.setLabelSize(labelSize);
   }
 
@@ -279,41 +369,30 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Handle all nodes
     for (Node node : nodes) {
-      nodeHandle(attachment, drawGraph, container, nodeId, node);
+      nodeHandle(attachment, drawGraph, container, nodeId, node, null, null, false, true, 0);
     }
 
     // Handle all lines
     for (Line line : lines) {
       // Handle the tail and head node
-      nodeHandle(attachment, drawGraph, container, nodeId, line.head());
-      nodeHandle(attachment, drawGraph, container, nodeId, line.tail());
+      nodeHandle(attachment, drawGraph, container, nodeId, line.head(), null, null, false, true, 0);
+      nodeHandle(attachment, drawGraph, container, nodeId, line.tail(), null, null, false, true, 0);
 
       // Handle line
-      lineHandle(attachment, drawGraph, container, lineId, line);
+      lineHandle(attachment, drawGraph, container, lineId, nodeId, line);
     }
 
     // Handle all clusters
     if (container.isCluster()) {
-      clusterHandle(drawGraph, (Cluster) container, clusterId);
-
-      Cluster cluster = (Cluster) container;
-      ClusterAttrs clusterAttrs = cluster.clusterAttrs();
-      String label = clusterAttrs.getLabel();
-      double fontSize = clusterAttrs.getFontSize();
-
-      // Init cluster label size
-      if (label != null) {
-        FlatPoint labelContainer = labelContainer(label, clusterAttrs.getFontName(), fontSize);
-        drawGraph.getClusterDrawProp(cluster).setLabelSize(labelContainer);
-      }
+      clusterHandle(attachment, drawGraph, (Cluster) container, nodeId, clusterId);
     }
   }
 
-  private void nodeHandle(Object attachment,
-                          DrawGraph drawGraph,
-                          GraphContainer container,
-                          Map<Node, Integer> nodeId,
-                          Node node) {
+  private void nodeHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+                          Map<Node, Integer> nodeId, Node node, RootCell rootCell, FlatPoint offset,
+                          boolean isCell, boolean needCalcOffset, int depth) {
+    Asserts.illegalArgument(depth > Graphviz.MAX_DEPTH,
+                            "The nesting depth of cell exceeds the upper limit");
     NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
 
     NodeAttrs nodeAttrs = nodeDrawProp != null
@@ -321,12 +400,16 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         : node.nodeAttrs().clone();
 
     try {
-      // Set template properties
-      copyTempProperties(
-          nodeAttrs,
-          findFirstHaveTempParent(drawGraph.getGraphviz(), true, container),
-          DEFAULT_NODE_ATTRS_MAP
-      );
+      if (isCell) {
+        copyTempProperties(nodeAttrs, null, DEFAULT_CELL_ATTRS_MAP);
+      } else {
+        // Set template properties
+        copyTempProperties(
+            nodeAttrs,
+            findFirstHaveTempParent(drawGraph.getGraphviz(), true, container),
+            DEFAULT_NODE_ATTRS_MAP
+        );
+      }
     } catch (IllegalAccessException e) {
       throw new IllegalArgumentException("Failed to access template property", e);
     }
@@ -334,29 +417,101 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     if (nodeDrawProp == null) {
       nodeDrawProp = new NodeDrawProp(node, nodeAttrs);
       drawGraph.nodePut(node, nodeDrawProp);
+
+      // Node Id
+      Integer n = nodeId.get(node);
+      if (n == null) {
+        int nz = nodeId.size();
+        nodeDrawProp.setId(nz);
+        nodeId.put(node, nz);
+      }
+
+      nodeContainerSet(nodeDrawProp, nodeAttrs, drawGraph.needFlip());
+
+      // Set cell size and offset
+      if (needCalcOffset && (nodeDrawProp.haveChildrenCell() || isCell)) {
+        Cell cell = null;
+        if (rootCell == null) {
+          rootCell = new RootCell(false);
+          nodeDrawProp.setCell(rootCell);
+          cell = rootCell;
+        } else {
+          String id = nodeAttrs.getId();
+          if (id != null) {
+            cell = new Cell(false);
+            rootCell.put(id, cell);
+          }
+        }
+
+        if (cell != null) {
+          cell.setShape(nodeAttrs.getNodeShape());
+          cell.setWidth(nodeDrawProp.getWidth());
+          cell.setHeight(nodeDrawProp.getHeight());
+          cell.setOffset(offset);
+        }
+      }
+
+      Assemble assemble = nodeDrawProp.getAssemble();
+      if (assemble != null) {
+        if (needCalcOffset) {
+          // Get the node label position info
+          nodeLabelSet(nodeDrawProp, drawGraph, true);
+          FlatPoint center = nodeDrawProp.getLabelCenter();
+          FlatPoint labelSize = nodeDrawProp.getLabelSize();
+
+          if (center != null && labelSize != null) {
+            // Calculate the absolute offset from root node
+            double vo = center.getY() - (labelSize.getHeight() / 2) - nodeDrawProp.getUpBorder();
+            double ho = center.getX() - (labelSize.getWidth() / 2) - nodeDrawProp.getLeftBorder();
+            /*
+             * If node is root node, offset is the label offset;
+             * If node is not root node, offset increase the label offset.
+             * */
+            if (offset == null) {
+              offset = new FlatPoint(ho, vo);
+            } else {
+              offset.setY(offset.getY() + vo);
+              offset.setX(offset.getX() + ho);
+            }
+
+            for (Node c : assemble.getCells()) {
+              // Added cell offset
+              double horOffset = assemble.horOffset(c);
+              double verOffset = assemble.verOffset(c);
+              FlatPoint of = new FlatPoint(
+                  offset.getX() + horOffset,
+                  offset.getY() + verOffset
+              );
+
+              nodeHandle(attachment, drawGraph, container, nodeId, c, rootCell,
+                         of, true, needCalcOffset, depth + 1);
+              NodeDrawProp cellProp = drawGraph.getNodeDrawProp(c);
+              cellProp.setCellContainer(nodeDrawProp);
+            }
+          }
+        } else {
+          for (Node c : assemble.getCells()) {
+            nodeHandle(attachment, drawGraph, container, nodeId, c, null,
+                       null, true, needCalcOffset, depth + 1);
+            NodeDrawProp cellProp = drawGraph.getNodeDrawProp(c);
+            cellProp.setCellContainer(nodeDrawProp);
+          }
+        }
+      }
     } else {
       nodeDrawProp.setNodeAttrs(nodeAttrs);
     }
 
-    // Node Id
-    Integer n = nodeId.get(node);
-    if (n == null) {
-      int nz = nodeId.size();
-      nodeDrawProp.setId(nz);
-      nodeId.put(node, nz);
-    }
-
-    // Node container size calculate
-    nodeContainerSet(nodeDrawProp, nodeAttrs, drawGraph.needFlip());
-
     // Node consume
-    consumerNode(node, attachment, drawGraph, container);
+    if (isCell) {
+      nodeDrawProp.markIsCellProp();
+    } else {
+      consumerNode(node, attachment, drawGraph, container);
+    }
   }
 
-  private void lineHandle(Object attachment,
-                          DrawGraph drawGraph,
-                          GraphContainer container,
-                          Map<Line, Integer> lineId, Line line) {
+  private void lineHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+                          Map<Line, Integer> lineId, Map<Node, Integer> nodeId, Line line) {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line);
 
     LineAttrs lineAttrs = lineDrawProp != null
@@ -377,6 +532,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     if (lineDrawProp == null) {
       lineDrawProp = new LineDrawProp(line, lineAttrs, drawGraph);
       drawGraph.linePut(line, lineDrawProp);
+
+      // Set line assemble
+      Assemble assemble = lineDrawProp.getAssemble();
+      assembleHandle(attachment, drawGraph, container, nodeId, assemble);
     }
 
     // Line id
@@ -391,8 +550,19 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     consumerLine(line, attachment, drawGraph);
   }
 
-  private void clusterHandle(DrawGraph drawGraph, Cluster cluster,
-                             Map<GraphContainer, Integer> clusterId) {
+  private void assembleHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+                              Map<Node, Integer> nodeId, Assemble assemble) {
+    if (assemble == null) {
+      return;
+    }
+
+    for (Node cell : assemble.getCells()) {
+      nodeHandle(attachment, drawGraph, container, nodeId, cell, null, null, true, false, 0);
+    }
+  }
+
+  private void clusterHandle(Object attachment, DrawGraph drawGraph, Cluster cluster,
+                             Map<Node, Integer> nodeId, Map<GraphContainer, Integer> clusterId) {
     if (drawGraph.haveCluster(cluster)) {
       return;
     }
@@ -408,6 +578,25 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       clusterDrawProp.setId("cluster_" + nz);
       clusterId.put(cluster, nz);
     }
+
+    // Set cluster assemble
+    Assemble assemble = clusterDrawProp.getAssemble();
+    assembleHandle(attachment, drawGraph, null, nodeId, assemble);
+
+    ClusterAttrs clusterAttrs = cluster.clusterAttrs();
+    String label = clusterAttrs.getLabel();
+    double fontSize = clusterAttrs.getFontSize();
+
+    // Init cluster label size
+    FlatPoint labelContainer = null;
+    if (assemble == null) {
+      if (label != null) {
+        labelContainer = labelContainer(label, clusterAttrs.getFontName(), fontSize);
+      }
+    } else {
+      labelContainer = assemble.size();
+    }
+    drawGraph.getClusterDrawProp(cluster).setLabelSize(labelContainer);
   }
 
   private void nodeContainerSet(NodeDrawProp nodeDrawProp, NodeAttrs nodeAttrs, boolean needFlip) {
@@ -424,14 +613,14 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     double verMargin = 0;
     double horMargin = 0;
 
-    if (isRecordShape(nodeShape)) {
+    if (nodeDrawProp.noChildrenCell() && isRecordShape(nodeShape)) {
       RootCell rootCell = CellLabelCompiler.compile(nodeAttrs.getLabel(), nodeAttrs.getFontName(),
                                                     getFontSize(nodeAttrs), nodeAttrs.getMargin(),
                                                     new FlatPoint(height, width), needFlip);
       labelBox = new FlatPoint(rootCell.getHeight(), rootCell.getWidth());
-      nodeDrawProp.setLabelCell(rootCell);
+      nodeDrawProp.setCell(rootCell);
     } else {
-      labelBox = sizeInit(nodeAttrs);
+      labelBox = sizeInit(nodeDrawProp.getAssemble(), nodeAttrs);
       if (nodeAttrs.getMargin() != null && nodeShape.needMargin()) {
         verMargin += nodeAttrs.getMargin().getHeight();
         horMargin += nodeAttrs.getMargin().getWidth();
@@ -439,18 +628,19 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
 
     FlatPoint boxSize;
-    if (Objects.equals(nodeAttrs.getFixedSize(), Boolean.TRUE) || nodeShape.ignoreLabel()) {
+    boolean ignoreLabel = Boolean.TRUE.equals(nodeAttrs.getFixedSize()) || nodeShape.ignoreLabel();
+    if (ignoreLabel) {
       boxSize = new FlatPoint(height, width);
     } else {
-      FlatPoint labelSize = new FlatPoint(verMargin + labelBox.getHeight(),
-                                          horMargin + labelBox.getWidth());
+      FlatPoint labelSize = new FlatPoint(labelBox.getHeight(), labelBox.getWidth());
       if (nodeAttrs.getImageSize() != null) {
         FlatPoint imageSize = nodeAttrs.getImageSize();
         double h = Math.max(imageSize.getHeight() + verMargin, labelSize.getHeight());
         double w = Math.max(imageSize.getWidth() + horMargin, labelSize.getWidth());
         boxSize = nodeShape.minContainerSize(h, w);
       } else {
-        boxSize = nodeShape.minContainerSize(labelSize.getHeight(), labelSize.getWidth());
+        boxSize = nodeShape.minContainerSize(labelSize.getHeight() + verMargin,
+                                             labelSize.getWidth() + horMargin);
       }
       Asserts.illegalArgument(boxSize == null,
                               "Node Shape can not return null box size from minContainerSize");
@@ -468,24 +658,38 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       nodeDrawProp.setLabelSize(labelBox);
     }
 
-    labelOffset(nodeDrawProp, nodeAttrs, labelBox, verMargin, horMargin);
+    if (ignoreLabel) {
+      labelOffset(nodeDrawProp, nodeAttrs, labelBox,
+                  boxSize.getHeight() - labelBox.getHeight(),
+                  boxSize.getWidth() - labelBox.getWidth());
+    } else {
+      labelOffset(nodeDrawProp, nodeAttrs, labelBox, verMargin, horMargin);
+    }
   }
 
   private void labelOffset(NodeDrawProp nodeDrawProp, NodeAttrs nodeAttrs, FlatPoint labelBox,
-                         double verMargin, double horMargin) {
-    if (nodeAttrs.getLabelloc() == null || nodeAttrs.getLabelloc() == Labelloc.CENTER) {
-      return;
-    }
-
+                           double verMargin, double horMargin) {
     double halfHeight = (verMargin + labelBox.getHeight()) / 2;
     double halfWidth = (horMargin + labelBox.getWidth()) / 2;
     Labelloc labelloc = nodeAttrs.getLabelloc();
-    double offsetY = labelloc.getY(
-        new FlatPoint(-halfWidth, -halfHeight),
-        new FlatPoint(halfWidth, halfHeight),
-        labelBox
-    );
-    nodeDrawProp.setLabelVerOffset(offsetY);
+    Labeljust labeljust = nodeAttrs.getLabeljust();
+    if (labelloc != null) {
+      double offsetY = labelloc.getY(
+          new FlatPoint(-halfWidth, -halfHeight),
+          new FlatPoint(halfWidth, halfHeight),
+          labelBox
+      );
+      nodeDrawProp.setLabelVerOffset(offsetY);
+    }
+
+    if (labeljust != null) {
+      double offsetX = labeljust.getX(
+          new FlatPoint(-halfWidth, -halfHeight),
+          new FlatPoint(halfWidth, halfHeight),
+          labelBox
+      );
+      nodeDrawProp.setLabelHorOffset(offsetX);
+    }
   }
 
   private GraphContainer findFirstHaveTempParent(Graphviz graphviz, boolean nodeTemp,
@@ -503,9 +707,12 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     return p;
   }
 
-  private FlatPoint sizeInit(NodeAttrs nodeAttrs) {
-    String label = nodeAttrs.getLabel();
+  private FlatPoint sizeInit(Assemble assemble, NodeAttrs nodeAttrs) {
+    if (assemble != null) {
+      return assemble.size();
+    }
 
+    String label = nodeAttrs.getLabel();
     return labelContainer(label, nodeAttrs.getFontName(), getFontSize(nodeAttrs));
   }
 
@@ -544,6 +751,11 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         propVal = propVal != null ? propVal : defaultVal.get(field.getName());
 
         if (propVal == null) {
+          field.setAccessible(false);
+          continue;
+        } else if (Objects.equals("assemble", field.getName())
+            || Objects.equals("table", field.getName())) {
+          log.warn("Can not copy " + field.getName() + "attribute!");
           field.setAccessible(false);
           continue;
         }

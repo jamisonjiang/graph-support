@@ -17,12 +17,15 @@
 package org.graphper.draw;
 
 import java.io.Serializable;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
+import org.graphper.api.Assemble;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
+import org.graphper.def.FlatPoint;
+import org.graphper.layout.HtmlConvert;
+import org.graphper.util.Asserts;
 
 /**
  * Common object for some box-type drawable elements.
@@ -35,11 +38,11 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
 
   private String id;
 
-  // label container center
   protected FlatPoint labelCenter;
 
-  // labelSize
   protected FlatPoint labelSize;
+
+  protected Assemble assemble;
 
   public double topLowestHeight() {
     Asserts.nullArgument(margin(), "margin");
@@ -97,6 +100,13 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return labelSize;
   }
 
+  public Assemble getAssemble() {
+    if (assemble() != null) {
+      return assemble();
+    }
+    return assemble;
+  }
+
   @Override
   public double getX() {
     return (leftBorder + rightBorder) / 2;
@@ -134,9 +144,22 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return this instanceof NodeDrawProp;
   }
 
+  public boolean isClusterProp() {
+    return this instanceof ClusterDrawProp;
+  }
+
+  protected void convertTable(Table table) {
+    if (table == null) {
+      return;
+    }
+    assemble = HtmlConvert.toAssemble(table);
+  }
+
   protected abstract Labelloc labelloc();
 
   protected abstract FlatPoint margin();
 
   protected abstract String containerId();
+
+  protected abstract Assemble assemble();
 }

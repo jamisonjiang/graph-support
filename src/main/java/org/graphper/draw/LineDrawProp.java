@@ -24,8 +24,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.graphper.api.Assemble;
+import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
+import org.graphper.layout.HtmlConvert;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -70,6 +73,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private List<RouterBox> routerBoxes;
 
+  private Assemble assemble;
+
   public LineDrawProp(Line line, LineAttrs lineAttrs, DrawGraph drawGraph) {
     Asserts.nullArgument(line, "line");
     Asserts.nullArgument(lineAttrs, "lineAttrs");
@@ -77,6 +82,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     this.line = line;
     this.lineAttrs = lineAttrs;
     this.drawGraph = drawGraph;
+    convertTable(lineAttrs.getTable());
   }
 
   @Override
@@ -280,6 +286,20 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
       return;
     }
     this.isHeadStart = node == getLine().head();
+  }
+
+  public Assemble getAssemble() {
+    if (lineAttrs.getAssemble() != null) {
+      return lineAttrs.getAssemble();
+    }
+    return assemble;
+  }
+
+  private void convertTable(Table table) {
+    if (table == null) {
+      return;
+    }
+    assemble = HtmlConvert.toAssemble(table);
   }
 
   @Override

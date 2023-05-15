@@ -17,6 +17,7 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
@@ -246,9 +247,8 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Sets the arc at the line corners, Only valid for
-     * {@link Splines#ROUNDED}, The smaller the arc, the straighter
-     * the line visually.
+     * Sets the arc at the line corners, Only valid for {@link Splines#ROUNDED}, The smaller the
+     * arc, the straighter the line visually.
      *
      * @param radian the conner arc
      * @return line builder
@@ -272,9 +272,9 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Set the weight of line. In the {@link Layout#DOT} engine, the
-     * larger the value of weight, the more likely the vertical of the line will become larger (this
-     * is not certain, this is a priority weight value).
+     * Set the weight of line. In the {@link Layout#DOT} engine, the larger the value of weight, the
+     * more likely the vertical of the line will become larger (this is not certain, this is a
+     * priority weight value).
      *
      * @param weight line weight
      * @return line builder
@@ -423,10 +423,10 @@ public class Line implements Comparable<Line>, Serializable {
      * {@link #headclip(boolean)} is set to false, {@code lhead} would never take effect.
      *
      * <p>To make this property take effect, first ensure that
-     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find
-     * the specified {@link Cluster} that you want the line segment to clipped, set the
-     * corresponding id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and
-     * then point this attribute to the corresponding id. Here is a simple example:
+     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find the specified
+     * {@link Cluster} that you want the line segment to clipped, set the corresponding
+     * id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
+     * attribute to the corresponding id. Here is a simple example:
      * <pre>{@code
      *     Graphviz.digraph()
      *         // Make sure this compound is turned on
@@ -460,10 +460,10 @@ public class Line implements Comparable<Line>, Serializable {
      * {@link #tailclip(boolean)} is set to false, {@code ltail} would never take effect.
      *
      * <p>To make this property take effect, first ensure that
-     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find
-     * the specified {@link Cluster} that you want the line segment to clipped, set the
-     * corresponding id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and
-     * then point this attribute to the corresponding id. Here is a simple example:
+     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find the specified
+     * {@link Cluster} that you want the line segment to clipped, set the corresponding
+     * id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
+     * attribute to the corresponding id. Here is a simple example:
      * <pre>{@code
      *     Graphviz.digraph()
      *         // Make sure this compound is turned on
@@ -672,6 +672,86 @@ public class Line implements Comparable<Line>, Serializable {
     public LineBuilder penWidth(double penWidth) {
       Asserts.illegalArgument(penWidth <= 0, "penWidth must be greater than 0");
       lineAttrs.penWidth = penWidth;
+      return this;
+    }
+
+    /**
+     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
+     * generated {@link Table} will be in the position of the label.
+     *
+     * @param table table
+     * @return line builder
+     */
+    public LineBuilder table(Table table) {
+      lineAttrs.table = table;
+      return this;
+    }
+
+    /**
+     * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
+     * line, the program will calculate the size of the label, and then automatically put the label
+     * in the appropriate position of the line. If {@link Assemble} is set, assemble will be placed
+     * where the label was originally placed.
+     *
+     * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
+     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
+     * (by default, it does not automatically calculate the size of the cell according to the label
+     * of the cell), which requires the setter to completely accurate calculation of all
+     * parameters.
+     *
+     * <p>This is an example of setting three cells side by assemble.
+     * <pre>{@code
+     *     Node left = Node.builder().label("left").build();
+     *     Node right = Node.builder().label("right").build();
+     *     Graphviz.digraph()
+     *         .startSub()
+     *         .rank(Rank.SAME)
+     *         .addLine(
+     *             Line.builder(left, right)
+     *                 .assemble(
+     *                     Assemble.builder()
+     *                         .width(1.6)
+     *                         .height(0.6)
+     *                         .addCell(0.05, 0.05,
+     *                                  Node.builder()
+     *                                      .width(0.2)
+     *                                      .height(0.5)
+     *                                      .fillColor(Color.RED)
+     *                                      .build())
+     *                         .addCell(0.3, 0.05,
+     *                                  Node.builder()
+     *                                      .width(1)
+     *                                      .height(0.5)
+     *                                      .fontSize(12)
+     *                                      .label("Edge labels\nalso")
+     *                                      .build())
+     *                         .addCell(1.35, 0.05,
+     *                                  Node.builder()
+     *                                      .width(0.2)
+     *                                      .height(0.5)
+     *                                      .fillColor(Color.BLUE)
+     *                                      .build())
+     *                         .addCell(0, 0,
+     *                                  Node.builder()
+     *                                      .width(1.6)
+     *                                      .height(0.6)
+     *                                      .build())
+     *                         .build()
+     *                 )
+     *                 .build()
+     *         )
+     *         .endSub()
+     *         .build();
+     * }
+     * </pre>
+     *
+     * @param assemble assemble
+     * @return line builder
+     */
+    public LineBuilder assemble(Assemble assemble) {
+      lineAttrs.assemble = assemble;
       return this;
     }
 

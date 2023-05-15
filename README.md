@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
@@ -158,6 +158,72 @@ Graphviz graphviz = Graphviz.digraph()
 ```
 
 ![](picture/node_record.png)
+
+### Table and Assemble
+
+**Table** provides the html table layout of Cells, and **Assemble** is an original way of splicing Cells. Here is an example of drawing the same graph using both methods:
+
+```java
+    Node table = Node.builder()
+        .table(
+            table().cellSpacing(4)
+                .tr(
+                    td().bgColor(Color.RED),
+                    td().text("Create By\nTable"),
+                    td().bgColor(Color.BLUE)
+                )
+        )
+        .build();
+
+    Node assemble = Node.builder()
+        .assemble(
+            Assemble.builder()
+                .width(1.6)
+                .height(0.6)
+        		// Left Cell
+                .addCell(0.05, 0.05,// Offset
+                         Node.builder()
+                             .width(0.1)
+                             .height(0.5)
+                             .fillColor(Color.RED)
+                             .build())
+        		// Middle cell
+                .addCell(0.2, 0.05,// Offset
+                         Node.builder()
+                             .width(1)
+                             .height(0.5)
+                             .fontSize(12)
+                             .label("Create by \nAssemble")
+                             .build())
+        		// Right cell
+                .addCell(1.25, 0.05,// Offset
+                         Node.builder()
+                             .width(0.1)
+                             .height(0.5)
+                             .fillColor(Color.BLUE)
+                             .build())
+                .addCell(0, 0,
+                         Node.builder()
+                             .width(1.4)
+                             .height(0.6)
+                             .build())
+                .build()
+        )
+        .build();
+
+    Graphviz.digraph()
+        .tempNode(Node.builder().shape(NodeShapeEnum.PLAIN).build())
+        .addNode(table, assemble)
+        .build();
+```
+
+<img title="" src="picture/table_assemble.png" alt="" width="400" style="float:left">
+
+*Some table example:*
+
+<img title="" src="picture/table_example.png" alt="">
+
+
 
 ### Edge router example
 

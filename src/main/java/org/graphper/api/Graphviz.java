@@ -21,13 +21,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.FlatPoint;
+import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.draw.ExecuteException;
 import org.graphper.draw.GraphResource;
 import org.graphper.draw.RenderEngine;
@@ -52,7 +53,7 @@ public class Graphviz extends GraphContainer implements Serializable {
   /**
    * The maximum depth that graphs can be nested.
    */
-  private static final int MAX_DEPTH = 1000;
+  public static final int MAX_DEPTH = 1000;
 
   // Graph attribute
   private GraphAttrs graphAttrs;
@@ -408,7 +409,7 @@ public class Graphviz extends GraphContainer implements Serializable {
                               "Horizontal scale (" + horScale + ") can not less than 0.1");
       Asserts.illegalArgument(verScale < 0.1,
                               "Vertical scale (" + verScale + ") can not less than 0.1");
-      graphAttrs.scale = new FlatPoint(horScale, verScale);
+      graphAttrs.scale = new UnmodifyFlatPoint(horScale, verScale);
       return self();
     }
 
@@ -434,7 +435,7 @@ public class Graphviz extends GraphContainer implements Serializable {
     public GraphvizBuilder margin(double horMargin, double verMargin) {
       Asserts.illegalArgument(horMargin < 0, "Horizontal margin (" + horMargin + ") must be > 0");
       Asserts.illegalArgument(verMargin < 0, "Vertical margin (" + verMargin + ") must be > 0");
-      graphAttrs.margin = new FlatPoint(verMargin * PIXEL, horMargin * PIXEL);
+      graphAttrs.margin = new UnmodifyFlatPoint(verMargin * PIXEL, horMargin * PIXEL);
       return self();
     }
 
@@ -494,10 +495,71 @@ public class Graphviz extends GraphContainer implements Serializable {
      * Set a cluster link, only valid when the output is <tt>svg</tt>.
      *
      * @param href cluster href
-     * @return cluster builder
+     * @return graphviz builder
      */
     public GraphvizBuilder href(String href) {
       graphAttrs.href = href;
+      return self();
+    }
+
+    /**
+     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
+     * generated {@link Table} will be in the position of the label.
+     *
+     * @param table table
+     * @return graphviz builder
+     */
+    public GraphvizBuilder table(Table table) {
+      graphAttrs.table = table;
+      return self();
+    }
+
+    /**
+     * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
+     * graph, the program will calculate the size of the label, and then automatically put the
+     * label in the appropriate position of the graph. If {@link Assemble} is set, assemble will
+     * be placed where the label was originally placed.
+     *
+     * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
+     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
+     * (by default, it does not automatically calculate the size of the cell according to the label
+     * of the cell), which requires the setter to completely accurate calculation of all
+     * parameters.
+     *
+     * <p>This is an example of setting two cells side by assemble.
+     * <pre>{@code
+     *     Graphviz.digraph()
+     *         .addNode(Node.builder().label("Node").build())
+     *         .margin(0.5, 0.5)
+     *         .assemble(
+     *             Assemble.builder()
+     *                 .width(1)
+     *                 .height(0.4)
+     *                 .addCell(0, 0,
+     *                          Node.builder()
+     *                              .width(0.5)
+     *                              .height(0.4)
+     *                              .label("LEFT")
+     *                              .build())
+     *                 .addCell(0.5, 0,
+     *                          Node.builder()
+     *                              .width(0.5)
+     *                              .height(0.4)
+     *                              .label("RIGHT")
+     *                              .build())
+     *                 .build()
+     *         )
+     *         .build()
+     * }
+     * </pre>
+     *
+     * @param assemble assemble
+     * @return graphviz builder
+     */
+    public GraphvizBuilder assemble(Assemble assemble) {
+      graphAttrs.assemble = assemble;
       return self();
     }
 

@@ -23,33 +23,34 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.Assemble;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
-import org.graphper.api.attributes.Labelloc;
-import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotLineRouter.DotLineRouterFactory;
+import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;
 import org.graphper.layout.dot.SplineRouter.SplineRouterFactory;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
 
 /**
  * Hierarchical or layered drawings of directed graphs. The layout algorithm aims edges in the same
@@ -97,7 +98,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
                                      new PolyLineRouterFactory(), new LineRouterBuilder(),
                                      new OrthogonalRouterFactory());
   }
-
 
   @Override
   public List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
@@ -160,13 +160,18 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     DNode target = dotAttachment.get(line.head());
 
     FlatPoint labelSize = null;
-    LineAttrs lineAttrs = drawGraph.lineAttrs(line);
+    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line);
+    LineAttrs lineAttrs = lineDrawProp.lineAttrs();
 
-    if (needLabelNode(drawGraph, line)) {
+    Assemble assemble = lineDrawProp.getAssemble();
+    if (assemble != null) {
+      labelSize = assemble.size();
+    } else if (needLabelNode(drawGraph, line)) {
       labelSize = lineLabelSizeInit(lineAttrs);
-      if (labelSize != null && drawGraph.needFlip()) {
-        labelSize.flip();
-      }
+    }
+
+    if (labelSize != null && drawGraph.needFlip()) {
+      labelSize.flip();
     }
 
     DLine dLine = new DLine(source, target, line, lineAttrs,
@@ -181,9 +186,15 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     DotAttachment dotAttachment = (DotAttachment) attach;
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
 
-    for (NodeDrawProp nodeDrawProp : drawGraph.nodes()) {
+    for (NodeDrawProp nodeDrawProp : drawGraph.nodes(true)) {
       nodeLabelSet(nodeDrawProp, drawGraph, true);
     }
+
+    for (LineDrawProp line : drawGraph.lines()) {
+      Assemble assemble = line.getAssemble();
+      setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
+    }
+    drawGraph.syncToGraphvizBorder();
   }
 
   @Override
@@ -194,6 +205,16 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       containerLabelPos(drawGraph);
     }
 
+    for (ClusterDrawProp cluster : drawGraph.clusters()) {
+      Assemble assemble = cluster.getAssemble();
+      setCellNodeOffset(drawGraph, cluster.getLabelCenter(), assemble, true);
+    }
+
+    GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
+    Assemble assemble = graphvizDrawProp.getAssemble();
+    if (assemble != null) {
+      setCellNodeOffset(drawGraph, graphvizDrawProp.getLabelCenter(), assemble, true);
+    }
     // Line clip
     dotAttachment.clipAllLines();
   }
@@ -241,41 +262,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       containerLabelPos(drawGraph);
     }
     splines(drawGraph, dotDigraph, rankContent, digraphProxy);
-  }
-
-  public static void nodeLabelSet(NodeDrawProp nodeDrawProp, DrawGraph drawGraph,
-                                  boolean needSetCenter) {
-    if (nodeDrawProp == null || drawGraph == null) {
-      return;
-    }
-
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
-    FlatPoint labelCenter;
-    if (Boolean.TRUE.equals(nodeDrawProp.nodeAttrs().getFixedSize())) {
-      labelCenter = new FlatPoint(nodeDrawProp.getX(), nodeDrawProp.getY());
-    } else {
-      labelCenter = nodeShape.labelCenter(nodeDrawProp.getLabelSize(), nodeDrawProp);
-    }
-
-    double x = labelCenter.getX();
-    double y = labelCenter.getY();
-
-    Labelloc labelloc = nodeDrawProp.nodeAttrs().getLabelloc();
-    if (labelloc != null && nodeDrawProp.getLabelSize() != null) {
-      FlatPoint labelSize = nodeDrawProp.getLabelSize();
-      y += nodeDrawProp.getLabelVerOffset();
-
-      if (!needSetCenter) {
-        drawGraph.updateXAxisRange(x - labelSize.getWidth() / 2);
-        drawGraph.updateXAxisRange(x + labelSize.getWidth() / 2);
-        drawGraph.updateYAxisRange(y - labelSize.getWidth() / 2);
-        drawGraph.updateYAxisRange(y + labelSize.getWidth() / 2);
-      }
-    }
-
-    if (needSetCenter) {
-      nodeDrawProp.setLabelCenter(new FlatPoint(x, y));
-    }
   }
 
   // --------------------------------------------- private method ---------------------------------------------

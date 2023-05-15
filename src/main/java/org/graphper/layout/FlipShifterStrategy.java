@@ -17,6 +17,7 @@
 package org.graphper.layout;
 
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.api.ext.Box;
@@ -50,6 +51,11 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   @Override
   public void moveContainerDrawProp(ContainerDrawProp containerDrawProp) {
     if (containerDrawProp == null || notNeedMove()) {
+      return;
+    }
+
+    // Cell node do not need flipped
+    if (containerDrawProp.isNodeProp() && ((NodeDrawProp) containerDrawProp).isCellProp()) {
       return;
     }
 

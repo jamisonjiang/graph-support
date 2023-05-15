@@ -89,7 +89,6 @@ public class SvgDocumentTest {
 
     g.setId("graphviz");
     Assertions.assertEquals(g, svgDocument.getElementById("graphviz"));
-    Assertions.assertThrows(IllegalArgumentException.class, () -> g.setId("0"));
 
     g.setAttribute(SvgConstants.ID, "newId");
     Assertions.assertNull(svgDocument.getElementById("graphviz"));

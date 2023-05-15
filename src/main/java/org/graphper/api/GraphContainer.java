@@ -56,22 +56,22 @@ public abstract class GraphContainer extends VertexIndex {
 
   // ---------------------- basic properties ----------------------
   // Subgraphs that directly belong to the current container
-  protected List<Subgraph> subgraphs;
+  protected volatile List<Subgraph> subgraphs;
 
   // Clusters that directly belong to the current container
-  protected List<Cluster> clusters;
+  protected volatile List<Cluster> clusters;
 
   // Lines that directly belong to the current container
-  protected Set<Line> lines;
+  protected volatile Set<Line> lines;
 
   // Nodes that directly belong to the current container
-  protected Set<Node> nodes;
+  protected volatile Set<Node> nodes;
 
   // The node template attribute value
-  protected Map<String, Object> nodeAttrsMap;
+  protected volatile Map<String, Object> nodeAttrsMap;
 
   // The line template attribute value
-  protected Map<String, Object> lineAttrsMap;
+  protected volatile Map<String, Object> lineAttrsMap;
 
   /**
    * Returns the container id.
@@ -312,11 +312,7 @@ public abstract class GraphContainer extends VertexIndex {
    * @return <tt>true</tt> if node in current container
    */
   public boolean containsNode(Node node) {
-    if (nodes == null) {
-      return false;
-    }
-
-    if (nodes.contains(node)) {
+    if (CollectionUtils.isNotEmpty(nodes) && nodes.contains(node)) {
       return true;
     }
 
@@ -342,11 +338,7 @@ public abstract class GraphContainer extends VertexIndex {
    * @return <tt>true</tt> if line in current container
    */
   public boolean containsLine(Line line) {
-    if (lines == null) {
-      return false;
-    }
-
-    if (lines.contains(line)) {
+    if (CollectionUtils.isNotEmpty(lines) && lines.contains(line)) {
       return true;
     }
 
@@ -484,10 +476,10 @@ public abstract class GraphContainer extends VertexIndex {
   public abstract static class GraphContainerBuilder<G extends GraphContainer, B extends GraphContainerBuilder<G, B>> {
 
     // The node template attribute value
-    protected Map<String, Object> nodeAttrsMap;
+    protected volatile Map<String, Object> nodeAttrsMap;
 
     // The line template attribute value
-    protected Map<String, Object> lineAttrsMap;
+    protected volatile Map<String, Object> lineAttrsMap;
 
     // A container to hold templates
     protected volatile G container;
@@ -987,18 +979,21 @@ public abstract class GraphContainer extends VertexIndex {
     }
 
     protected void supplyFields(G repl) {
-      repl.id = initContainer().id;
-      if (initContainer().subgraphs != null) {
-        repl.subgraphs = new ArrayList<>(initContainer().subgraphs);
-      }
-      if (initContainer().clusters != null) {
-        repl.clusters = new ArrayList<>(initContainer().clusters);
-      }
-      if (initContainer().nodes != null) {
-        repl.nodes = new TreeSet<>(initContainer().nodes);
-      }
-      if (initContainer().lines != null) {
-        repl.lines = new TreeSet<>(initContainer().lines);
+      G g = initContainer();
+      repl.id = g.id;
+      synchronized (g) {
+        if (g.subgraphs != null) {
+          repl.subgraphs = new ArrayList<>(g.subgraphs);
+        }
+        if (g.clusters != null) {
+          repl.clusters = new ArrayList<>(g.clusters);
+        }
+        if (g.nodes != null) {
+          repl.nodes = new TreeSet<>(g.nodes);
+        }
+        if (g.lines != null) {
+          repl.lines = new TreeSet<>(g.lines);
+        }
       }
       if (nodeAttrsMap != null) {
         repl.nodeAttrsMap = new HashMap<>(nodeAttrsMap);

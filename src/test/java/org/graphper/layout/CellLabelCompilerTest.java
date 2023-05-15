@@ -19,65 +19,63 @@ package org.graphper.layout;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.graphper.layout.CellLabelCompiler;
-import org.graphper.layout.LabelFormatException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.graphper.def.FlatPoint;
-import org.graphper.layout.CellLabelCompiler.LabelCell;
-import org.graphper.layout.CellLabelCompiler.RootCell;
+import org.graphper.layout.Cell;
+import org.graphper.layout.Cell.RootCell;
 
 public class CellLabelCompilerTest {
 
   @Test
   public void testCompile() throws LabelFormatException {
-    assertLabelCell(CellLabelCompiler.compile(""), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile(" "), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("      "), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("   a"), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("   a    "), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("|"), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("||"), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("<P0>||"), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("   |    "), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("   |  |   "), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("   |  |"), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("{}"), 3, 1);
-    assertLabelCell(CellLabelCompiler.compile("  {}   "), 3, 1);
-    assertLabelCell(CellLabelCompiler.compile("  {   } "), 3, 1);
-    assertLabelCell(CellLabelCompiler.compile("  {   }"), 3, 1);
-    assertLabelCell(CellLabelCompiler.compile("  {{   }}} "), 4, 1);
-    assertLabelCell(CellLabelCompiler.compile("{   }"), 3, 1);
-    assertLabelCell(CellLabelCompiler.compile("1||"), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("1\\||"), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("1\\|\\|"), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("1\\\\|\\|"), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("1\\ \\|\\|"), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("1\\ \\|\\ |"), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("1\\|\\  |"), 2, 2);
-    assertLabelCell(CellLabelCompiler.compile("1  \\ |\\  |"), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("1  \\ |\\  | "), 2, 3);
-    assertLabelCell(CellLabelCompiler.compile("|||"), 2, 4);
-    assertLabelCell(CellLabelCompiler.compile("|||\\ "), 2, 4);
-    assertLabelCell(CellLabelCompiler.compile("|1||<*>2||"), 2, 6, newMap("2", "*"));
-    assertLabelCell(CellLabelCompiler.compile("|1||<&&>\\<*\\>2||"), 2, 6,
+    assertCell(CellLabelCompiler.compile(""), 2, 1);
+    assertCell(CellLabelCompiler.compile(" "), 2, 1);
+    assertCell(CellLabelCompiler.compile("      "), 2, 1);
+    assertCell(CellLabelCompiler.compile("   a"), 2, 1);
+    assertCell(CellLabelCompiler.compile("   a    "), 2, 1);
+    assertCell(CellLabelCompiler.compile("|"), 2, 2);
+    assertCell(CellLabelCompiler.compile("||"), 2, 3);
+    assertCell(CellLabelCompiler.compile("<P0>||"), 2, 3);
+    assertCell(CellLabelCompiler.compile("   |    "), 2, 2);
+    assertCell(CellLabelCompiler.compile("   |  |   "), 2, 3);
+    assertCell(CellLabelCompiler.compile("   |  |"), 2, 3);
+    assertCell(CellLabelCompiler.compile("{}"), 3, 1);
+    assertCell(CellLabelCompiler.compile("  {}   "), 3, 1);
+    assertCell(CellLabelCompiler.compile("  {   } "), 3, 1);
+    assertCell(CellLabelCompiler.compile("  {   }"), 3, 1);
+    assertCell(CellLabelCompiler.compile("  {{   }}} "), 4, 1);
+    assertCell(CellLabelCompiler.compile("{   }"), 3, 1);
+    assertCell(CellLabelCompiler.compile("1||"), 2, 3);
+    assertCell(CellLabelCompiler.compile("1\\||"), 2, 2);
+    assertCell(CellLabelCompiler.compile("1\\|\\|"), 2, 1);
+    assertCell(CellLabelCompiler.compile("1\\\\|\\|"), 2, 2);
+    assertCell(CellLabelCompiler.compile("1\\ \\|\\|"), 2, 1);
+    assertCell(CellLabelCompiler.compile("1\\ \\|\\ |"), 2, 2);
+    assertCell(CellLabelCompiler.compile("1\\|\\  |"), 2, 2);
+    assertCell(CellLabelCompiler.compile("1  \\ |\\  |"), 2, 3);
+    assertCell(CellLabelCompiler.compile("1  \\ |\\  | "), 2, 3);
+    assertCell(CellLabelCompiler.compile("|||"), 2, 4);
+    assertCell(CellLabelCompiler.compile("|||\\ "), 2, 4);
+    assertCell(CellLabelCompiler.compile("|1||<*>2||"), 2, 6, newMap("2", "*"));
+    assertCell(CellLabelCompiler.compile("|1||<&&>\\<*\\>2||"), 2, 6,
                     newMap("2", null, "<*>2", "&&"));
-    assertLabelCell(CellLabelCompiler.compile("1|{<P0>2}}|3"), 3, 3,
+    assertCell(CellLabelCompiler.compile("1|{<P0>2}}|3"), 3, 3,
                     newMap("2", "P0"));
-    assertLabelCell(CellLabelCompiler.compile("|1||2||{}"), 3, 6);
-    assertLabelCell(CellLabelCompiler.compile("|1||2||{|}"), 3, 7);
-    assertLabelCell(CellLabelCompiler.compile("|1||2||{|}}"), 3, 7);
-    assertLabelCell(CellLabelCompiler.compile(" | 1| |2| |{ |} }  "), 3, 7);
-    assertLabelCell(CellLabelCompiler.compile("123"), 2, 1);
-    assertLabelCell(CellLabelCompiler.compile("1|{{2| 3    11 }|4}|5|"), 4, 6);
-    assertLabelCell(CellLabelCompiler.compile("{<p1>1|{{<p2>2|<p3>3}|<p4>4}|<p5>5|}"), 5, 6,
+    assertCell(CellLabelCompiler.compile("|1||2||{}"), 3, 6);
+    assertCell(CellLabelCompiler.compile("|1||2||{|}"), 3, 7);
+    assertCell(CellLabelCompiler.compile("|1||2||{|}}"), 3, 7);
+    assertCell(CellLabelCompiler.compile(" | 1| |2| |{ |} }  "), 3, 7);
+    assertCell(CellLabelCompiler.compile("123"), 2, 1);
+    assertCell(CellLabelCompiler.compile("1|{{2| 3    11 }|4}|5|"), 4, 6);
+    assertCell(CellLabelCompiler.compile("{<p1>1|{{<p2>2|<p3>3}|<p4>4}|<p5>5|}"), 5, 6,
                     newMap("1", "p1", "2", "p2", "3", "p3", "4", "p4", "5", "p5"));
-    assertLabelCell(CellLabelCompiler.compile("{|1|{{2|3}|4}|5|}"), 5, 7);
-    assertLabelCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}"), 5, 6);
-    assertLabelCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}}}}}}"), 5, 6);
-    assertLabelCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}}}}} } "), 5, 6);
-    assertLabelCell(CellLabelCompiler.compile("1|{{{2|33333\n33n\n3}|4}|5|}}}} } }"), 5, 6);
-    assertLabelCell(CellLabelCompiler.compile("<f0> 0x10ba8| <f1>"), 2, 2);
+    assertCell(CellLabelCompiler.compile("{|1|{{2|3}|4}|5|}"), 5, 7);
+    assertCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}"), 5, 6);
+    assertCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}}}}}}"), 5, 6);
+    assertCell(CellLabelCompiler.compile("1|{{{2|3}|4}|5|}}}}} } "), 5, 6);
+    assertCell(CellLabelCompiler.compile("1|{{{2|33333\n33n\n3}|4}|5|}}}} } }"), 5, 6);
+    assertCell(CellLabelCompiler.compile("<f0> 0x10ba8| <f1>"), 2, 2);
     Assertions.assertThrows(LabelFormatException.class, () -> CellLabelCompiler.compile(null));
     Assertions.assertThrows(LabelFormatException.class, () -> CellLabelCompiler.compile("\\"));
     Assertions.assertThrows(LabelFormatException.class, () -> CellLabelCompiler.compile("||\\"));
@@ -115,13 +113,13 @@ public class CellLabelCompilerTest {
   @Test
   public void testAlignSize() {
     RootCell cell = CellLabelCompiler.compile("1|{2|{3|4}}|5", null, 32,
-                                              null, new FlatPoint(180, 120), false);
-    List<LabelCell> children = cell.getChildren();
+                                                   null, new FlatPoint(180, 120), false);
+    List<Cell> children = cell.getChildren();
     Assertions.assertEquals(3, children.size());
 
-    LabelCell first = children.get(0);
-    LabelCell second = children.get(1);
-    LabelCell third = children.get(2);
+    Cell first = children.get(0);
+    Cell second = children.get(1);
+    Cell third = children.get(2);
 
     Assertions.assertEquals(new FlatPoint(0, 0), first.offset);
 
@@ -152,11 +150,11 @@ public class CellLabelCompilerTest {
     Assertions.assertEquals(90, third.getHeight(), 2);
   }
 
-  private void assertLabelCell(RootCell cell, int depth, int cellNum) {
-    assertLabelCell(cell, depth, cellNum, null);
+  private void assertCell(RootCell cell, int depth, int cellNum) {
+    assertCell(cell, depth, cellNum, null);
   }
 
-  private void assertLabelCell(RootCell cell, int depth, int cellNum,
+  private void assertCell(RootCell cell, int depth, int cellNum,
                                Map<String, String> labelIdMap) {
     int[] cn = {0};
     Assertions.assertEquals(depth, dfs(cell, cell, cn, labelIdMap));
@@ -164,20 +162,20 @@ public class CellLabelCompilerTest {
   }
 
 
-  private int dfs(RootCell rootCell, LabelCell labelCell, int[] cellNum,
+  private int dfs(RootCell rootCell, Cell Cell, int[] cellNum,
                   Map<String, String> labelIdMap) {
     int max = 0;
-    if (labelCell.isLeaf()) {
+    if (Cell.isLeaf()) {
       if (labelIdMap != null) {
-        String id = labelIdMap.get(labelCell.getLabel());
+        String id = labelIdMap.get(Cell.getLabel());
         if (id != null) {
-          Assertions.assertEquals(labelCell, rootCell.getCellById(id));
+          Assertions.assertEquals(Cell, rootCell.getCellById(id));
         }
-        Assertions.assertEquals(id, labelCell.getId());
+        Assertions.assertEquals(id, Cell.getId());
       }
       cellNum[0]++;
     }
-    for (LabelCell child : labelCell.getChildren()) {
+    for (Cell child : Cell.getChildren()) {
       max = Math.max(max, dfs(rootCell, child, cellNum, labelIdMap));
     }
     return max + 1;

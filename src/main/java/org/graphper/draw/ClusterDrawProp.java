@@ -17,6 +17,7 @@
 package org.graphper.draw;
 
 import java.io.Serializable;
+import org.graphper.api.Assemble;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 import org.graphper.api.Cluster;
@@ -38,6 +39,7 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   public ClusterDrawProp(Cluster cluster) {
     Asserts.nullArgument(cluster, "cluster");
     this.cluster = cluster;
+    convertTable(cluster.clusterAttrs().getTable());
   }
 
   /**
@@ -81,5 +83,10 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   protected String containerId() {
     return cluster.id();
+  }
+
+  @Override
+  protected Assemble assemble() {
+    return cluster.clusterAttrs().getAssemble();
   }
 }

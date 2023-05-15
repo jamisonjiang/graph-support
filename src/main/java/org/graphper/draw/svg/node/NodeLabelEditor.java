@@ -35,7 +35,8 @@ public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     String label = nodeAttrs.getLabel();
 
     if (StringUtils.isEmpty(label)
-        || nodeDrawProp.getLabelCell() != null
+        || nodeDrawProp.getCell() != null
+        || nodeDrawProp.getLabelCenter() == null
         || nodeAttrs.getNodeShape().ignoreLabel()) {
       return true;
     }

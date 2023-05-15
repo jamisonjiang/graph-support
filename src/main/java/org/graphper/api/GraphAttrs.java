@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
@@ -74,6 +75,10 @@ public class GraphAttrs implements Serializable, Cloneable {
   boolean showGrid = false;
 
   String href;
+
+  Table table;
+
+  Assemble assemble;
 
   public Splines getSplines() {
     return splines;
@@ -155,6 +160,14 @@ public class GraphAttrs implements Serializable, Cloneable {
     return href;
   }
 
+  public Table getTable() {
+    return table;
+  }
+
+  public Assemble getAssemble() {
+    return assemble;
+  }
+
   @Override
   public GraphAttrs clone() {
     try {
@@ -173,34 +186,25 @@ public class GraphAttrs implements Serializable, Cloneable {
       return false;
     }
     GraphAttrs that = (GraphAttrs) o;
-    return Double.compare(that.nodeSep, nodeSep) == 0 &&
-        nslimit == that.nslimit &&
-        nslimit1 == that.nslimit1 &&
-        Double.compare(that.rankSep, rankSep) == 0 &&
-        Double.compare(that.mclimit, mclimit) == 0 &&
-        Double.compare(that.fontSize, fontSize) == 0 &&
-        compound == that.compound &&
-        showGrid == that.showGrid &&
-        Objects.equals(bgColor, that.bgColor) &&
-        splines == that.splines &&
-        Objects.equals(fontColor, that.fontColor) &&
-        rankdir == that.rankdir &&
-        layout == that.layout &&
-        Objects.equals(label, that.label) &&
-        Objects.equals(fontName, that.fontName) &&
-        labelloc == that.labelloc &&
-        labeljust == that.labeljust &&
-        Objects.equals(scale, that.scale) &&
-        Objects.equals(margin, that.margin) &&
-        Objects.equals(href, that.href);
+    return Double.compare(that.nodeSep, nodeSep) == 0 && nslimit == that.nslimit
+        && nslimit1 == that.nslimit1 && Double.compare(that.rankSep, rankSep) == 0
+        && mclimit == that.mclimit && Double.compare(that.fontSize, fontSize) == 0
+        && compound == that.compound && showGrid == that.showGrid
+        && Objects.equals(bgColor, that.bgColor)
+        && splines == that.splines && Objects.equals(fontColor, that.fontColor)
+        && rankdir == that.rankdir && layout == that.layout
+        && Objects.equals(label, that.label)
+        && Objects.equals(fontName, that.fontName) && labelloc == that.labelloc
+        && labeljust == that.labeljust && Objects.equals(scale, that.scale)
+        && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
+        && Objects.equals(table, that.table) && Objects.equals(assemble, that.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName, labelloc,
-              labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit, fontSize, compound,
-              showGrid, href);
+    return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName,
+                        labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit,
+                        fontSize, compound, showGrid, href, table, assemble);
   }
 
   @Override
@@ -226,6 +230,8 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", compound=" + compound +
         ", showGrid=" + showGrid +
         ", href='" + href + '\'' +
+        ", table='" + table + '\'' +
+        ", assemble=" + assemble +
         '}';
   }
 }

@@ -150,10 +150,6 @@ class DotDigraph extends DirectedEdgeGraph<DNode, DLine> {
       this.container = container;
     }
 
-    private boolean contains(DNode node) {
-      return container.containsNode(node.getNode());
-    }
-
     private boolean contains(DLine line) {
       return container.containsLine(line.getLine());
     }
