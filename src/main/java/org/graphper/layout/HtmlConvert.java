@@ -433,7 +433,7 @@ public class HtmlConvert {
             .labeljust(td.getAlign(table))
             .labelloc(td.getValign(table))
             .penWidth(td.getBorder(table))
-            .style(td.getStyle())
+            .style(td.getStyle(table))
             .fontName(td.getFontName())
             .color(td.getColor())
             .fontColor(td.getFontColor())

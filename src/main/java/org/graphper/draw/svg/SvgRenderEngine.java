@@ -134,4 +134,13 @@ public class SvgRenderEngine extends
         new FlatShifterStrategy(-drawGraph.getMinX(), -drawGraph.getMinY())
     );
   }
+
+  @Override
+  public boolean needShift(DrawGraph drawGraph) {
+    if (drawGraph == null) {
+      return false;
+    }
+
+    return drawGraph.getLeftBorder() < 0 || drawGraph.getUpBorder() < 0;
+  }
 }

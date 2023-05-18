@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.Table;
 import org.graphper.util.Asserts;
 
 /**
@@ -58,6 +59,10 @@ public class FloatLabel implements Serializable {
    */
   private final String label;
 
+  private final Table table;
+
+  private final Assemble assemble;
+
   /**
    * Font size of label
    */
@@ -73,13 +78,17 @@ public class FloatLabel implements Serializable {
    */
   private final double distRatio;
 
-  public FloatLabel(String label, float fontSize, double lengthRatio, double distRatio) {
-    Asserts.nullArgument(label, "Float label");
+  private FloatLabel(String label, float fontSize, double lengthRatio,
+                     double distRatio, Table table, Assemble assemble) {
+    Asserts.illegalArgument(label == null && table == null && assemble == null,
+                            "Empty Float Label");
     Asserts.illegalArgument(fontSize < 0, "Float label can not less than 0");
     this.label = label;
     this.fontSize = fontSize;
     this.lengthRatio = lengthRatio;
     this.distRatio = distRatio;
+    this.table = table;
+    this.assemble = assemble;
   }
 
   /**
@@ -116,6 +125,28 @@ public class FloatLabel implements Serializable {
    */
   public double getDistRatio() {
     return distRatio;
+  }
+
+  /**
+   * Returns the table of float label.
+   *
+   * @return float table
+   */
+  public Table getTable() {
+    return table;
+  }
+
+  /**
+   * Returns the assembler of float label.
+   *
+   * @return float assemble
+   */
+  public Assemble getAssemble() {
+    return assemble;
+  }
+
+  public boolean ignoreTextLabel() {
+    return table != null || assemble != null;
   }
 
   /**
@@ -161,6 +192,10 @@ public class FloatLabel implements Serializable {
     private double lengthRatio;
 
     private double distRatio = 0.5F;
+
+    private Table table;
+
+    private Assemble assemble;
 
     private FloatLabelBuilder() {
     }
@@ -214,13 +249,47 @@ public class FloatLabel implements Serializable {
     }
 
     /**
+     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
+     * generated {@link Table} will be in the position of the label.
+     *
+     * @param table table
+     * @return float label builder
+     */
+    public FloatLabelBuilder table(Table table) {
+      this.table = table;
+      return this;
+    }
+
+    /**
+     * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
+     * line, the program will calculate the size of the label, and then automatically put the label
+     * in the appropriate position of the line. If {@link Assemble} is set, assemble will be placed
+     * where the label was originally placed.
+     *
+     * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
+     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
+     * (by default, it does not automatically calculate the size of the cell according to the label
+     * of the cell), which requires the setter to completely accurate calculation of all
+     * parameters.
+     *
+     * @param assemble assemble
+     * @return float label builder
+     */
+    public FloatLabelBuilder assemble(Assemble assemble) {
+      this.assemble = assemble;
+      return this;
+    }
+
+    /**
      * Returns a {@link FloatLabel}.
      *
      * @return {@code FloatLabel}
      * @throws NullPointerException not set the label
      */
     public FloatLabel build() {
-      return new FloatLabel(label, fontSize, lengthRatio, distRatio);
+      return new FloatLabel(label, fontSize, lengthRatio, distRatio, table, assemble);
     }
   }
 }
