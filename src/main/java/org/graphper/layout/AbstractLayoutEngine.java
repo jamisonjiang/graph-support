@@ -132,9 +132,9 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     setCellNodeOffset(drawGraph, labelCenter, assemble, false);
   }
 
-  protected static void setCellNodeOffset(DrawGraph drawGraph, FlatPoint labelCenter,
-                                          Assemble assemble, boolean userLabelSize) {
-    if (assemble == null) {
+  public static void setCellNodeOffset(DrawGraph drawGraph, FlatPoint labelCenter,
+                                       Assemble assemble, boolean userLabelSize) {
+    if (assemble == null || drawGraph == null || labelCenter == null) {
       return;
     }
 
@@ -536,6 +536,9 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       // Set line assemble
       Assemble assemble = lineDrawProp.getAssemble();
       assembleHandle(attachment, drawGraph, container, nodeId, assemble);
+      for (Assemble floatAssemble : lineDrawProp.getFloatAssembles()) {
+        assembleHandle(attachment, drawGraph, container, nodeId, floatAssemble);
+      }
     }
 
     // Line id
@@ -807,6 +810,20 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       executeShifter(drawGraph, shifter);
     }
     afterRenderShifter(attach);
+
+    if (renderEngine != null && renderEngine.needShift(drawGraph)) {
+      if (pointMark != null) {
+        pointMark.clear();
+      } else {
+        pointMark = new HashSet<>();
+      }
+      renderShifters = renderEngine.shifterStrategies(drawGraph);
+      if (CollectionUtils.isNotEmpty(renderShifters)) {
+        shifter = new CombineShifter(pointMark, renderShifters);
+        executeShifter(drawGraph, shifter);
+      }
+    }
+
   }
 
   private void executeShifter(DrawGraph drawGraph, Shifter shifter) {

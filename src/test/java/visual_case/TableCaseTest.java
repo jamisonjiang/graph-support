@@ -25,19 +25,24 @@ import helper.TableUtils;
 import java.io.File;
 import java.io.IOException;
 import org.graphper.api.Assemble;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Html.Table;
+import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
+import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.draw.DrawGraph;
 import org.graphper.draw.ExecuteException;
+import org.graphper.draw.NodeDrawProp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -685,5 +690,99 @@ public class TableCaseTest extends GraphvizVisual {
                               .build())
                  .build());
     }
+  }
+
+  @Test
+  public void testFloatHtml() {
+    Node tail = Node.builder().label("tail").build();
+    Node head = Node.builder().label("head").build();
+
+    Graphviz graphviz = Graphviz
+        .digraph()
+        .rankdir(Rankdir.LR)
+        .rankSep(6)
+        .addLine(
+            Line.builder(tail, head)
+                .floatLabels(
+                    FloatLabel.builder()
+                        .distRatio(0.5)
+                        .lengthRatio(0.2)
+                        .fontSize(20)
+                        .label("tail")
+                        .table(
+                            table()
+                                .tr(td(), td(), td())
+                                .tr(td(), td().text("tail table"), td())
+                                .tr(td(), td(), td())
+                        )
+                        .build(),
+                    FloatLabel.builder()
+                        .label("center")
+                        .distRatio(0)
+                        .lengthRatio(0.5)
+                        .table(
+                            table().cellSpacing(0)
+                                .tr(td(), td(), td())
+                                .tr(td(), td().fontColor(Color.GREEN).text("center table"), td())
+                                .tr(td(), td(), td())
+                        )
+                        .build(),
+                    FloatLabel.builder()
+                        .label("head\nhead\nhead\nhead")
+                        .distRatio(-0.5)
+                        .lengthRatio(0.8)
+                        .table(
+                            table().cellSpacing(0).style(NodeStyle.BOLD)
+                                .tr(td().text("x"), td().text("o"), td().text("x"))
+                                .tr(td().text("o"), td().text("head table"), td().text("o"))
+                                .tr(td().text("x"), td().text("o"), td().text("x"))
+                        )
+                        .fontSize(60)
+                        .build()
+                )
+                .build()
+        )
+        .build();
+
+    visual(graphviz);
+  }
+
+  @Test
+  public void testTableProp() {
+    Td td = td().id("td_prop").text("x").align(Labeljust.RIGHT).valign(Labelloc.BOTTOM)
+        .cellPadding(60).style(NodeStyle.DASHED).color(Color.GOLD).bgColor(Color.PINK)
+        .border(5).fixedSize(false).height(10).width(150).href("https://graphviz.org/")
+        .fontColor(Color.INDIGO).fontName("Impact").fontSize(50).shape(NodeShapeEnum.DIAMOND);
+
+    Graphviz graphviz = Graphviz.digraph()
+        .labelloc(Labelloc.TOP)
+        .addNode(Node.builder().style(NodeStyle.INVIS).build())
+        .table(
+            table().id("Table").cellSpacing(0).align(Labeljust.LEFT).valign(Labelloc.TOP)
+                .cellPadding(30).style(NodeStyle.DOTTED).color(Color.RED).bgColor(Color.GREY)
+                .border(10).fixedSize(true).cellBorder(2).height(100).width(200)
+                .fixedSize(false).href("https://github.com/")
+                .tr(td, td().text("o"), td().text("x"))
+                .tr(td().text("o"), td().text("x"), td().text("o"))
+                .tr(td().text("x"), td().text("o"), td().text("x"))
+        )
+        .build();
+
+    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(graphviz);
+    boolean findTable = false;
+    boolean findTd = false;
+    for (NodeDrawProp node : drawGraph.nodes()) {
+      System.out.println();
+      String nodeId = drawGraph.nodeId(node.getNode());
+      if (nodeId.equalsIgnoreCase("Table")) {
+        findTable = true;
+      }
+      if (nodeId.equalsIgnoreCase("td_prop")) {
+        findTd = true;
+      }
+    }
+    Assertions.assertTrue(findTd);
+    Assertions.assertTrue(findTable);
+    visual(graphviz);
   }
 }

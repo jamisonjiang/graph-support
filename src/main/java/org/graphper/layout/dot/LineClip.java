@@ -16,9 +16,12 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import org.graphper.api.Assemble;
 import org.graphper.layout.Cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,17 +207,6 @@ public abstract class LineClip {
 
     double[] labelLength = floatLabels.length > 1 ? new double[]{-1} : null;
     for (FloatLabel floatLabel : floatLabels) {
-      String label = floatLabel.getLabel();
-      if (label == null) {
-        continue;
-      }
-
-      FlatPoint labelSize = LabelSizeHelper.measure(label, lineAttrs.getFontName(),
-                                                    floatLabel.getFontSize(), 0);
-      if (Objects.equals(labelSize, Vectors.ZERO)) {
-        continue;
-      }
-
       FlatPoint startPoint;
       if (lineDrawProp.isBesselCurve()) {
         startPoint = curveGetFloatLabelStart(
@@ -230,9 +222,31 @@ public abstract class LineClip {
         );
       }
 
+      FlatPoint labelSize;
+      Assemble assemble = lineDrawProp.getFloatAssemble(floatLabel);
+      if (assemble == null) {
+        String label = floatLabel.getLabel();
+        if (label == null) {
+          continue;
+        }
+
+        labelSize = LabelSizeHelper.measure(label, lineAttrs.getFontName(),
+                                            floatLabel.getFontSize(), 0);
+        if (Objects.equals(labelSize, Vectors.ZERO)) {
+          continue;
+        }
+      } else {
+        labelSize = assemble.size();
+        setCellNodeOffset(drawGraph, startPoint, assemble, true);
+      }
+
       if (startPoint != null) {
         FlatPoint center = floatPointCenter(startPoint, labelSize, floatLabel.getDistRatio());
-        lineDrawProp.addFloatLabelCenter(floatLabel, center);
+        if (assemble == null) {
+          lineDrawProp.addFloatLabelCenter(floatLabel, center);
+        } else {
+          setCellNodeOffset(drawGraph, center, assemble, true);
+        }
 
         drawGraph.updateXAxisRange(center.getX() - labelSize.getWidth() / 2);
         drawGraph.updateXAxisRange(center.getX() + labelSize.getWidth() / 2);
@@ -548,7 +562,7 @@ public abstract class LineClip {
       return node;
     }
 
-    String cellId = null;
+    String cellId;
     if (isTail) {
       cellId = line.lineAttrs().getTailCell();
     } else {

@@ -38,6 +38,9 @@ public class LineFloatLabelsEditor extends SvgEditor implements LineEditor<SvgBr
         .getFloatLabelFlatCenters().entrySet()) {
 
       FloatLabel floatLabel = flatPointEntry.getKey();
+      if (floatLabel.ignoreTextLabel()) {
+        continue;
+      }
       FlatPoint flatPointCenter = flatPointEntry.getValue();
 
       final int n = i;

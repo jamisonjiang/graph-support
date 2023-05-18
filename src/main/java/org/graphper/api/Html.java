@@ -622,6 +622,16 @@ public class Html {
       return 5;
     }
 
+    public NodeStyle getStyle(Table table) {
+      if (super.getStyle() != null) {
+        return super.getStyle();
+      }
+      if (table != null && table.getStyle() != null) {
+        return table.getStyle();
+      }
+      return null;
+    }
+
     public boolean isFixedSize(Table table) {
       if (super.getFixedSize() != null) {
         return super.getFixedSize();

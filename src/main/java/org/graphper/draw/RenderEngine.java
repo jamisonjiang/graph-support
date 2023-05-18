@@ -42,4 +42,8 @@ public interface RenderEngine {
   default List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
     return Collections.emptyList();
   }
+
+  default boolean needShift(DrawGraph drawGraph) {
+    return false;
+  }
 }

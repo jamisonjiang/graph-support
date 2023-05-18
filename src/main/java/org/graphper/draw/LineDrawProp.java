@@ -75,6 +75,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private Assemble assemble;
 
+  private Map<FloatLabel, Assemble> floatAssembles;
+
   public LineDrawProp(Line line, LineAttrs lineAttrs, DrawGraph drawGraph) {
     Asserts.nullArgument(line, "line");
     Asserts.nullArgument(lineAttrs, "lineAttrs");
@@ -82,7 +84,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     this.line = line;
     this.lineAttrs = lineAttrs;
     this.drawGraph = drawGraph;
-    convertTable(lineAttrs.getTable());
+    convertTables();
   }
 
   @Override
@@ -295,11 +297,46 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return assemble;
   }
 
-  private void convertTable(Table table) {
-    if (table == null) {
+  public Iterable<Assemble> getFloatAssembles() {
+    if (floatAssembles == null) {
+      return Collections.emptyList();
+    }
+    return floatAssembles.values();
+  }
+
+  public Assemble getFloatAssemble(FloatLabel floatLabel) {
+    if (floatAssembles == null || floatLabel == null) {
+      return null;
+    }
+    return floatAssembles.get(floatLabel);
+  }
+
+  private void convertTables() {
+    Table table = lineAttrs.getTable();
+    if (table != null) {
+      assemble = HtmlConvert.toAssemble(table);
+    }
+
+    FloatLabel[] floatLabels = lineAttrs.getFloatLabels();
+    if (floatLabels == null) {
       return;
     }
-    assemble = HtmlConvert.toAssemble(table);
+
+    for (FloatLabel floatLabel : floatLabels) {
+      Assemble floatLabelAssemble = floatLabel.getAssemble();
+      if (floatLabelAssemble == null && floatLabel.getTable() != null) {
+        floatLabelAssemble = HtmlConvert.toAssemble(floatLabel.getTable());
+      }
+
+      if (floatLabelAssemble == null) {
+        continue;
+      }
+
+      if (floatAssembles == null) {
+        floatAssembles = new HashMap<>();
+      }
+      floatAssembles.put(floatLabel, floatLabelAssemble);
+    }
   }
 
   @Override
