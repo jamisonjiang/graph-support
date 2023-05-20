@@ -113,4 +113,23 @@ public class BugCaseTest extends GraphvizVisual {
 
     visual(graphviz);
   }
+
+  @Test
+  public void testAlignNodePos() {
+    Node a = Node.builder().label("a").build();
+    Node b = Node.builder().label("b").build();
+    Node c = Node.builder().label("c").build();
+    Node d = Node.builder().label("d").build();
+    Node e = Node.builder().label("e").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .addLine(a, b)
+        .addLine(b, c)
+        .addLine(b, d)
+        .addLine(c, e)
+        .addLine(d, e)
+        .build();
+
+    visual(graphviz);
+  }
 }

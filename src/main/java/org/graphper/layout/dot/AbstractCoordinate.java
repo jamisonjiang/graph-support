@@ -122,7 +122,7 @@ abstract class AbstractCoordinate {
         /*
          * Use the median calculation method to make the nodes more centered without affecting the existing order
          * */
-        adjustMid(node);
+        adjustMid(node, true);
 
         minX = Math.min(node.getX() - node.leftWidth(), minX);
         maxX = Math.max(node.getX() + node.rightWidth(), maxX);
@@ -155,6 +155,21 @@ abstract class AbstractCoordinate {
       rankY = rankNode.getEndY() + rankNode.getRankSep();
 
       rankMaxHeight = -Double.MAX_VALUE;
+    }
+
+//    for (int i = rankContent.maxRank(); i >= rankContent.minRank(); i--) {
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+
+      for (int j = 0; j < rankNode.size(); j++) {
+        DNode node = rankNode.get(j);
+//
+        node.switchNormalModel();
+        /*
+         * Use the median calculation method to make the nodes more centered without affecting the existing order
+         * */
+        adjustMid(node, false);
+      }
     }
 
     if (CollectionUtils.isNotEmpty(flatNodes)) {
@@ -580,8 +595,8 @@ abstract class AbstractCoordinate {
     clusterDrawProp.setRightBorder(rightBorder + 2);
   }
 
-  private void adjustMid(DNode node) {
-    double x = midValue(node);
+  private void adjustMid(DNode node, boolean onlyOut) {
+    double x = midValue(node, onlyOut);
 
     double minX = nodeLeftLimit(node);
     double maxX = nodeRightLimit(node);
@@ -664,7 +679,7 @@ abstract class AbstractCoordinate {
     graphvizDrawProp.setDownBorder(drawGraph.getMaxY());
   }
 
-  private double midValue(DNode node) {
+  private double midValue(DNode node, boolean onlyOut) {
     if (node.notAdjust() || (node.isVirtual() && !node.isFlatLabelNode())
         || proxyDigraph.degree(node) == 0) {
       return node.getAuxRank();
@@ -672,7 +687,12 @@ abstract class AbstractCoordinate {
 
     List<Integer> adjNodesCoord = null;
     Double weight = null;
-    Iterable<DLine> adjacent = proxyDigraph.adjacent(node);
+    Iterable<DLine> adjacent;
+    if (onlyOut) {
+      adjacent = proxyDigraph.outAdjacent(node);
+    } else {
+      adjacent = proxyDigraph.adjacent(node);
+    }
 
     for (DLine dLine : adjacent) {
       if (dLine.isSameRank()) {
