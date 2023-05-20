@@ -31,7 +31,7 @@ class SameRankAdjacentRecord {
 
   private Map<DNode, SameRankAdjacentInfo> outSameRankAdjacent;
 
-  private Map<DNode, Boolean> inSameRankRecord;
+  private Map<DNode, SameRankAdjacentInfo> inSameRankRecord;
 
   public Map<DNode, SameRankAdjacentInfo> getOutSameRankAdjacent() {
     return outSameRankAdjacent;
@@ -56,18 +56,28 @@ class SameRankAdjacentRecord {
       }
       sameRankAdjacentInfo.lines.add(line);
 
-      markHaveIn(line.other(node));
+      addInAdjacent(line.other(node), line);
     } else {
       addOutAdjacent(line.other(node), line);
     }
   }
 
-  void markHaveIn(DNode node) {
+  void addInAdjacent(DNode node, DLine line) {
     if (inSameRankRecord == null) {
       inSameRankRecord = new HashMap<>();
     }
 
-    inSameRankRecord.put(node, Boolean.TRUE);
+    SameRankAdjacentInfo sameRankAdjacentInfo = inSameRankRecord
+        .computeIfAbsent(node, n -> new SameRankAdjacentInfo());
+    if (sameRankAdjacentInfo.nodes == null) {
+      sameRankAdjacentInfo.nodes = new TreeSet<>(Comparator.comparing(DNode::getNode));
+    }
+    sameRankAdjacentInfo.nodes.add(line.other(node));
+
+    if (sameRankAdjacentInfo.lines == null) {
+      sameRankAdjacentInfo.lines = new ArrayList<>();
+    }
+    sameRankAdjacentInfo.lines.add(line);
   }
 
   void clearMarkIn() {
@@ -103,6 +113,24 @@ class SameRankAdjacentRecord {
     }
 
     SameRankAdjacentInfo sameRankAdjacentInfo = outSameRankAdjacent.get(node);
+    if (sameRankAdjacentInfo == null) {
+      return Collections.emptySet();
+    }
+
+    Set<DNode> adjacent = sameRankAdjacentInfo.nodes;
+    if (CollectionUtils.isEmpty(adjacent)) {
+      return Collections.emptySet();
+    }
+
+    return adjacent;
+  }
+
+  Set<DNode> inAdjacent(DNode node) {
+    if (outSameRankAdjacent == null) {
+      return Collections.emptySet();
+    }
+
+    SameRankAdjacentInfo sameRankAdjacentInfo = inSameRankRecord.get(node);
     if (sameRankAdjacentInfo == null) {
       return Collections.emptySet();
     }

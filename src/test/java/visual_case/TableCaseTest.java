@@ -705,7 +705,7 @@ public class TableCaseTest extends GraphvizVisual {
             Line.builder(tail, head)
                 .floatLabels(
                     FloatLabel.builder()
-                        .distRatio(0.5)
+                        .offset(0.5)
                         .lengthRatio(0.2)
                         .fontSize(20)
                         .label("tail")
@@ -718,7 +718,7 @@ public class TableCaseTest extends GraphvizVisual {
                         .build(),
                     FloatLabel.builder()
                         .label("center")
-                        .distRatio(0)
+                        .offset(0)
                         .lengthRatio(0.5)
                         .table(
                             table().cellSpacing(0)
@@ -729,7 +729,7 @@ public class TableCaseTest extends GraphvizVisual {
                         .build(),
                     FloatLabel.builder()
                         .label("head\nhead\nhead\nhead")
-                        .distRatio(-0.5)
+                        .offset(-0.5)
                         .lengthRatio(0.8)
                         .table(
                             table().cellSpacing(0).style(NodeStyle.BOLD)

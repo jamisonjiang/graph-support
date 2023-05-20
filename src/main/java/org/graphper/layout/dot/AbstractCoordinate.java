@@ -119,10 +119,7 @@ abstract class AbstractCoordinate {
         DNode node = rankNode.get(j);
 
         node.switchNormalModel();
-        /*
-         * Use the median calculation method to make the nodes more centered without affecting the existing order
-         * */
-        adjustMid(node);
+        node.setX(node.getAuxRank());
 
         minX = Math.min(node.getX() - node.leftWidth(), minX);
         maxX = Math.max(node.getX() + node.rightWidth(), maxX);
@@ -189,10 +186,10 @@ abstract class AbstractCoordinate {
     return containerDrawProp;
   }
 
-  protected RankContent networkSimplex(DotDigraph auxGraph) {
+  protected RankContent networkSimplex(DotDigraph auxGraph, boolean needRankContent) {
     FeasibleTree feasibleTree = new FeasibleTree(auxGraph);
     NetworkSimplex networkSimplex = new NetworkSimplex(feasibleTree, nslimit, false,
-                                                       Double.MAX_VALUE, null);
+                                                       needRankContent, Double.MAX_VALUE, null);
     return networkSimplex.getRankContent();
   }
 
@@ -256,10 +253,6 @@ abstract class AbstractCoordinate {
 
   protected void nodeConsumer(DNode node) {
   }
-
-  protected abstract double nodeLeftLimit(DNode node);
-
-  protected abstract double nodeRightLimit(DNode node);
 
   protected abstract double containerLeftBorder(GraphContainer container);
 
@@ -518,7 +511,7 @@ abstract class AbstractCoordinate {
   }
 
   private void containerAdjust(DNode node) {
-    if (node.isVirtual() || !node.getContainer().isCluster()) {
+    if (!node.getContainer().isCluster()) {
       return;
     }
 
@@ -578,26 +571,6 @@ abstract class AbstractCoordinate {
     // Left and right width is 2px, fix lost precision when double to int
     clusterDrawProp.setLeftBorder(leftBorder - 2);
     clusterDrawProp.setRightBorder(rightBorder + 2);
-  }
-
-  private void adjustMid(DNode node) {
-    double x = midValue(node);
-
-    double minX = nodeLeftLimit(node);
-    double maxX = nodeRightLimit(node);
-
-    if (maxX >= minX) {
-      if (x < minX) {
-        x = minX;
-      } else if (x > maxX) {
-        x = maxX;
-      }
-    } else {
-      x = node.getAuxRank();
-    }
-
-    node.setX(x);
-    node.setAuxRank((int) x);
   }
 
   private ContainerBorder getContainerBorder(GraphContainer graphContainer) {
@@ -662,58 +635,6 @@ abstract class AbstractCoordinate {
     graphvizDrawProp.setRightBorder(drawGraph.getMaxX());
     graphvizDrawProp.setUpBorder(drawGraph.getMinY());
     graphvizDrawProp.setDownBorder(drawGraph.getMaxY());
-  }
-
-  private double midValue(DNode node) {
-    if (node.notAdjust() || (node.isVirtual() && !node.isFlatLabelNode())
-        || proxyDigraph.degree(node) == 0) {
-      return node.getAuxRank();
-    }
-
-    List<Integer> adjNodesCoord = null;
-    Double weight = null;
-    Iterable<DLine> adjacent = proxyDigraph.adjacent(node);
-
-    for (DLine dLine : adjacent) {
-      if (dLine.isSameRank()) {
-        return node.getAuxRank();
-      }
-
-      if (adjNodesCoord == null) {
-        adjNodesCoord = new ArrayList<>(proxyDigraph.degree(node));
-      }
-
-      if (weight == null) {
-        weight = dLine.weight();
-      } else if (weight != dLine.weight()) {
-        // There are edges that participate in the calculation of weights, return getAuxRank()
-        return node.getAuxRank();
-      }
-
-      DNode other = dLine.other(node);
-      adjNodesCoord.add(other.getAuxRank());
-    }
-
-    if (CollectionUtils.isEmpty(adjNodesCoord)) {
-      return node.getAuxRank();
-    }
-
-    adjNodesCoord.sort(Integer::compareTo);
-    int rightIndex = adjNodesCoord.size() / 2;
-    if ((adjNodesCoord.size() % 2) == 1) {
-      return adjNodesCoord.get(rightIndex);
-    }
-
-    int l = adjNodesCoord.get(rightIndex - 1);
-    int r = adjNodesCoord.get(rightIndex);
-    int left = l - adjNodesCoord.get(0);
-    int right = adjNodesCoord.get(adjNodesCoord.size() - 1) - r;
-
-    if (left == right || left == -right) {
-      return (double) (l + r) / 2;
-    }
-
-    return (double) (l * right + r * left) / (left + right);
   }
 
   protected static class ContainerBorder {

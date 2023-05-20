@@ -56,50 +56,6 @@ class Coordinate extends AbstractCoordinate {
   }
 
   @Override
-  protected double nodeLeftLimit(DNode node) {
-    double horMargin = getHorMargin((node));
-    DNode pre = node.isVirtual()
-        ? rankContent.rankPreNode(node)
-        : getClusterNodeIfPresent(node.getContainer(), rankContent.rankPreNode(node));
-
-    double minX = pre != null
-        ? pre.getAuxRank() + pre.rightWidth() + node.getNodeSep() + node.leftWidth() + horMargin
-        : -Double.MAX_VALUE;
-
-    if (!node.isVirtual() && clusterNode != null && node.getContainer().isCluster()) {
-      DNode cn = clusterNode.getNode(node.getContainer());
-      double margin = flipGetMargin(node.getContainer(), true, true);
-      if (cn != null) {
-        minX = Math.max(minX, cn.getAuxRank() - cn.leftWidth() + node.leftWidth() + margin);
-      }
-    }
-
-    return minX;
-  }
-
-  @Override
-  protected double nodeRightLimit(DNode node) {
-    double horMargin = getHorMargin((node));
-    DNode next = node.isVirtual()
-        ? rankContent.rankNextNode(node)
-        : getClusterNodeIfPresent(node.getContainer(), rankContent.rankNextNode(node));
-
-    double maxX = next != null
-        ? next.getAuxRank() - next.leftWidth() - node.getNodeSep() - node.rightWidth() - horMargin
-        : Double.MAX_VALUE;
-
-    if (!node.isVirtual() && clusterNode != null && node.getContainer().isCluster()) {
-      DNode cn = clusterNode.getNode(node.getContainer());
-      double margin = flipGetMargin(node.getContainer(), false, true);
-      if (cn != null) {
-        maxX = Math.min(maxX, cn.getAuxRank() + cn.rightWidth() - node.rightWidth() - margin);
-      }
-    }
-
-    return maxX;
-  }
-
-  @Override
   protected double containerLeftBorder(GraphContainer container) {
     DNode node = clusterNode.getNode(container);
     return node.getAuxRank() - node.leftWidth();
@@ -310,7 +266,7 @@ class Coordinate extends AbstractCoordinate {
       // According to the offset, merge multiple clusters into the root container one by one
       mergeCluster(clusterBorderMap);
     } else {
-      networkSimplex(auxDotDigraph);
+      networkSimplex(auxDotDigraph, false);
     }
   }
 
@@ -327,7 +283,7 @@ class Coordinate extends AbstractCoordinate {
       cn.setWidth(clusterHorRange.width());
     }
 
-    RankContent rc = networkSimplex(dotDigraph);
+    RankContent rc = networkSimplex(dotDigraph, true);
     ContainerBorder clusterBorder = new ContainerBorder();
     clusterBorderMap.put(container, clusterBorder);
 

@@ -40,6 +40,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.Rectangle;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.FlatShifterStrategy;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
 
@@ -69,7 +70,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       if (node.isLabelNode()) {
         lineLabelSet(node);
       } else if (node.isFlatLabelNode()) {
-        flatLineLabelSet(node, (List<RouterBox>) attach);
+        flatLineLabelSet(node);
       }
 
       return true;
@@ -187,7 +188,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       minY = Math.min(sp.getY() - sp.getHeight() * parallelLines.size(), minY);
       maxY = Math.max(sp.getY() + sp.getHeight() * parallelLines.size(), maxY);
 
-      sameRankParallelLineDraw(sp, routerBoxes, true, minY, maxY, parallelLines);
+      sameRankParallelLineDraw(sp, true, rankNode, minY, maxY, parallelLines);
     } else {
       RouterBox fromBox = newTwoNodeRangeBox(from);
       RouterBox toBox = newTwoNodeRangeBox(to);
@@ -246,28 +247,38 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   // ----------------------------------------------------- private method -----------------------------------------------------
 
-  private void sameRankParallelLineDraw(ShapePosition shapePosition,
-                                        List<RouterBox> lineRouterBoxes,
-                                        boolean isSameRank, double minY, double maxY,
+  private void sameRankParallelLineDraw(ShapePosition shapePosition, boolean isSameRank,
+                                        RankNode rank, double minY, double maxY,
                                         List<DLine> parallelLines) {
+    if (CollectionUtils.isEmpty(parallelLines)) {
+      return;
+    }
+
     Double upBaseLine = null;
     Double downBaseLine = null;
     Double labelY = null;
+    double itemsMinY = Double.MAX_VALUE;
+    double itemsMaxY = -Double.MAX_VALUE;
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
+    List<FlatParallelLineParam> flatParallelLineParams = new ArrayList<>(parallelLines.size());
 
     for (int j = 0; j < parallelLines.size(); j++) {
       DLine line = parallelLines.get(j);
       DNode from = line.from();
       DNode to = line.to();
 
+      from = from.getX() > to.getX() ? to : from;
+      to = line.other(from);
+
       double leftMin = from.getX() - from.leftWidth();
       double leftMax = from.getX() + from.rightWidth() + from.getNodeSep() / 3;
       DNode pn = rankContent.rankPreNode(to);
-      double rightMin = to.getX() - to.leftWidth() - pn.getNodeSep() / 3;
+      double rightMin = to.getX() - to.leftWidth() - (pn != null ? pn.getNodeSep() / 3 : 0);
       double rightMax = to.getX() + to.rightWidth();
       RouterBox left = new RouterBox(leftMin, leftMax, minY, maxY, from);
       RouterBox right = new RouterBox(rightMin, rightMax, minY, maxY, to);
 
+      List<RouterBox> lineRouterBoxes = new ArrayList<>();
       lineRouterBoxes.add(left);
       lineRouterBoxes.add(right);
 
@@ -304,7 +315,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
                                     upBaseLine - (labelSize != null ? labelSize.getX() : 10),
                                     upBaseLine);
 
-          upBaseLine = upBaseLine - (labelSize != null ? labelSize.getX() : 10);
+          upBaseLine = routerBox.getUpBorder();
           if (labelSize != null) {
             labelY = routerBox.getDownBorder() - labelSize.getX() / 2;
           }
@@ -358,15 +369,43 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         }
       }
 
-      lineRouterBoxes.add(lineRouterBoxes.size() - 1, routerBox);
+      if (j % 2 == 0) {
+        itemsMinY = Math.min(itemsMinY, routerBox.getDownBorder());
+        itemsMaxY = Math.max(itemsMaxY, routerBox.getDownBorder());
+      } else {
+        itemsMinY = Math.min(itemsMinY, routerBox.getUpBorder());
+        itemsMaxY = Math.max(itemsMaxY, routerBox.getUpBorder());
+      }
 
+      if (labelSize != null && labelY != null) {
+        itemsMinY = Math.min(itemsMinY, labelY - labelSize.getHeight() / 2);
+        itemsMaxY = Math.max(itemsMaxY, labelY + labelSize.getHeight() / 2);
+      }
+
+      lineRouterBoxes.add(lineRouterBoxes.size() - 1, routerBox);
       if (labelY != null) {
         lineDrawProp.setLabelCenter(new FlatPoint(shapePosition.getX(), labelY));
         labelY = null;
       }
 
-      lineCompute(line.getLine(), lineDrawProp, lineRouterBoxes, from, to);
-      lineRouterBoxes.clear();
+      lineDrawProp.clear();
+      flatParallelLineParams.add(
+          new FlatParallelLineParam(from, to, lineDrawProp, lineRouterBoxes));
+    }
+
+    for (FlatParallelLineParam parallelLineParam : flatParallelLineParams) {
+      if (itemsMinY < rank.getStartY() || itemsMaxY > rank.getEndY()) {
+        double offset = rank.getStartY() - itemsMinY;
+        FlatShifterStrategy shifter = new FlatShifterStrategy(0 , offset);
+
+        for (RouterBox routerBox : parallelLineParam.routerBoxes) {
+          shifter.moveBox(routerBox);
+        }
+        shifter.movePoint(parallelLineParam.line.getLabelCenter());
+      }
+
+      lineCompute(parallelLineParam.line.getLine(), parallelLineParam.line,
+                  parallelLineParam.routerBoxes, parallelLineParam.from, parallelLineParam.to);
     }
   }
 
@@ -380,7 +419,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     lineDrawProp.setLabelCenter(new FlatPoint(node.getX() + node.getWidth() / 2, node.getY()));
   }
 
-  private void flatLineLabelSet(DNode node, List<RouterBox> lineRouterBoxes) {
+  private void flatLineLabelSet(DNode node) {
     DLine flatLabelLine = node.getFlatLabelLine();
 
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
@@ -405,7 +444,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     for (Entry<Integer, List<DLine>> entry : parallelLineRecordMap.entrySet()) {
       DNode from = flatLabelLine.from();
-      sameRankParallelLineDraw(node, lineRouterBoxes, node.getRank() == from.getRank(),
+      sameRankParallelLineDraw(node, node.getRank() == from.getRank(), rankNode,
                                minY, maxY, entry.getValue());
     }
   }
@@ -1061,5 +1100,24 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     public boolean isHorizontal;
     public List<FlatPoint> fromPortPoints;
     public List<FlatPoint> toPortPoints;
+  }
+
+  private static class FlatParallelLineParam {
+
+    private final DNode from;
+
+    private final DNode to;
+
+    private final LineDrawProp line;
+
+    private final List<RouterBox> routerBoxes;
+
+    public FlatParallelLineParam(DNode from, DNode to, LineDrawProp line,
+                                 List<RouterBox> routerBoxes) {
+      this.from = from;
+      this.to = to;
+      this.line = line;
+      this.routerBoxes = routerBoxes;
+    }
   }
 }

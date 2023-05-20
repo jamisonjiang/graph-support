@@ -21,17 +21,8 @@ import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
-import org.graphper.api.Assemble;
-import org.graphper.layout.Cell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.graphper.def.FlatPoint;
-import org.graphper.def.Curves;
-import org.graphper.def.Vectors;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.util.ValueUtils;
+import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.GraphAttrs;
@@ -42,19 +33,36 @@ import org.graphper.api.Node;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Tend;
+import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
+import org.graphper.def.Curves;
+import org.graphper.def.FlatPoint;
+import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
+import org.graphper.def.Vectors;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.LabelSizeHelper;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
+import org.graphper.util.ValueUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class LineClip {
 
   private static final Logger log = LoggerFactory.getLogger(LineClip.class);
+
+  private static final FlatPoint FLOAT_LABEL_LEFT_OFFSET = new UnmodifyFlatPoint(-0.5, -0.5);
+  private static final FlatPoint FLOAT_LABEL_RIGHT_OFFSET = new UnmodifyFlatPoint(-0.5, 0.5);
+  private static final FlatPoint FLOAT_LABEL_UP_OFFSET = FLOAT_LABEL_RIGHT_OFFSET;
+  private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
 
   protected DrawGraph drawGraph;
 
@@ -208,18 +216,33 @@ public abstract class LineClip {
     double[] labelLength = floatLabels.length > 1 ? new double[]{-1} : null;
     for (FloatLabel floatLabel : floatLabels) {
       FlatPoint startPoint;
-      if (lineDrawProp.isBesselCurve()) {
-        startPoint = curveGetFloatLabelStart(
-            labelLength,
-            floatLabel.getLengthRatio(),
-            lineDrawProp
-        );
+      FlatPoint offset = floatLabel.getOffset();
+      if (floatLabel.getTend() == null) {
+        if (lineDrawProp.isBesselCurve()) {
+          startPoint = curveGetFloatLabelStart(
+              labelLength,
+              floatLabel.getLengthRatio(),
+              lineDrawProp
+          );
+        } else {
+          startPoint = straightGetFloatLabelStart(
+              labelLength,
+              floatLabel.getLengthRatio(),
+              lineDrawProp
+          );
+        }
       } else {
-        startPoint = straightGetFloatLabelStart(
-            labelLength,
-            floatLabel.getLengthRatio(),
-            lineDrawProp
-        );
+        Tend tend = floatLabel.getTend();
+        NodeDrawProp node;
+        if (tend == Tend.TAIL) {
+          startPoint = lineDrawProp.get(0);
+          node = drawGraph.getNodeDrawProp(lineDrawProp.getLine().tail());
+        } else {
+          startPoint = lineDrawProp.get(lineDrawProp.size() - 1);
+          node = drawGraph.getNodeDrawProp(lineDrawProp.getLine().head());
+        }
+
+        offset = getFloatLabelLeftOffset(node, lineDrawProp, startPoint, offset, tend == Tend.TAIL);
       }
 
       FlatPoint labelSize;
@@ -241,7 +264,7 @@ public abstract class LineClip {
       }
 
       if (startPoint != null) {
-        FlatPoint center = floatPointCenter(startPoint, labelSize, floatLabel.getDistRatio());
+        FlatPoint center = floatPointCenter(startPoint, labelSize, offset);
         if (assemble == null) {
           lineDrawProp.addFloatLabelCenter(floatLabel, center);
         } else {
@@ -254,6 +277,27 @@ public abstract class LineClip {
         drawGraph.updateYAxisRange(center.getY() + labelSize.getHeight() / 2);
       }
     }
+  }
+
+  private FlatPoint getFloatLabelLeftOffset(NodeDrawProp node, LineDrawProp lineDrawProp,
+                                            FlatPoint start, FlatPoint offset, boolean isTail) {
+    Box nodeBox = node;
+    LineAttrs lineAttrs = lineDrawProp.lineAttrs();
+    if (node.getCell() != null) {
+      Cell cell = node.getCell().getCellById(
+          isTail ? lineAttrs.getTailCell() : lineAttrs.getHeadCell());
+      if (cell != null) {
+        nodeBox = cell.getCellBox(node);
+      }
+    }
+
+    FlatPoint pointOffset = calcFloatLabelOffset(start, nodeBox);
+    if (offset == null) {
+      return pointOffset;
+    }
+
+    return new FlatPoint(offset.getHeight() + pointOffset.getHeight(),
+                         offset.getWidth() + pointOffset.getWidth());
   }
 
   protected boolean needClip(Line line, LineAttrs lineAttrs, Node node) {
@@ -390,6 +434,27 @@ public abstract class LineClip {
   }
 
   // ---------------------------------------------------------------- private method ----------------------------------------------------------------
+  private FlatPoint calcFloatLabelOffset(FlatPoint endPoint, Box box) {
+    double leftBorder = box.getLeftBorder();
+    double rightBorder = box.getRightBorder();
+    double upBorder = box.getUpBorder();
+    double downBorder = box.getDownBorder();
+
+    if (Vectors.inAngle(box.getX(), box.getY(), leftBorder,
+                        upBorder, leftBorder, downBorder,
+                        endPoint.getX(), endPoint.getY())) {
+      return FLOAT_LABEL_LEFT_OFFSET;
+    }
+
+    if (Vectors.inAngle(box.getX(), box.getY(), leftBorder,
+                        downBorder, rightBorder, downBorder,
+                        endPoint.getX(), endPoint.getY())) {
+      return FLOAT_LABEL_DOWN_OFFSET;
+    }
+
+    return FLOAT_LABEL_RIGHT_OFFSET;
+  }
+
   private FlatPoint calcArrowLinkPoint(FlatPoint clip, double arrowSize, FlatPoint point) {
     FlatPoint dirVector = Vectors.sub(clip, point);
     double dist = dirVector.dist();
@@ -548,13 +613,13 @@ public abstract class LineClip {
     return lengthRatio == 0 ? v1 : v2;
   }
 
-  private FlatPoint floatPointCenter(FlatPoint startPoint, FlatPoint labelSize, double distRatio) {
-    if (drawGraph.needFlip()) {
-      return new FlatPoint(startPoint.getX(),
-                           startPoint.getY() + labelSize.getHeight() * distRatio);
+  private FlatPoint floatPointCenter(FlatPoint startPoint, FlatPoint labelSize, FlatPoint offset) {
+    if (labelSize == null || offset == null) {
+      return new FlatPoint(startPoint.getX(), startPoint.getY());
     }
 
-    return new FlatPoint(startPoint.getX() + labelSize.getWidth() * distRatio, startPoint.getY());
+    return new FlatPoint(startPoint.getX() + labelSize.getWidth() * offset.getWidth(),
+                         startPoint.getY() + labelSize.getHeight() * offset.getHeight());
   }
 
   private ShapePosition getClipShapePosition(LineDrawProp line, NodeDrawProp node, boolean isTail) {

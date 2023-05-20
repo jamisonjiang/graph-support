@@ -35,71 +35,13 @@ class CoordinateV2 extends AbstractCoordinate {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
 
     // Auxiliary graph network simplex method to set the level
-    networkSimplex(createAuxGraph());
+    networkSimplex(createAuxGraph(), false);
 
     // Final x coordinate setting
     positive();
 
     // help gc
     clear();
-  }
-
-  @Override
-  protected double nodeLeftLimit(DNode node) {
-    double minX = -Double.MAX_VALUE;
-
-    ContainerContent containerContent = dotAttachment.haveClusters()
-        ? getContainerContent(node.getContainer()) : null;
-    if (containerContent != null) {
-      minX =
-          containerContent.leftNode.getAuxRank() + containerContent.leftMargin + node.leftWidth();
-    }
-
-    DNode pre = rankContent.rankPreNode(node);
-    if (pre != null) {
-      minX = Math.max(minX,
-                      pre.getAuxRank() + pre.rightWidth() + pre.getNodeSep() + node.leftWidth());
-
-      if (pre.getContainer() != node.getContainer()) {
-        GraphContainer commonParent = dotAttachment.commonParent(node, pre);
-        if (commonParent != pre.getContainer()) {
-          containerContent = getContainerContent(
-              dotAttachment.clusterDirectContainer(commonParent, pre));
-          minX = Math.max(minX, containerContent.rightNode.getAuxRank() + node.leftWidth() + 8);
-        }
-      }
-    }
-
-    return minX;
-  }
-
-  @Override
-  protected double nodeRightLimit(DNode node) {
-    double maxX = Double.MAX_VALUE;
-
-    ContainerContent containerContent = dotAttachment.haveClusters()
-        ? getContainerContent(node.getContainer()) : null;
-    if (containerContent != null) {
-      maxX = containerContent.rightNode.getAuxRank()
-          - containerContent.rightMargin - node.rightWidth();
-    }
-
-    DNode next = rankContent.rankNextNode(node);
-    if (next != null) {
-      maxX = Math.min(maxX,
-                      next.getAuxRank() - next.leftWidth() - node.getNodeSep() - node.rightWidth());
-
-      if (next.getContainer() != node.getContainer()) {
-        GraphContainer commonParent = dotAttachment.commonParent(node, next);
-        if (commonParent != next.getContainer()) {
-          containerContent = getContainerContent(
-              dotAttachment.clusterDirectContainer(commonParent, next));
-          maxX = Math.min(maxX, containerContent.leftNode.getAuxRank() - node.rightWidth() - 8);
-        }
-      }
-    }
-
-    return maxX;
   }
 
   @Override
@@ -275,8 +217,12 @@ class CoordinateV2 extends AbstractCoordinate {
     auxDotDigraph.addEdge(line);
   }
 
+  private boolean notNeedOccupySpaceForCluster(DNode node) {
+    return node.isVirtual() && !(node.isLabelNode() || node.isFlatLabelNode());
+  }
+
   private void adjClusterEdge(DNode node, DNode other) {
-    if (node.isVirtual() || other.isVirtual() || !dotAttachment.haveClusters()) {
+    if (notNeedOccupySpaceForCluster(node) || !dotAttachment.haveClusters()) {
       return;
     }
 
@@ -291,7 +237,7 @@ class CoordinateV2 extends AbstractCoordinate {
           dotAttachment.clusterDirectContainer(commonParent, other)
       );
       auxDotDigraph.addEdge(new DLine(node, containerContent.leftNode, 0,
-                                      (int) (8 + node.rightWidth()), false));
+                                      (int) (20 + node.rightWidth()), false));
     }
     if (commonParent == other.getContainer()) {
 
@@ -299,7 +245,7 @@ class CoordinateV2 extends AbstractCoordinate {
           dotAttachment.clusterDirectContainer(commonParent, node)
       );
       auxDotDigraph.addEdge(new DLine(containerContent.rightNode, other, 0,
-                                      (int) (8 + other.leftWidth()), false));
+                                      (int) (20 + other.leftWidth()), false));
     } else {
 
       ContainerContent left = getContainerContent(

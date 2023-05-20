@@ -493,35 +493,16 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Set the floating labels based on the current line. Compared with the {@link #label(String)},
-     * the float label does not take up space, so it may be superimposed on other elements.
-     *
-     * <p>{@link FloatLabel} uses two parameters to describe the position of the label relative to
-     * the current line:
+     * The floating label object of the Line. Uses two parameters to describe the position of the
+     * label relative to the line:
      * <ul>
-     *   <li>First use the parameter {@link FloatLabel#getLengthRatio()} to locate a position of
-     *   the current line, 0 indicates the position closest to the tail node, 1 indicates the
-     *   position closest to the head node;
-     *   <li>Secondly, use the parameter {@link FloatLabel#getDistRatio()} to describe the distance
-     *   of the current label relative to this point. This movement direction is always perpendicular
-     *   to the hierarchical direction of the two nodes.
+     *   <li>First use the parameter {@link FloatLabel#getLengthRatio()} to locate a position of the current line,
+     *   0 indicates the position closest to the tail node, 1 indicates the position closest to the head node;
+     *   <li>Secondly, if {@link FloatLabel#getTend()} is set, the set {@link FloatLabel#getLengthRatio()} attribute will be ignored,
+     *   and the program will automatically select the appropriate point according to the corresponding value.
+     *   <li>Finally, manually adjust an offset according to the obtained node by {@link FloatLabel#getOffset()}.
+     *   The horizontal and vertical offset ratios corresponding to this offset are based on the size of the current label size.
      * </ul>
-     *
-     * <p>The following is a diagram showing a line pointing from <tt>C</tt> to <tt>A</tt>, where
-     * point <tt>B</tt> is located in the middle of line(<tt>C</tt>, <tt>A</tt>), point <tt>D</tt>
-     * is a point that has the same vertical coordinate as <tt>C</tt>, but has moved a certain
-     * distance laterally, using The description of the corresponding {@link FloatLabel} describes
-     * the positions of these four points:
-     * <pre>
-     *   A(lengthRatio=1, distRatio=0)
-     *   ^
-     *   |
-     *   |
-     *   |B(lengthRatio=0.5, distRatio=0)
-     *   |
-     *   |
-     *   C(lengthRatio=0, distRatio=0)         D(lengthRatio=0, distRatio=10)
-     * </pre>
      *
      * @param floatLabels float label array
      * @return line builder
