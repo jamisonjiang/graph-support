@@ -74,11 +74,12 @@ class NetworkSimplex {
 
   public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, double rankSep,
                         Consumer<DNode[]> sortNodesConsumer) {
-    this(feasibleTree, nsLimit, true, rankSep, sortNodesConsumer);
+    this(feasibleTree, nsLimit, true, true, rankSep, sortNodesConsumer);
   }
 
   public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, boolean positiveRank,
-                        double rankSep, Consumer<DNode[]> sortNodesConsumer) {
+                        boolean needRankContent, double rankSep,
+                        Consumer<DNode[]> sortNodesConsumer) {
     Asserts.nullArgument(feasibleTree, "feasibleTree");
     Asserts.illegalArgument(
         feasibleTree.getDotDigraph() == null,
@@ -95,7 +96,7 @@ class NetworkSimplex {
     networkSimplex(nsLimit);
 
     // Hierarchy of Balanced Vertices + Disconnected Graph Alignment
-    alignUnconnectGraph(balance(sortNodesConsumer));
+    alignUnconnectGraph(balance(needRankContent, sortNodesConsumer));
 
     clear();
   }
@@ -224,12 +225,27 @@ class NetworkSimplex {
     updateCutvalLines.clear();
   }
 
+  private Map<Integer, DNode> balance(boolean needRankContent,
+                                      Consumer<DNode[]> sortNodesConsumer) {
+    if (positiveRank) {
+      return tbBalance(sortNodesConsumer);
+    } else {
+      lrBalance();
+
+      if (needRankContent) {
+        this.rankContent = new RankContent(feasibleTree.graph(), rankSep,
+                                           positiveRank, sortNodesConsumer);
+      }
+      return null;
+    }
+  }
+
   /*
    * In the case of not affecting the total span, the rank setting of some nodes is within a
    * certain range. Balance this inner node so that the nodes are evenly distributed in the
    * Within each rank, this can have a better aspect ratio.
    * */
-  private Map<Integer, DNode> balance(Consumer<DNode[]> sortNodesConsumer) {
+  private Map<Integer, DNode> tbBalance(Consumer<DNode[]> sortNodesConsumer) {
     DotGraph dotGraph = feasibleTree.graph();
 
     Map<Integer, DNode> connectLowRank = feasibleTree.isHaveUnconnectedGraph()
@@ -348,6 +364,48 @@ class NetworkSimplex {
     sourceNode.remove(node);
     node.setRank(targetRank.rankIndex());
     targetRank.add(node);
+  }
+
+  private void lrBalance() {
+    List<Set<DNode>> halfNodeRecord = null;
+    Set<ULine> lineMarks = new HashSet<>(feasibleTree.tree().edgeNum());
+    for (DNode n : feasibleTree.tree()) {
+      for (ULine e : feasibleTree.tree().adjacent(n)) {
+        if (e.cutVal() != 0 || lineMarks.contains(e)) {
+          continue;
+        }
+
+        lineMarks.add(e);
+
+        if (halfNodeRecord == null) {
+          halfNodeRecord = new ArrayList<>();
+        } else {
+          halfNodeRecord.clear();
+        }
+
+        ULine enter = findEnterLine(e, halfNodeRecord);
+        if (enter == null) {
+          continue;
+        }
+
+        int delta = enter.reduceLen();
+        if (delta <= 1) {
+          continue;
+        }
+
+        DNode from = enter.getdLine().from();
+        Set<DNode> halfNodes = halfNodeRecord.get(0);
+        if (halfNodes.contains(from)) {
+          delta /= -2;
+        } else {
+          delta /= 2;
+        }
+
+        for (DNode halfNode : halfNodes) {
+          halfNode.setRank(halfNode.getRank() - delta);
+        }
+      }
+    }
   }
 
   /*

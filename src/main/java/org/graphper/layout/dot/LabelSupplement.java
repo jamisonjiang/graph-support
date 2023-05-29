@@ -148,12 +148,12 @@ class LabelSupplement {
 
   private void recordNewRemoveLines(DLine line, RankNode rankNode,
                                     List<DLine> addLines, List<DLine> removeLines) {
-    removeLines.add(line);
+    if (line.isSameRank()) {
+      return;
+    }
 
+    removeLines.add(line);
     for (int i = 0; i < line.getParallelNums(); i++) {
-      if (line.isSameRank()) {
-        continue;
-      }
       DLine edge = line.parallelLine(i);
 
       DNode virtual;
@@ -218,7 +218,7 @@ class LabelSupplement {
     int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
                            rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
 
-    if (r != 0 || left.name() == null || right.name() == null) {
+    if (r != 0) {
       return r;
     }
 
@@ -235,6 +235,15 @@ class LabelSupplement {
       }
     }
 
+    if (left.name() == null && right.name() == null) {
+      return 0;
+    }
+    if (left.name() == null && right.name() != null) {
+      return -1;
+    }
+    if (left.name() != null && right.name() == null) {
+      return 1;
+    }
     return left.name().compareTo(right.name());
   }
 

@@ -38,11 +38,16 @@ public class SerialHelper {
         ObjectOutputStream oos = new ObjectOutputStream(os)) {
       oos.writeObject(obj);
 
-      try (InputStream is = Files.newInputStream(file.toPath());
-          ObjectInputStream ois = new ObjectInputStream(is)) {
-        T o = (T) ois.readObject();
-        afterDeserial.accept(o);
-      }
+      readObj(afterDeserial, file);
+    }
+  }
+
+  public  static <T> void readObj(Consumer<T> afterDeserial, File file)
+      throws IOException, ClassNotFoundException {
+    try (InputStream is = Files.newInputStream(file.toPath());
+        ObjectInputStream ois = new ObjectInputStream(is)) {
+      T o = (T) ois.readObject();
+      afterDeserial.accept(o);
     }
   }
 }

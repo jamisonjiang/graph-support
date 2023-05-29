@@ -292,7 +292,8 @@ public class HtmlConvert {
      * width and height of the corresponding cell
      */
     double heightIncr =
-        Math.max(table.getHeight() - tableHelper.getHeight(), 0) / tableHelper.horAxisNum();
+        Math.max(table.getHeight() - tableHelper.getHeight(), 0)
+            / (tableHelper.horAxisNum() <= 1 ? 0 : tableHelper.horAxisNum() - 1);
 
     if (heightIncr > 0) {
       double nextRangeLen = 0;

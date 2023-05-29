@@ -22,17 +22,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
+import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
-import org.graphper.api.GraphContainer;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.dot.MinCross.ClusterOrder;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
 
 class RootCrossRank implements CrossRank {
 
@@ -530,6 +531,18 @@ class RootCrossRank implements CrossRank {
       boolean haveSameAdj = sameRankAdjacentRecord.outContains(left, right);
       if (haveSameAdj) {
         return false;
+      }
+
+      Integer leftIdx = childCrossRank.safeGetRankIndex(left);
+      if (leftIdx == null) {
+        return true;
+      }
+      Set<DNode> inAdjs = sameRankAdjacentRecord.inAdjacent(right);
+      for (DNode in : inAdjs) {
+        Integer idx = childCrossRank.safeGetRankIndex(in);
+        if (idx != null && idx > leftIdx) {
+          return false;
+        }
       }
     }
 

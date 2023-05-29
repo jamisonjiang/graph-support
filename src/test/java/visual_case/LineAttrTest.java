@@ -58,25 +58,26 @@ public class LineAttrTest extends GraphvizVisual {
         Line.builder(e, f).floatLabels(
             FloatLabel.builder()
                 .label("center")
-                .distRatio(0)
+                .offset(0)
+
                 .lengthRatio(0.5)
                 .build()
         ).build(),
         Line.builder(g, h).floatLabels(
             FloatLabel.builder()
                 .label("tail")
-                .distRatio(-1)
+                .offset(-1)
                 .lengthRatio(0)
                 .fontSize(20)
                 .build(),
             FloatLabel.builder()
                 .label("center")
-                .distRatio(0)
+                .offset(0)
                 .lengthRatio(0.5)
                 .build(),
             FloatLabel.builder()
                 .label("head")
-                .distRatio(0.5)
+                .offset(0.5)
                 .lengthRatio(1)
                 .fontSize(60)
                 .build()

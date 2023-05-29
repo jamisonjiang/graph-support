@@ -35,10 +35,6 @@ class ULine extends AbstractUndirectedEdge<DNode, ULine> {
     return dLine;
   }
 
-  int slack() {
-    return dLine.slack();
-  }
-
   int reduceLen() {
     return dLine.reduceLen();
   }

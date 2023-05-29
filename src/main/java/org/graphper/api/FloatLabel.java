@@ -19,6 +19,8 @@ package org.graphper.api;
 import java.io.Serializable;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
+import org.graphper.api.attributes.Tend;
+import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 
 /**
@@ -27,26 +29,11 @@ import org.graphper.util.Asserts;
  * <ul>
  *   <li>First use the parameter {@link #getLengthRatio()} to locate a position of the current line,
  *   0 indicates the position closest to the tail node, 1 indicates the position closest to the head node;
- *   <li>Secondly, use the parameter {@link #getDistRatio()} to describe the distance of the current
- *   label relative to this point. This movement direction is always perpendicular to the hierarchical
- *   direction of the two nodes.
+ *   <li>Secondly, if {@link #getTend()} is set, the set {@link #getLengthRatio()} attribute will be ignored,
+ *   and the program will automatically select the appropriate point according to the corresponding value.
+ *   <li>Finally, manually adjust an offset according to the obtained node by {@link #getOffset()}.
+ *   The horizontal and vertical offset ratios corresponding to this offset are based on the size of the current label size.
  * </ul>
- *
- * <p>The following is a diagram showing a line pointing from <tt>C</tt> to <tt>A</tt>, where
- * point <tt>B</tt> is located in the middle of line(<tt>C</tt>, <tt>A</tt>), point <tt>D</tt>
- * is a point that has the same vertical coordinate as <tt>C</tt>, but has moved a certain
- * distance laterally, using The description of the corresponding {@link FloatLabel} describes
- * the positions of these four points:
- * <pre>
- *   A(lengthRatio=1, distRatio=0)
- *   ^
- *   |
- *   |
- *   |B(lengthRatio=0.5, distRatio=0)
- *   |
- *   |
- *   C(lengthRatio=0, distRatio=0)         D(lengthRatio=0, distRatio=10)
- * </pre>
  *
  * @author Jamison Jiang
  */
@@ -58,6 +45,8 @@ public class FloatLabel implements Serializable {
    * The floating label
    */
   private final String label;
+
+  private final Tend tend;
 
   private final Table table;
 
@@ -74,19 +63,20 @@ public class FloatLabel implements Serializable {
   private final double lengthRatio;
 
   /**
-   * Based on the distance of the point on the line.
+   * The offset position of the point from the specified line.
    */
-  private final double distRatio;
+  private final FlatPoint offset;
 
-  private FloatLabel(String label, float fontSize, double lengthRatio,
-                     double distRatio, Table table, Assemble assemble) {
+  private FloatLabel(String label, float fontSize, double lengthRatio, Tend tend,
+                     FlatPoint offset, Table table, Assemble assemble) {
     Asserts.illegalArgument(label == null && table == null && assemble == null,
                             "Empty Float Label");
     Asserts.illegalArgument(fontSize < 0, "Float label can not less than 0");
     this.label = label;
     this.fontSize = fontSize;
     this.lengthRatio = lengthRatio;
-    this.distRatio = distRatio;
+    this.tend = tend;
+    this.offset = offset;
     this.table = table;
     this.assemble = assemble;
   }
@@ -110,6 +100,15 @@ public class FloatLabel implements Serializable {
   }
 
   /**
+   * Returns the placement tendency of FloatLabel.
+   *
+   * @return the placement tendency of FloatLabel
+   */
+  public Tend getTend() {
+    return tend;
+  }
+
+  /**
    * Returns the position is described based on the length of the line.
    *
    * @return the position is described based on the length of the line
@@ -119,12 +118,12 @@ public class FloatLabel implements Serializable {
   }
 
   /**
-   * Returns the distance of the point on the line.
+   * Returns the offset position of the point from the specified line.
    *
-   * @return the distance of the point on the line
+   * @return the offset position of the point from the specified line
    */
-  public double getDistRatio() {
-    return distRatio;
+  public FlatPoint getOffset() {
+    return offset;
   }
 
   /**
@@ -169,13 +168,15 @@ public class FloatLabel implements Serializable {
     FloatLabel that = (FloatLabel) o;
     return Float.compare(that.fontSize, fontSize) == 0
         && Double.compare(that.lengthRatio, lengthRatio) == 0
-        && Double.compare(that.distRatio, distRatio) == 0 && Objects.equals(label,
-                                                                            that.label);
+        && Objects.equals(label, that.label)
+        && Objects.equals(table, that.table)
+        && Objects.equals(assemble, that.assemble)
+        && Objects.equals(offset, that.offset);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(label, fontSize, lengthRatio, distRatio);
+    return Objects.hash(label, table, assemble, fontSize, lengthRatio, offset);
   }
 
   // ------------------------------------------ FloatLabel Builder ---------------------------------------
@@ -189,9 +190,12 @@ public class FloatLabel implements Serializable {
 
     private float fontSize = 14;
 
+    private Tend tend;
+
     private double lengthRatio;
 
-    private double distRatio = 0.5F;
+    private FlatPoint offset;
+
 
     private Table table;
 
@@ -238,13 +242,37 @@ public class FloatLabel implements Serializable {
     }
 
     /**
-     * Set the distance of the point on the line.
+     * Set an offset, the horizontal and vertical offset ratio corresponding to this offset is based
+     * on the size of the current label size.
      *
-     * @param distRatio the distance of the point on the line
+     * @param sizeRatio height and width ratio
      * @return float label builder
      */
-    public FloatLabelBuilder distRatio(double distRatio) {
-      this.distRatio = distRatio;
+    public FloatLabelBuilder offset(double sizeRatio) {
+      return offset(sizeRatio, sizeRatio);
+    }
+
+    /**
+     * Set an offset, the horizontal and vertical offset ratio corresponding to this offset is based
+     * on the size of the current label size.
+     *
+     * @param heightRatio height ratio
+     * @param widthRatio  width ratio
+     * @return float label builder
+     */
+    public FloatLabelBuilder offset(double heightRatio, double widthRatio) {
+      this.offset = new FlatPoint(heightRatio, widthRatio);
+      return this;
+    }
+
+    /**
+     * Set the placement tendency of {@link FloatLabel}.
+     *
+     * @param tend placement tendency of label
+     * @return float label builder
+     */
+    public FloatLabelBuilder tend(Tend tend) {
+      this.tend = tend;
       return this;
     }
 
@@ -289,7 +317,7 @@ public class FloatLabel implements Serializable {
      * @throws NullPointerException not set the label
      */
     public FloatLabel build() {
-      return new FloatLabel(label, fontSize, lengthRatio, distRatio, table, assemble);
+      return new FloatLabel(label, fontSize, lengthRatio, tend, offset, table, assemble);
     }
   }
 }
