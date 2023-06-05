@@ -29,7 +29,6 @@ import java.util.function.Predicate;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
-import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.dot.MinCross.ClusterOrder;
 import org.graphper.util.Asserts;
@@ -732,27 +731,23 @@ class RootCrossRank implements CrossRank {
       }
 
       if (u == v) {
-        FlatPoint up = getPortPoint(line1, u);
-        FlatPoint vp = getPortPoint(line2, v);
+        double up = getCompareNo(line1, u);
+        double vp = getCompareNo(line2, v);
 
         if (x.getRank() == u.getRank()) {
           return comparePointX(up, vp) < 0 == getRankIndex(x) < getRankIndex(y);
         }
-        double ul = up.getX();
-        double vl = vp.getX();
-        return locationTag(ul, vl) * locationTag(y, x)
-            + locationTag(vl, ul) * locationTag(x, y) == 1;
+        return locationTag(up, vp) * locationTag(y, x)
+            + locationTag(vp, up) * locationTag(x, y) == 1;
       }
 
-      FlatPoint xp = getPortPoint(line1, x);
-      FlatPoint yp = getPortPoint(line2, y);
+      double xp = getCompareNo(line1, x);
+      double yp = getCompareNo(line2, y);
 
       if (u.getRank() == x.getRank()) {
         return comparePointX(xp, yp) < 0 == getRankIndex(u) < getRankIndex(v);
       }
-      double xl = xp.getX();
-      double yl = yp.getX();
-      return locationTag(u, v) * locationTag(yl, xl) + locationTag(v, u) * locationTag(xl, yl) == 1;
+      return locationTag(u, v) * locationTag(yp, xp) + locationTag(v, u) * locationTag(xp, yp) == 1;
     }
 
     boolean line1InSameRank = u.getRank() == x.getRank();
@@ -773,12 +768,12 @@ class RootCrossRank implements CrossRank {
     return o1 < o2 ? 1 : 0;
   }
 
-  private FlatPoint getPortPoint(DLine line, DNode node) {
-    return PortHelper.getPortPoint(line.getLine(), node, drawGraph, false);
+  private double getCompareNo(DLine line, DNode node) {
+    return PortHelper.portCompareNo(line.getLine(), node, drawGraph);
   }
 
-  private int comparePointX(FlatPoint p1, FlatPoint p2) {
-    return Double.compare(p1.getX(), p2.getX());
+  private int comparePointX(double p1, double p2) {
+    return Double.compare(p1, p2);
   }
 
   private CrossRank crossRank() {

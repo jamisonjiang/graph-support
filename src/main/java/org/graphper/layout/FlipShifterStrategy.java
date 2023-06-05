@@ -16,16 +16,18 @@
 
 package org.graphper.layout;
 
-import org.graphper.def.FlatPoint;
-import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.dot.RouterBox;
-import org.graphper.util.Asserts;
-import org.graphper.api.ext.Box;
-import org.graphper.draw.ContainerDrawProp;
-import org.graphper.draw.DrawGraph;
-import org.graphper.draw.Rectangle;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.api.ext.Box;
+import org.graphper.def.FlatPoint;
+import org.graphper.draw.ContainerDrawProp;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.NodeDrawProp;
+import org.graphper.draw.Rectangle;
+import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.dot.RouterBox;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
 
 /**
  * A movement strategy that implements the {@link Rankdir} attribute. The attribute will be flipped
@@ -55,8 +57,14 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     }
 
     // Cell node do not need flipped
-    if (containerDrawProp.isNodeProp() && ((NodeDrawProp) containerDrawProp).isCellProp()) {
-      return;
+    if (containerDrawProp.isNodeProp()) {
+      NodeDrawProp node = (NodeDrawProp) containerDrawProp;
+      // Cell node do not need flipped
+      if (node.isCellProp()) {
+        return;
+      }
+
+      moveCell(node);
     }
 
     if (containerDrawProp.getLabelSize() != null && !containerDrawProp.isNodeProp()) {
@@ -99,6 +107,18 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     }
     Rankdir rankdir = drawGraph.rankdir();
     return movePort(port, rankdir);
+  }
+
+  public static Port backPort(Port port, Rankdir rankdir) {
+    if (port == null || rankdir == null) {
+      return port;
+    }
+    for (Port p : Port.values()) {
+      if (movePort(p, rankdir) == port) {
+        return p;
+      }
+    }
+    return port;
   }
 
   public static Port movePort(Port port, Rankdir rankdir) {
@@ -270,6 +290,50 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   // --------------------------------------- private method  ---------------------------------------
+
+  private void moveCell(NodeDrawProp node) {
+    RootCell cell = node.getCell();
+    if (cell == null || drawGraph.rankdir() == Rankdir.TB) {
+      return;
+    }
+
+    moveCell(node, cell, drawGraph.rankdir());
+  }
+
+  private void moveCell(NodeDrawProp rootBox, Cell cell, Rankdir rankdir) {
+    FlatPoint offset = cell.getOffset();
+    if (rankdir == Rankdir.BT) {
+      if (offset != null) {
+        offset.setY(rootBox.getHeight() - cell.getHeight() - offset.getY());
+      }
+    } else {
+      double tmp;
+      if (offset != null) {
+        if (rankdir == Rankdir.LR) {
+          tmp = offset.getX();
+          offset.setX(offset.getY());
+          offset.setY(rootBox.getWidth() - tmp - cell.getWidth());
+        }
+        if (rankdir == Rankdir.RL) {
+          tmp = offset.getX();
+          offset.setX(rootBox.getHeight() - offset.getY() - cell.getHeight());
+          offset.setY(rootBox.getWidth() - tmp - cell.getWidth());
+        }
+      }
+
+      tmp = cell.getHeight();
+      cell.setHeight(cell.getWidth());
+      cell.setWidth(tmp);
+    }
+
+    if (CollectionUtils.isEmpty(cell.getChildren())) {
+      return;
+    }
+
+    for (Cell child : cell.getChildren()) {
+      moveCell(rootBox, child, rankdir);
+    }
+  }
 
   private void flipDrawGraphRange() {
     if (notNeedMove()) {

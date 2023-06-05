@@ -22,6 +22,7 @@ import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.Rankdir;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
@@ -187,5 +188,14 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     setRightBorder(getLeftBorder() + width);
     setUpBorder(lc.getY() - ls.getHeight() / 2 + verOffset);
     setDownBorder(getUpBorder() + height);
+  }
+
+  public void flip(Rankdir rankdir) {
+    if (getCell() != null) {
+      getCell().flip(rankdir, this);
+    }
+    if (rankdir == Rankdir.LR || rankdir == Rankdir.RL) {
+      this.flip();
+    }
   }
 }

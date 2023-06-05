@@ -256,7 +256,7 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
       return 0;
     }
 
-    return Math.abs(routerBox.closerHorizontalWall(p.getX()) - p.getX());
+    return Math.abs(routerBox.closerVerWall(p.getX()) - p.getX());
   }
 
   private boolean approximatelyInBoxX(RouterBox routerBox, double p) {

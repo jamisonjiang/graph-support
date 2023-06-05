@@ -283,6 +283,14 @@ class RankContent implements Iterable<RankNode> {
       this.labelRank = isLabelRank;
     }
 
+    public boolean havePreRank() {
+      return pre != null;
+    }
+
+    public boolean haveNextRank() {
+      return next != null;
+    }
+
     public boolean isLabelRank() {
       return labelRank;
     }

@@ -14,28 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
-import java.util.List;
-import org.graphper.draw.DrawGraph;
-import org.graphper.layout.LayoutAttach;
-import org.graphper.layout.ShifterStrategy;
-
-public class TLayout extends DotLayoutEngine {
-
-  DotAttachment dotAttachment;
-
-  @Override
-  public void layout(DrawGraph drawGraph, LayoutAttach attach) {
-    this.dotAttachment = (DotAttachment) attach;
-  }
-
-  @Override
-  public List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
-    return super.shifterStrategies(drawGraph);
-  }
-
-  @Override
-  protected void afterRenderShifter(LayoutAttach drawGraph) {
-  }
+public class LayoutAttach {
 }

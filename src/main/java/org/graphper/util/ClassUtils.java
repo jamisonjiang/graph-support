@@ -94,4 +94,21 @@ public class ClassUtils {
 
     return map;
   }
+
+  public static void modifyField(Object obj, String fieldName, Object value)
+      throws NoSuchFieldException, IllegalAccessException {
+    Asserts.nullArgument(obj, "Null object");
+    Asserts.nullArgument(fieldName, "Null field name");
+
+    Class<?> clazz = obj.getClass();
+    Field field = clazz.getDeclaredField(fieldName);
+    if (Modifier.isStatic(field.getModifiers())) {
+      return;
+    }
+
+    boolean accessible = field.isAccessible();
+    field.setAccessible(true);
+    field.set(obj, value);
+    field.setAccessible(accessible);
+  }
 }

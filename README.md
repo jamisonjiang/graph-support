@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
 </dependency>
 ```
 

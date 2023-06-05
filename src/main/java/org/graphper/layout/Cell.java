@@ -23,9 +23,9 @@ import java.util.Map;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.ext.Box;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.Vectors;
 import org.graphper.draw.Rectangle;
 import org.graphper.util.CollectionUtils;
 
@@ -167,13 +167,51 @@ public class Cell {
     return cellRect;
   }
 
+  public void flip(Rankdir rankdir, Box rootBox) {
+    if (rankdir == null || rankdir == Rankdir.TB || rootBox == null) {
+      return;
+    }
+
+    if (rankdir == Rankdir.BT) {
+      if (offset != null) {
+        offset.setY(rootBox.getHeight() - offset.getY() - height);
+      }
+    } else {
+      double tmp;
+      if (offset != null) {
+        if (rankdir == Rankdir.LR) {
+          tmp = offset.getY();
+          offset.setY(offset.getX());
+          offset.setX(rootBox.getHeight() - tmp - height);
+        }
+        if (rankdir == Rankdir.RL) {
+          tmp = offset.getX();
+          offset.setX(rootBox.getHeight() - offset.getY() - height);
+          offset.setY(rootBox.getWidth() - tmp - width);
+        }
+      }
+
+      tmp = height;
+      height = width;
+      width = tmp;
+    }
+
+    if (CollectionUtils.isEmpty(children)) {
+      return;
+    }
+
+    for (Cell child : children) {
+      child.flip(rankdir, rootBox);
+    }
+  }
+
   public static class RootCell extends Cell {
 
     private Map<String, Cell> idRecord;
 
     public RootCell(boolean isHor) {
       super(isHor);
-      this.offset = Vectors.ZERO;
+      this.offset = new FlatPoint(0, 0);
     }
 
     void put(String id, Cell cell) {

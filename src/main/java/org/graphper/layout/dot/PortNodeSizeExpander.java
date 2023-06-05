@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
 import org.graphper.api.LineAttrs;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
@@ -29,7 +30,6 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
-import org.graphper.api.attributes.Port;
 
 public class PortNodeSizeExpander extends NodeSizeExpander {
 
@@ -51,7 +51,8 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     selfLinePoints(drawGraph, nodeDrawProp, lines);
   }
 
-  private void selfLinePoints(DrawGraph drawGraph, NodeDrawProp nodeDrawProp, TreeSet<SelfLine> lines) {
+  private void selfLinePoints(DrawGraph drawGraph, NodeDrawProp nodeDrawProp,
+                              TreeSet<SelfLine> lines) {
     double interval = minSelfInterval(node);
     Map<Port, Double> axisDistRecord = null;
     Map<Float, Double> tempAxisDistRecord = null;
@@ -174,10 +175,10 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
       LineAttrs lineAttrs = lineDrawProp.lineAttrs();
       Port tailPort = FlipShifterStrategy.movePort(drawGraph, lineAttrs.getTailPort());
 
-      FlatPoint tailPoint = PortHelper
-          .endPoint(lineAttrs.getTailCell(), lineAttrs.getTailPort(), node.getNode(), drawGraph, node);
-      FlatPoint headPoint = PortHelper
-          .endPoint(lineAttrs.getHeadCell(), lineAttrs.getHeadPort(), node.getNode(), drawGraph, node);
+      FlatPoint tailPoint = PortHelper.getPortPoint(node, lineAttrs.getTailCell(),
+                                                    lineAttrs.getTailPort(), drawGraph);
+      FlatPoint headPoint = PortHelper.getPortPoint(node, lineAttrs.getHeadCell(),
+                                                    lineAttrs.getHeadPort(), drawGraph);
 
       Port tailNearestPort = null;
       Port headNearestPort = null;

@@ -18,6 +18,7 @@ package org.graphper.layout;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -164,7 +165,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Create DrawGraph and initialize some properties of GraphvizDrawProp.
     DrawGraph drawGraph = new DrawGraph(graphviz);
-    Object attachment = attachment(drawGraph);
+    LayoutAttach attachment = attachment(drawGraph);
 
     // Various id records
     Map<Node, Integer> nodeId = new HashMap<>(graphviz.nodeNum());
@@ -210,7 +211,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    * @param drawGraph draw graph object
    * @return attachment of layout
    */
-  protected Object attachment(DrawGraph drawGraph) {
+  protected LayoutAttach attachment(DrawGraph drawGraph) {
     return null;
   }
 
@@ -222,18 +223,18 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    * @param drawGraph       draw graph object
    * @param parentContainer parent container of node
    */
-  protected void consumerNode(Node node, Object attachment, DrawGraph drawGraph,
+  protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
                               GraphContainer parentContainer) {
   }
 
   /**
    * Post-processing of lines by the engine.
    *
-   * @param line       line
-   * @param attachment layout attachment
-   * @param drawGraph  draw graph object
+   * @param line      line
+   * @param attach    layout attachment
+   * @param drawGraph draw graph object
    */
-  protected void consumerLine(Line line, Object attachment, DrawGraph drawGraph) {
+  protected void consumerLine(Line line, LayoutAttach attach, DrawGraph drawGraph) {
   }
 
   /**
@@ -241,7 +242,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    *
    * @param attach layout attachment
    */
-  protected void afterLayoutShifter(Object attach) {
+  protected void afterLayoutShifter(LayoutAttach attach) {
   }
 
   /**
@@ -249,7 +250,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    *
    * @param attach layout attachment
    */
-  protected void afterRenderShifter(Object attach) {
+  protected void afterRenderShifter(LayoutAttach attach) {
   }
 
   /**
@@ -291,10 +292,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   /**
    * Engine layout execute.
    *
-   * @param drawGraph  draw graph object
-   * @param attachment layout attachment
+   * @param drawGraph draw graph object
+   * @param attach    layout attach
    */
-  protected abstract void layout(DrawGraph drawGraph, Object attachment);
+  protected abstract void layout(DrawGraph drawGraph, LayoutAttach attach);
 
   /**
    * The move strategy for the layout engine.
@@ -306,7 +307,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
   // -------------------------------- private method --------------------------------
 
-  private void handleGraphviz(Object attachment, Map<Node, Integer> nodeId, DrawGraph drawGraph) {
+  private void handleGraphviz(LayoutAttach attach, Map<Node, Integer> nodeId, DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
     Graphviz graphviz = graphvizDrawProp.getGraphviz();
     GraphAttrs graphAttrs = graphviz.graphAttrs();
@@ -321,7 +322,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       }
     } else {
       labelSize = assemble.size();
-      assembleHandle(attachment, drawGraph, null, nodeId, assemble);
+      assembleHandle(attach, drawGraph, null, nodeId, assemble);
     }
 
     graphvizDrawProp.setLabelSize(labelSize);
@@ -346,7 +347,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     return !c.isSubgraph() || c.isTransparent();
   }
 
-  private void nodeLineClusterHandle(Object attachment,
+  private void nodeLineClusterHandle(LayoutAttach attachment,
                                      DrawGraph drawGraph,
                                      GraphContainer container,
                                      Map<Node, Integer> nodeId,
@@ -388,7 +389,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
   }
 
-  private void nodeHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+  private void nodeHandle(LayoutAttach attachment, DrawGraph drawGraph, GraphContainer container,
                           Map<Node, Integer> nodeId, Node node, RootCell rootCell, FlatPoint offset,
                           boolean isCell, boolean needCalcOffset, int depth) {
     Asserts.illegalArgument(depth > Graphviz.MAX_DEPTH,
@@ -440,6 +441,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
           if (id != null) {
             cell = new Cell(false);
             rootCell.put(id, cell);
+            if (rootCell.children == null) {
+              rootCell.children = new ArrayList<>(2);
+            }
+            rootCell.children.add(cell);
           }
         }
 
@@ -510,7 +515,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
   }
 
-  private void lineHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+  private void lineHandle(LayoutAttach attachment, DrawGraph drawGraph, GraphContainer container,
                           Map<Line, Integer> lineId, Map<Node, Integer> nodeId, Line line) {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line);
 
@@ -553,18 +558,18 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     consumerLine(line, attachment, drawGraph);
   }
 
-  private void assembleHandle(Object attachment, DrawGraph drawGraph, GraphContainer container,
+  private void assembleHandle(LayoutAttach attach, DrawGraph drawGraph, GraphContainer container,
                               Map<Node, Integer> nodeId, Assemble assemble) {
     if (assemble == null) {
       return;
     }
 
     for (Node cell : assemble.getCells()) {
-      nodeHandle(attachment, drawGraph, container, nodeId, cell, null, null, true, false, 0);
+      nodeHandle(attach, drawGraph, container, nodeId, cell, null, null, true, false, 0);
     }
   }
 
-  private void clusterHandle(Object attachment, DrawGraph drawGraph, Cluster cluster,
+  private void clusterHandle(LayoutAttach attach, DrawGraph drawGraph, Cluster cluster,
                              Map<Node, Integer> nodeId, Map<GraphContainer, Integer> clusterId) {
     if (drawGraph.haveCluster(cluster)) {
       return;
@@ -584,7 +589,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Set cluster assemble
     Assemble assemble = clusterDrawProp.getAssemble();
-    assembleHandle(attachment, drawGraph, null, nodeId, assemble);
+    assembleHandle(attach, drawGraph, null, nodeId, assemble);
 
     ClusterAttrs clusterAttrs = cluster.clusterAttrs();
     String label = clusterAttrs.getLabel();
@@ -758,7 +763,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
           continue;
         } else if (Objects.equals("assemble", field.getName())
             || Objects.equals("table", field.getName())) {
-          log.warn("Can not copy " + field.getName() + "attribute!");
+          log.warn("Can not copy " + field.getName() + " attribute!");
           field.setAccessible(false);
           continue;
         }
@@ -783,7 +788,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
   }
 
-  private void moveGraph(DrawGraph drawGraph, RenderEngine renderEngine, Object attach) {
+  private void moveGraph(DrawGraph drawGraph, RenderEngine renderEngine, LayoutAttach attach) {
     List<ShifterStrategy> layoutShifters = shifterStrategies(drawGraph);
 
     Shifter shifter;

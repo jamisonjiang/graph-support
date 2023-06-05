@@ -31,7 +31,9 @@ import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
@@ -309,5 +311,154 @@ public class BugCaseTest extends GraphvizVisual {
     SerialHelper.readObj(o -> {
       visual((Graphviz) o);
     }, new File(DocumentUtils.getTestSerialPath() + "graph1"));
+  }
+
+  @Test
+  public void testAllPortPosition() {
+    /*
+    digraph {
+        rankdir=LR
+        // "n","ne","e","se","s","sw","w","nw","c","_"
+        node[height=0.001,width=0.001,fontsize=4]
+        tail[fontsize=14,shape=rect]
+        n[label="n"]
+        ne[label="ne"]
+        e[label="e"]
+        se[label="se"]
+        s[label="s"]
+        sw[label="sw"]
+        w[label="w"]
+        nw[label="nw"]
+        // 9[label="c"]
+        // 10[label="_"]
+        w -> tail:w[dir=back]
+        nw -> tail:nw[dir=back]
+        n -> tail:n[dir=back]
+        ne -> tail:ne[dir=back]
+        // 9 -> tail:c[dir=back]
+        tail:e -> e:w
+        // 10 -> tail:_[dir=back]
+        tail:se -> se
+        tail:s -> s
+        tail:sw -> sw
+
+        {
+            rank=same;
+            w,tail,e
+        }
+    }
+     */
+    Node n = Node.builder().label("n").build();
+    Node ne = Node.builder().label("ne").build();
+    Node e = Node.builder().label("e").build();
+    Node se = Node.builder().label("se").build();
+    Node s = Node.builder().label("s").build();
+    Node sw = Node.builder().label("sw").build();
+    Node w = Node.builder().label("w").build();
+    Node nw = Node.builder().label("nw").build();
+    Node tail = Node.builder()
+        .label("tail")
+        .build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .addLine(Line.builder(w, tail).dir(Dir.BACK).headPort(Port.WEST).build())
+        .addLine(Line.builder(nw, tail).dir(Dir.BACK).headPort(Port.NORTH_WEST).build())
+        .addLine(Line.builder(n, tail).dir(Dir.BACK).headPort(Port.NORTH).build())
+        .addLine(Line.builder(ne, tail).dir(Dir.BACK).headPort(Port.NORTH_EAST).build())
+        .addLine(Line.builder(tail, e).tailPort(Port.EAST).headPort(Port.WEST).build())
+        .addLine(Line.builder(tail, se).tailPort(Port.SOUTH_EAST).build())
+        .addLine(Line.builder(tail, s).tailPort(Port.SOUTH).build())
+        .addLine(Line.builder(tail, sw).tailPort(Port.SOUTH_WEST).build())
+        .startSub()
+        .rank(Rank.SAME)
+        .addNode(w)
+        .addNode(tail)
+        .addNode(e)
+        .endSub()
+
+        .build();
+
+    visual(graphviz);
+
+    /*
+    digraph {
+        rankdir=LR
+        // "n","ne","e","se","s","sw","w","nw","c","_"
+        node[height=0.001,width=0.001,fontsize=4]
+        tail[fontsize=14,shape=rect]
+        n[label="n"]
+        ne[label="ne"]
+        e[label="e"]
+        se[label="se"]
+        s[label="s"]
+        sw[label="sw"]
+        w[label="w"]
+        nw[label="nw"]
+        // 9[label="c"]
+        // 10[label="_"]
+        w -> tail:w[dir=back]
+        nw -> tail:nw[dir=back]
+        n -> tail:n[dir=back]
+        tail:ne -> ne
+        // 9 -> tail:c[dir=back]
+        tail:e -> e:w
+        // 10 -> tail:_[dir=back]
+        tail:se -> se
+        tail:s -> s:n
+        sw -> tail:sw[dir=back]
+
+        {
+            rank=same;
+            s,tail,n
+        }
+    }
+     */
+    graphviz = Graphviz.digraph()
+        .rankdir(Rankdir.LR)
+        .tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build())
+        .addLine(Line.builder(w, tail).dir(Dir.BACK).headPort(Port.WEST).build())
+        .addLine(Line.builder(nw, tail).dir(Dir.BACK).headPort(Port.NORTH_WEST).build())
+        .addLine(Line.builder(tail, n).headPort(Port.SOUTH).build())
+        .addLine(Line.builder(tail, ne).tailPort(Port.NORTH_EAST).build())
+        .addLine(Line.builder(tail, e).tailPort(Port.EAST).headPort(Port.WEST).build())
+        .addLine(Line.builder(tail, se).tailPort(Port.SOUTH_EAST).build())
+        .addLine(
+            Line.builder(s, tail).dir(Dir.BACK).tailPort(Port.NORTH).headPort(Port.SOUTH).build())
+        .addLine(Line.builder(sw, tail).dir(Dir.BACK).headPort(Port.SOUTH_WEST).build())
+        .startSub()
+        .rank(Rank.SAME)
+        .addNode(s)
+        .addNode(tail)
+        .addNode(n)
+        .endSub()
+        .build();
+
+    visual(graphviz);
+  }
+
+  @Test
+  public void testFlatPortLine() {
+    Node a = Node.builder().label("a").build();
+    Node b = Node.builder().label("b").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .startSub()
+        .rank(Rank.SAME)
+        .addLine(Line.builder(a, b).label("Line 1")
+                     .tailPort(Port.WEST).headPort(Port.EAST).build())
+        .addLine(Line.builder(a, b).label("Line 2")
+                     .tailPort(Port.WEST).headPort(Port.EAST).build())
+        .addLine(Line.builder(a, b).label("Line 3")
+                     .tailPort(Port.EAST).headPort(Port.WEST).build())
+        .addLine(Line.builder(a, b).label("Line 4")
+                     .tailPort(Port.EAST).headPort(Port.WEST).build())
+        .addLine(Line.builder(a, b).label("Line 5")
+                     .tailPort(Port.SOUTH_EAST).headPort(Port.SOUTH_WEST).build())
+        .addLine(Line.builder(a, b).label("Line 6")
+                     .tailPort(Port.SOUTH_EAST).headPort(Port.SOUTH_WEST).build())
+        .endSub()
+        .build();
+
+    visual(graphviz);
   }
 }

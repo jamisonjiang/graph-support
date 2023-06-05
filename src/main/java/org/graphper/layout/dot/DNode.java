@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import org.graphper.def.FlatPoint;
-import org.graphper.def.VertexIndex;
-import org.graphper.util.CollectionUtils;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
@@ -32,7 +29,10 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
+import org.graphper.def.FlatPoint;
+import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
+import org.graphper.util.CollectionUtils;
 
 class DNode extends VertexIndex implements Box, ShapePosition {
 
@@ -333,6 +333,10 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     } else {
       nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
     }
+  }
+
+  NodeSizeExpander getNodeSizeExpander() {
+    return nodeSizeExpander;
   }
 
   DLine getFlatLabelLine() {

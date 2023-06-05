@@ -16,7 +16,12 @@
 
 package org.graphper.layout.dot;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.util.Asserts;
 
 public class OrthoNodeSizeExpander extends NodeSizeExpander {
@@ -25,6 +30,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     Asserts.nullArgument(node, "Self line node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node not have any self line");
 
+    this.node = node;
     init(node);
   }
 
@@ -66,6 +72,77 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
       bottomHeightOffset = Math.max(bottomHeight + bottomHeightOffset + interval, height / 2) - bottomHeight;
       rightWidthOffset += Math.max(width, interval);
       consumer.consumeSelfLine(i, line, topHeightOffset, bottomHeightOffset, rightWidthOffset);
+    }
+  }
+
+  public void drawSelfLine(DrawGraph drawGraph) {
+    Map<GroupKey, List<GroupEntry>> groupKeyListMap = groupSelfLine(drawGraph, node);
+
+    double interval = minSelfInterval(node) / 2;
+    double topHeight = node.realTopHeight();
+    double bottomHeight = node.realBottomHeight();
+    double topHeightOffset = 0;
+    double bottomHeightOffset = 0;
+    double rightWidthOffset = 0;
+
+    for (Entry<GroupKey, List<GroupEntry>> entry : groupKeyListMap.entrySet()) {
+      GroupKey key = entry.getKey();
+      FlatPoint tailPoint = key.getTailPoint();
+      FlatPoint headPoint = key.getHeadPoint();
+      List<GroupEntry> groupLines = entry.getValue();
+      double nodeInternalInterval = node.getWidth() / (groupLines.size() + 1);
+
+      for (int lineNo = 0; lineNo < groupLines.size(); lineNo++) {
+        GroupEntry groupEntry = groupLines.get(lineNo);
+        DLine line = groupEntry.getLine();
+
+        LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
+        if (lineDrawProp == null || lineDrawProp.isInit()) {
+          continue;
+        }
+
+        lineDrawProp.clear();
+
+        FlatPoint labelSize = line.getLabelSize();
+        double height = 0;
+        double width = 0;
+
+        if (labelSize != null) {
+          height = labelSize.getHeight();
+          width = labelSize.getWidth();
+        }
+
+        topHeightOffset = Math.max(topHeight + topHeightOffset + interval, height / 2) - topHeight;
+        bottomHeightOffset =
+            Math.max(bottomHeight + bottomHeightOffset + interval, height / 2) - bottomHeight;
+        rightWidthOffset += Math.max(width, interval);
+
+        double right = node.getRightBorder() + rightWidthOffset;
+        double top = node.getUpBorder() - topHeightOffset;
+        double bottom = node.getDownBorder() + bottomHeightOffset;
+
+        if (key.havePortOrCell()) {
+          lineDrawProp.add(new FlatPoint(tailPoint.getX(), tailPoint.getY()));
+          lineDrawProp.add(new FlatPoint(tailPoint.getX(), top));
+          lineDrawProp.add(new FlatPoint(right, top));
+          lineDrawProp.add(new FlatPoint(right, bottom));
+          lineDrawProp.add(new FlatPoint(headPoint.getX(), bottom));
+          lineDrawProp.add(new FlatPoint(headPoint.getX(), headPoint.getY()));
+        } else {
+          double left = node.getRightBorder() - nodeInternalInterval * (lineNo + 1);
+          FlatPoint center = new FlatPoint(left, node.getY());
+          lineDrawProp.add(center);
+          lineDrawProp.add(new FlatPoint(left, top));
+          lineDrawProp.add(new FlatPoint(right, top));
+          lineDrawProp.add(new FlatPoint(right, bottom));
+          lineDrawProp.add(new FlatPoint(left, bottom));
+          lineDrawProp.add(center);
+        }
+
+        if (labelSize != null) {
+          lineDrawProp.setLabelCenter(new FlatPoint(right - labelSize.getWidth() / 2, node.getY()));
+        }
+      }
     }
   }
 
