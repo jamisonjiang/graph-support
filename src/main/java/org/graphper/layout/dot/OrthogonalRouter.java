@@ -533,7 +533,7 @@ class OrthogonalRouter extends AbstractDotLineRouter {
 
     // Add new tail EdgeSeg, and set endpoint to breakAxis
     lastSeg = new EdgeSeg(edgeSeg.axis, edgeSeg.isHor, edgeSeg.pos);
-    if (breakAxis > edgeSeg.start) {
+    if (breakAxis > edgeSeg.start == edgeSeg.pos) {
       lastSeg.addPoint(breakAxis);
       lastSeg.addPoint(edgeSeg.end);
     } else {
@@ -549,7 +549,7 @@ class OrthogonalRouter extends AbstractDotLineRouter {
     }
 
     // Set endpoint to breakAxis, make sure segments connected
-    if (breakAxis > edgeSeg.start) {
+    if (breakAxis > edgeSeg.start && edgeSeg.pos) {
       edgeSeg.moveEndpoint(edgeSeg.end, breakAxis);
     } else {
       edgeSeg.moveEndpoint(edgeSeg.start, breakAxis);
