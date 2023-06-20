@@ -579,16 +579,32 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           if (preIdx == 0) {
             double x = Vectors.linerFuncGetX(start, end, pre.getDownBorder());
             if (x > pre.getLeftBorder() && x < start.getX()) {
-              pre.setLeftBorder(x - 10);
+              x -= 10;
+              if (x > pre.getRightBorder()) {
+                pre.setRightBorder(x + pre.getWidth());
+              }
+              pre.setLeftBorder(x);
             } else if (x < pre.getRightBorder() && x > start.getX()) {
-              pre.setRightBorder(x + 10);
+              x += 10;
+              if (x < pre.getLeftBorder()) {
+                pre.setLeftBorder(x - pre.getWidth());
+              }
+              pre.setRightBorder(x);
             }
           } else if (i == lineRouterBoxes.size() - 1) {
             double x = Vectors.linerFuncGetX(start, end, routerBox.getUpBorder());
             if (x > routerBox.getLeftBorder() && x < end.getX()) {
-              routerBox.setLeftBorder(x - 10);
+              x -= 10;
+              if (x > routerBox.getRightBorder()) {
+                routerBox.setRightBorder(x + routerBox.getWidth());
+              }
+              routerBox.setLeftBorder(x);
             } else if (x < routerBox.getRightBorder() && x > end.getX()) {
-              routerBox.setRightBorder(x + 10);
+              x += 10;
+              if (x < routerBox.getLeftBorder()) {
+                routerBox.setLeftBorder(x - routerBox.getWidth());
+              }
+              routerBox.setRightBorder(x);
             }
           }
         }
