@@ -172,13 +172,7 @@ public class PortHelper {
       );
     }
 
-    // If is the center, direct return
-    if (Objects.equals(portPoint.getX(), rectangle.getX())
-        && Objects.equals(portPoint.getY(), rectangle.getY())) {
-      return portPoint;
-    }
-
-    if (!portClipNode || nodeShape.in(rectangle, portPoint)) {
+    if (nodeCenter(portPoint, rectangle) || !portClipNode || nodeShape.in(rectangle, portPoint)) {
       FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, portPoint);
       return portPoint;
     }
@@ -192,6 +186,11 @@ public class PortHelper {
                                                               center, portPoint);
     FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, p);
     return new PortPoint(p.getX(), p.getY(), true, port);
+  }
+
+  private static boolean nodeCenter(PortPoint portPoint, Rectangle rectangle) {
+    return Objects.equals(portPoint.getX(), rectangle.getX())
+        && Objects.equals(portPoint.getY(), rectangle.getY());
   }
 
   public static Rectangle getNodeBoxWithRankdir(DrawGraph drawGraph, ShapePosition shapePosition) {

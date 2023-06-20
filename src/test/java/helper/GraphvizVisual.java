@@ -44,7 +44,7 @@ public class GraphvizVisual {
   protected void visual(Graphviz graphviz) {
     System.setProperty("ovg.check", "true");
     try {
-      visual(graphviz, false);
+      visual(graphviz, true);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
