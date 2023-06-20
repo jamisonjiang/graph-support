@@ -88,6 +88,7 @@ public abstract class Maze {
     if (cellKey == null || cell == null || gridBuilder == null) {
       return;
     }
+    cell.getWidth();
     cell.check();
     cellMap.put(cellKey, cell);
     addToGrid(gridBuilder, cell);
@@ -859,22 +860,22 @@ public abstract class Maze {
 
     @Override
     public double getLeftBorder() {
-      return node.getLeftBorder();
+      return node.getLeftBorder() - 0.5;
     }
 
     @Override
     public double getRightBorder() {
-      return node.getRightBorder();
+      return node.getRightBorder() + 0.5;
     }
 
     @Override
     public double getUpBorder() {
-      return node.getUpBorder();
+      return node.getUpBorder() - 0.5;
     }
 
     @Override
     public double getDownBorder() {
-      return node.getDownBorder();
+      return node.getDownBorder() + 0.5;
     }
 
     @Override
