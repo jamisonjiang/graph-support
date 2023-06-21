@@ -546,7 +546,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   private void lineCompute(Line line, LineDrawProp lineDrawProp,
                            List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
-    if (CollectionUtils.isEmpty(lineRouterBoxes)) {
+    if (CollectionUtils.isEmpty(lineRouterBoxes) || CollectionUtils.isNotEmpty(lineDrawProp)) {
       return;
     }
 
@@ -558,9 +558,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     RouterBox pre = null;
     Integer preIdx = null;
     for (int i = 0; i < lineRouterBoxes.size(); i++) {
-
       RouterBox routerBox = lineRouterBoxes.get(i);
       DNode node = routerBox.getNode();
+
+      if (i > 0) {
+        RouterBox preBox = lineRouterBoxes.get(i - 1);
+        routerBox.reducePublicArea(preBox, from.getRank() == to.getRank());
+      }
 
       if (node == null) {
         continue;
@@ -574,6 +578,15 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           throughPoints = new ArrayList<>();
         }
         throughPoints.add(start);
+
+        if (!routerBox.in(end)) {
+          if (routerBox.inXRange(end.getX())) {
+            end.setY(routerBox.closerHorWall(end.getY()));
+          }
+          if (routerBox.inYRange(end.getY())) {
+            end.setX(routerBox.closerVerWall(end.getX()));
+          }
+        }
 
         if (end.getY() > start.getY()) {
           if (preIdx == 0) {
@@ -743,7 +756,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       double wall;
       if (!p1In) {
-        wall = vertical ? routerBox.closerHorizontalWall(p1) : routerBox.closerVerticalWall(p1);
+        wall = vertical ? routerBox.closerVerWall(p1) : routerBox.closerHorWall(p1);
         double dis = Math.abs(wall - p1);
         if (fastDistance < dis) {
           fastDistance = dis;
@@ -759,7 +772,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       }
 
       if (!p2In) {
-        wall = vertical ? routerBox.closerHorizontalWall(p2) : routerBox.closerVerticalWall(p2);
+        wall = vertical ? routerBox.closerVerWall(p2) : routerBox.closerHorWall(p2);
         double dis = Math.abs(wall - p2);
         if (fastDistance < dis) {
           fastDistance = dis;

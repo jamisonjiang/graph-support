@@ -76,7 +76,7 @@ public class RouterBox extends DefaultBox implements Serializable {
     return inXRange(point.getX()) && inYRange(point.getY());
   }
 
-  double closerHorizontalWall(double x) {
+  double closerVerWall(double x) {
     if (x < leftBorder) {
       return leftBorder;
     }
@@ -89,7 +89,7 @@ public class RouterBox extends DefaultBox implements Serializable {
     return rightBorder;
   }
 
-  double closerVerticalWall(double y) {
+  double closerHorWall(double y) {
     if (y < upBorder) {
       return upBorder;
     }
@@ -112,6 +112,28 @@ public class RouterBox extends DefaultBox implements Serializable {
     }
     if (getHeight() < minHeight) {
       upBorder = downBorder - minHeight;
+    }
+  }
+
+  public void reducePublicArea(RouterBox target, boolean isHor) {
+    if (isHor) {
+      if (inXRange(target.getLeftBorder())) {
+        rightBorder = target.getLeftBorder() - 1;
+        leftBorder = Math.min(leftBorder, rightBorder);
+      }
+      if (inXRange(target.getRightBorder())) {
+        leftBorder = target.getRightBorder() + 1;
+        rightBorder = Math.max(leftBorder, rightBorder);
+      }
+    } else {
+      if (inYRange(target.getUpBorder())) {
+        downBorder = target.getUpBorder() - 1;
+        upBorder = Math.min(upBorder, downBorder);
+      }
+      if (inYRange(target.getDownBorder())) {
+        upBorder = target.getDownBorder() + 1;
+        downBorder = Math.max(upBorder, downBorder);
+      }
     }
   }
 

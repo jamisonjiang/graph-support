@@ -411,7 +411,6 @@ public class PortTest extends GraphvizVisual {
         .addLine(
             Line.builder(d, f)
                 .tailPort(Port.EAST)
-//                .showboxes(true)
                 .build()
         )
         .addLine(g, f)
@@ -447,13 +446,15 @@ public class PortTest extends GraphvizVisual {
                 .headPort(Port.EAST)
                 .build()
         )
-//        .addLine(
-//            Line.builder(e, g)
-//                .tailPort(Port.WEST)
-//                .headPort(Port.SOUTH_EAST)
-//                .build()
-//        )
+        .addLine(
+            Line.builder(e, g)
+                .tailPort(Port.WEST)
+                .headPort(Port.SOUTH_EAST)
+//                .showboxes(true)
+                .build()
+        )
         .endSub()
+//        .splines(Splines.POLYLINE)
 
         .startSub()
         // Why k and l not in the first rank?
