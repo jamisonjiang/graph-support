@@ -561,11 +561,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       RouterBox routerBox = lineRouterBoxes.get(i);
       DNode node = routerBox.getNode();
 
-      if (i > 0) {
-        RouterBox preBox = lineRouterBoxes.get(i - 1);
-        routerBox.reducePublicArea(preBox, from.getRank() == to.getRank());
-      }
-
       if (node == null) {
         continue;
       }
@@ -578,15 +573,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           throughPoints = new ArrayList<>();
         }
         throughPoints.add(start);
-
-        if (!routerBox.in(end)) {
-          if (routerBox.inXRange(end.getX())) {
-            end.setY(routerBox.closerHorWall(end.getY()));
-          }
-          if (routerBox.inYRange(end.getY())) {
-            end.setX(routerBox.closerVerWall(end.getX()));
-          }
-        }
 
         if (end.getY() > start.getY()) {
           if (preIdx == 0) {
