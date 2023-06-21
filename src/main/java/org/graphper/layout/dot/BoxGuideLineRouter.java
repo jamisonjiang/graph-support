@@ -550,7 +550,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       return;
     }
 
-    lineDrawProp.setIsHeadStart(from.getNode());
     List<RouterBox> originRouterBoxes = splitPortBox(from.getRank() != to.getRank(),
                                                      lineDrawProp, lineRouterBoxes);
 
@@ -563,6 +562,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       if (node == null) {
         continue;
+      } else if (pre == null) {
+        lineDrawProp.setIsHeadStart(node.getNode());
       }
 
       if (pre != null) {

@@ -894,7 +894,7 @@ class MinCross {
         DNode to = dLine.other(from);
 
         if (dotAttachment.notContain(graphContainer, to.getContainer())) {
-          return;
+          continue;
         }
 
         if (isOutDirection && to.getRank() == from.getRank()) {
@@ -903,15 +903,14 @@ class MinCross {
           }
 
           sameRankAdjacentRecord.addOutAdjacent(from, dLine);
-          return;
+          continue;
         }
 
         if (isMark(to)) {
-          return;
+          continue;
         }
 
         dfs(to, adjacentFunc);
-
       }
     }
 
