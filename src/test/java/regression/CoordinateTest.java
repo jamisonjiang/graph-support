@@ -19,6 +19,7 @@ package regression;
 import helper.GraphvizVisual;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
@@ -506,14 +507,10 @@ public class CoordinateTest extends GraphvizVisual {
     Node n_S35 = Node.builder().label("S35").build();
 
 
-    Graphviz graphviz = Graphviz
+   GraphvizBuilder graphvizBuilder = Graphviz
         .digraph()
         .scale(0.5)
-//        .splines(Splines.SPLINE)
-        .splines(Splines.ORTHO)
-        .showGrid(true)
-//        .rankSep(3)
-        .tempLine(Line.tempLine().label("hello world").minlen(3).build())
+        .tempLine(Line.tempLine().label("label").minlen(3).build())
         .addLine(Line.builder(n_S8, n_9).build())
         .addLine(Line.builder(n_S8, n_9).build())
         .addLine(Line.builder(n_S24, n_27).build())
@@ -583,10 +580,10 @@ public class CoordinateTest extends GraphvizVisual {
         .addLine(Line.builder(n_29, n_T30).build())
         .addLine(Line.builder(n_7, n_T8).build())
         .addLine(Line.builder(n_23, n_T24).build())
-        .addLine(Line.builder(n_23, n_T1).build())
-        .build();
+        .addLine(Line.builder(n_23, n_T1).build());
 
-    visual(graphviz);
+    visual(graphvizBuilder.build());
+    visual(graphvizBuilder.splines(Splines.ORTHO).showGrid(true).build());
   }
 
   @Test

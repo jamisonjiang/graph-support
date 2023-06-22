@@ -159,7 +159,9 @@ class CoordinateV2 extends AbstractCoordinate {
       auxNode.setContainer(node.getContainer());
       auxNode.switchAuxModel();
 
-      if (node.isVirtual()) {
+      if (node.isLabelNode() || other.isLabelNode()) {
+        weight *= 4;
+      } else if (node.isVirtual()) {
         if (other.isVirtual()) {
           weight *= 4;
         } else {
