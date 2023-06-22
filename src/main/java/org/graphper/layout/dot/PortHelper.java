@@ -81,6 +81,11 @@ public class PortHelper {
     return getPortPoint(line, node, drawGraph, true);
   }
 
+  public static PortPoint getPortPointWithoutClip(Line line, DNode node,
+                                                  DrawGraph drawGraph) {
+    return getPortPoint(line, node, drawGraph, false);
+  }
+
   public static PortPoint getPortPoint(DNode node, String cellId, Port port, DrawGraph drawGraph) {
     return endPoint(true, cellId, port, node.getNode(), drawGraph, node);
   }

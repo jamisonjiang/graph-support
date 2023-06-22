@@ -43,6 +43,7 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlatShifterStrategy;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.ValueUtils;
 
 /**
  * Common parent class for some routing algorithms that use box as bootstrap.
@@ -397,7 +398,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       LineAttrs lineAttrs = parallelLineParam.line.lineAttrs();
       if (!havePort(lineAttrs) && (itemsMinY < rank.getStartY() || itemsMaxY > rank.getEndY())) {
         double offset = rank.getStartY() - itemsMinY;
-        FlatShifterStrategy shifter = new FlatShifterStrategy(0 , offset);
+        FlatShifterStrategy shifter = new FlatShifterStrategy(0, offset);
 
         for (RouterBox routerBox : parallelLineParam.routerBoxes) {
           shifter.moveBox(routerBox);
@@ -940,7 +941,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   private List<RouterBox> splitPortBox(RouterBox routerBox, LineDrawProp lineProp,
-                                       boolean vertical, boolean isFrom) {
+                                       boolean vertical, boolean lowPos) {
     DNode node = routerBox.getNode();
     if (node == null) {
       return Collections.emptyList();
@@ -951,29 +952,112 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       return Collections.emptyList();
     }
 
-    FlatPoint point = PortHelper.getPortPoint(lineProp.getLine(), node, drawGraph);
+    FlatPoint point = PortHelper.getPortPointWithoutClip(lineProp.getLine(), node, drawGraph);
     if (!routerBox.in(point)) {
       return Collections.emptyList();
     }
 
-    RouterBox routerBox1;
-    RouterBox routerBox2;
-    boolean needHandleEqual = point.getY() == node.getY();
-    if (vertical && needHandleEqual) {
-      needHandleEqual = isFrom;
-    }
-
-    Box cellBox = node;
-    if (!drawGraph.needFlip()) {
+    if (!pointLocateAtBorder(point, node)) {
+      Box cellBox = node;
       NodeDrawProp nodeProp = drawGraph.getNodeDrawProp(node.getNode());
       Cell cell = nodeProp.getCell();
       String cellId = PortHelper.getCellId(lineProp.getLine(), node, lineProp);
       if (cell != null && (cell = ((RootCell) cell).getCellById(cellId)) != null) {
         cellBox = cell.getCellBox(node);
       }
+      return verticalCellBoxSplit(vertical, point, node, cellBox, routerBox);
     }
 
-    if (point.getY() < cellBox.getY() || needHandleEqual) {
+    RouterBox routerBox1 = null;
+    RouterBox routerBox2 = null;
+    if (vertical) {
+      if (lowPos) {
+        if (!ValueUtils.approximate(point.getY(), node.getDownBorder(), 1)) {
+          routerBox1 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
+                                     routerBox.getUpBorder(), point.getY(), node);
+
+          if (point.getX() < node.getX()) {
+            double left = node.getLeftBorder();
+            routerBox2 = new RouterBox(routerBox.getLeftBorder(),
+                                       left - Math
+                                           .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                                       point.getY(), routerBox.getDownBorder());
+
+          } else {
+            double right = node.getRightBorder();
+            routerBox2 = new RouterBox(
+                right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
+                routerBox.getRightBorder(), point.getY(), routerBox.getDownBorder());
+          }
+        }
+      } else {
+        if (!ValueUtils.approximate(point.getY(), node.getUpBorder(), 1)) {
+          if (point.getX() < node.getX()) {
+            double left = node.getX() - node.realLeftWidth();
+            routerBox1 = new RouterBox(routerBox.getLeftBorder(),
+                                       left - Math
+                                           .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                                       routerBox.getUpBorder(), point.getY());
+          } else {
+            double right = node.getX() + node.realRightWidth();
+            routerBox1 = new RouterBox(
+                right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
+                routerBox.getRightBorder(), routerBox.getUpBorder(),
+                point.getY());
+          }
+          routerBox2 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
+                                     point.getY(), routerBox.getDownBorder(), node);
+        }
+      }
+    } else {
+      if (point.getY() <= node.getY()) {
+        double top = node.getUpBorder();
+        if (point.getX() < node.getX()) {
+          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
+                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
+          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
+                                     routerBox.getUpBorder(),
+                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
+        } else {
+          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
+                                     routerBox.getUpBorder(),
+                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
+          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
+                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
+        }
+      } else {
+        double bottom = node.getDownBorder();
+        if (point.getX() < node.getX()) {
+          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
+                                     point.getY(), routerBox.getDownBorder(), node);
+          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
+                                     bottom + Math
+                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
+                                     routerBox.getDownBorder());
+        } else {
+          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
+                                     bottom + Math
+                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
+                                     routerBox.getDownBorder());
+          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
+                                     point.getY(), routerBox.getDownBorder(), node);
+        }
+      }
+    }
+
+    if (routerBox1 == null || routerBox2 == null) {
+      return Collections.emptyList();
+    }
+    routerBox1.minGuarantee(5, 5);
+    routerBox2.minGuarantee(5, 5);
+    return Arrays.asList(routerBox1, routerBox2);
+  }
+
+  private List<RouterBox> verticalCellBoxSplit(boolean vertical, FlatPoint point, DNode node,
+                                               Box cellBox, RouterBox routerBox) {
+    RouterBox routerBox1 = null;
+    RouterBox routerBox2 = null;
+    if (point.getY() < cellBox.getY()) {
       if (vertical) {
         routerBox1 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
                                    routerBox.getUpBorder(), point.getY(), node);
@@ -991,27 +1075,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
               right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
               routerBox.getRightBorder(), point.getY(), routerBox.getDownBorder());
         }
-
-      } else {
-        double top = cellBox.getUpBorder();
-        if (point.getX() < cellBox.getX()) {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     routerBox.getUpBorder(),
-                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
-        } else {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     routerBox.getUpBorder(),
-                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
-        }
       }
-
-      routerBox1.minGuarantee(5, 5);
-      routerBox2.minGuarantee(5, 5);
-      return Arrays.asList(routerBox1, routerBox2);
     } else {
       if (vertical) {
         if (point.getX() < cellBox.getX()) {
@@ -1028,29 +1092,22 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         }
         routerBox2 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
                                    point.getY(), routerBox.getDownBorder(), node);
-      } else {
-        double bottom = cellBox.getDownBorder();
-        if (point.getX() < cellBox.getX()) {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     point.getY(), routerBox.getDownBorder(), node);
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     bottom + Math
-                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
-                                     routerBox.getDownBorder());
-        } else {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     bottom + Math
-                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
-                                     routerBox.getDownBorder());
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     point.getY(), routerBox.getDownBorder(), node);
-        }
       }
-
-      routerBox1.minGuarantee(5, 5);
-      routerBox2.minGuarantee(5, 5);
-      return Arrays.asList(routerBox1, routerBox2);
     }
+
+    if (routerBox1 == null || routerBox2 == null) {
+      return Collections.emptyList();
+    }
+    routerBox1.minGuarantee(5, 5);
+    routerBox2.minGuarantee(5, 5);
+    return Arrays.asList(routerBox1, routerBox2);
+  }
+
+  private boolean pointLocateAtBorder(FlatPoint point, DNode node) {
+    return ValueUtils.approximate(point.getX(), node.getLeftBorder(), 1)
+        || ValueUtils.approximate(point.getX(), node.getRightBorder(), 1)
+        || ValueUtils.approximate(point.getY(), node.getUpBorder(), 1)
+        || ValueUtils.approximate(point.getY(), node.getDownBorder(), 1);
   }
 
   private ThroughPoint getLineEndPoint(DNode n, Line line, int boxIdx) {
