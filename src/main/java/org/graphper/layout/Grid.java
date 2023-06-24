@@ -152,6 +152,22 @@ public class Grid {
       return this;
     }
 
+    public Double minHorAxis() {
+      return horAxes.firstKey();
+    }
+
+    public Double maxHorAxis() {
+      return horAxes.lastKey();
+    }
+
+    public Double minVerAxis() {
+      return verAxes.firstKey();
+    }
+
+    public Double maxVerAxis() {
+      return verAxes.lastKey();
+    }
+
     public Grid build() {
       // Supplement the hor/ver axis info
       axisInit(horAxes);

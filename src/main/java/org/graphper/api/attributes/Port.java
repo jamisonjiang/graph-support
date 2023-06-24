@@ -29,6 +29,8 @@ import org.graphper.util.Asserts;
  */
 public enum Port implements PortPosition {
 
+  CENTER(-1, "c", new RatioPortPosition(0, 0)),
+
   WEST(0, "w", new RatioPortPosition(-0.5, 0)),
 
   NORTH_WEST(1, "nw", new RatioPortPosition(-0.5, -0.5)),
@@ -45,13 +47,13 @@ public enum Port implements PortPosition {
 
   SOUTH_WEST(7, "sw", new RatioPortPosition(-0.5, 0.5));
 
-  private final PortPosition portPosition;
+  private final RatioPortPosition portPosition;
 
   private final int no;
 
   private final String code;
 
-  Port(int no, String code, PortPosition portPosition) {
+  Port(int no, String code, RatioPortPosition portPosition) {
     this.no = no;
     this.code = code;
     this.portPosition = portPosition;
@@ -77,13 +79,13 @@ public enum Port implements PortPosition {
 
   public Port pre() {
     if (no == 0) {
-      return valueOf(maxNo());
+      return valueOf(maxNo() - 1);
     }
     return valueOf(no - 1);
   }
 
   public Port next() {
-    if (no == maxNo()) {
+    if (no == maxNo() - 1) {
       return valueOf(0);
     }
     return valueOf(no + 1);
@@ -96,7 +98,15 @@ public enum Port implements PortPosition {
   public static Port valueOf(int no) {
     Asserts.illegalArgument(no < 0 || no >= Port.values().length,
                             "Port no must between 0 and " + (Port.values().length - 1));
-    return Port.values()[no];
+    return Port.values()[no + 1];
+  }
+
+  public double horOffsetRatio() {
+    return portPosition.getxRatio();
+  }
+
+  public double verOffsetRatio() {
+    return portPosition.getyRatio();
   }
 
   public static Port valueOfCode(String code) {

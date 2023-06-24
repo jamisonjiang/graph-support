@@ -34,6 +34,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
+import org.graphper.api.Line;
+import org.graphper.draw.DrawGraph;
 import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +71,7 @@ class MinCross {
 
   private final DotAttachment dotAttachment;
 
-  private EdgeDedigraph<DNode, DLine> digraphProxy;
+  private MinCrossDedigraph digraphProxy;
 
   MinCross(RankContent rankContent, DotAttachment dotAttachment) {
     this.rankContent = rankContent;
@@ -101,7 +103,7 @@ class MinCross {
    */
   private void reduceLongEdges() {
     DotDigraph digraph = dotAttachment.getDotDigraph();
-    this.digraphProxy = new DedirectedEdgeGraph<>(digraph.vertexNum());
+    this.digraphProxy = new MinCrossDedigraph(digraph.vertexNum());
     Map<DNode, Map<DNode, DLine>> parallelEdgesRecord = new HashMap<>(1);
 
     int d = 0;
@@ -150,7 +152,7 @@ class MinCross {
 
           // The short side is added directly to the picture.
           if (getOldRank(to) - fromRank <= 1 && from != to) {
-            digraphProxy.addEdge(e);
+            digraphProxy.addEdge(e, dotAttachment.getDrawGraph());
 
             if (getOldRank(to) - fromRank == 1) {
               lineMap.put(to, e);
@@ -225,12 +227,13 @@ class MinCross {
       }
 
       if (from == edge.from() && to == edge.to()) {
-        digraphProxy.addEdge(edge);
+        digraphProxy.addEdge(edge, dotAttachment.getDrawGraph());
         lineMap.put(to, edge);
       } else {
         digraphProxy.addEdge(
             new DLine(from, to, edge.getLine(),
-                      edge.lineAttrs(), edge.weight(), edge.limit())
+                      edge.lineAttrs(), edge.weight(), edge.limit()),
+            dotAttachment.getDrawGraph()
         );
       }
 
@@ -422,7 +425,7 @@ class MinCross {
     int maxIter = 24;
 
     BasicCrossRank c = optimal.clone();
-    new InitSort(c, c.container(), true);
+    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true);
     int cn = getCrossNum(c);
     if (cn <= minCrossNum) {
       optimal = c;
@@ -431,7 +434,7 @@ class MinCross {
     }
 
     BasicCrossRank p = optimal.clone();
-    new InitSort(p, p.container(), false);
+    new InitSort(p, p.container(), dotAttachment.getDrawGraph(), false);
     cn = getCrossNum(p);
     if (cn < minCrossNum) {
       optimal = p;
@@ -446,7 +449,7 @@ class MinCross {
         if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
             || optimal.container().haveChildCluster())) {
           BasicCrossRank repl = optimal.clone();
-          new InitSort(repl, repl.container(), false, false);
+          new InitSort(repl, repl.container(), dotAttachment.getDrawGraph(), false, false);
 
           tmp = rootCrossRank.getBasicCrossRank();
           rootCrossRank.setBasicCrossRank(repl);
@@ -771,25 +774,26 @@ class MinCross {
 
     private final GraphContainer graphContainer;
 
-    InitSort(CrossRank crossRank, GraphContainer graphContainer, boolean isOutDirection) {
-      this(crossRank, graphContainer, true, isOutDirection);
+    InitSort(CrossRank crossRank, GraphContainer graphContainer,
+             DrawGraph drawGraph, boolean isOutDirection) {
+      this(crossRank, graphContainer, drawGraph, true, isOutDirection);
     }
 
-    InitSort(CrossRank crossRank, GraphContainer graphContainer, boolean isNormal,
-             boolean isOutDirection) {
+    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph,
+             boolean isNormal, boolean isOutDirection) {
       this.isOutDirection = isOutDirection;
       this.rankAccessIndex = new HashMap<>();
       this.graphContainer = graphContainer;
       this.crossRank = crossRank;
 
       if (isNormal) {
-        normalInit(crossRank, isOutDirection);
+        normalInit(crossRank, drawGraph, isOutDirection);
       } else {
         flatInit();
       }
     }
 
-    private void normalInit(CrossRank crossRank, boolean isOutDirection) {
+    private void normalInit(CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
       int first, addNum, limit;
 
       if (isOutDirection) {
@@ -802,9 +806,25 @@ class MinCross {
         limit = crossRank.minRank() - 1;
       }
 
-      Function<DNode, Iterable<DLine>> adjacentFunc = n -> isOutDirection
-          ? rootCrossRank.getDigraphProxy().outAdjacent(n)
-          : rootCrossRank.getDigraphProxy().inAdjacent(n);
+      EdgeDedigraph<DNode, DLine> digraph = rootCrossRank.getDigraphProxy();
+
+      Function<DNode, Iterable<DLine>> adjacentFunc = n -> {
+        if (digraph instanceof MinCrossDedigraph) {
+          MinCrossDedigraph dedigraph = (MinCrossDedigraph) digraph;
+          if (isOutDirection) {
+            if (dedigraph.outHavePort(n)) {
+              return sortLines(n, drawGraph, dedigraph.outAdjacent(n));
+            }
+            return dedigraph.outAdjacent(n);
+          }
+          if (dedigraph.inHavePort(n)) {
+            return sortLines(n, drawGraph, dedigraph.inAdjacent(n));
+          }
+          return dedigraph.inAdjacent(n);
+        } else {
+          return isOutDirection ? digraph.outAdjacent(n) : digraph.inAdjacent(n);
+        }
+      };
 
       for (int i = first; i != limit; i += addNum) {
         for (int j = 0; j < crossRank.rankSize(i); j++) {
@@ -893,6 +913,76 @@ class MinCross {
         dfs(to, adjacentFunc);
       }
     }
+
+    private Iterable<DLine> sortLines(DNode node, DrawGraph drawGraph, Iterable<DLine> lines) {
+      Set<DLine> sortLines = new TreeSet<>((l, r) -> lineComp(l, r, node, drawGraph));
+      lines.forEach(sortLines::add);
+      return sortLines;
+    }
+
+    private int lineComp(DLine left, DLine right, DNode node, DrawGraph drawGraph) {
+      double leftComNo = PortHelper.portCompareNo(left.getLine(), node, drawGraph);
+      double rightComNo = PortHelper.portCompareNo(right.getLine(), node, drawGraph);
+      return Double.compare(leftComNo, rightComNo);
+    }
+  }
+
+  private static class MinCrossDedigraph extends DedirectedEdgeGraph<DNode, DLine> {
+
+    private static final long serialVersionUID = -2242254412888614002L;
+
+    private Map<DNode, InOrOutHavePort> nodeInOrOutHavePortMap;
+
+    MinCrossDedigraph(int capacity) {
+      super(capacity);
+    }
+
+    void addEdge(DLine dLine, DrawGraph drawGraph) {
+      this.addEdge(dLine);
+      markNodeHavePort(dLine.getLine(), dLine.from(), drawGraph, false);
+      markNodeHavePort(dLine.getLine(), dLine.to(), drawGraph, true);
+    }
+
+    boolean inHavePort(DNode node) {
+      if (node == null || nodeInOrOutHavePortMap == null) {
+        return false;
+      }
+      InOrOutHavePort inOrOutHavePort = nodeInOrOutHavePortMap.get(node);
+      return inOrOutHavePort != null && inOrOutHavePort.inHavePort;
+    }
+
+    boolean outHavePort(DNode node) {
+      if (node == null || nodeInOrOutHavePortMap == null) {
+        return false;
+      }
+      InOrOutHavePort inOrOutHavePort = nodeInOrOutHavePortMap.get(node);
+      return inOrOutHavePort != null && inOrOutHavePort.outHavePort;
+    }
+
+    private void markNodeHavePort(Line line, DNode node, DrawGraph drawGraph, boolean isIn) {
+      double compareNo = PortHelper.portCompareNo(line, node, drawGraph);
+      if (compareNo == 0) {
+        return;
+      }
+
+      if (nodeInOrOutHavePortMap == null) {
+        nodeInOrOutHavePortMap = new HashMap<>();
+      }
+      InOrOutHavePort havePort = nodeInOrOutHavePortMap
+          .computeIfAbsent(node, n -> new InOrOutHavePort());
+      if (isIn) {
+        havePort.inHavePort = true;
+      } else {
+        havePort.outHavePort = true;
+      }
+    }
+  }
+
+  private static class InOrOutHavePort {
+
+    private boolean inHavePort;
+
+    private boolean outHavePort;
   }
 
   private static class ClusterMerge {

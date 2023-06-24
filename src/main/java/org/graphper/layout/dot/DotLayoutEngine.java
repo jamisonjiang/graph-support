@@ -31,8 +31,10 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
+import org.graphper.api.ext.Box;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
@@ -41,8 +43,12 @@ import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
+import org.graphper.layout.Cell;
 import org.graphper.layout.FlipShifterStrategy;
+import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.ShifterStrategy;
+import org.graphper.layout.dot.DotAttachment.GeneratePort;
+import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
 import org.graphper.layout.dot.DotLineRouter.DotLineRouterFactory;
 import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
@@ -50,6 +56,7 @@ import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;
 import org.graphper.layout.dot.SplineRouter.SplineRouterFactory;
 import org.graphper.util.Asserts;
+import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
 
 /**
@@ -108,7 +115,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected Object attachment(DrawGraph drawGraph) {
+  protected LayoutAttach attachment(DrawGraph drawGraph) {
     Map<Node, DNode> nodeRecord = new HashMap<>(drawGraph.getGraphviz().nodeNum());
     DotDigraph dotDigraph = new DotDigraph(drawGraph.getGraphviz().nodeNum(),
                                            drawGraph.getGraphviz(), nodeRecord);
@@ -117,17 +124,15 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void consumerNode(Node node, Object attachment, DrawGraph drawGraph,
+  protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
                               GraphContainer parentContainer) {
     DotAttachment dotAttachment = (DotAttachment) attachment;
 
     DNode dn = dotAttachment.get(node);
     boolean dnIsNull = dn == null;
     if (dnIsNull) {
-      if (drawGraph.needFlip()) {
-        NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
-        nodeDrawProp.flip();
-      }
+      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
+      nodeDrawProp.flip(drawGraph.rankdir());
 
       dn = dotAttachment.mappingToDNode(node);
     }
@@ -153,7 +158,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void consumerLine(Line line, Object attachment, DrawGraph drawGraph) {
+  protected void consumerLine(Line line, LayoutAttach attachment, DrawGraph drawGraph) {
     DotAttachment dotAttachment = (DotAttachment) attachment;
     // must not be null
     DNode source = dotAttachment.get(line.tail());
@@ -182,7 +187,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void afterLayoutShifter(Object attach) {
+  protected void afterLayoutShifter(LayoutAttach attach) {
     DotAttachment dotAttachment = (DotAttachment) attach;
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
 
@@ -198,7 +203,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void afterRenderShifter(Object attach) {
+  protected void afterRenderShifter(LayoutAttach attach) {
     DotAttachment dotAttachment = (DotAttachment) attach;
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
     if (drawGraph.needFlip()) {
@@ -220,10 +225,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void layout(DrawGraph drawGraph, Object attachment) {
+  protected void layout(DrawGraph drawGraph, LayoutAttach attach) {
     Asserts.nullArgument(drawGraph, "DrawGraph");
 
-    DotAttachment dotAttachment = (DotAttachment) attachment;
+    DotAttachment dotAttachment = (DotAttachment) attach;
     DotDigraph dotDigraph = dotAttachment.getDotDigraph();
     Graphviz graphviz = drawGraph.getGraphviz();
     GraphAttrs graphAttrs = graphviz.graphAttrs();
@@ -258,6 +263,9 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     }
 
+    // If cell not set port, auto generate port for line to get more reasonable routing
+    autoGeneratePort(dotAttachment);
+
     if (!drawGraph.needFlip()) {
       containerLabelPos(drawGraph);
     }
@@ -266,7 +274,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   // --------------------------------------------- private method ---------------------------------------------
 
-  protected void handleLegalLine(DotDigraph dotDigraph) {
+  private void handleLegalLine(DotDigraph dotDigraph) {
     List<DLine> reverseLines = null;
     List<DLine> selfLoopLines = null;
     for (DNode node : dotDigraph) {
@@ -302,6 +310,106 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
     }
+  }
+
+  private void autoGeneratePort(DotAttachment attach) {
+    GeneratePort generatePort = attach.getGeneratePort();
+    if (generatePort == null) {
+      return;
+    }
+
+    Map<Cell, Box> cellBoxMap = new HashMap<>();
+    Rankdir rankdir = attach.getDrawGraph().rankdir();
+    for (GeneratePortLine line : generatePort.getLines()) {
+      Cell fromCell = line.getFromCell();
+      Cell toCell = line.getToCell();
+      Box fromCellBox = null;
+      Box toCellBox = null;
+
+      if (fromCell != null) {
+        fromCellBox = cellBoxMap.computeIfAbsent(fromCell, c -> c.getCellBox(line.getFrom()));
+      }
+      if (toCell != null) {
+        toCellBox = cellBoxMap.computeIfAbsent(toCell, c -> c.getCellBox(line.getTo()));
+      }
+
+      if (fromCellBox != null) {
+        List<Port> ports = generatePort.getCellOpenBox(fromCell);
+        Port port = closestPort(ports, fromCellBox, line.getTo());
+
+        if (port != null) {
+          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, rankdir));
+        }
+      }
+      if (toCellBox != null) {
+        List<Port> ports = generatePort.getCellOpenBox(toCell);
+        Port port = closestPort(ports, toCellBox, line.getFrom());
+
+        if (port != null) {
+          setLinePort(line.getLine(), line.getTo(), FlipShifterStrategy.backPort(port, rankdir));
+        }
+      }
+    }
+  }
+
+  private void setLinePort(LineDrawProp line, DNode node, Port port) {
+    LineAttrs lineAttrs = line.lineAttrs();
+    try {
+      if (node.getNode() == line.getLine().tail()) {
+        if (lineAttrs.getTailPort() != null) {
+          return;
+        }
+        ClassUtils.modifyField(lineAttrs, "tailPort", port);
+      }
+      if (node.getNode() == line.getLine().head()) {
+        if (lineAttrs.getHeadPort() != null) {
+          return;
+        }
+        ClassUtils.modifyField(lineAttrs, "headPort", port);
+      }
+    } catch (IllegalAccessException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Port closestPort(List<Port> ports, Box source, Box target) {
+    if (CollectionUtils.isEmpty(ports)) {
+      return null;
+    }
+    Port closestPort = null;
+    for (Port port : ports) {
+      if (closestPort == null) {
+        closestPort = port;
+      } else {
+        closestPort = closerPort(closestPort, port, source, target);
+      }
+    }
+
+    return closestPort;
+  }
+
+  private Port closerPort(Port left, Port right, Box source, Box target) {
+    double lsy = source.getY() + left.verOffset(source);
+    double rsy = source.getY() + right.verOffset(source);
+
+    int r = Double.compare(yDist(lsy, target), yDist(rsy, target));
+
+    if (r != 0) {
+      return r < 0 ? left : right;
+    }
+
+    double lsx = source.getX() + left.horOffset(source);
+    double rsx = source.getX() + right.horOffset(source);
+    r = Double.compare(xDist(lsx, target), xDist(rsx, target));
+    return r < 0 ? left : right;
+  }
+
+  private double xDist(double x, Box target) {
+    return Math.abs(x - target.getX());
+  }
+
+  private double yDist(double y, Box target) {
+    return Math.abs(y - target.getY());
   }
 
   private void splines(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,

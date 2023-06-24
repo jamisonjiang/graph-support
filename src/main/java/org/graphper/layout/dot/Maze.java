@@ -46,7 +46,7 @@ public abstract class Maze {
   private static final int DOWN_ACCESSED = 0x20;
   private static final int LEFT_UP_CORNET = 0x40;
   private static final double INTERNAL_OFFSET = 0.01;
-
+  private double minBorderExtendSize = 20;
   private OrthoVisGraph ovg;
   private final DrawGraph drawGraph;
   private final Map<Box, Cell> cellMap;
@@ -56,6 +56,8 @@ public abstract class Maze {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
     this.cellMap = new LinkedHashMap<>();
+    this.minBorderExtendSize = Math.max(this.minBorderExtendSize,
+                                        drawGraph.getGraphviz().graphAttrs().getNodeSep());
   }
 
   protected void init() {
@@ -63,6 +65,9 @@ public abstract class Maze {
 
     // Add horizontal and vertical sorted grid axis
     initGrid(gridBuilder);
+
+    // Expand top, bottom, left, and right borders
+    extendGrid(gridBuilder);
 
     // Add obstacle record for grid
     createOrthoVisGraph(gridBuilder);
@@ -83,6 +88,7 @@ public abstract class Maze {
     if (cellKey == null || cell == null || gridBuilder == null) {
       return;
     }
+    cell.getWidth();
     cell.check();
     cellMap.put(cellKey, cell);
     addToGrid(gridBuilder, cell);
@@ -123,6 +129,25 @@ public abstract class Maze {
         .addHorAxis(box.getDownBorder());
   }
 
+  private void extendGrid(GridBuilder gridBuilder) {
+    Double minHor = gridBuilder.minHorAxis();
+    Double maxHor = gridBuilder.maxHorAxis();
+    Double minVer = gridBuilder.minVerAxis();
+    Double maxVer = gridBuilder.maxVerAxis();
+    if (minHor != null) {
+      gridBuilder.addHorAxis(minHor - minBorderExtendSize);
+    }
+    if (maxHor != null) {
+      gridBuilder.addHorAxis(maxHor + minBorderExtendSize);
+    }
+    if (minVer != null) {
+      gridBuilder.addVerAxis(minVer - minBorderExtendSize);
+    }
+    if (maxVer != null) {
+      gridBuilder.addVerAxis(maxVer + minBorderExtendSize);
+    }
+  }
+
   private void createOrthoVisGraph(GridBuilder builder) {
     Grid grid = builder.build();
     this.ovg = new OrthoVisGraph();
@@ -154,6 +179,27 @@ public abstract class Maze {
       directAccess(false, true, RIGHT, track, topAxis, bottomAxis, rightAxis);
       directAccess(true, false, UP, track, leftAxis, rightAxis, topAxis);
       directAccess(false, false, DOWN, track, leftAxis, rightAxis, bottomAxis);
+    }
+
+    for (int i = 0; i < grid.colNum(); i++) {
+      if (i != 0) {
+        markLeft(track, 0, i);
+        markLeft(track, grid.rowNum() - 1, i);
+      }
+      if (i != grid.colNum() - 1) {
+        markRight(track, 0, i);
+        markRight(track, grid.rowNum() - 1, i);
+      }
+    }
+    for (int i = 0; i < grid.rowNum(); i++) {
+      if (i != 0) {
+        markUp(track, i, 0);
+        markUp(track, i, grid.colNum() - 1);
+      }
+      if (i != grid.rowNum() - 1) {
+        markDown(track, i, 0);
+        markDown(track, i, grid.colNum() - 1);
+      }
     }
 
     // Initialize ovg
@@ -285,6 +331,8 @@ public abstract class Maze {
         FlatPoint rightDown = findRightDown(track, horAxis, verAxis);
 
         GridVertex vertex = new GridVertex(leftUp, rightDown);
+//        vertex.leftNo = verAxis.getIdx();
+//        vertex.topNo = horAxis.getIdx();
         ovg.add(vertex);
         vertexMap.put(grid.coordToIdx(horAxis.getIdx(), verAxis.getIdx()), vertex);
         if (pre != null) {
@@ -766,7 +814,7 @@ public abstract class Maze {
     }
   }
 
-  public static abstract class Cell implements Box {
+  public abstract static class Cell implements Box {
 
     private List<GridVertex> axisVertexes;
 
@@ -777,8 +825,10 @@ public abstract class Maze {
       axisVertexes.add(vertex);
     }
 
-    boolean in(double x, double y) {
-      return inHor(x) && inVer(y);
+    @Override
+    public boolean in(double x, double y) {
+      return (inHor(x - 0.1) || inHor(x) || inHor(x + 0.1))
+          && (inVer(y - 0.1) || inVer(y) || inVer(y + 0.1));
     }
 
     boolean inHor(double val) {
@@ -810,22 +860,22 @@ public abstract class Maze {
 
     @Override
     public double getLeftBorder() {
-      return node.getLeftBorder();
+      return node.getLeftBorder() - 0.5;
     }
 
     @Override
     public double getRightBorder() {
-      return node.getRightBorder();
+      return node.getRightBorder() + 0.5;
     }
 
     @Override
     public double getUpBorder() {
-      return node.getUpBorder();
+      return node.getUpBorder() - 0.5;
     }
 
     @Override
     public double getDownBorder() {
-      return node.getDownBorder();
+      return node.getDownBorder() + 0.5;
     }
 
     @Override

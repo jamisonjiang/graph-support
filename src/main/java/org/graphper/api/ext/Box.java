@@ -126,4 +126,17 @@ public interface Box {
     Asserts.illegalArgument(getLeftBorder() > getRightBorder(), HORIZONTAL_ERROR);
     Asserts.illegalArgument(getUpBorder() > getDownBorder(), VERTICAL_ERROR);
   }
+
+  /**
+   * Returns coordinate whether in box area.
+   *
+   * @param x x-coordinate
+   * @param y y-coordinate
+   * @return true - in box area
+   *         false - not in box area
+   */
+  default boolean in(double x, double y) {
+    return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
+        && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
+  }
 }

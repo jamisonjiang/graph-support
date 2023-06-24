@@ -102,6 +102,9 @@ public class OrthoVisGraph {
 
 		private final FlatPoint rightDown;
 
+//		public int leftNo;
+//		public int topNo;
+
 		public GridVertex(FlatPoint leftUp, FlatPoint rightDown) {
 			Asserts.nullArgument(leftUp, "leftUp");
 			Asserts.nullArgument(rightDown, "rightDown");

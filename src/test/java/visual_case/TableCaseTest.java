@@ -665,10 +665,8 @@ public class TableCaseTest extends GraphvizVisual {
     GraphvizBuilder graphvizBuilder = Graphviz.digraph()
         .tempNode(Node.builder().shape(NodeShapeEnum.PLAIN).build())
         .addLine(Line.builder(struct1, struct2).tailCell("f1").headCell("f0").build())
-        .addLine(Line.builder(struct1, struct3)
-                     .tailCell("f2").headCell("f").headPort(Port.NORTH_WEST).build())
-        .addLine(Line.builder(struct1, struct3)
-                     .tailCell("f2").headCell("here").headPort(Port.SOUTH).build());
+        .addLine(Line.builder(struct1, struct3).tailCell("f2").headCell("f").build())
+        .addLine(Line.builder(struct1, struct3).tailCell("f2").headCell("here").build());
 
     visual(graphvizBuilder.build());
     visual(graphvizBuilder.rankdir(Rankdir.LR).build());

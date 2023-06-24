@@ -43,4 +43,12 @@ public class RatioPortPosition implements PortPosition, Serializable {
     Asserts.nullArgument(box, "box");
     return box.getHeight() * yRatio;
   }
+
+  public double getxRatio() {
+    return xRatio;
+  }
+
+  public double getyRatio() {
+    return yRatio;
+  }
 }

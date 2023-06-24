@@ -216,16 +216,6 @@ abstract class AbstractCoordinate {
         - (toPoint == null ? 0 : toPoint.getX()));
   }
 
-  protected double getHorMargin(DNode node) {
-    if (!node.getContainer().isCluster()) {
-      return 0;
-    }
-
-    ClusterDrawProp clusterDrawProp = dotAttachment.getDrawGraph()
-        .getClusterDrawProp((Cluster) node.getContainer());
-    return clusterDrawProp.getHorMargin();
-  }
-
   protected int flipGetMargin(GraphContainer container, boolean left, boolean isFlip) {
     if (container == null) {
       return 0;

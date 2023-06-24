@@ -16,8 +16,21 @@
 
 package org.graphper.layout.dot;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import org.graphper.api.LineAttrs;
+import org.graphper.api.attributes.Port;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.Cell;
+import org.graphper.layout.Cell.RootCell;
+import org.graphper.util.Asserts;
+import org.graphper.util.ValueUtils;
 
 public class NodeSizeExpander {
 
@@ -30,7 +43,6 @@ public class NodeSizeExpander {
   protected double rightWidthOffset;
   protected double topHeightOffset;
   protected double bottomHeightOffset;
-
 
   public double getLeftWidthOffset() {
     return leftWidthOffset;
@@ -96,6 +108,197 @@ public class NodeSizeExpander {
           bottomHeightOffset,
           y - node.getDownBorder()
       );
+    }
+  }
+
+  protected Map<GroupKey, List<GroupEntry>> groupSelfLine(DrawGraph drawGraph, DNode node) {
+    NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
+    Asserts.illegalArgument(nodeDrawProp == null, "Not found the node draw properties!");
+
+    Map<GroupKey, List<GroupEntry>> selfLineGroup = new LinkedHashMap<>(1);
+
+    for (int i = 0; i < node.getSelfLoopCount(); i++) {
+      DLine selfLine = node.selfLine(i);
+      LineDrawProp line = drawGraph.getLineDrawProp(selfLine.getLine());
+      if (line == null) {
+        continue;
+      }
+
+      LineAttrs lineAttrs = line.lineAttrs();
+      GroupKey key = newGroupKey(lineAttrs.getTailPort(), lineAttrs.getHeadPort(), nodeDrawProp,
+                                 drawGraph, lineAttrs.getTailCell(), lineAttrs.getHeadCell());
+
+      addLineToGroup(selfLineGroup, selfLine, key);
+    }
+
+    return selfLineGroup;
+  }
+
+  // ------------------------------------- private method -------------------------------------
+  private GroupKey newGroupKey(Port tailPort, Port headPort, NodeDrawProp nodeDrawProp,
+                               DrawGraph drawGraph, String tailCell, String headCell) {
+    if (tailPort == null && headPort == null && tailCell == null && headCell == null) {
+      GroupKey groupKey = new GroupKey();
+      groupKey.tailPoint = new FlatPoint(node.getX(), node.getY());
+      groupKey.headPoint = groupKey.tailPoint.clone();
+      return groupKey;
+    }
+
+    GroupKey groupKey = new GroupKey();
+    groupKey.tailPort = tailPort;
+    groupKey.headPort = headPort;
+    groupKey.tailCell = getCell(nodeDrawProp, tailCell);
+    groupKey.headCell = getCell(nodeDrawProp, headCell);
+
+    groupKey.tailPoint = PortHelper.getPortPoint(node, tailCell, tailPort, drawGraph);
+    if (groupKey.samePoint()) {
+      groupKey.headPoint = groupKey.tailPoint;
+    } else {
+      groupKey.headPoint = PortHelper.getPortPoint(node, headCell, headPort, drawGraph);
+    }
+    return groupKey;
+  }
+
+  private static void addLineToGroup(Map<GroupKey, List<GroupEntry>> selfLineGroup,
+                                     DLine selfLine, GroupKey groupKey) {
+    selfLineGroup.compute(groupKey, (g, v) -> {
+      if (v == null) {
+        v = new ArrayList<>(1);
+      }
+      v.add(new GroupEntry(groupKey, selfLine));
+      return v;
+    });
+  }
+
+  private Cell getCell(NodeDrawProp nodeDrawProp, String cellId) {
+    RootCell rootCell = nodeDrawProp.getCell();
+    if (rootCell == null) {
+      return null;
+    }
+    return rootCell.getCellById(cellId);
+  }
+
+  protected static class GroupEntry {
+
+    protected final GroupKey groupKey;
+
+    protected final DLine line;
+
+    public GroupEntry(GroupKey groupKey, DLine line) {
+      Asserts.nullArgument(groupKey, "groupKey");
+      Asserts.nullArgument(line, "line");
+      this.groupKey = groupKey;
+      this.line = line;
+    }
+
+    public DLine getLine() {
+      return line;
+    }
+  }
+
+  protected static class GroupKey {
+
+    protected Port tailPort;
+
+    protected Port headPort;
+
+    protected Cell tailCell;
+
+    protected Cell headCell;
+
+    protected FlatPoint tailPoint;
+
+    protected FlatPoint headPoint;
+
+    public Port getTailPort() {
+      return tailPort;
+    }
+
+    public Port getHeadPort() {
+      return headPort;
+    }
+
+    public Cell getTailCell() {
+      return tailCell;
+    }
+
+    public Cell getHeadCell() {
+      return headCell;
+    }
+
+    public boolean samePoint() {
+      return tailCell == headCell && tailPort == headPort;
+    }
+
+    public FlatPoint getTailPoint() {
+      Asserts.illegalArgument(tailPoint == null, "GroupKey Not Ready");
+      return tailPoint.clone();
+    }
+
+    public FlatPoint getHeadPoint() {
+      Asserts.illegalArgument(headPoint == null, "GroupKey Not Ready");
+      return headPoint.clone();
+    }
+
+    public boolean isOnlySameHor() {
+      if (samePoint() || tailCell != headCell) {
+        return false;
+      }
+
+      if (Objects.equals(tailPoint, headPoint) || tailPoint == null || headPoint == null) {
+        return false;
+      }
+
+      return ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1)
+          && !ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1);
+    }
+
+    public boolean isOnlySameVer() {
+      if (samePoint() || tailCell != headCell) {
+        return false;
+      }
+
+      if (Objects.equals(tailPoint, headPoint) || tailPoint == null || headPoint == null) {
+        return false;
+      }
+
+      return ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1)
+          && !ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1);
+    }
+
+    public boolean sameCell() {
+      return tailCell == headCell;
+    }
+
+    public boolean notSameCell() {
+      return !sameCell();
+    }
+
+    public boolean havePortOrCell() {
+      return tailPort != null || headPort != null || tailCell != null || headCell != null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      GroupKey groupKey = (GroupKey) o;
+      return (tailPort == groupKey.tailPort && headPort == groupKey.headPort
+          && Objects.equals(tailCell, groupKey.tailCell)
+          && Objects.equals(headCell, groupKey.headCell))
+          || (tailPort == groupKey.headPort && headPort == groupKey.tailPort
+          && Objects.equals(tailCell, groupKey.headCell)
+          && Objects.equals(headCell, groupKey.tailCell));
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(tailPort, headPort, tailCell, headCell)
+          + Objects.hash(headPort, tailPort, headCell, tailCell);
     }
   }
 }
