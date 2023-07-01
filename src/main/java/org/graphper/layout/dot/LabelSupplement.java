@@ -73,16 +73,17 @@ class LabelSupplement {
 
     for (DLine labelLine : dotAttachment.getLabelLines()) {
       DNode from = labelLine.from();
-      DNode to = labelLine.to();
 
-      if (!labelLine.haveLabel() || to.getRank() - from.getRank() != 1) {
+      if (!labelLine.haveLabel() || Math.abs(labelLine.slack()) != 1) {
         continue;
       }
 
+      DNode minRankNode = labelLine.to();
+      minRankNode = minRankNode.getRank() > from.getRank() ? from : minRankNode;
       if (needInsertLabelRankIdxs == null) {
         needInsertLabelRankIdxs = new HashSet<>();
       }
-      needInsertLabelRankIdxs.add(from.getRank());
+      needInsertLabelRankIdxs.add(minRankNode.getRank());
     }
 
     dotAttachment.releaseLabelLines();
