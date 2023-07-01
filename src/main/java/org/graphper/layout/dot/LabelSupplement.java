@@ -75,7 +75,7 @@ class LabelSupplement {
       DNode from = labelLine.from();
       DNode to = labelLine.to();
 
-      if (!labelLine.haveLabel() || to.getRank() - from.getRank() != 1) {
+      if (!labelLine.haveLabel() || Math.abs(labelLine.slack()) != 1) {
         continue;
       }
 
