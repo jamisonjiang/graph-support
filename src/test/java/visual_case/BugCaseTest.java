@@ -244,7 +244,8 @@ public class BugCaseTest extends GraphvizVisual {
         .width(0.416667)
         .height(1.098891)
         .build();
-    Node zacl0004 = Node.builder().shape(NodeShapeEnum.POINT).width(.01).height(.01).margin(0).build();
+    Node zacl0004 = Node.builder().shape(NodeShapeEnum.POINT).width(.01).height(.01).margin(0)
+        .build();
 
     Graphviz graphviz = Graphviz.digraph()
         .nodeSep(0.486111)
@@ -301,7 +302,6 @@ public class BugCaseTest extends GraphvizVisual {
         .addLine(Line.builder(zacl0004, sh0013).arrowTail(ArrowShape.NONE)
                      .arrowHead(ArrowShape.NONE).build())
         .build();
-
 
     visual(graphviz);
   }
@@ -459,6 +459,22 @@ public class BugCaseTest extends GraphvizVisual {
         .endSub()
         .build();
 
+    visual(graphviz);
+  }
+
+  @Test
+  public void testEscapeXmlCharacter() {
+    Graphviz graphviz = Graphviz.digraph()
+        .addNode(Node.builder().label("ü").build())
+        .addNode(Node.builder().label("€").build())
+        .addNode(Node.builder().id("¢").label("¢").build())
+        .addNode(Node.builder().label("&uuml;").build())
+        .addNode(Node.builder().label("<table><tr><td>cell</td></tr></table>").build())
+        .addNode(Node.builder()
+                     .label("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                                + "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"200\">\n</svg>")
+                     .build())
+        .build();
     visual(graphviz);
   }
 }

@@ -30,6 +30,7 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
   private static final long serialVersionUID = -9126509188726886245L;
 
   private static final String XML_VERSION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+  private static final String DOC_TYPE = "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">";
 
   private final Map<String, SvgElement> elementMap;
 
@@ -83,6 +84,7 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
 
     StringBuilder xml = new StringBuilder();
     xml.append(XML_VERSION);
+    xml.append(DOC_TYPE);
     for (SvgElement root : roots) {
       toXml(xml, root, groups);
     }

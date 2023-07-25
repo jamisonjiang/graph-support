@@ -19,10 +19,6 @@ package org.graphper.draw.svg;
 import helper.DocumentUtils;
 import helper.SerialHelper;
 import java.io.IOException;
-import org.graphper.draw.svg.Element;
-import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgDocument;
-import org.graphper.draw.svg.SvgElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -43,13 +39,13 @@ public class SvgDocumentTest {
     svg.setAttribute("width", "200");
 
     Assertions.assertEquals(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"200\"></svg>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"200\"></svg>",
         svgDocument.toXml()
     );
 
     svg.setAttribute("width", "400");
     Assertions.assertEquals(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\"></svg>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\"></svg>",
         svgDocument.toXml()
     );
   }
@@ -61,14 +57,14 @@ public class SvgDocumentTest {
     Element g = svg.createChildElement("g");
     g.setAttribute("style", "transform");
     Assertions.assertEquals(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg><g style=\"transform\"></g></svg>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg><g style=\"transform\"></g></svg>",
         svgDocument.toXml());
 
     Element title = g.createChildElement("title");
     title.setAttribute("class", "title");
     title.setTextContent("G");
     Assertions.assertEquals(
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><svg><g style=\"transform\"><title class=\"title\">G</title></g></svg>",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"><svg><g style=\"transform\"><title class=\"title\">G</title></g></svg>",
         svgDocument.toXml()
     );
   }
