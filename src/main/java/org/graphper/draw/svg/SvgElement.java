@@ -82,14 +82,14 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
 
   @Override
   public void setTextContent(String textContent) {
-    this.textContext = StringEscapeUtils.escapeHtml3(textContent);
+    this.textContext = StringEscapeUtils.escapeXml11(textContent);
   }
 
   @Override
   public void setAttribute(String attrName, String value) {
     Asserts.nullArgument(attrName, "attrName");
     Asserts.nullArgument(value, "value");
-    value = StringEscapeUtils.escapeHtml3(value);
+    value = StringEscapeUtils.escapeXml11(value);
     if (attr == null) {
       attr = new LinkedHashMap<>(2);
     }
