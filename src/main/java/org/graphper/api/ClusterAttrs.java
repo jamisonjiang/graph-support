@@ -16,6 +16,8 @@
 
 package org.graphper.api;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.io.Serializable;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
@@ -50,7 +52,7 @@ public class ClusterAttrs implements Serializable, Cloneable {
 
   Color fontColor;
 
-  String fontName = "Times-Roman";
+  String fontName = DEFAULT_FONT;
 
   FlatPoint margin = new FlatPoint(10, 10);
 

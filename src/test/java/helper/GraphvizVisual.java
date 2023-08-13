@@ -17,7 +17,6 @@
 package helper;
 
 import java.awt.BorderLayout;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,21 +27,23 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.apache.batik.transcoder.TranscoderException;
+import org.graphper.api.Graphviz;
+import org.graphper.api.FileType;
+import org.graphper.api.GraphResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.graphper.api.Graphviz;
-import org.graphper.draw.ExecuteException;
-import org.graphper.draw.GraphResource;
 
 public class GraphvizVisual {
 
   private static final Logger log = LoggerFactory.getLogger(GraphvizVisual.class);
 
-  private static final String IMG_CELL = "<li><img src=\"%s\" alt=\"\" width=\"295\"><div class=\"sk_rush\"><a href=\"%s\" target=\"_blank\">See svg</a></div></li>";
+  private static final String IMG_CELL = "<li><div class=\"images-container\"><img src=\"%s\" alt=\"\"><img src=\"%s\" alt=\"\"></div><div class=\"sk_rush\"><a href=\"%s\" target=\"_blank\">See Svg</a><span style=\"margin-right: 10px;\"></span><a href=\"%s\" target=\"_blank\">See PDF</a></div></li>";
+
+  private static final FileType FILE_TYPE = FileType.PNG;
 
   protected void visual(Graphviz graphviz) {
     System.setProperty("ovg.check", "true");
+    System.setProperty("use.local.img.converter", "true");
     try {
       visual(graphviz, false);
     } catch (Exception e) {
@@ -50,26 +51,32 @@ public class GraphvizVisual {
     }
   }
 
-  protected void visual(Graphviz graphviz, boolean view)
-      throws ExecuteException, IOException, TranscoderException {
+  protected void visual(Graphviz graphviz, boolean view) throws Exception {
     long start = System.currentTimeMillis();
-    GraphResource graphResource = graphviz.toSvg();
-    System.out.println(graphviz.toSvgStr());
+    GraphResource svg = graphviz.toSvg();
+    GraphResource img = graphviz.toFile(FILE_TYPE);
     long end = System.currentTimeMillis();
 
     log.info("{} cost the time of layout is {}ms", graphviz.hashCode(), end - start);
 
     if (view) {
-      new GraphView(graphResource);
+      System.out.println(new String(svg.bytes()));
+      new GraphView(img);
       System.in.read();
     } else {
-      String png = save(graphviz, false, graphResource);
-      String svg = save(graphviz, true, graphResource);
-      appendToVisualHtml(png, svg);
+      String s = save(graphviz, 1, svg);
+      String pngByLocal = save(graphviz, 2, img);
+      String pngByBatik = save(graphviz, 3, svg);
+      String pdfPath = DocumentUtils.getTestPngPath() + graphviz.hashCode() + ".pdf";
+      try(GraphResource resource = graphviz.toFile(FileType.PDF)) {
+        resource.save(DocumentUtils.getTestPngPath(), String.valueOf(graphviz.hashCode()));
+      }
+      appendToVisualHtml(pngByLocal, pngByBatik, s, pdfPath);
+      img.close();
     }
   }
 
-  private void appendToVisualHtml(String png, String svg) throws IOException {
+  private void appendToVisualHtml(String png, String pngByBatik, String svg, String pdf) throws IOException {
     synchronized (GraphvizVisual.class) {
       File html = new File(DocumentUtils.getVisualHtmlPath());
       if (!html.exists()) {
@@ -77,7 +84,7 @@ public class GraphvizVisual {
       }
 
       StringBuilder sb = new StringBuilder();
-      String graphCell = String.format(IMG_CELL, png, svg) + "%s";
+      String graphCell = String.format(IMG_CELL, png, pngByBatik, svg, pdf) + "%s";
       for (String line : Files.readAllLines(
           FileSystems.getDefault().getPath(html.getPath()))) {
         line = line.replaceAll("%s", graphCell);
@@ -95,31 +102,37 @@ public class GraphvizVisual {
     }
   }
 
-  private String save(Graphviz graphviz, boolean isSvg, GraphResource graphResource)
-      throws IOException, TranscoderException {
-    String fileName = this.getClass().getName() + graphviz.hashCode() + (isSvg ? ".svg" : ".png");
-    String path = DocumentUtils.getTestPngPath() + fileName;
+  private String save(Graphviz graphviz, int type, GraphResource graphResource)
+      throws Exception {
+    String fileName = this.getClass().getName() + graphviz.hashCode() + "_" + type;
+    String suffix = (type == 2 || type == 3) ? "." + FILE_TYPE.getType() : ".svg";
+    String f = fileName;
+    fileName += suffix;
+
+    String separator = FileSystems.getDefault().getSeparator();
+    String path = DocumentUtils.getTestPngPath() + separator + fileName;
     final File file = new File(path);
     if (!file.getParentFile().exists()) {
       file.getParentFile().mkdirs();
     }
     try (FileOutputStream fos = new FileOutputStream(file)) {
-      if (isSvg) {
+      if (type == 1) {
+        graphResource.save(DocumentUtils.getTestPngPath(), f);
+        System.out.println(new String(graphResource.bytes()));
+      } else if (type == 2) {
         fos.write(graphResource.bytes());
       } else {
-        DocumentUtils.svgDocToImg(graphResource.inputStream(), fos);
+        DocumentUtils.svgDocToImg(graphviz.toSvg().inputStream(), fos, FILE_TYPE);
       }
     }
-    return ".." + DocumentUtils.getRelativeTestPngPath() + fileName;
+    return ".." + DocumentUtils.getRelativeTestPngPath() + separator + fileName;
   }
 
   public static class GraphView extends JFrame {
 
-    public GraphView(GraphResource graphResource)
-        throws IOException, TranscoderException {
-      ByteArrayOutputStream os = new ByteArrayOutputStream();
-      DocumentUtils.svgDocToImg(graphResource.inputStream(), os);
-      ImageIcon imageIcon = new ImageIcon(os.toByteArray(), "graphviz");
+    public GraphView(GraphResource graphResource) throws IOException{
+      ImageIcon imageIcon = new ImageIcon(graphResource.bytes(), "graphviz");
+      graphResource.close();
 
       JFrame mainframe = new JFrame("graph-support");
       mainframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

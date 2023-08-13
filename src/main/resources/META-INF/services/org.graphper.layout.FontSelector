@@ -16,4 +16,3 @@
 
 org.graphper.layout.AWTMeasureText
 org.graphper.layout.AndroidMeasureText
-org.graphper.layout.RoughMeasureText

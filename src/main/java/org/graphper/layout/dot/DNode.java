@@ -485,6 +485,13 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     this.container = container;
   }
 
+  boolean isTail(DLine line) {
+    if (line == null || line.isVirtual() || isVirtual()) {
+      return false;
+    }
+    return node == line.getLine().tail();
+  }
+
   @Override
   public String toString() {
     return "{name=" + name() + ",rank=" + getRank() + ",width=" + width + "}";

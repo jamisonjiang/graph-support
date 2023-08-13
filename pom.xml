@@ -22,7 +22,7 @@
 
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.1.5</version>
+    <version>1.2.0</version>
 
     <name>${project.artifactId}</name>
     <description>Java re-implementation of tiny graphviz</description>
@@ -69,7 +69,8 @@
         <encoder-type>UTF-8</encoder-type>
         <javadoc-version>3.2.0</javadoc-version>
         <source-version>2.2.1</source-version>
-        <batik-version>1.14</batik-version>
+        <batik-version>1.9</batik-version>
+        <fop-version>2.4</fop-version>
         <slf4j-version>1.7.32</slf4j-version>
         <junit-version>4.13.2</junit-version>
         <junit-param-version>5.8.2</junit-param-version>
@@ -96,6 +97,12 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-transcoder</artifactId>
             <version>${batik-version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>fop</artifactId>
+            <version>${fop-version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

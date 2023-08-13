@@ -48,7 +48,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
-import org.graphper.layout.LabelSizeHelper;
+import org.graphper.util.FontUtils;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
@@ -253,8 +253,8 @@ public abstract class LineClip {
           continue;
         }
 
-        labelSize = LabelSizeHelper.measure(label, lineAttrs.getFontName(),
-                                            floatLabel.getFontSize(), 0);
+        labelSize = FontUtils.measure(label, lineAttrs.getFontName(),
+                                      floatLabel.getFontSize(), 0);
         if (Objects.equals(labelSize, Vectors.ZERO)) {
           continue;
         }

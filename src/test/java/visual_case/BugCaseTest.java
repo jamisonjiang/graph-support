@@ -27,11 +27,13 @@ import java.io.IOException;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Html;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
@@ -469,11 +471,72 @@ public class BugCaseTest extends GraphvizVisual {
         .addNode(Node.builder().label("€").build())
         .addNode(Node.builder().id("¢").label("¢").build())
         .addNode(Node.builder().label("&uuml;").build())
+        .addNode(Node.builder().label("椭圆").build())
         .addNode(Node.builder().label("<table><tr><td>cell</td></tr></table>").build())
         .addNode(Node.builder()
                      .label("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                                 + "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"200\">\n</svg>")
                      .build())
+        .build();
+    visual(graphviz);
+  }
+
+  @Test
+  public void testFontMeasure() {
+//    String fontName = "DejaVu Sans Mono";
+//    String fontName = "Mistral";
+//    String fontName = "SansSerif";
+    String fontName = "Times New Roman";
+    Html.Table table = table()
+        .border( 1 )
+        .cellBorder( 0 )
+        .cellSpacing( 0 )
+        .cellPadding( 0 )
+        .tr(td().text( "Test test test" ).fontName( fontName ).align(Labeljust.CENTER ) )
+        .tr(td().text( "Another test test" ).fontName( fontName ).align( Labeljust.CENTER ) )
+        .tr(td().cellPadding( 1 ).bgColor( Color.BLACK ).height( 1 ).colSpan(2) )
+        .tr(td().text( "someProperty: Test test123" ).fontName( fontName ).align( Labeljust.RIGHT) )
+        .tr(td().text( "description: This is a test description" ).fontName( fontName ).align( Labeljust.LEFT) )
+        .tr(td().text( "anotherProperty: Another12" ).fontName( fontName ).align( Labeljust.LEFT ) )
+        .tr(td().text( "see: http://example.com/" ).fontName( fontName ).align(Labeljust.LEFT ) )
+        .tr(td().text( "yetAnother: yetAnotherTest" ).fontName( fontName ).align( Labeljust.LEFT ) )
+        ;
+    Node node = Node.builder().color( Color.BLACK ).table( table ).build();
+
+    visual(Graphviz.graph().addNode(node).build());
+  }
+
+  @Test
+  public void testParallelCell() {
+    Node a = Node.builder().label("<2>2|<3>3|<4>4|<5>5|<6>6|<7>7|").build();
+    Node b = Node.builder().label("<0>0|<1>1|<8>8|<9>9|<10>10|<11>11|").build();
+    Node c = Node.builder().label("<0>X|<1>X|<2>X|<3>X|<4>X|<5>X|<6>X|<7>X|<8>X|<9>X|<10>X|<11>X|<12>.|<13>.|<14>.|<15>.|<16>.|<17>.|<18>.|<19>.|<20>.|<21>.|<22>.|<23>.|<24>.|<25>.|<26>.|<27>.|<28>.|<29>.|<30>.|<31>.|").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .rankdir(Rankdir.RL)
+        .rankSep(1.5)
+        .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())
+        .startSub()
+        .rank(Rank.SOURCE)
+        .addNode(a)
+        .endSub()
+        .startSub()
+        .rank(Rank.SINK)
+        .addNode(b)
+        .endSub()
+        .addLine(Line.builder(a, c).tailCell("2").headCell("2").build())
+        .addLine(Line.builder(a, c).tailCell("3").headCell("3").build())
+        .addLine(Line.builder(a, c).tailCell("4").headCell("4").build())
+        .addLine(Line.builder(a, c).tailCell("5").headCell("5").build())
+        .addLine(Line.builder(a, c).tailCell("6").headCell("6").build())
+        .addLine(Line.builder(a, c).tailCell("7").headCell("7").build())
+
+        .addLine(Line.builder(b, c).tailCell("0").headCell("0").headPort(Port.EAST).build())
+        .addLine(Line.builder(b, c).tailCell("1").headCell("1").build())
+        .addLine(Line.builder(b, c).tailCell("8").headCell("8").build())
+        .addLine(Line.builder(b, c).tailCell("9").headCell("9").build())
+        .addLine(Line.builder(b, c).tailCell("10").headCell("10").build())
+        .addLine(Line.builder(b, c).tailCell("11").headCell("11").build())
         .build();
     visual(graphviz);
   }

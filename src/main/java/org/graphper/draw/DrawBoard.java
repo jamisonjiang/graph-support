@@ -16,6 +16,7 @@
 
 package org.graphper.draw;
 
+import org.graphper.api.GraphResource;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 

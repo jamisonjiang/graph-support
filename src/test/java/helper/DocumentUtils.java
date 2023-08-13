@@ -17,22 +17,17 @@
 package helper;
 
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.util.Objects;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.apache.batik.transcoder.Transcoder;
-import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
-import org.w3c.dom.Document;
+import org.apache.batik.transcoder.image.TIFFTranscoder;
+import org.graphper.api.FileType;
 
 public class DocumentUtils {
 
@@ -74,29 +69,24 @@ public class DocumentUtils {
     return getClassPath() + "/visual/graph-visual.html";
   }
 
-  public static String docToXml(Document document) throws TransformerException, IOException {
-    if (document == null) {
-      return null;
-    }
-
-    String result;
-    try (StringWriter strWtr = new StringWriter()) {
-      StreamResult strResult = new StreamResult(strWtr);
-      Transformer transformer = tfac.newTransformer();
-      transformer.transform(
-          new DOMSource(document.getDocumentElement()),
-          strResult
-      );
-      result = strResult.getWriter().toString();
-    }
-
-    return result;
-  }
-
-  public static void svgDocToImg(InputStream in, OutputStream os)
-      throws IOException, TranscoderException {
+  public static void svgDocToImg(InputStream in, OutputStream os, FileType fileType)
+      throws Exception {
     try (OutputStream out = new BufferedOutputStream(os)) {
-      Transcoder transcoder = new PNGTranscoder();
+      Transcoder transcoder;
+      switch (fileType) {
+        case PNG:
+          transcoder = new PNGTranscoder();
+          break;
+        case JPG: case JPEG:
+          transcoder = new JPEGTranscoder();
+          break;
+        case TIFF:
+          transcoder = new TIFFTranscoder();
+          break;
+        default:
+          transcoder = new PNGTranscoder();
+          break;
+      }
       TranscoderInput input = new TranscoderInput(in);
       TranscoderOutput output = new TranscoderOutput(out);
       transcoder.transcode(input, output);

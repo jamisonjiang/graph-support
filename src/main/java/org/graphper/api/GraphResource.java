@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.graphper.draw;
+package org.graphper.api;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -25,21 +27,23 @@ import java.io.InputStream;
  *
  * @author Jamison Jiang
  */
-public interface GraphResource {
+public interface GraphResource extends Closeable {
 
   /**
    * Returns the byte array of the graph directly.
    *
    * @return byte array of graph
+   * @throws IOException if an I/O error occurs
    */
-  byte[] bytes();
+  byte[] bytes() throws IOException;
 
   /**
    * Returns the {@link InputStream} of the graph.
    *
    * @return {@code InputStream} of graph
+   * @throws IOException if an I/O error occurs
    */
-  InputStream inputStream();
+  InputStream inputStream() throws IOException;
 
   /**
    * Returns the graph name.
@@ -54,4 +58,13 @@ public interface GraphResource {
    * @return file suffix
    */
   String suffix();
+
+  /**
+   * Save resource to file.
+   *
+   * @param parentPath file parent path
+   * @param fileName   file name without suffix
+   * @throws IOException file not exists or if an I/O error occurs
+   */
+  void save(String parentPath, String fileName) throws IOException;
 }

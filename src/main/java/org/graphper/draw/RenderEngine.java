@@ -18,6 +18,7 @@ package org.graphper.draw;
 
 import java.util.Collections;
 import java.util.List;
+import org.graphper.api.GraphResource;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Layout;
@@ -34,10 +35,11 @@ public interface RenderEngine {
    * Render the graph according to {@link DrawGraph} and return the rendered result.
    *
    * @param graphviz the graphviz
+   * @param attach   any attachment of render
    * @return render the result of graph
    * @throws ExecuteException rendering exception
    */
-  GraphResource render(Graphviz graphviz) throws ExecuteException;
+  GraphResource render(Graphviz graphviz, Object attach) throws ExecuteException;
 
   default List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
     return Collections.emptyList();

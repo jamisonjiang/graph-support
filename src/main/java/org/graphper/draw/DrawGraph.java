@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.graphper.def.BiConcatIterable;
-import org.graphper.util.Asserts;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
@@ -31,6 +29,8 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.def.BiConcatIterable;
+import org.graphper.util.Asserts;
 
 /**
  * A graph object that can be drawn and rendered, after layout, contains all the description
@@ -43,6 +43,8 @@ public class DrawGraph extends Rectangle implements Serializable {
   private static final long serialVersionUID = -571472079515096134L;
 
   private static final String NODE_ID_PREFIX = "node_";
+
+  private Object attach;
 
   private final GraphvizDrawProp graphvizDrawProp;
 
@@ -260,5 +262,13 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public double height() {
     return getMaxY() - getMinY();
+  }
+
+  public Object getAttach() {
+    return attach;
+  }
+
+  public void setAttach(Object attach) {
+    this.attach = attach;
   }
 }

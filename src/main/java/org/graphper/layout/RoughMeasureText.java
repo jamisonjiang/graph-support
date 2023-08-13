@@ -23,7 +23,7 @@ public class RoughMeasureText implements MeasureText {
 
   @Override
   public int order() {
-    return 1;
+    return 2;
   }
 
   @Override

@@ -811,7 +811,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         pre != null ? pre.getX() + pre.rightWidth() + (pre.getNodeSep() / 2) : drawGraph.getMinX();
     double rightWall;
     if (node.isLabelNode()) {
-      rightWall = node.getX() - node.leftWidth() + LABEL_NODE_SIDE_MAX_DISTANCE;
+      rightWall = node.getX() - node.leftWidth() + LABEL_NODE_SIDE_MIN_DISTANCE;
     } else {
       rightWall = next != null
           ? next.getX() - next.leftWidth() - (node.getNodeSep() / 2)

@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package org.graphper.draw.svg;
-
-import java.util.List;
-import java.util.function.BiConsumer;
+package org.graphper.api;
 
 /**
- * The simplified {@link org.w3c.dom.Document} is specially prepared for Svg settings and is not
- * recommended for general use.
+ * File type enumeration.
  *
  * @author Jamison Jiang
  */
-public interface Document {
+public enum FileType {
+  SVG("svg"), PNG("png"), JPG("jpg"), JPEG("jpeg"), GIF("gif"),
 
-  Iterable<? extends Element> children();
+  // Need external plugin: Apache Batik
+  TIFF("tiff"),
+  // Need external plugin: Apache FOP
+  PDF("pdf")
+  ;
 
-  Element getElementById(String id);
+  FileType(String type) {
+    this.type = type;
+  }
 
-  Element createElement(String tagName);
+  private final String type;
 
-  boolean removeEle(String id);
-
-  String toXml();
-
-  void accessEles(BiConsumer<Element, List<Element>> consumer);
+  public String getType() {
+    return type;
+  }
 }

@@ -738,6 +738,7 @@ public class TableCaseTest extends GraphvizVisual {
                         .fontSize(60)
                         .build()
                 )
+                .color(Color.ORANGE)
                 .build()
         )
         .build();
