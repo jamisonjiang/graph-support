@@ -53,6 +53,7 @@ import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.GraphvizUtils;
+import org.graphper.util.FontUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +263,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    * @return label size
    */
   protected FlatPoint labelContainer(String label, String fontName, double fontSize) {
-    return LabelSizeHelper.measure(label, fontName, fontSize, 10);
+    return FontUtils.measure(label, fontName, fontSize, 0);
   }
 
   /**

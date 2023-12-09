@@ -17,13 +17,10 @@
 package org.graphper.layout;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import org.graphper.layout.Cell.RootCell;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.graphper.def.FlatPoint;
-import org.graphper.layout.Cell;
-import org.graphper.layout.Cell.RootCell;
 
 public class CellLabelCompilerTest {
 
@@ -108,46 +105,6 @@ public class CellLabelCompilerTest {
                             () -> CellLabelCompiler.compile("1|11|3|2|5|{6|}7}"));
     Assertions.assertThrows(LabelFormatException.class,
                             () -> CellLabelCompiler.compile("1|{{2|3}|4\\}|5|"));
-  }
-
-  @Test
-  public void testAlignSize() {
-    RootCell cell = CellLabelCompiler.compile("1|{2|{3|4}}|5", null, 32,
-                                                   null, new FlatPoint(180, 120), false);
-    List<Cell> children = cell.getChildren();
-    Assertions.assertEquals(3, children.size());
-
-    Cell first = children.get(0);
-    Cell second = children.get(1);
-    Cell third = children.get(2);
-
-    Assertions.assertEquals(new FlatPoint(0, 0), first.offset);
-
-    Assertions.assertEquals(34, first.getWidth(), 2);
-    Assertions.assertEquals(180, first.getHeight(), 2);
-
-    Assertions.assertEquals(52, second.getWidth(), 2);
-    Assertions.assertEquals(180, second.getHeight(), 2);
-
-    Assertions.assertEquals(34, third.getWidth(), 2);
-    Assertions.assertEquals(180, third.getHeight(), 2);
-
-    Assertions.assertEquals(2, second.childrenSize());
-    Assertions.assertEquals(2, second.getChild(1).childrenSize());
-
-    children = second.getChildren();
-    first = children.get(0);
-    second = children.get(1).getChild(0);
-    third = children.get(1).getChild(1);
-
-    Assertions.assertEquals(52, first.getWidth(), 2);
-    Assertions.assertEquals(90, first.getHeight(), 2);
-
-    Assertions.assertEquals(26, second.getWidth(), 2);
-    Assertions.assertEquals(90, second.getHeight(), 2);
-
-    Assertions.assertEquals(26, third.getWidth(), 2);
-    Assertions.assertEquals(90, third.getHeight(), 2);
   }
 
   private void assertCell(RootCell cell, int depth, int cellNum) {

@@ -16,6 +16,7 @@
 
 package org.graphper.api;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,9 +31,7 @@ import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.draw.ExecuteException;
-import org.graphper.draw.GraphResource;
-import org.graphper.draw.RenderEngine;
-import org.graphper.draw.svg.SvgRenderEngine;
+import org.graphper.draw.common.CommonRenderEngine;
 import org.graphper.util.Asserts;
 import org.graphper.util.GraphvizUtils;
 
@@ -43,7 +42,7 @@ import org.graphper.util.GraphvizUtils;
  */
 public class Graphviz extends GraphContainer implements Serializable {
 
-  private static final long serialVersionUID = 7386714074818676956L;
+  public static final long serialVersionUID = 7386714074818676956L;
 
   /**
    * Measurement unit.
@@ -135,8 +134,7 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
     synchronized (this) {
       if (svg == null) {
-        RenderEngine renderEngine = SvgRenderEngine.getInstance();
-        svg = renderEngine.render(this);
+        svg = toFile(null);
       }
     }
     return svg;
@@ -149,7 +147,25 @@ public class Graphviz extends GraphContainer implements Serializable {
    * @throws ExecuteException conversion execution error
    */
   public String toSvgStr() throws ExecuteException {
-    return new String(toSvg().bytes());
+    try (GraphResource resource = toSvg()) {
+      synchronized (this) {
+        this.svg = null;
+      }
+      return new String(resource.bytes());
+    } catch (IOException e) {
+      throw new ExecuteException(e);
+    }
+  }
+
+  /**
+   * Returns the rendered graph file resource, return svg if {@code fileType} is null.
+   *
+   * @param fileType image type
+   * @return graph image
+   * @throws ExecuteException conversion execution error
+   */
+  public GraphResource toFile(FileType fileType) throws ExecuteException {
+    return CommonRenderEngine.getInstance().render(this, fileType);
   }
 
   // ------------------------------------------ static ---------------------------------------
@@ -516,9 +532,9 @@ public class Graphviz extends GraphContainer implements Serializable {
 
     /**
      * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
-     * graph, the program will calculate the size of the label, and then automatically put the
-     * label in the appropriate position of the graph. If {@link Assemble} is set, assemble will
-     * be placed where the label was originally placed.
+     * graph, the program will calculate the size of the label, and then automatically put the label
+     * in the appropriate position of the graph. If {@link Assemble} is set, assemble will be placed
+     * where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
      * placed based on {@link Assemble}, so when adding a cell, an offset position based on

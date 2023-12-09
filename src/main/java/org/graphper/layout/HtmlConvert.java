@@ -37,6 +37,7 @@ import org.graphper.def.CycleDependencyException;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 
 /**
  * Translate the data of the original html-like structure into a lower-level {@link Assemble}.
@@ -291,9 +292,9 @@ public class HtmlConvert {
      * calculated width or height, there need to lengthen the
      * width and height of the corresponding cell
      */
+    Asserts.illegalArgument(tableHelper.horAxisNum() <= 1, "Only have one horizontal axis");
     double heightIncr =
-        Math.max(table.getHeight() - tableHelper.getHeight(), 0)
-            / (tableHelper.horAxisNum() <= 1 ? 0 : tableHelper.horAxisNum() - 1);
+        Math.max(table.getHeight() - tableHelper.getHeight(), 0) / (tableHelper.horAxisNum() - 1);
 
     if (heightIncr > 0) {
       double nextRangeLen = 0;
@@ -475,8 +476,8 @@ public class HtmlConvert {
         return;
       }
 
-      labelSize = LabelSizeHelper.measure(td.getText(), td.getFontName(),
-                                          td.getFontSize(), 0);
+      labelSize = FontUtils.measure(td.getText(), td.getFontName(),
+                                    td.getFontSize(), 0);
     }
 
     int margin = td.getCellPadding(table) + table.getCellSpacing();

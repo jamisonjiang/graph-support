@@ -16,6 +16,7 @@
 
 package org.graphper.draw;
 
+import org.graphper.api.GraphResource;
 import org.graphper.layout.LayoutEngine;
 import org.graphper.util.Asserts;
 import org.graphper.api.Graphviz;
@@ -29,7 +30,7 @@ import org.graphper.api.attributes.Layout;
 public abstract class AbstractRenderEngine implements RenderEngine {
 
   @Override
-  public GraphResource render(Graphviz graphviz) throws ExecuteException {
+  public GraphResource render(Graphviz graphviz, Object attach) throws ExecuteException {
     Asserts.nullArgument(graphviz, "graphviz");
 
     // Get layout
@@ -38,7 +39,9 @@ public abstract class AbstractRenderEngine implements RenderEngine {
 
     try {
       LayoutEngine layoutEngine = layout.getLayoutEngine();
-      return render0(layoutEngine.layout(graphviz, this));
+      DrawGraph drawGraph = layoutEngine.layout(graphviz, this);
+      drawGraph.setAttach(attach);
+      return render0(drawGraph);
     } catch (Exception e) {
       throw new ExecuteException("Layout engine execute error: ", e);
     }

@@ -16,6 +16,8 @@
 
 package org.graphper.layout;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
@@ -47,6 +49,7 @@ class DefaultVal {
       .labelloc(Labelloc.CENTER)
       .fontSize(14)
       .fontColor(Color.BLACK)
+      .fontName(DEFAULT_FONT)
       .build()
       .nodeAttrs();
 

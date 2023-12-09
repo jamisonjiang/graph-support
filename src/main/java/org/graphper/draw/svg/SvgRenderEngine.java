@@ -64,12 +64,10 @@ public class SvgRenderEngine extends
   private static final SvgRenderEngine svgRenderEngine;
 
   static {
-    svgRenderEngine = new SvgRenderEngine(
-        new DefaultPipelineFactory()
-    );
+    svgRenderEngine = new SvgRenderEngine(new DefaultPipelineFactory());
   }
 
-  private SvgRenderEngine(PipelineFactory pipelineFactory) {
+  protected SvgRenderEngine(PipelineFactory pipelineFactory) {
     super(pipelineFactory);
   }
 

@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package org.graphper.layout;
+package org.graphper.util;
 
 import java.util.ServiceLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.FontSelector;
+import org.graphper.layout.MeasureText;
 
-public class LabelSizeHelper {
+public class FontUtils {
 
-  private static final Logger log = LoggerFactory.getLogger(LabelSizeHelper.class);
+  private FontUtils() {
+  }
+
+  public static final String DEFAULT_FONT;
 
   private static final MeasureText MEASURE_TEXT;
 
   static {
+    MEASURE_TEXT = selectMeasureText();
+    DEFAULT_FONT = selectDefaultFont();
+  }
+
+  private static MeasureText selectMeasureText() {
     ServiceLoader<MeasureText> measureTextServiceLoader = ServiceLoader.load(MeasureText.class);
     MeasureText measureText = null;
     for (MeasureText ms : measureTextServiceLoader) {
@@ -44,12 +53,24 @@ public class LabelSizeHelper {
       throw new RuntimeException("Could not find any available MeasureText");
     }
 
-    log.info("MeasureText: {} was loaded as the primary measurement method.",
-             measureText.getClass().getName());
-    MEASURE_TEXT = measureText;
+    return measureText;
   }
 
-  private LabelSizeHelper() {
+  private static String selectDefaultFont() {
+    ServiceLoader<FontSelector> fontSelectorServiceLoader = ServiceLoader.load(FontSelector.class);
+    FontSelector fontSelector = null;
+    for (FontSelector fs : fontSelectorServiceLoader) {
+      if (!fs.envSupport()) {
+        continue;
+      }
+
+      if (fontSelector == null || fontSelector.order() > fs.order()) {
+        fontSelector = fs;
+      }
+    }
+
+    String defaultFont = fontSelector != null ? fontSelector.defaultFont() : null;
+    return StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
   }
 
   /**
@@ -64,6 +85,10 @@ public class LabelSizeHelper {
   public static FlatPoint measure(String label, String fontName,
                                   double fontSize, double widthIncr) {
     FlatPoint size = MEASURE_TEXT.measure(label, fontName, fontSize);
+    if (size == null) {
+      throw new RuntimeException(
+          "Occurred unexpected error, MeasureText can not work and return null label size");
+    }
     size.setWidth(size.getWidth() + widthIncr);
     return size;
   }

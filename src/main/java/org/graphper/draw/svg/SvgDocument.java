@@ -18,10 +18,13 @@ package org.graphper.draw.svg;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
@@ -67,7 +70,38 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
     if (elementMap.size() == 0) {
       return null;
     }
-    Map<Element, List<SvgElement>> groups = new LinkedHashMap<>();
+
+    StringBuilder xml = new StringBuilder();
+    xml.append(XML_VERSION);
+    xml.append(DOC_TYPE);
+    BiConsumer<Element, List<Element>> consumer = (ele, children) -> {
+      String attr = ele.toAttrStr();
+      xml.append(LT).append(ele.tagName());
+      if (attr != null) {
+        xml.append(attr);
+      }
+      xml.append(GT);
+      if (ele.textContext() != null) {
+        xml.append(ele.textContext());
+      }
+    };
+
+    accessEles(consumer, ele -> xml.append(LT).append(SLASH).append(ele.tagName()).append(GT));
+    return xml.toString();
+  }
+
+  @Override
+  public void accessEles(BiConsumer<Element, List<Element>> consumer) {
+    accessEles(consumer, null);
+  }
+
+  private void accessEles(BiConsumer<Element, List<Element>> preConsumer,
+                          Consumer<Element> postConsumer) {
+    if (preConsumer == null || elementMap.size() == 0) {
+      return;
+    }
+
+    Map<Element, List<Element>> groups = new LinkedHashMap<>();
     for (SvgElement element : elementMap.values()) {
       groups.compute(element.parent(), (k, v) -> {
         if (v == null) {
@@ -77,40 +111,31 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
         return v;
       });
     }
-    List<SvgElement> roots = groups.get(null);
+    List<Element> roots = groups.get(null);
     if (CollectionUtils.isEmpty(roots)) {
-      return null;
+      return;
     }
 
-    StringBuilder xml = new StringBuilder();
-    xml.append(XML_VERSION);
-    xml.append(DOC_TYPE);
-    for (SvgElement root : roots) {
-      toXml(xml, root, groups);
+    for (Element root : roots) {
+      accessEle(root, groups, preConsumer, postConsumer);
     }
-    return xml.toString();
   }
 
-  private void toXml(StringBuilder xml, Element element, Map<Element, List<SvgElement>> groups) {
+  private void accessEle(Element element, Map<Element, List<Element>> groups,
+                         BiConsumer<Element, List<Element>> preConsumer,
+                         Consumer<Element> postConsumer) {
     if (element == null) {
       return;
     }
-    String attr = element.toAttrStr();
-    xml.append(LT).append(element.tagName());
-    if (attr != null) {
-      xml.append(attr);
+    List<Element> children = groups.get(element);
+    children = CollectionUtils.isEmpty(children) ? Collections.emptyList() : children;
+    preConsumer.accept(element, children);
+    for (Element child : children) {
+      accessEle(child, groups, preConsumer, postConsumer);
     }
-    xml.append(GT);
-    if (element.textContext() != null) {
-      xml.append(element.textContext());
+    if (postConsumer != null) {
+      postConsumer.accept(element);
     }
-    List<SvgElement> children = groups.get(element);
-    if (CollectionUtils.isNotEmpty(children)) {
-      for (SvgElement child : children) {
-        toXml(xml, child, groups);
-      }
-    }
-    xml.append(LT).append(SLASH).append(element.tagName()).append(GT);
   }
 
   void setId(String oldId, String id, SvgElement element) {

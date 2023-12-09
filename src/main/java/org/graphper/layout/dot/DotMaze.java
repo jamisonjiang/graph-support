@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.dot.AbstractDotLineRouter.LABEL_NODE_SIDE_MIN_DISTANCE;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,7 +108,7 @@ class DotMaze extends Maze {
     }
 
     // Record guide information
-    recordGuideBox(node.getLabelLine(), label, guideBox, true);
+    recordGuideBox(node.getLabelLine(), label, guideBox);
   }
 
   private Box splitLabelNode(DNode node, boolean isGuideBox) {
@@ -114,23 +116,19 @@ class DotMaze extends Maze {
       return null;
     }
 
+    double guideWidth = Math.min(LABEL_NODE_SIDE_MIN_DISTANCE, node.getWidth() / 3);
+    double splitLine = node.getLeftBorder() + guideWidth;
     if (isGuideBox) {
       // If label node not big enough
-      if (AbstractDotLineRouter.LABEL_NODE_SIDE_MAX_DISTANCE >= node.getWidth()) {
+      if (LABEL_NODE_SIDE_MIN_DISTANCE >= node.getWidth()) {
         return node;
       }
 
-      double rightBorder = node.getLeftBorder() + AbstractDotLineRouter.LABEL_NODE_SIDE_MAX_DISTANCE;
-      return new DefaultBox(node.getLeftBorder(), rightBorder,
+      return new DefaultBox(node.getLeftBorder(), splitLine,
                             node.getUpBorder(), node.getDownBorder());
     }
 
-    if (AbstractDotLineRouter.LABEL_NODE_SIDE_MAX_DISTANCE >= node.getWidth()) {
-      return null;
-    }
-
-    double leftBorder = node.getLeftBorder() + AbstractDotLineRouter.LABEL_NODE_SIDE_MAX_DISTANCE;
-    return new DefaultBox(leftBorder, node.getRightBorder(),
+    return new DefaultBox(splitLine, node.getRightBorder(),
                           node.getUpBorder(), node.getDownBorder());
   }
 
@@ -165,11 +163,11 @@ class DotMaze extends Maze {
       }
 
       // Record guide information
-      recordGuideBox(line.getLine(), label, guideBox, true);
+      recordGuideBox(line.getLine(), label, guideBox);
     }
   }
 
-  private void recordGuideBox(Line line, Box sign, Box guideBox, boolean isLabelSign) {
+  private void recordGuideBox(Line line, Box sign, Box guideBox) {
     if (labelGuideBoxes == null) {
       labelGuideBoxes = new LinkedHashMap<>();
     }
@@ -178,7 +176,7 @@ class DotMaze extends Maze {
     GuideInfo guideInfo = new GuideInfo();
     guideInfo.signPos = sign;
     guideInfo.guideBox = guideBox;
-    guideInfo.isLabelSign = isLabelSign;
+    guideInfo.isLabelSign = true;
     guideInfos.add(guideInfo);
   }
 

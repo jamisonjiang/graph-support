@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.Assemble;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.ext.CylinderPropCalc;

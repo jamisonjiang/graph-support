@@ -17,6 +17,7 @@
 package org.graphper.draw;
 
 import java.util.List;
+import org.graphper.api.GraphResource;
 import org.graphper.util.Asserts;
 
 /**

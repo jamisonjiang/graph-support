@@ -16,20 +16,27 @@
 
 package org.graphper.draw.svg;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
+import org.graphper.api.FileType;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawBoard;
 import org.graphper.draw.DrawGraph;
-import org.graphper.draw.GraphResource;
+import org.graphper.draw.FailInitResourceException;
+import org.graphper.api.GraphResource;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.draw.DefaultGraphResource;
+import org.graphper.util.Asserts;
 
 /**
  * Svg draw board.
@@ -46,11 +53,11 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
 
   private static final String XMLNS_XLINK_VAL = "http://www.w3.org/1999/xlink";
 
-  private final SvgDocument svgDocument;
+  protected final SvgDocument svgDocument;
 
-  private final Element graphElement;
+  protected final Element graphElement;
 
-  private final DrawGraph drawGraph;
+  protected final DrawGraph drawGraph;
 
   public SvgDrawBoard(DrawGraph drawGraph) {
     Asserts.nullArgument(drawGraph, "DrawGraph");
@@ -132,9 +139,19 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
   }
 
   @Override
-  public synchronized GraphResource graphResource() {
+  public synchronized GraphResource graphResource() throws FailInitResourceException {
     String label = drawGraph.getGraphviz().graphAttrs().getLabel();
-    return new SvgGraphResource(label != null ? label : "graphviz", svgDocument.toXml());
+    String svg = svgDocument.toXml();
+    if (StringUtils.isEmpty(svg)) {
+      throw new FailInitResourceException("Can not generate svg xml");
+    }
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    try {
+      os.write(svg.getBytes(StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      throw new FailInitResourceException(e);
+    }
+    return new DefaultGraphResource(label != null ? label : "graphviz", FileType.SVG.getType(), os);
   }
 
   public GraphAttrs graphAttrs() {

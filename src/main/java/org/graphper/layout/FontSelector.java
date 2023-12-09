@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 
-package org.graphper.draw.svg;
-
-import java.util.List;
-import java.util.function.BiConsumer;
+package org.graphper.layout;
 
 /**
- * The simplified {@link org.w3c.dom.Document} is specially prepared for Svg settings and is not
- * recommended for general use.
+ * Default font name dependent on system fonts, should choose by some strategies. Use <a
+ * href="https://docs.oracle.com/cd/F32325_01/doc.192/f32328/c_payments_spi.htm#SIMCG-TheSimphonyPaymentInterfaceSPI-DA817CDC">SPI</a>
+ * to add strategy.
  *
  * @author Jamison Jiang
  */
-public interface Document {
+public interface FontSelector extends EnvStrategy {
 
-  Iterable<? extends Element> children();
-
-  Element getElementById(String id);
-
-  Element createElement(String tagName);
-
-  boolean removeEle(String id);
-
-  String toXml();
-
-  void accessEles(BiConsumer<Element, List<Element>> consumer);
+  /**
+   * Returns default font name when not set fontName attribute.
+   *
+   * @return default font name
+   */
+  String defaultFont();
 }

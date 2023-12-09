@@ -49,7 +49,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
 
   private static final Logger log = LoggerFactory.getLogger(AbstractDotLineRouter.class);
 
-  protected static final double LABEL_NODE_SIDE_MAX_DISTANCE = 10;
+  protected static final double LABEL_NODE_SIDE_MIN_DISTANCE = 10;
 
   // distance deviation tolerance
   protected static final double CLIP_DIST_ERROR = 0.1;
@@ -425,16 +425,25 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
 
     for (int i = 0; i < line.getParallelNums(); i++) {
       DLine edge = line.parallelLine(i);
+      LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(edge.getLine());
       DNode from = edge.from();
       DNode to = edge.to();
       Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), edge.getLine(), drawGraph);
       Port toPort = PortHelper.getLineEndPointPort(to.getNode(), edge.getLine(), drawGraph);
-      int hash = ((fromPort != null ? fromPort.name() : "") + (toPort != null ? toPort.name() : ""))
-          .hashCode();
-      parallelLineRecordMap.computeIfAbsent(hash, h -> new ArrayList<>(2)).add(edge);
+      String headCell = lineDrawProp.lineAttrs().getHeadCell();
+      String tailCell = lineDrawProp.lineAttrs().getTailCell();
+
+      String sign = signature(fromPort, tailCell) + signature(toPort, headCell);
+      sign += signature(toPort, tailCell) + signature(fromPort, headCell);
+      parallelLineRecordMap.computeIfAbsent(sign.hashCode(), h -> new ArrayList<>(2)).add(edge);
     }
 
     return parallelLineRecordMap;
+  }
+
+  private String signature(Port port, String cellId) {
+    String sign = port != null ? port.name() : "";
+    return sign + cellId;
   }
 
   // ----------------------------------------------------- static method -----------------------------------------------------

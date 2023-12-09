@@ -16,6 +16,8 @@
 
 package org.graphper.draw.svg;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.util.List;
 import java.util.function.Consumer;
 import org.graphper.def.FlatPoint;
@@ -75,7 +77,7 @@ public class SvgEditor implements SvgConstants {
     String[] lines = textAttribute.label.split("\n");
     int midIndex = (lines.length - 1) / 2;
     boolean oddLen = (lines.length & 1) == 1;
-    double xc = textAttribute.centerPoint.getX() + halfHeight / 8;
+    double xc = textAttribute.centerPoint.getX() - halfHeight / 8;
     double yc;
     double t = halfHeight / 3;
 
@@ -318,7 +320,7 @@ public class SvgEditor implements SvgConstants {
 
     public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
                          Consumer<TextLineAttribute> lineAttributeConsumer) {
-      this(centerPoint, fontsize, label, fontColor, "Times,serif", lineAttributeConsumer);
+      this(centerPoint, fontsize, label, fontColor, DEFAULT_FONT, lineAttributeConsumer);
     }
 
     public TextAttribute(FlatPoint centerPoint, double fontsize,

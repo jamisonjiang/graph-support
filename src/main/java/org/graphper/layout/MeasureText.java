@@ -33,15 +33,16 @@ import org.graphper.def.FlatPoint;
  * @see AWTMeasureText
  * @see RoughMeasureText
  */
-public interface MeasureText {
+public interface MeasureText extends EnvStrategy {
 
   /**
    * When there are multiple available implementations, use this attribute to sort, and the one with
    * the smaller value will be used first, and if they are the same, one will be randomly selected
    * for use.
    *
-   * @return <tt>true</tt> if the priority of the current measurement method
+   * @return priority of the current env strategy
    */
+  @Override
   int order();
 
   /**
@@ -49,6 +50,7 @@ public interface MeasureText {
    *
    * @return <tt>true</tt> if current environment support
    */
+  @Override
   boolean envSupport();
 
   /**

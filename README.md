@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.1.5</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -123,6 +123,97 @@ Graphviz graphviz = Graphviz.digraph()
 
 // Print svg
 System.out.println(graphviz.toSvgStr());
+// Save png
+graphviz.toFile(FileType.PNG).save("./", "example");
+```
+
+### Multi output file type (>= 1.2.0)
+
+**graph-support** support multi output formats if version >= 1.2.0 (only support svg before 1.2.0):
+
+|                                               | svg  | png  | jpg  | jpeg | gif  | tiff | pdf  |
+| --------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| JDK (>=1.8)                                   | Y    | Y    | Y    | Y    | Y    | N    | N    |
+| Android 13 (API level 33)<br/>Only test >= 13 | Y    | Y    | N    | Y    | N    | N    | N    |
+| JDK (>=1.8) + batik(>=1.9)                    | Y    | Y    | Y    | Y    | Y    | Y    | N    |
+| JDK(>=1.8) + batik(>=1.9) + fop(>=2.4)        | Y    | Y    | Y    | Y    | Y    | Y    | Y    |
+
+*Note: The version for the Android platform is only a recommendation, because versions below 13 have not been tested, it does not means other version won't work*
+
+### Quickly expand output formats
+
+**graph-support** detect environments when need render specific file type and throws **FailInitResourceException** if do not have any ways to rendering, so we just need import dependencies without any extra coding:
+
+```java
+// Output PNG only relys on java.awt and android.graphics
+graphviz.toFile(FileType.PNG);
+
+// Output TIFF without batik will throws FailInitResourceException
+graphviz.toFile(FileType.TIFF);
+
+// Output PDF without fop will throws FailInitResourceException
+graphviz.toFile(FileType.PDF);
+```
+
+import **batik** dependencies via maven
+
+```xml
+<dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>batik-codec</artifactId>
+    <version>1.9</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>batik-transcoder</artifactId>
+    <version>1.9</version>
+</dependency>
+```
+
+no need change code
+
+```java
+// Output PNG only relys on java.awt and android.graphics
+graphviz.toFile(FileType.PNG);
+
+// Output TIFF success because have batik in runtime
+graphviz.toFile(FileType.TIFF);
+
+// Output PDF without FOP will throws FailInitResourceException
+graphviz.toFile(FileType.PDF);
+```
+
+import **fop** dependencies via maven
+
+```xml
+<dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>batik-codec</artifactId>
+    <version>1.9</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>batik-transcoder</artifactId>
+    <version>1.9</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.xmlgraphics</groupId>
+    <artifactId>fop</artifactId>
+    <version>2.4</version>
+</dependency>
+```
+
+same code as above
+
+```java
+// Output PNG only relys on java.awt and android.graphics
+graphviz.toFile(FileType.PNG);
+
+// Output TIFF success because have batik in runtime
+graphviz.toFile(FileType.TIFF);
+
+// Output PDF success because have fop in runtime
+graphviz.toFile(FileType.PDF);
 ```
 
 ### Node shape example

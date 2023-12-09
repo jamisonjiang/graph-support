@@ -29,6 +29,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.CollectionUtils;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.util.FontUtils;
 
 /**
  * Compiler of <strong>Cell Expression</strong>.
@@ -85,7 +86,7 @@ public class CellLabelCompiler {
 
   private final boolean defaultHor;
 
-  private RootCell Cell;
+  private RootCell cell;
 
   private CellLabelCompiler(String label, String fontName, double fontSize,
                             FlatPoint margin, FlatPoint minCellSize, boolean defaultHor) {
@@ -149,18 +150,18 @@ public class CellLabelCompiler {
                                  FlatPoint margin, FlatPoint minCellSize, boolean defaultVer)
       throws LabelFormatException {
     return new CellLabelCompiler(label, fontName, fontSize, margin,
-                                 minCellSize, defaultVer).Cell;
+                                 minCellSize, defaultVer).cell;
   }
 
   private RootCell init() throws LabelFormatException {
-    if (Cell != null) {
-      return Cell;
+    if (cell != null) {
+      return cell;
     }
 
     List<LabelToken> tokens = tokenizer(label);
     LabelAstNode ast = generateAstNodes(tokens);
     initCell(ast);
-    return Cell;
+    return cell;
   }
 
   private List<LabelToken> tokenizer(String label) {
@@ -457,7 +458,7 @@ public class CellLabelCompiler {
     LabelAstNode pre = null;
     double maxWidth = 0;
     double maxHeight = 0;
-    this.Cell = new RootCell(defaultHor);
+    this.cell = new RootCell(defaultHor);
     TableAlign tableSizeAlign = null;
     if (tableAlign) {
       tableSizeAlign = new TableAlign();
@@ -468,7 +469,7 @@ public class CellLabelCompiler {
         throw newFormatError();
       }
 
-      Cell c = accessNode(Cell, pre, (LabelAstNode) node, tableSizeAlign);
+      Cell c = accessNode(cell, pre, (LabelAstNode) node, tableSizeAlign);
       pre = (LabelAstNode) node;
 
       if (c != null) {
@@ -477,7 +478,7 @@ public class CellLabelCompiler {
       }
     }
 
-    postSizeHandle(tableSizeAlign, Cell, maxWidth, maxHeight);
+    postSizeHandle(tableSizeAlign, cell, maxWidth, maxHeight);
 
     alignMinSize(tableSizeAlign);
   }
@@ -486,11 +487,11 @@ public class CellLabelCompiler {
     double widthIncr = 0;
     double heightIncr = 0;
     if (minCellSize != null) {
-      widthIncr = minCellSize.getWidth() - Cell.getWidth();
-      heightIncr = minCellSize.getHeight() - Cell.getHeight();
+      widthIncr = minCellSize.getWidth() - cell.getWidth();
+      heightIncr = minCellSize.getHeight() - cell.getHeight();
     }
 
-    alignMinSize(tableSizeAlign, Cell, widthIncr, heightIncr, Cell.offset);
+    alignMinSize(tableSizeAlign, cell, widthIncr, heightIncr, cell.offset);
   }
 
   private void alignMinSize(TableAlign tableSizeAlign, Cell cell,
@@ -565,7 +566,7 @@ public class CellLabelCompiler {
     if (pre != null && pre.isId() && node.isText()) {
       c.id = pre.getIdValue();
       if (StringUtils.isNotEmpty(c.id)) {
-        Cell.put(c.id, c);
+        cell.put(c.id, c);
       }
     }
 
@@ -658,7 +659,7 @@ public class CellLabelCompiler {
     if (StringUtils.isEmpty(c.label)) {
       size = DEFAULT_SIZE.clone();
     } else {
-      size = LabelSizeHelper.measure(c.getLabel(), fontName, this.fontSize, 0);
+      size = FontUtils.measure(c.getLabel(), fontName, this.fontSize, 0);
     }
 
     c.width = size.getWidth();

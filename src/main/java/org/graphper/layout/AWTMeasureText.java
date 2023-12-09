@@ -16,44 +16,59 @@
 
 package org.graphper.layout;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class AWTMeasureText implements MeasureText {
+/**
+ * Measure text size by {@code java.awt} package.
+ *
+ * @author Jamison Jiang
+ */
+public class AWTMeasureText implements MeasureText, FontSelector {
 
   private static final Logger log = LoggerFactory.getLogger(AWTMeasureText.class);
 
-  private static Class<?> FONT_CLAZZ;
-
   private static Constructor<?> FONT_CONS;
 
-  private static Object FONT_METRIC_CANVAS;
+  private static Method GET_TRANSFORM;
 
-  private static Method FONT_METRICS_METHOD;
+  private static Method TEXT_GET_WIDTH;
 
-  private static Method FONT_METRICS_WIDTH;
+  private static Method TEXT_GET_HEIGHT;
 
-  private static Method FONT_METRICS_HEIGHT;
+  private static Method STRING_BOUNDS_METHOD;
+
+  private static Constructor<?> RENDER_CONSTRUCTOR;
 
   static {
     if (checkEnvSupport()) {
       try {
         // Get class
         Class<?> canvasClazz = Class.forName("java.awt.Canvas");
-        FONT_METRIC_CANVAS = canvasClazz.newInstance();
-        FONT_CLAZZ = Class.forName("java.awt.Font");
-        FONT_METRICS_METHOD = canvasClazz.getMethod("getFontMetrics", FONT_CLAZZ);
-
+        Object fontMetricCanvas = canvasClazz.newInstance();
+        Class<?> fontClazz = Class.forName("java.awt.Font");
+        GET_TRANSFORM = fontClazz.getMethod("getTransform");
+        FONT_CONS = fontClazz.getConstructor(String.class, int.class, int.class);
+        Class<?> affineTransform = Class.forName("java.awt.geom.AffineTransform");
+        Class<?> fontRenderContext = Class.forName("java.awt.font.FontRenderContext");
+        RENDER_CONSTRUCTOR = fontRenderContext
+            .getConstructor(affineTransform, boolean.class, boolean.class);
+        STRING_BOUNDS_METHOD = fontClazz.getMethod("getStringBounds", String.class,
+                                                   fontRenderContext);
+        Class<?> rectangle2D = Class.forName("java.awt.geom.Rectangle2D");
+        TEXT_GET_WIDTH = rectangle2D.getMethod("getWidth");
+        TEXT_GET_HEIGHT = rectangle2D.getMethod("getHeight");
         // Warm up Font metrics
-        fontMetrics("Times,serif", 0);
+        fontMetrics(null, 0, fontMetricCanvas, canvasClazz, fontClazz);
       } catch (Exception e) {
       }
     }
-
   }
 
   @Override
@@ -73,18 +88,18 @@ public class AWTMeasureText implements MeasureText {
     }
 
     try {
-      double width = 0;
-      double height = 0;
-      String[] lines = text.split("\n");
-      Object fm = fontMetrics(fontName == null ? "Times,serif" : fontName, (int) fontSize);
+      fontName = fontName == null ? DEFAULT_FONT : fontName;
 
-      for (String line : lines) {
-        FlatPoint size = getSizeWithFontMetric(fm, line);
-        width = Math.max(size.getWidth(), width);
-        height += size.getHeight();
-      }
+      Object font = newFont(fontName, (int) fontSize);
+      Object affineTransform = GET_TRANSFORM.invoke(font);
 
-      return new FlatPoint(height, width);
+      Object render = RENDER_CONSTRUCTOR.newInstance(affineTransform, true, true);
+      Object rectangle = STRING_BOUNDS_METHOD.invoke(font, text, render);
+
+      double w = (double) TEXT_GET_WIDTH.invoke(rectangle);
+      double h = (double) TEXT_GET_HEIGHT.invoke(rectangle) * text.split("\n").length;
+
+      return new FlatPoint(h, w);
     } catch (Exception e) {
       log.error("Measure text size had occurred error: ", e);
       return new FlatPoint(0, 0);
@@ -100,29 +115,20 @@ public class AWTMeasureText implements MeasureText {
     }
   }
 
-  private static Object fontMetrics(String fontName, int fontSize) throws Exception {
-    if (FONT_CLAZZ == null || FONT_METRICS_METHOD == null || StringUtils.isEmpty(fontName)) {
-      return null;
-    }
-
-    if (FONT_CONS == null) {
-      FONT_CONS = FONT_CLAZZ.getConstructor(String.class, int.class, int.class);
-    }
-    Object font = FONT_CONS.newInstance(fontName, 0, fontSize);
-
-    // Font metrics
-    return FONT_METRICS_METHOD.invoke(FONT_METRIC_CANVAS, font);
+  private static Object newFont(String fontName, int fontSize) throws Exception {
+    return FONT_CONS.newInstance(fontName, 0, fontSize);
   }
 
-  private static FlatPoint getSizeWithFontMetric(Object fm, String text) throws Exception {
-    if (FONT_METRICS_HEIGHT == null || FONT_METRICS_WIDTH == null) {
-      Class<?> fontMetrics = Class.forName("java.awt.FontMetrics");
-      FONT_METRICS_HEIGHT = fontMetrics.getMethod("getHeight");
-      FONT_METRICS_WIDTH = fontMetrics.getMethod("stringWidth", String.class);
-    }
+  private static Object fontMetrics(String fontName, int fontSize, Object fontMetricCanvas,
+                                    Class<?> canvasClazz, Class<?> fontClazz) throws Exception {
+    Object font = newFont(fontName, fontSize);
+    Method fontMetrics = canvasClazz.getMethod("getFontMetrics", fontClazz);
+    fontMetrics.invoke(fontMetricCanvas, font);
+    return font;
+  }
 
-    int height = (int) FONT_METRICS_HEIGHT.invoke(fm);
-    int width = (int) FONT_METRICS_WIDTH.invoke(fm, text);
-    return new FlatPoint(height, width);
+  @Override
+  public String defaultFont() {
+    return "Default";
   }
 }

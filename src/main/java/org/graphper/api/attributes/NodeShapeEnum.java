@@ -71,7 +71,7 @@ public enum NodeShapeEnum implements NodeShape {
 
   PARALLELOGRAM("parallelogram", new ParallelogramPropCalc()),
 
-  STAR("start", 0.75, 0.75, new StarPropCalc()),
+  STAR("star", 0.75, 0.75, new StarPropCalc()),
 
   CYLINDER("cylinder", new CylinderPropCalc()),
 
