@@ -22,7 +22,7 @@
 
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 
     <name>${project.artifactId}</name>
     <description>Java re-implementation of tiny graphviz</description>
