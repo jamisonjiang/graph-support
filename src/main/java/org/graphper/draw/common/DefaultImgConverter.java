@@ -16,6 +16,8 @@
 
 package org.graphper.draw.common;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -165,10 +167,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     String fontName = ele.getAttribute(FONT_FAMILY);
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
     Color color = toColor(ele.getAttribute(FILL));
-    if (color != null) {
-      g2d.setColor(color);
+    if (color == null) {
+      color = Color.BLACK;
     }
+    g2d.setColor(color);
 
+    fontName = fontName == null ? DEFAULT_FONT : fontName;
     g2d.setFont(new Font(fontName, Font.PLAIN, fontSize));
     g2d.drawString(text, (float) (x - (size.getWidth() / 2)), (float) y);
   }
