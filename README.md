@@ -133,7 +133,7 @@ graphviz.toFile(FileType.PNG).save("./", "example");
 
 |                                               | svg  | png  | jpg  | jpeg | gif  | tiff | pdf  |
 | --------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| JDK (>=1.8)                                   | Y    | Y    | Y    | Y    | Y    | N    | N    |
+| JDK (>=1.8)<br/>Add `java --add-opens java.desktop/sun.java2d=ALL-UNNAMED your_application` if jdk > 1.8 except svg type                                  | Y    | Y    | Y    | Y    | Y    | N    | N    |
 | Android 13 (API level 33)<br/>Only test >= 13 | Y    | Y    | N    | Y    | N    | N    | N    |
 | JDK (>=1.8) + batik(>=1.9)                    | Y    | Y    | Y    | Y    | Y    | Y    | N    |
 | JDK(>=1.8) + batik(>=1.9) + fop(>=2.4)        | Y    | Y    | Y    | Y    | Y    | Y    | Y    |
