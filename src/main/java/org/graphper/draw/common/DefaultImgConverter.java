@@ -16,77 +16,36 @@
 
 package org.graphper.draw.common;
 
-import static org.graphper.util.FontUtils.DEFAULT_FONT;
-
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.IOException;
 import java.util.Objects;
+import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.FontUtils;
-import org.graphper.util.ClassUtils;
 
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
-
-  private static Class<?> KEY;
-
-  private static Class<?> FONT;
-
-  private static Class<?> COLOR;
-
-  private static Class<?> SHAPE;
-
-  private static Class<?> LINE2D;
-
-  private static Class<?> PATH2D;
-
-  private static Class<?> POINT2D;
-
-  private static Class<?> CURVE2D;
-
-  private static Class<?> ELLIPSE;
-
-  private static Class<?> IMAGEIO;
-
-  private static Class<?> STROKE_C;
-
-  private static Class<?> RENDER_IMG;
-
-  private static Class<?> BUFFERED_IMG;
-
-  private static Class<?> BASIC_STROKE;
-
-  private static Class<?> AFFINE_TRANSFORM;
-
-  static {
-    try {
-      KEY = Class.forName("java.awt.RenderingHints$Key");
-      FONT = Class.forName("java.awt.Font");
-      COLOR = Class.forName("java.awt.Color");
-      SHAPE = Class.forName("java.awt.Shape");
-      LINE2D = Class.forName("java.awt.geom.Line2D$Double");
-      PATH2D = Class.forName("java.awt.geom.Path2D$Double");
-      POINT2D = Class.forName("java.awt.geom.Point2D$Double");
-      CURVE2D = Class.forName("java.awt.geom.CubicCurve2D$Double");
-      ELLIPSE = Class.forName("java.awt.geom.Ellipse2D$Double");
-      IMAGEIO = Class.forName("javax.imageio.ImageIO");
-      STROKE_C = Class.forName("java.awt.Stroke");
-      BASIC_STROKE = Class.forName("java.awt.BasicStroke");
-      RENDER_IMG = Class.forName("java.awt.image.RenderedImage");
-      BUFFERED_IMG = Class.forName("java.awt.image.BufferedImage");
-      AFFINE_TRANSFORM = Class.forName("java.awt.geom.AffineTransform");
-    } catch (Exception e) {
-      // ignore
-    }
-  }
 
   @Override
   public int order() {
@@ -98,7 +57,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
   @Override
   public boolean envSupport() {
-    return KEY != null && AFFINE_TRANSFORM != null;
+    try {
+      Class.forName("java.awt.Graphics2D");
+      return true;
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 
   @Override
@@ -107,102 +71,90 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
   }
 
   @Override
-  public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType fileType)
+  public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType imageType)
       throws FailInitResourceException {
-    if (document == null || drawGraph == null || fileType == null) {
+    if (document == null || drawGraph == null || imageType == null) {
       throw new FailInitResourceException("Lack parameters to convert image");
     }
 
     ImgContext imgContext = new ImgContext();
     document.accessEles(((ele, children) -> {
-      try {
-        if (Objects.equals(ele.tagName(), SVG_ELE)) {
-          initImage(drawGraph, fileType, imgContext, ele);
-          return;
-        }
-        Object g2d = imgContext.g2d;
-        if (g2d == null) {
-          return;
-        }
+      if (Objects.equals(ele.tagName(), SVG_ELE)) {
+        initImage(drawGraph, imageType, imgContext, ele);
+        return;
+      }
+      Graphics2D g2d = imgContext.g2d;
+      if (g2d == null) {
+        return;
+      }
 
-        if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
-          drawEllipse(ele, g2d);
-          return;
-        }
-        if (Objects.equals(ele.tagName(), TEXT_ELE)) {
-          drawString(ele, g2d);
-          return;
-        }
+      if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
+        drawEllipse(ele, g2d);
+        return;
+      }
+      if (Objects.equals(ele.tagName(), TEXT_ELE)) {
+        drawString(ele, g2d);
+        return;
+      }
 
-        if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
-          drawPolygon(ele, g2d);
-          return;
-        }
+      if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
+        drawPolygon(ele, g2d);
+        return;
+      }
 
-        if (Objects.equals(ele.tagName(), PATH_ELE)) {
-          drawPath(ele, g2d);
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+      if (Objects.equals(ele.tagName(), PATH_ELE)) {
+        drawPath(ele, g2d);
       }
     }));
 
     if (imgContext.img == null) {
       return null;
     }
+    imgContext.g2d.dispose();
 
     try {
-      ClassUtils.invoke(imgContext.g2d, "dispose");
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ClassUtils.invokeStatic(IMAGEIO, "write",
-                              new Class[]{RENDER_IMG, String.class, OutputStream.class},
-                              imgContext.img, fileType.getType(), baos);
+      ImageIO.write(imgContext.img, imageType.getType(), baos);
       String label = drawGraph.getGraphviz().graphAttrs().getLabel();
-      return new DefaultGraphResource(label, fileType.getType(), baos);
-    } catch (Exception e) {
+      return new DefaultGraphResource(label, imageType.getType(), baos);
+    } catch (IOException e) {
       throw new FailInitResourceException(e);
     }
   }
 
-  private void initImage(DrawGraph drawGraph, FileType fileType, ImgContext imgContext,
-                         Element ele) throws Exception {
+  private void initImage(DrawGraph drawGraph, FileType imageType,
+                         ImgContext imgContext, Element ele) {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
     FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
-    Object transform = ClassUtils.newObject(AFFINE_TRANSFORM);
+    AffineTransform transform = new AffineTransform();
     if (scale != null) {
-      ClassUtils.invoke(transform, "scale", scale.getX() * 1.3333, scale.getY() * 1.3333);
+      transform.scale(scale.getX() * 1.3333, scale.getY() * 1.3333);
     }
 
     w = (int) (w * 1.3333);
     h = (int) (h * 1.3333);
-    if (fileType == FileType.PNG) {
-      imgContext.setImg(ClassUtils.newObject(BUFFERED_IMG, w, h,
-                                             ClassUtils.getStaticField(BUFFERED_IMG,
-                                                                       "TYPE_INT_ARGB")));
+    if (imageType == FileType.PNG) {
+      imgContext.setImg(new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB));
     } else {
-      imgContext.setImg(ClassUtils.newObject(BUFFERED_IMG, w, h,
-                                             ClassUtils.getStaticField(BUFFERED_IMG,
-                                                                       "TYPE_INT_RGB")));
-
+      imgContext.setImg(new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB));
     }
-    Object g2d = imgContext.g2d;
-    ClassUtils.invoke(g2d, "setTransform", transform);
-    ClassUtils.invoke(g2d, "setBackground", ClassUtils.getStaticField(COLOR, "WHITE"));
-    ClassUtils.invoke(g2d, "clearRect", 0, 0, w, h);
+    imgContext.g2d.setTransform(transform);
+    imgContext.g2d.setBackground(Color.WHITE);
+    imgContext.g2d.clearRect(0, 0, w, h);
   }
 
-  private void drawEllipse(Element ele, Object g2d) throws Exception {
+  private void drawEllipse(Element ele, Graphics2D g2d) {
+    g2d.setColor(Color.BLACK);
     double x = toDouble(ele.getAttribute(CX));
     double y = toDouble(ele.getAttribute(CY));
     double w = toDouble(ele.getAttribute(RX));
     double h = toDouble(ele.getAttribute(RY));
-
-    Object ellipse = ClassUtils.newObject(ELLIPSE, x - w, y - h, 2 * w, 2 * h);
+    Ellipse2D ellipse = new Ellipse2D.Double(x - w, y - h, 2 * w, 2 * h);
     setShapeCommonAttr(ele, g2d, ellipse);
   }
 
-  private void drawString(Element ele, Object g2d) throws Exception {
+  private void drawString(Element ele, Graphics2D g2d) {
     String text = ele.textContext();
     if (StringUtils.isNotEmpty(text)) {
       text = StringEscapeUtils.unescapeXml(text);
@@ -212,74 +164,67 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     double y = toDouble(ele.getAttribute(Y));
     String fontName = ele.getAttribute(FONT_FAMILY);
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
-    Object color = toColor(ele.getAttribute(FILL));
-    if (color == null) {
-      color = ClassUtils.getStaticField(COLOR, "BLACK");
+    Color color = toColor(ele.getAttribute(FILL));
+    if (color != null) {
+      g2d.setColor(color);
     }
-    ClassUtils.invoke(g2d, "setColor", color);
 
-    fontName = fontName == null ? DEFAULT_FONT : fontName;
-    ClassUtils.invoke(g2d, "setFont",
-                      ClassUtils.newObject(FONT, fontName,
-                                           ClassUtils.getStaticField(FONT, "PLAIN"),
-                                           fontSize));
-    ClassUtils.invoke(g2d, "drawString", text, (float) (x - (size.getWidth() / 2)), (float) y);
+    g2d.setFont(new Font(fontName, Font.PLAIN, fontSize));
+    g2d.drawString(text, (float) (x - (size.getWidth() / 2)), (float) y);
   }
 
-  private void drawPolygon(Element ele, Object g2d) throws Exception {
-    Object polygon = ClassUtils.newObject(PATH2D);
-    Object[] path = toPoints(ele.getAttribute(POINTS));
+  private void drawPolygon(Element ele, Graphics2D g2d) {
+    Path2D.Double polygon = new Path2D.Double();
+    Point2D.Double[] path = toPoints(ele.getAttribute(POINTS));
     if (path == null) {
       return;
     }
     for (int i = 0; i < path.length; i++) {
       if (i == 0) {
-        ClassUtils.invoke(polygon, "moveTo", getPointX(path[i]), getPointY(path[i]));
+        polygon.moveTo(path[i].x, path[i].y);
       } else {
-        ClassUtils.invoke(polygon, "lineTo", getPointX(path[i]), getPointY(path[i]));
+        polygon.lineTo(path[i].x, path[i].y);
       }
     }
-    ClassUtils.invoke(polygon, "closePath");
+    polygon.closePath();
     setShapeCommonAttr(ele, g2d, polygon);
   }
 
-  private void drawPath(Element ele, Object g2d) throws Exception {
+  private void drawPath(Element ele, Graphics2D g2d) {
     String points = ele.getAttribute(D);
-    Object[] path = toPoints(points);
+    Point2D.Double[] path = toPoints(points);
     if (path == null) {
       return;
     }
-
-    Object path2D = ClassUtils.newObject(PATH2D);
+    g2d.setColor(Color.BLACK);
+    Path2D path2D = new Path2D.Double();
     if (points.contains(CURVE_PATH_MARK)) {
       for (int i = 3; i < path.length; i += 3) {
-        Object p1 = path[i - 3];
-        Object p2 = path[i - 2];
-        Object p3 = path[i - 1];
-        Object p4 = path[i];
-        Object curve = ClassUtils.newObject(CURVE2D, getPointX(p1), getPointY(p1),
-                                            getPointX(p2), getPointY(p2),
-                                            getPointX(p3), getPointY(p3),
-                                            getPointX(p4), getPointY(p4));
-        ClassUtils.invoke(path2D, "append", new Class[]{SHAPE, boolean.class}, curve, true);
+        Point2D.Double p1 = path[i - 3];
+        Point2D.Double p2 = path[i - 2];
+        Point2D.Double p3 = path[i - 1];
+        Point2D.Double p4 = path[i];
+        CubicCurve2D.Double curve = new CubicCurve2D.Double(p1.x, p1.y, p2.x, p2.y,
+                                                            p3.x, p3.y, p4.x, p4.y);
+        path2D.append(curve, true);
       }
 
     } else {
       for (int i = 1; i < path.length; i++) {
-        Object start = path[i - 1];
-        Object end = path[i];
-        Object line = ClassUtils.newObject(LINE2D, getPointX(start), getPointY(start),
-                                           getPointX(end), getPointY(end));
-        ClassUtils.invoke(path2D, "append", new Class[]{SHAPE, boolean.class}, line, true);
+        Point2D.Double start = path[i - 1];
+        Point2D.Double end = path[i];
+        Line2D.Double line = new Line2D.Double(start.getX(), start.getY(),
+                                               end.getX(), end.getY());
+        path2D.append(line, true);
       }
     }
 
     setShapeCommonAttr(ele, g2d, path2D);
   }
 
-  private void setShapeCommonAttr(Element ele, Object g2d, Object shape) throws Exception {
-    Object color = toColor(ele.getAttribute(FILL));
-    Object borderColor = toColor(ele.getAttribute(STROKE));
+  private void setShapeCommonAttr(Element ele, Graphics2D g2d, Shape shape) {
+    Color color = toColor(ele.getAttribute(FILL));
+    Color borderColor = toColor(ele.getAttribute(STROKE));
     if (color == null && borderColor == null) {
       return;
     }
@@ -291,35 +236,21 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
 
     if (color != null) {
-      ClassUtils.invoke(g2d, "setColor", color);
-      ClassUtils.invokeOne(g2d, "fill", SHAPE, shape);
+      g2d.setColor(color);
+      g2d.fill(shape);
     }
 
     float[] dashPattern = toFloatPair(ele.getAttribute(STROKE_DASHARRAY));
-    Object stroke;
+    BasicStroke stroke;
     if (dashPattern != null) {
-      stroke = ClassUtils.newObject(BASIC_STROKE,
-                                    new Class[]{float.class, int.class, int.class, float.class,
-                                        float[].class, float.class},
-                                    (float) strokeWidth,
-                                    ClassUtils.getStaticField(BASIC_STROKE, "CAP_BUTT"),
-                                    ClassUtils.getStaticField(BASIC_STROKE, "JOIN_ROUND"),
-                                    5.0f, dashPattern, 0);
+      stroke = new BasicStroke((float) strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+                               5.0f, dashPattern, 0);
     } else {
-      stroke = ClassUtils.newObject(BASIC_STROKE, (float) strokeWidth);
+      stroke = new BasicStroke((float) strokeWidth);
     }
-
-    ClassUtils.invokeOne(g2d, "setStroke", STROKE_C, stroke);
-    ClassUtils.invokeOne(g2d, "setColor", COLOR, borderColor);
-    ClassUtils.invokeOne(g2d, "draw", SHAPE, shape);
-  }
-
-  private Object getPointX(Object point) throws Exception {
-    return ClassUtils.invoke(point, "getX");
-  }
-
-  private Object getPointY(Object point) throws Exception {
-    return ClassUtils.invoke(point, "getY");
+    g2d.setStroke(stroke);
+    g2d.setColor(borderColor);
+    g2d.draw(shape);
   }
 
   private int toInt(String doubleStr) {
@@ -354,44 +285,39 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     return fp;
   }
 
-  private Object[] toPoints(String points) throws Exception {
+  private Point2D.Double[] toPoints(String points) {
     if (StringUtils.isEmpty(points)) {
       return null;
     }
     points = points.replace(PATH_START_M, StringUtils.EMPTY);
     points = points.replace(CURVE_PATH_MARK, SPACE);
     String[] pointPairs = points.split(SPACE);
-    Object[] point2d = new Object[pointPairs.length];
+    Point2D.Double[] point2d = new Point2D.Double[pointPairs.length];
     for (int i = 0; i < pointPairs.length; i++) {
       String[] point = pointPairs[i].split(COMMA);
-      point2d[i] = ClassUtils.newObject(POINT2D, toDouble(point[0]), toDouble(point[1]));
+      point2d[i] = new Point2D.Double(toDouble(point[0]), toDouble(point[1]));
     }
     return point2d;
   }
 
-  public Object toColor(String hexColorCode) throws Exception {
+  public Color toColor(String hexColorCode) {
     if (hexColorCode == null || NONE.equals(hexColorCode)) {
       return null;
     }
     int rgb = Integer.parseInt(hexColorCode.substring(1), 16);
-    return ClassUtils.newObject(COLOR, rgb);
+    return new Color(rgb);
   }
 
   private static class ImgContext {
 
-    private Object img;
-    private Object g2d;
+    private BufferedImage img;
+    private Graphics2D g2d;
 
-    public void setImg(Object img) throws Exception {
+    public void setImg(BufferedImage img) {
       this.img = img;
       if (this.img != null) {
-        g2d = ClassUtils.invoke(img, "createGraphics");
-        ClassUtils.invoke(g2d, "setRenderingHint",
-                          new Class[]{KEY, Object.class},
-                          ClassUtils.getStaticField(Class.forName("java.awt.RenderingHints"),
-                                                    "KEY_ANTIALIASING"),
-                          ClassUtils.getStaticField(Class.forName("java.awt.RenderingHints"),
-                                                    "VALUE_ANTIALIAS_ON"));
+        g2d = this.img.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       }
     }
   }
