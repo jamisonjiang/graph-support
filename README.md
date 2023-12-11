@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
@@ -132,7 +132,7 @@ graphviz.toFile(FileType.PNG).save("./", "example");
 **graph-support** support multi output formats if version >= 1.2.0 (only support svg before 1.2.0):
 
 |                                               | svg  | png  | jpg  | jpeg | gif  | tiff | pdf  |
-|-----------------------------------------------| ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| --------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
 | JDK (>=1.8)                                   | Y    | Y    | Y    | Y    | Y    | N    | N    |
 | Android 13 (API level 33)<br/>Only test >= 13 | Y    | Y    | N    | Y    | N    | N    | N    |
 | JDK (>=1.8) + batik(>=1.9)                    | Y    | Y    | Y    | Y    | Y    | Y    | N    |
