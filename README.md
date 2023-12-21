@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
 </dependency>
 ```
 
@@ -223,28 +223,30 @@ graphviz.toFile(FileType.PDF);
 ### Record node example
 
 ```java
-Graphviz graphviz = Graphviz.digraph()
-    .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())
-    // Using startClus and endClus has the same effect as "cluster(Cluster.builder().build())"
-    .startClus()
-    .margin(1.5, 0.2)
-    .label("Without align cell in horizontal and vertical")
-    .addNode(
-        Node.builder().label(
-                "{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
-            .build()
-    )
-    .endClus()
+Node a = Node.builder().label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
+    .margin(0.5)
+    .build();
+Node b = Node.builder().label(
+    "{{1|2|3}|{4|5|6}|{7|8|{{22|22|33}|{44|55|66}|{77|88|{{1010|2020}|{3030|40404040}}}}}}")
+    .build();
+Node c = Node.builder().label(
+    "{First Cell Row1\nFirst Cell Row2\nFirst Cell Row3|Third Cell}|{Second Cell|Fourth Cell}")
+    .build();
+Node d = Node.builder().label(
+    "{{First|Second|Third}|{|||}|{3Line: First|3Line: Second|3Line:Third}|{|||{{o|x|o}|{x|o|x}|{o|x|o}}}}")
+    .build();
 
-    .startClus()
-    .margin(1.5, 0.2)
-    .label("Use '#' to align cell in horizontal and vertical")
-    .addNode(
-        Node.builder().label(
-                "# {{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
-            .build()
-    )
-    .endClus()
+Graphviz graphviz = Graphviz.digraph()
+    .label("Node Record Cases")
+    .tempNode(
+        Node.builder()
+        .shape(NodeShapeEnum.RECORD)
+        .color(Color.PURPLE)
+        .fontColor(Color.BLUE)
+        .style(NodeStyle.BOLD)
+        .build()
+	)
+    .addNode(a, b, c, d)
     .build();
 ```
 
