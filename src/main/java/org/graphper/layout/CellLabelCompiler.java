@@ -18,17 +18,15 @@ package org.graphper.layout;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.CharUtils;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.CollectionUtils;
-import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.util.FontUtils;
 
 /**
@@ -53,11 +51,6 @@ import org.graphper.util.FontUtils;
  * have them from top to bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the
  * left and "D" to the right of "B" and "C".
  *
- * <p>If you want to use a cell expression to create a table-like effect, aligning cells in the
- * same column or row, please add the "#" symbol at the head of the expression. For example, the
- * expression "# {{ 123 | 4 }| { 5 | 6 }}", the first column "123" in the first row will be aligned
- * with the first column "5" in the second row.
- *
  * @author Jamison Jiang
  */
 public class CellLabelCompiler {
@@ -81,8 +74,6 @@ public class CellLabelCompiler {
   private final FlatPoint margin;
 
   private final FlatPoint minCellSize;
-
-  private boolean tableAlign;
 
   private final boolean defaultHor;
 
@@ -215,11 +206,6 @@ public class CellLabelCompiler {
       if (preIsEscapeChar) {
         preIsEscapeChar = false;
         append(labelAppend, c);
-        continue;
-      }
-
-      if (c == CharUtils.HASHTAG && tableAlignIsFirst(tokens, labelAppend)) {
-        tableAlign = true;
         continue;
       }
 
@@ -459,31 +445,26 @@ public class CellLabelCompiler {
     double maxWidth = 0;
     double maxHeight = 0;
     this.cell = new RootCell(defaultHor);
-    TableAlign tableSizeAlign = null;
-    if (tableAlign) {
-      tableSizeAlign = new TableAlign();
-    }
 
     for (Object node : ast.params) {
       if (!(node instanceof LabelAstNode)) {
         throw newFormatError();
       }
 
-      Cell c = accessNode(cell, pre, (LabelAstNode) node, tableSizeAlign);
+      Cell c = accessNode(cell, pre, (LabelAstNode) node);
       pre = (LabelAstNode) node;
 
       if (c != null) {
-        maxWidth = Math.max(getCellWidth(tableSizeAlign, c), maxWidth);
-        maxHeight = Math.max(getCellHeight(tableSizeAlign, c), maxHeight);
+        maxWidth = Math.max(c.getWidth(), maxWidth);
+        maxHeight = Math.max(c.getHeight(), maxHeight);
       }
     }
 
-    postSizeHandle(tableSizeAlign, cell, maxWidth, maxHeight);
-
-    alignMinSize(tableSizeAlign);
+    postSizeHandle(cell, maxWidth, maxHeight);
+    alignMinSize();
   }
 
-  private void alignMinSize(TableAlign tableSizeAlign) {
+  private void alignMinSize() {
     double widthIncr = 0;
     double heightIncr = 0;
     if (minCellSize != null) {
@@ -491,19 +472,10 @@ public class CellLabelCompiler {
       heightIncr = minCellSize.getHeight() - cell.getHeight();
     }
 
-    alignMinSize(tableSizeAlign, cell, widthIncr, heightIncr, cell.offset);
+    alignMinSize(cell, widthIncr, heightIncr, cell.offset);
   }
 
-  private void alignMinSize(TableAlign tableSizeAlign, Cell cell,
-                            double widthIncr, double heightIncr, FlatPoint offset) {
-    if (tableSizeAlign != null) {
-      FlatPoint sizeAdded = tableSizeAlign.getSizeAdded(cell);
-      if (sizeAdded != null) {
-        cell.width += sizeAdded.getWidth();
-        cell.height += sizeAdded.getHeight();
-      }
-    }
-
+  private void alignMinSize(Cell cell, double widthIncr, double heightIncr, FlatPoint offset) {
     if (widthIncr > 0) {
       cell.width += widthIncr;
     }
@@ -518,9 +490,9 @@ public class CellLabelCompiler {
     double childAlignSize = 0;
     for (Cell child : cell.getChildren()) {
       if (cell.isHor()) {
-        childAlignSize += getCellHeight(tableSizeAlign, child);
+        childAlignSize += child.getHeight();
       } else {
-        childAlignSize += getCellWidth(tableSizeAlign, child);
+        childAlignSize += child.getWidth();
       }
     }
 
@@ -542,7 +514,7 @@ public class CellLabelCompiler {
       }
 
       child.offset = childOffset;
-      alignMinSize(tableSizeAlign, child, widthIncr, heightIncr, childOffset);
+      alignMinSize(child, widthIncr, heightIncr, childOffset);
 
       if (child.isHor) {
         axisOffset += child.getWidth();
@@ -552,8 +524,7 @@ public class CellLabelCompiler {
     }
   }
 
-  private Cell accessNode(Cell current, LabelAstNode pre,
-                               LabelAstNode node, TableAlign tableSizeAlign) {
+  private Cell accessNode(Cell current, LabelAstNode pre, LabelAstNode node) {
     if (CollectionUtils.isEmpty(node.params)) {
       throw newFormatError();
     }
@@ -575,83 +546,30 @@ public class CellLabelCompiler {
     double maxHeight = 0;
     for (Object param : node.params) {
       if (param instanceof LabelAstNode) {
-        accessNode(c, pre, (LabelAstNode) param, tableSizeAlign);
+        accessNode(c, pre, (LabelAstNode) param);
         pre = (LabelAstNode) param;
       } else {
         c.label = param != null ? Objects.toString(param) : null;
         setCellSize(c);
       }
 
-      maxWidth = Math.max(getCellWidth(tableSizeAlign, c), maxWidth);
-      maxHeight = Math.max(getCellHeight(tableSizeAlign, c), maxHeight);
+      maxWidth = Math.max(c.getWidth(), maxWidth);
+      maxHeight = Math.max(c.getHeight(), maxHeight);
     }
 
-    postSizeHandle(tableSizeAlign, c, maxWidth, maxHeight);
-    addChild(current, c, tableSizeAlign);
+    postSizeHandle(c, maxWidth, maxHeight);
+    addChild(current, c);
     return c;
   }
 
-  private void postSizeHandle(TableAlign tableSizeAlign, Cell cell,
-                              double maxWidth, double maxHeight) {
-    // Align the size in same level
-    if (tableSizeAlign != null) {
-      tableSizeAlign.clearChildCellRecord();
-    }
-
+  private void postSizeHandle(Cell cell, double maxWidth, double maxHeight) {
     for (Cell child : cell.getChildren()) {
-      if (tableSizeAlign != null) {
-        for (int i = 0; i < child.childrenSize(); i++) {
-          Cell cc = child.getChild(i);
-          double sideLen = cc.isHor
-              ? getCellWidth(tableSizeAlign, cc)
-              : getCellHeight(tableSizeAlign, cc);
-
-          tableSizeAlign.refreshChildCellMax(child.childrenSize(), i, sideLen);
-        }
-      }
-
       if (cell.isHor) {
         child.width = maxWidth;
       } else {
         child.height = maxHeight;
       }
     }
-
-    if (tableSizeAlign == null) {
-      return;
-    }
-
-    double width = 0;
-    double height = 0;
-    for (Cell child : cell.getChildren()) {
-      double childWidth = 0;
-      double childHeight = 0;
-      for (int i = 0; i < child.childrenSize(); i++) {
-        Cell cc = child.getChild(i);
-        double max = tableSizeAlign.getChildCellMax(child.childrenSize(), i);
-        if (cc.isHor()) {
-          tableSizeAlign.addWidth(cc, max - cc.width);
-          childWidth += getCellWidth(tableSizeAlign, cc);
-        } else {
-          tableSizeAlign.addHeight(cc, max - cc.height);
-          childHeight += getCellHeight(tableSizeAlign, cc);
-        }
-      }
-
-      child.height = Math.max(child.height, childHeight);
-      child.width = Math.max(child.width, childWidth);
-
-      if (child.isHor()) {
-        width += getCellWidth(tableSizeAlign, child);
-        height = Math.max(height, child.height);
-      } else {
-        height += getCellHeight(tableSizeAlign, child);
-        width = Math.max(width, child.width);
-      }
-    }
-
-    cell.height = Math.max(cell.height, height);
-    cell.width = Math.max(cell.width, width);
   }
 
   private void setCellSize(Cell c) {
@@ -744,15 +662,7 @@ public class CellLabelCompiler {
     return node;
   }
 
-  private boolean tableAlignIsFirst(List<LabelToken> tokens, StringBuilder sb) {
-    if (CollectionUtils.isNotEmpty(tokens)) {
-      return false;
-    }
-
-    return sb.length() == 0;
-  }
-
-  private void addChild(Cell parent, Cell child, TableAlign tableAlign) {
+  private void addChild(Cell parent, Cell child) {
     if (child == null) {
       return;
     }
@@ -762,8 +672,8 @@ public class CellLabelCompiler {
     child.parent = parent;
     parent.children.add(child);
 
-    double w = getCellWidth(tableAlign, child);
-    double h = getCellHeight(tableAlign, child);
+    double w = child.getWidth();
+    double h = child.getHeight();
     if (child.isHor) {
       parent.width += w;
       parent.height = Math.max(h, parent.height);
@@ -899,22 +809,6 @@ public class CellLabelCompiler {
     return sb.charAt(lastIdx(sb)) == CharUtils.SPACE;
   }
 
-  private static double getCellWidth(TableAlign tableSizeAlign, Cell cell) {
-    if (tableSizeAlign == null) {
-      return cell.getWidth();
-    }
-
-    return cell.getWidth() + tableSizeAlign.widthAdded(cell);
-  }
-
-  private static double getCellHeight(TableAlign tableSizeAlign, Cell cell) {
-    if (tableSizeAlign == null) {
-      return cell.getHeight();
-    }
-
-    return cell.getHeight() + tableSizeAlign.heightAdded(cell);
-  }
-
   // ------------------------------------------------- private static class -------------------------------------------------
   private static class LabelToken {
 
@@ -970,7 +864,7 @@ public class CellLabelCompiler {
       return type == SPLIT;
     }
 
-    boolean  isExpress() {
+    boolean isExpress() {
       return type == PARENT;
     }
 
@@ -1009,94 +903,4 @@ public class CellLabelCompiler {
     }
   }
 
-  private static class TableAlign {
-
-    private Map<Cell, FlatPoint> sizeAddedRecord;
-
-    private Map<Integer, List<Double>> childCellMaxRecord;
-
-    private double widthAdded(Cell cell) {
-      FlatPoint sizeAdded = getSizeAdded(cell);
-      return sizeAdded != null ? sizeAdded.getWidth() : 0;
-    }
-
-    private double heightAdded(Cell cell) {
-      FlatPoint sizeAdded = getSizeAdded(cell);
-      return sizeAdded != null ? sizeAdded.getHeight() : 0;
-    }
-
-    private FlatPoint getSizeAdded(Cell cell) {
-      if (sizeAddedRecord == null) {
-        return null;
-      }
-      return sizeAddedRecord.get(cell);
-    }
-
-    private void addHeight(Cell cell, double heightAdded) {
-      if (sizeAddedRecord == null) {
-        sizeAddedRecord = new HashMap<>(2);
-      }
-      FlatPoint added = sizeAddedRecord.get(cell);
-      if (added == null) {
-        sizeAddedRecord.put(cell, new FlatPoint(heightAdded, 0));
-        return;
-      }
-      added.setHeight(added.getHeight() + heightAdded);
-    }
-
-    private void addWidth(Cell cell, double widthAdded) {
-      if (sizeAddedRecord == null) {
-        sizeAddedRecord = new HashMap<>(2);
-      }
-      FlatPoint added = sizeAddedRecord.get(cell);
-      if (added == null) {
-        sizeAddedRecord.put(cell, new FlatPoint(0, widthAdded));
-        return;
-      }
-      added.setWidth(added.getWidth() + widthAdded);
-    }
-
-    private void refreshChildCellMax(int childLenKey, int idx, double val) {
-      if (childLenKey <= 0 || idx >= childLenKey) {
-        return;
-      }
-
-      if (childCellMaxRecord == null) {
-        childCellMaxRecord = new HashMap<>(2);
-      }
-
-      childCellMaxRecord.compute(childLenKey, (k, v) -> {
-        if (v == null) {
-          v = new ArrayList<>(childLenKey);
-          for (int i = 0; i < childLenKey; i++) {
-            v.add(0.0);
-          }
-        }
-        v.set(idx, Math.max(v.get(idx), val));
-        return v;
-      });
-    }
-
-    private double getChildCellMax(int childLenKey, int idx) {
-      if (childCellMaxRecord == null || childLenKey <= 0 || idx >= childLenKey) {
-        return 0;
-      }
-
-      List<Double> childCell = childCellMaxRecord.get(childLenKey);
-      if (childCell == null || childCell.size() <= idx) {
-        return 0;
-      }
-
-      Double maxVal = childCell.get(idx);
-      return maxVal != null ? maxVal : 0;
-    }
-
-    private void clearChildCellRecord() {
-      if (childCellMaxRecord == null) {
-        return;
-      }
-
-      childCellMaxRecord.clear();
-    }
-  }
 }

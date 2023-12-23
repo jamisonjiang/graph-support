@@ -284,8 +284,8 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private void record(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean radianCorner) {
-    RootCell Cell = nodeDrawProp.getCell();
-    if (Cell == null) {
+    RootCell cell = nodeDrawProp.getCell();
+    if (cell == null) {
       return;
     }
 
@@ -301,12 +301,12 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       border.setAttribute(SvgConstants.POINTS, SvgEditor.generateBox(nodeDrawProp));
     }
 
-    List<Element> cellElements = new ArrayList<>(Cell.childrenSize());
+    List<Element> cellElements = new ArrayList<>(cell.childrenSize());
     cellElements.add(border);
 
     if (!nodeDrawProp.haveChildrenCell()) {
       // Draw cell
-      record(nodeDrawProp, Cell, brush, nodeId, new int[]{1}, cellElements);
+      record(nodeDrawProp, cell, brush, nodeId, new int[]{1}, cellElements);
     }
     brush.addGroup(SvgConstants.SHAPE_GROUP_KEY, cellElements);
   }

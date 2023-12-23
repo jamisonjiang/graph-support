@@ -50,7 +50,7 @@ public class CellLabelTest extends GraphvizVisual {
         .build();
     Node b = Node.builder().label("111|222|{333\n333\n333|444|555|666}").height(3).build();
     Node c = Node.builder().label("111|222|{333|{444|555}|666}").width(2).build();
-    Node d = Node.builder().label("# {{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
+    Node d = Node.builder().label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
         .build();
     GraphvizBuilder graphvizBuilder = Graphviz.digraph()
         .label("Cell_Label_Test")
@@ -293,21 +293,21 @@ public class CellLabelTest extends GraphvizVisual {
 
   @Test
   public void testTableAlign() {
-    Node a = Node.builder().label("# {{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
+    Node a = Node.builder().label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}")
         .margin(0.5)
         .build();
     Node b = Node.builder().label(
-            "# {{1|2|3}|{4|5|6}|{7|8|{{22|22|33}|{44|55|66}|{77|88|{{1010|2020}|{3030|40404040}}}}}}")
+            "{{1|2|3}|{4|5|6}|{7|8|{{22|22|33}|{44|55|66}|{77|88|{{1010|2020}|{3030|40404040}}}}}}")
         .build();
     Node c = Node.builder().label(
-            "# {First Cell Row1\nFirst Cell Row2\nFirst Cell Row3|Third Cell}|{Second Cell|Fourth Cell}")
+            "{First Cell Row1\nFirst Cell Row2\nFirst Cell Row3|Third Cell}|{Second Cell|Fourth Cell}")
         .build();
     Node d = Node.builder().label(
-            "# {{First|Second|Third}|{|||}|{3Line: First|3Line: Second|3Line:Third}|{|||{{o|x|o}|{x|o|x}|{o|x|o}}}}")
+            "{{First|Second|Third}|{|||}|{3Line: First|3Line: Second|3Line:Third}|{|||{{o|x|o}|{x|o|x}|{o|x|o}}}}")
         .build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .label("Table_Align_CellTest")
+        .label("Node Record Cases")
         .tempNode(
             Node.builder()
                 .shape(NodeShapeEnum.RECORD)
@@ -316,10 +316,7 @@ public class CellLabelTest extends GraphvizVisual {
                 .style(NodeStyle.BOLD)
                 .build()
         )
-        .addNode(a)
-        .addNode(b)
-        .addNode(c)
-        .addNode(d)
+        .addNode(a, b, c, d)
         .build();
 
     visual(graphviz);

@@ -138,11 +138,6 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      * have them from top to bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the
      * left and "D" to the right of "B" and "C".
      *
-     * <p>If you want to use a cell expression to create a table-like effect, aligning cells in the
-     * same column or row, please add the "#" symbol at the head of the expression. For example, the
-     * expression "# {{ 123 | 4 }| { 5 | 6 }}", the first column "123" in the first row will be aligned
-     * with the first column "5" in the second row.
-     *
      * <p>As an example of Cell Expression:
      * <pre>{@code
      * digraph structs {
@@ -150,7 +145,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      *     struct1 [label="<f0> left|<f1> mid&#92; dle|<f2> right"];
      *     struct2 [label="<f0> one|<f1> two"];
      *     struct3 [label="hello&#92;nworld |{ b |{c|<here> d|e}| f}| g | h"];
-     *     struct4 [label="# {{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}"];
+     *     struct4 [label="{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}"];
      *     struct1:f1 -> struct2:f0;
      *     struct1:f2 -> struct3:here;
      *     struct4
@@ -161,7 +156,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      *     Node struct1 = Node.builder().label("<f0> left|<f1> mid dle|<f2> right").build();
      *     Node struct2 = Node.builder().label("<f0> one|<f1> two").label("b").build();
      *     Node struct3 = Node.builder().label("hello\nworld |{ b |{c|<here> d|e}| f}| g | h").build();
-     *     Node struct4 = Node.builder().label("# {{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}").build();
+     *     Node struct4 = Node.builder().label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}").build();
      *
      *     Graphviz.digraph()
      *         .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())

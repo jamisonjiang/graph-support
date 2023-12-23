@@ -540,4 +540,15 @@ public class BugCaseTest extends GraphvizVisual {
         .build();
     visual(graphviz);
   }
+
+  @Test
+  public void wrongCellAlign() {
+    Graphviz graphviz = Graphviz.digraph()
+        .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())
+        .addNode(Node.builder().label("{hello|{|sssskkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk}|{fffffffffffffffff|}|{||||}|{|{|||}||}|{|}}").build())
+        .addNode(Node.builder().label("{hello|{|{||{||{|}}}}|{|sssskkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk}|{fffffffffffffffff|}|{||||}||}").build())
+        .build();
+
+    visual(graphviz);
+  }
 }
