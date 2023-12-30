@@ -17,15 +17,18 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.def.FlatPoint;
-import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Node attribute object.
@@ -64,7 +67,7 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   Double fontSize;
 
-  NodeStyle style;
+  Collection<NodeStyle> styles;
 
   Integer sides;
 
@@ -121,8 +124,11 @@ public class NodeAttrs implements Serializable, Cloneable {
     return fontSize;
   }
 
-  public NodeStyle getStyle() {
-    return style;
+  public Collection<NodeStyle> getStyles() {
+    if (CollectionUtils.isEmpty(styles)) {
+      return Collections.emptyList();
+    }
+    return styles;
   }
 
   public Double getHeight() {
@@ -205,7 +211,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         && Objects.equals(shape, nodeAttrs.shape)
         && Objects.equals(fixedSize, nodeAttrs.fixedSize)
         && Objects.equals(fontSize, nodeAttrs.fontSize)
-        && Objects.equals(style, nodeAttrs.style)
+        && Objects.equals(styles, nodeAttrs.styles)
         && Objects.equals(sides, nodeAttrs.sides)
         && Objects.equals(href, nodeAttrs.href)
         && Objects.equals(image, nodeAttrs.image)
@@ -218,7 +224,7 @@ public class NodeAttrs implements Serializable, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labeljust,
-                        labelloc, margin, shape, fixedSize, fontSize, style, sides, href, image,
+                        labelloc, margin, shape, fixedSize, fontSize, styles, sides, href, image,
                         imageSize, penWidth, table, assemble);
   }
 
@@ -239,7 +245,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", shape=" + shape +
         ", fixedSize=" + fixedSize +
         ", fontSize=" + fontSize +
-        ", style=" + style +
+        ", styles=" + styles +
         ", sides=" + sides +
         ", href='" + href + '\'' +
         ", image='" + image + '\'' +

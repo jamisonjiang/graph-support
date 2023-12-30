@@ -57,10 +57,16 @@ public class AWTMeasureText implements MeasureText, FontSelector {
     Font font = new Font(fontName, Font.PLAIN, (int) fontSize);
     AffineTransform transform = font.getTransform();
     FontRenderContext render = new FontRenderContext(transform, true, true);
-    Rectangle2D rectangle = font.getStringBounds(text, render);
 
-    double w = rectangle.getWidth();
-    double h = rectangle.getHeight() * text.split("\n").length;
+    String[] lines = text.split("\n");
+    double w = 0;
+    double h = 0;
+
+    for (String line : lines) {
+      Rectangle2D rectangle = font.getStringBounds(line, render);
+      w = Math.max(rectangle.getWidth(), w);
+      h += rectangle.getHeight();
+    }
 
     return new FlatPoint(h, w);
   }

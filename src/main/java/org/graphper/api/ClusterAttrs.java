@@ -19,13 +19,18 @@ package org.graphper.api;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
+import org.graphper.api.attributes.ClusterShape;
+import org.graphper.api.attributes.ClusterShapeEnum;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.def.FlatPoint;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Cluster attribute object.
@@ -44,7 +49,9 @@ public class ClusterAttrs implements Serializable, Cloneable {
 
   Labeljust labeljust = Labeljust.CENTER;
 
-  ClusterStyle style;
+  ClusterShape shape = ClusterShapeEnum.RECT;
+
+  Collection<ClusterStyle> styles;
 
   Color bgColor;
 
@@ -82,8 +89,15 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return labeljust;
   }
 
-  public ClusterStyle getStyle() {
-    return style;
+  public ClusterShape getShape() {
+    return shape;
+  }
+
+  public Collection<ClusterStyle> getStyles() {
+    if (CollectionUtils.isEmpty(styles)) {
+      return Collections.emptyList();
+    }
+    return styles;
   }
 
   public Color getBgColor() {
@@ -145,26 +159,24 @@ public class ClusterAttrs implements Serializable, Cloneable {
     }
     ClusterAttrs that = (ClusterAttrs) o;
     return Double.compare(that.fontSize, fontSize) == 0
-        && Double.compare(that.penWidth, penWidth) == 0
-        && Objects.equals(id, that.id)
-        && Objects.equals(label, that.label)
-        && labelloc == that.labelloc
-        && labeljust == that.labeljust
-        && Objects.equals(style, that.style)
-        && Objects.equals(bgColor, that.bgColor)
-        && Objects.equals(color, that.color)
-        && Objects.equals(fontColor, that.fontColor)
-        && Objects.equals(fontName, that.fontName)
-        && Objects.equals(margin, that.margin)
-        && Objects.equals(href, that.href)
-        && Objects.equals(table, that.table)
+        && Double.compare(that.penWidth, penWidth) == 0 && Objects.equals(id,
+                                                                          that.id)
+        && Objects.equals(label, that.label) && labelloc == that.labelloc
+        && labeljust == that.labeljust && Objects.equals(shape, that.shape)
+        && Objects.equals(styles, that.styles) && Objects.equals(bgColor,
+                                                               that.bgColor)
+        && Objects.equals(color, that.color) && Objects.equals(fontColor,
+                                                               that.fontColor)
+        && Objects.equals(fontName, that.fontName) && Objects.equals(margin,
+                                                                     that.margin)
+        && Objects.equals(href, that.href) && Objects.equals(table, that.table)
         && Objects.equals(assemble, that.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, label, labelloc, labeljust, style, bgColor, color, fontColor, fontName,
-                        margin, fontSize, href, penWidth, table, assemble);
+    return Objects.hash(id, label, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
+                        fontName, margin, fontSize, href, penWidth, table, assemble);
   }
 
   @Override
@@ -174,7 +186,8 @@ public class ClusterAttrs implements Serializable, Cloneable {
         ", label='" + label + '\'' +
         ", labelloc=" + labelloc +
         ", labeljust=" + labeljust +
-        ", style=" + style +
+        ", shape=" + shape +
+        ", styles=" + styles +
         ", bgColor=" + bgColor +
         ", color=" + color +
         ", fontColor=" + fontColor +

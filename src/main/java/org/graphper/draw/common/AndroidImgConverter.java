@@ -98,7 +98,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     document.accessEles(((ele, children) -> {
       try {
         if (Objects.equals(ele.tagName(), SVG_ELE)) {
-          initImage(drawGraph, fileType, imgContext, ele);
+          initImage(drawGraph, imgContext, ele);
           return;
         }
         Object canvas = imgContext.canvas;
@@ -146,8 +146,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
-  private void initImage(DrawGraph drawGraph, FileType fileType,
-                         ImgContext imgContext, Element ele) throws Exception {
+  private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
 

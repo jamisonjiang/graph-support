@@ -16,39 +16,36 @@
 
 package org.graphper.draw.svg.cluster;
 
+import org.graphper.api.ClusterAttrs;
+import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ClusterEditor;
+import org.graphper.draw.CustomizeShapeRender;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
-public class ClusterBorderEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
-
-  private static final int MAX_CLUSTER_ROUNDED = 60;
+public class ClusterShapeEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
     cluster.check();
 
-    Element clusterEle;
-    ClusterStyle style = cluster.getCluster().clusterAttrs().getStyle();
-    String points;
-    if (style == ClusterStyle.ROUNDED) {
-      clusterEle = brush.getOrCreateChildElementById(SvgBrush.getId(cluster.id(), PATH_ELE),
-                                                     PATH_ELE);
-      points = roundedBox(MAX_CLUSTER_ROUNDED, cluster);
-      clusterEle.setAttribute(D, points);
-    } else {
-      clusterEle = brush.getOrCreateChildElementById(SvgBrush.getId(cluster.id(), POLYGON_ELE),
-                                                     POLYGON_ELE);
-      points = generateBox(cluster);
-      clusterEle.setAttribute(POINTS, points);
+    ClusterShape shape = cluster.getCluster().clusterAttrs().getShape();
+    CustomizeShapeRender customizeShapeRender = CustomizeShapeRender
+        .getCustomizeShapeRender(shape.getName());
+    if (customizeShapeRender != null) {
+      customizeShapeRender.drawClusterSvg(brush, cluster);
+    }
+    ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
+    double penWidth = clusterAttrs.getPenWidth();
+    penWidth = SvgEditor.strokeWidth(penWidth,
+                                     clusterAttrs.getStyles().contains(ClusterStyle.BOLD));
+    for (Element clusterEle : brush.getEleGroup(SHAPE_GROUP_KEY)) {
+      clusterEle.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
     }
 
-    brush.addGroup(SHAPE_GROUP_KEY, clusterEle);
-    double penWidth = cluster.getCluster().clusterAttrs().getPenWidth();
-    clusterEle.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
     return true;
   }
 }

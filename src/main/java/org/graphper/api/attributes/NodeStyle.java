@@ -21,30 +21,35 @@ package org.graphper.api.attributes;
  *
  * @author Jamison Jiang
  */
-public interface NodeStyle extends StyleItem {
+public enum NodeStyle implements Style {
 
   /**
    * Dashed node border consisting of a series of line segment.
    */
-  NodeStyle DASHED = NameStyle.DASHED;
+  DASHED,
 
   /**
    * Dotted node border consisting of a series of points.
    */
-  NodeStyle DOTTED = NameStyle.DOTTED;
+  DOTTED,
 
   /**
    * Node border are drawn as solid lines.
    */
-  NodeStyle SOLID = NameStyle.SOLID;
+  SOLID,
 
   /**
    * Hide node when rendering (but the attributes are valid during layout).
    */
-  NodeStyle INVIS = NameStyle.INVIS;
+  INVIS,
 
   /**
    * Draws the node border boldly.
    */
-  NodeStyle BOLD = NameStyle.BOLD;
+  BOLD,
+
+  /**
+   * Use rounded angles for nodes.
+   */
+  ROUNDED
 }

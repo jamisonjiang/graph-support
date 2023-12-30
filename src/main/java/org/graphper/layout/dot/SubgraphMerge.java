@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.Rank;
@@ -219,14 +220,20 @@ class SubgraphMerge {
   }
 
   private SubKey newSubNodeKey(SubNode s1, DotAttachment dotAttachment) {
-    Node node = findFirst(s1.subgraph.nodes());
+    Graphviz graphviz = dotAttachment.getGraphviz();
+    GraphContainer parent = graphviz.effectiveFather(s1.subgraph);
+    Node node = findFirst(s1.subgraph.nodes(), parent, dotAttachment);
     MergeNode mergeNode = new MergeNode(dotAttachment.get(node), s1.subgraph.getRank());
 
     return new SubKey(mergeNode);
   }
 
-  private Node findFirst(Iterable<Node> nodes) {
+  private Node findFirst(Iterable<Node> nodes, GraphContainer parent, DotAttachment dotAttachment) {
     for (Node node : nodes) {
+      DNode dNode = dotAttachment.get(node);
+      if (dNode.getContainer() != parent) {
+        continue;
+      }
       return node;
     }
 

@@ -18,10 +18,12 @@ package org.graphper.draw;
 
 import java.io.Serializable;
 import org.graphper.api.Assemble;
+import org.graphper.api.Cluster;
+import org.graphper.api.attributes.ClusterShape;
+import org.graphper.api.attributes.ClusterStyle;
+import org.graphper.api.attributes.Labelloc;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
-import org.graphper.api.Cluster;
-import org.graphper.api.attributes.Labelloc;
 
 /**
  * Cluster's rendering description object.
@@ -34,11 +36,17 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
 
   private int clusterNo;
 
+  private FlatPoint margin;
+
   private final Cluster cluster;
+
+  private ClusterShape clusterShape;
 
   public ClusterDrawProp(Cluster cluster) {
     Asserts.nullArgument(cluster, "cluster");
     this.cluster = cluster;
+    this.clusterShape = cluster.clusterAttrs().getShape();
+    this.clusterShape = this.clusterShape.post(cluster.clusterAttrs());
     convertTable(cluster.clusterAttrs().getTable());
   }
 
@@ -70,6 +78,15 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
     this.clusterNo = clusterNo;
   }
 
+  public void setMargin(FlatPoint margin) {
+    this.margin = margin;
+  }
+
+  @Override
+  public boolean containsRounded() {
+    return cluster.clusterAttrs().getStyles().contains(ClusterStyle.ROUNDED);
+  }
+
   @Override
   protected Labelloc labelloc() {
     return cluster.clusterAttrs().getLabelloc();
@@ -77,6 +94,9 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
 
   @Override
   protected FlatPoint margin() {
+    if (margin != null) {
+      return margin;
+    }
     return cluster.clusterAttrs().getMargin();
   }
 
@@ -88,5 +108,10 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   protected Assemble assemble() {
     return cluster.clusterAttrs().getAssemble();
+  }
+
+  @Override
+  public ClusterShape shapeProp() {
+    return clusterShape != null ? clusterShape : cluster.clusterAttrs().getShape();
   }
 }

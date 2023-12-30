@@ -29,7 +29,7 @@ public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
   @Override
   public boolean edit(LineDrawProp line, SvgBrush brush) {
     LineAttrs lineAttrs = line.lineAttrs();
-    if (lineAttrs.getStyle() == LineStyle.INVIS) {
+    if (lineAttrs.getStyles().contains(LineStyle.INVIS)) {
       return false;
     }
     if (lineAttrs.getHref() == null) {

@@ -18,6 +18,7 @@ package visual_case;
 
 import helper.GraphvizVisual;
 import java.util.stream.Stream;
+import org.graphper.api.attributes.ClusterShapeEnum;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -110,14 +111,23 @@ public class ClusterAttrTest extends GraphvizVisual {
         );
   }
 
-  static Stream<ClusterBuilder> styleCases() {
+  static Stream<ClusterBuilder> styleShapeCases() {
     return Stream.of(
-        Cluster.builder().style(ClusterStyle.DASHED),
-        Cluster.builder().style(ClusterStyle.DOTTED),
-        Cluster.builder().style(ClusterStyle.INVIS),
-        Cluster.builder().style(ClusterStyle.BOLD),
-        Cluster.builder().style(ClusterStyle.ROUNDED)
-    );
+            Cluster.builder().style(ClusterStyle.DASHED),
+            Cluster.builder().style(ClusterStyle.DOTTED),
+            Cluster.builder().style(ClusterStyle.INVIS),
+            Cluster.builder().style(ClusterStyle.BOLD),
+            Cluster.builder().style(ClusterStyle.ROUNDED)
+        )
+        .flatMap(
+            g -> Stream.of(ClusterShapeEnum.values()).map(s -> {
+                  try {
+                    return g.clone().shape(s);
+                  } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException(e);
+                  }
+            })
+        );
   }
 
   @ParameterizedTest
@@ -184,13 +194,13 @@ public class ClusterAttrTest extends GraphvizVisual {
   }
 
   @ParameterizedTest
-  @MethodSource("styleCases")
-  public void testStyle(ClusterBuilder clusterBuilder) {
+  @MethodSource("styleShapeCases")
+  public void testShape_Style(ClusterBuilder clusterBuilder) {
     Node a = Node.builder().label("a").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .label("test_cluster_style")
-        .cluster(clusterBuilder.addNode(a).label("Cluster_Style").build())
+        .label("test_cluster_shape_style")
+        .cluster(clusterBuilder.addNode(a).label("Cluster_Shape_Style").build())
         .build();
     visual(graphviz);
   }

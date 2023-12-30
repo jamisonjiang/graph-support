@@ -16,79 +16,87 @@
 
 package org.graphper.draw.svg.node;
 
-import org.graphper.draw.svg.Element;
-import org.graphper.api.Node;
+import java.util.Collection;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
+import org.graphper.draw.svg.SvgEditor;
+import org.graphper.util.CollectionUtils;
 
 public class NodeStyleEditor extends AbstractNodeShapeEditor {
 
   @Override
   public boolean edit(NodeDrawProp node, SvgBrush brush) {
     for (Element element : brush.getEleGroup(SHAPE_GROUP_KEY)) {
-      setStyle(node, brush, element);
+      setStyle(node, element);
     }
     return true;
   }
 
-  private void setStyle(NodeDrawProp node, SvgBrush brush, Element element) {
+  private void setStyle(NodeDrawProp node, Element element) {
     NodeAttrs nodeAttrs = node.nodeAttrs();
 
     Double penWidth = nodeAttrs.getPenWidth();
+    boolean haveBold = nodeAttrs.getStyles().contains(NodeStyle.BOLD);
     if (penWidth != null) {
+      penWidth = SvgEditor.strokeWidth(penWidth, haveBold);
       element.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
+    } else if (haveBold) {
+      element.setAttribute(STROKE_WIDTH, "2");
     }
 
-    NodeStyle style = nodeAttrs.getStyle();
-    element.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
-    if (style == null) {
+    Collection<NodeStyle> styles = nodeAttrs.getStyles();
+    if (CollectionUtils.isEmpty(styles)) {
       element.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
-      pointAddFillStyle(node, brush, nodeAttrs, element);
+      pointAddFillStyle(nodeAttrs, element);
       return;
     }
 
-    drawStyle(brush, node, element, style);
-    pointAddFillStyle(node, brush, nodeAttrs, element);
+    for (NodeStyle style : styles) {
+      drawStyle(element, style);
+    }
+
+    if (element.getAttribute(FILL) == null) {
+      element.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    }
+
+    pointAddFillStyle(nodeAttrs, element);
   }
 
-  private void pointAddFillStyle(NodeDrawProp node, SvgBrush brush, NodeAttrs nodeAttrs,
-                                 Element shapeElement) {
+  private void pointAddFillStyle(NodeAttrs nodeAttrs, Element shapeElement) {
     if (nodeAttrs.getNodeShape() == NodeShapeEnum.POINT) {
-      drawStyle(brush, node, shapeElement, NodeStyle.SOLID);
+      drawStyle(shapeElement, NodeStyle.SOLID);
     }
   }
 
-  private void drawStyle(SvgBrush brush, NodeDrawProp node, Element shape, NodeStyle nodeStyle) {
-    if (nodeStyle == NodeStyle.DASHED) {
-      dashed(shape);
-    } else if (nodeStyle == NodeStyle.DOTTED) {
-      dotted(shape);
-    } else if (nodeStyle == NodeStyle.INVIS) {
-      invis(node.getNode(), brush);
-    } else if (nodeStyle == NodeStyle.BOLD) {
-      bold(shape);
+  private void drawStyle(Element shape, NodeStyle nodeStyle) {
+    switch (nodeStyle) {
+      case DASHED:
+        dashed(shape);
+        break;
+      case DOTTED:
+        dotted(shape);
+        break;
+      default:
+        break;
     }
   }
 
   private void dashed(Element shape) {
-    shape.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    if (shape.getAttribute(SvgConstants.FILL) == null) {
+      shape.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    }
     shape.setAttribute(SvgConstants.STROKE_DASHARRAY, "5,2");
   }
 
   private void dotted(Element shape) {
-    shape.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    if (shape.getAttribute(SvgConstants.FILL) == null) {
+      shape.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    }
     shape.setAttribute(SvgConstants.STROKE_DASHARRAY, "1,5");
-  }
-
-  private void invis(Node node, SvgBrush brush) {
-    brush.drawBoard().removeNode(node);
-  }
-
-  private void bold(Element shape) {
-    shape.setAttribute(SvgConstants.STROKE_WIDTH, "2");
   }
 }

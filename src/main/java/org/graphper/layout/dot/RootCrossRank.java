@@ -30,16 +30,12 @@ import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
-import org.graphper.layout.dot.MinCross.ClusterOrder;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
 class RootCrossRank implements CrossRank {
 
   private static final int MIN_CROSS_SCALE = 256;
-
-  ClusterOrder clusterOrder;
-
   private final DrawGraph drawGraph;
 
   private final BasicCrossRank root;
@@ -522,43 +518,31 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean canExchange(DNode left, DNode right) {
-    if (sameRankAdjacentRecord == null && clusterOrder == null) {
+    if (left.getContainer() != right.getContainer()) {
+      return false;
+    }
+    if (sameRankAdjacentRecord == null) {
       return true;
     }
 
-    if (sameRankAdjacentRecord != null) {
-      boolean haveSameAdj = sameRankAdjacentRecord.outContains(left, right);
-      if (haveSameAdj) {
+    boolean haveSameAdj = sameRankAdjacentRecord.outContains(left, right);
+    if (haveSameAdj) {
+      return false;
+    }
+
+    Integer leftIdx = childCrossRank.safeGetRankIndex(left);
+    if (leftIdx == null) {
+      return true;
+    }
+    Set<DNode> inAdjs = sameRankAdjacentRecord.inAdjacent(right);
+    for (DNode in : inAdjs) {
+      Integer idx = childCrossRank.safeGetRankIndex(in);
+      if (idx != null && idx > leftIdx) {
         return false;
       }
-
-      Integer leftIdx = childCrossRank.safeGetRankIndex(left);
-      if (leftIdx == null) {
-        return true;
-      }
-      Set<DNode> inAdjs = sameRankAdjacentRecord.inAdjacent(right);
-      for (DNode in : inAdjs) {
-        Integer idx = childCrossRank.safeGetRankIndex(in);
-        if (idx != null && idx > leftIdx) {
-          return false;
-        }
-      }
     }
 
-    if (clusterOrder == null) {
-      return true;
-    }
-
-    Integer leftClusterOrder = clusterOrder.getNodeOrder(left);
-    if (leftClusterOrder == null) {
-      return true;
-    }
-    Integer rightClusterOrder = clusterOrder.getNodeOrder(right);
-    if (rightClusterOrder == null) {
-      return true;
-    }
-
-    return leftClusterOrder > rightClusterOrder;
+    return true;
   }
 
   private void adjNodeAccess(boolean direction,

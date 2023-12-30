@@ -45,13 +45,14 @@ import org.graphper.draw.FailInitResourceException;
 import org.graphper.draw.svg.Document;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
+import org.graphper.util.EnvProp;
 import org.graphper.util.FontUtils;
 
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
   @Override
   public int order() {
-    if (Boolean.TRUE.toString().equals(System.getProperty("use.local.img.converter"))) {
+    if (EnvProp.useLocalImgConverter()) {
       return Integer.MIN_VALUE;
     }
     return 1;

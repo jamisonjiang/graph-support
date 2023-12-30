@@ -34,8 +34,10 @@ import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.layout.dot.RankContent.RankNode;
+import org.graphper.util.EnvProp;
 
 abstract class AbstractCoordinate {
 
@@ -330,7 +332,7 @@ abstract class AbstractCoordinate {
       }
     } else {
       containerBorder.verTopMargin = maxTopHeight + containerDrawProp.topLowestHeight();
-      containerBorder.verBottomMargin = (maxBottomHeight + containerDrawProp.bottomLowestHeight());
+      containerBorder.verBottomMargin = maxBottomHeight + containerDrawProp.bottomLowestHeight();
     }
     return containerBorder;
   }
@@ -516,6 +518,13 @@ abstract class AbstractCoordinate {
       if (clusterDrawProp == null) {
         container = graphviz.effectiveFather(container);
         continue;
+      }
+
+      if (EnvProp.qualityCheck()) {
+        double leftBorder = containerLeftBorder(container);
+        double rightBorder = containerRightBorder(container);
+        Asserts.illegalArgument(node.getX() < leftBorder || node.getX() > rightBorder,
+                                "Node not in container");
       }
 
       verTopMargin = getVerTopMargin(clusterDrawProp.getCluster());

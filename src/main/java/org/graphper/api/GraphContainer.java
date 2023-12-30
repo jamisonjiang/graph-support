@@ -358,6 +358,32 @@ public abstract class GraphContainer extends VertexIndex {
   }
 
   /**
+   * Returns whether the container is in the current container.
+   *
+   * @param container graph container
+   * @return <tt>true</tt> if container in current container
+   */
+  public boolean containsContainer(GraphContainer container) {
+    if (container == null || container == this) {
+      return false;
+    }
+
+    for (Subgraph subgraph : subgraphs()) {
+      if (subgraph == container || subgraph.containsContainer(container)) {
+        return true;
+      }
+    }
+
+    for (Cluster cluster : clusters()) {
+      if (cluster == container || cluster.containsContainer(container)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Returns whether the current container is transparent, which means it is purely redundant on the
    * container's recursive tree, bringing no features.
    *

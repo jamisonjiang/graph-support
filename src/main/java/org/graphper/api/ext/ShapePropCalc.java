@@ -21,12 +21,12 @@ import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 
 /**
- * A description of some characteristics of the node shape, used for layout, line clipping,
- * rendering and other processes.
+ * A description of some characteristics of the shape, used for layout, line clipping, rendering and
+ * other processes.
  *
  * @author Jamison Jiang
  */
-public interface ShapePropCalc extends NodeShapePost {
+public interface ShapePropCalc {
 
   /**
    * According to an inscribed rectangle, return the smallest container size that can ensure that
@@ -112,7 +112,7 @@ public interface ShapePropCalc extends NodeShapePost {
   }
 
   /**
-   * Returns the default filling color of the node shape, and returning null means no filling by
+   * Returns the default filling color of the shape box, and returning null means no filling by
    * default.
    *
    * @return default filling color

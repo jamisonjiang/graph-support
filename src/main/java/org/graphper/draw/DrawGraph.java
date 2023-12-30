@@ -228,10 +228,6 @@ public class DrawGraph extends Rectangle implements Serializable {
     graphvizDrawProp.setDownBorder(downBorder);
   }
 
-  public boolean usePortAxisExpander() {
-    return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("port_axis.node.expander"));
-  }
-
   public void updateXAxisRange(double x) {
     super.updateXAxisRange(x);
   }

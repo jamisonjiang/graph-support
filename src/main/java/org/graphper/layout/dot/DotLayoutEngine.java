@@ -58,6 +58,7 @@ import org.graphper.layout.dot.SplineRouter.SplineRouterFactory;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 
 /**
  * Hierarchical or layered drawings of directed graphs. The layout algorithm aims edges in the same
@@ -137,14 +138,17 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       dn = dotAttachment.mappingToDNode(node);
     }
 
+    if (parentContainer.isSubgraph()) {
+      if (!parentContainer.isTransparent()) {
+        dotAttachment.markHaveSubgraph();
+      }
+      parentContainer = drawGraph.getGraphviz().effectiveFather(parentContainer);
+    }
+
     // Set node parent container
     if (dn.getContainer() == null || dn.getContainer().isGraphviz()) {
-      if (parentContainer.isSubgraph()) {
-        if (!parentContainer.isTransparent()) {
-          dotAttachment.markHaveSubgraph();
-        }
-        parentContainer = drawGraph.getGraphviz().effectiveFather(parentContainer);
-      }
+      dn.setContainer(parentContainer);
+    } else if (dn.getContainer().containsContainer(parentContainer)) {
       dn.setContainer(parentContainer);
     }
 
@@ -257,7 +261,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     new LabelSupplement(rankContent, dotAttachment, digraphProxy);
 
     // Node coordinate
-    if (Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("dot.coordinate.v1"))) {
+    if (EnvProp.useV1Coordinate()) {
       new Coordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     } else {
       new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);

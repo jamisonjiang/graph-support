@@ -16,20 +16,27 @@
 
 package org.graphper.api.ext;
 
-import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.ClusterAttrs;
+import org.graphper.api.attributes.ClusterShape;
+import org.graphper.util.Asserts;
 
 /**
- * Use ShapePosition to describe an element with container properties and shape properties.
+ * {@link ClusterShape} post processing.
  *
  * @author Jamison Jiang
  */
-public interface ShapePosition extends Box {
+public interface ClusterShapePost {
 
   /**
-   * Returns a primitive describing the shape the current object should conform to. Although
-   * {@link NodeShape} is used to describe, the current element is not necessarily a node.
+   * When some characteristics of the shape need to be changed according to the rest of the cluster
+   * attributes, use this method to post-create the enhanced {@link ClusterShape} to replace the
+   * original {@link ClusterShape}.
    *
-   * @return current shape properties describe function
+   * @param clusterAttrs cluster attribute
+   * @return post {@code ClusterShape}
    */
-  ShapePropCalc shapeProp();
+  default ClusterShape post(ClusterAttrs clusterAttrs) {
+    Asserts.nullArgument(clusterAttrs, "clusterAttrs");
+    return clusterAttrs.getShape();
+  }
 }

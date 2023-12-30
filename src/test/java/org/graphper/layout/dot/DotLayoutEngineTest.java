@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.graphper.api.Cluster;
@@ -106,8 +107,8 @@ public class DotLayoutEngineTest {
     Assertions.assertEquals(Color.GREEN, bProp.nodeAttrs().getFillColor());
     Assertions.assertEquals(Color.RED, cProp.nodeAttrs().getFillColor());
     Assertions.assertEquals(Color.RED, dProp.nodeAttrs().getFillColor());
-    Assertions.assertEquals(NodeStyle.DASHED, eProp.nodeAttrs().getStyle());
-    Assertions.assertEquals(NodeStyle.DASHED, fProp.nodeAttrs().getStyle());
+    Assertions.assertEquals(Arrays.asList(NodeStyle.DASHED), eProp.nodeAttrs().getStyles());
+    Assertions.assertEquals(Arrays.asList(NodeStyle.DASHED), fProp.nodeAttrs().getStyles());
 
     Assertions.assertEquals(Color.GREEN, eProp.nodeAttrs().getFillColor());
     Assertions.assertEquals(Color.GREEN, fProp.nodeAttrs().getFillColor());

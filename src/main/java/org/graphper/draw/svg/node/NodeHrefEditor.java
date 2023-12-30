@@ -30,7 +30,7 @@ public class NodeHrefEditor extends SvgEditor implements NodeEditor<SvgBrush> {
   @Override
   public boolean edit(NodeDrawProp node, SvgBrush brush) {
     NodeAttrs nodeAttrs = node.nodeAttrs();
-    if (nodeAttrs.getStyle() == NodeStyle.INVIS) {
+    if (nodeAttrs.getStyles().contains(NodeStyle.INVIS)) {
       return false;
     }
     if (nodeAttrs.getHref() == null) {

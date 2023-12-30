@@ -48,4 +48,17 @@ public final class Asserts {
   public static void nullArgument(Object obj, String paramName) {
     Objects.requireNonNull(obj, paramName + " can not be null");
   }
+
+  /**
+   * Check array not be null or empty or contains null element.
+   *
+   * @param arrays object arrays
+   * @throws IllegalArgumentException array is empty or contains null element
+   */
+  public static <T> void nullOrContainsNull(T... arrays) {
+    illegalArgument(arrays == null || arrays.length == 0, "Array is empty");
+    for (T ele : arrays) {
+      illegalArgument(ele == null, "Element is null");
+    }
+  }
 }

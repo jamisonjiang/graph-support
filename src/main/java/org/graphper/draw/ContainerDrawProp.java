@@ -20,9 +20,9 @@ import java.io.Serializable;
 import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Labelloc;
-import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
+import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.HtmlConvert;
 import org.graphper.util.Asserts;
@@ -128,7 +128,7 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
   }
 
   @Override
-  public NodeShape nodeShape() {
+  public ShapePropCalc shapeProp() {
     return NodeShapeEnum.RECT;
   }
 
@@ -153,6 +153,10 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
       return;
     }
     assemble = HtmlConvert.toAssemble(table);
+  }
+
+  public boolean containsRounded() {
+    return false;
   }
 
   protected abstract Labelloc labelloc();

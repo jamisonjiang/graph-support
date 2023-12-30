@@ -19,7 +19,7 @@ package org.graphper.draw.svg;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.graphper.draw.svg.cluster.ClusterBorderEditor;
+import org.graphper.draw.svg.cluster.ClusterShapeEditor;
 import org.graphper.draw.svg.cluster.ClusterColorEditor;
 import org.graphper.draw.svg.cluster.ClusterHrefEditor;
 import org.graphper.draw.svg.cluster.ClusterLabelEditor;
@@ -105,7 +105,7 @@ public class SvgRenderEngine extends
   protected List<ClusterEditor<SvgBrush>> initClusterEditors() {
     return Arrays.asList(
         new ClusterHrefEditor(),
-        new ClusterBorderEditor(),
+        new ClusterShapeEditor(),
         new ClusterLabelEditor(),
         new ClusterColorEditor(),
         new ClusterStyleEditor()

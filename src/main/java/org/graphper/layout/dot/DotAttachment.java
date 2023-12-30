@@ -173,8 +173,8 @@ class DotAttachment extends LayoutAttach {
     return generatePort;
   }
 
-  boolean notContain(GraphContainer father, GraphContainer container) {
-    return notContain(drawGraph.getGraphviz(), father, container);
+  boolean notContains(GraphContainer father, GraphContainer container) {
+    return notContains(drawGraph.getGraphviz(), father, container);
   }
 
   GraphContainer commonParent(DNode v, DNode w) {
@@ -287,7 +287,7 @@ class DotAttachment extends LayoutAttach {
     return new BiConcatIterable<>(iterables);
   }
 
-  static boolean notContain(Graphviz graphviz, GraphContainer father, GraphContainer container) {
+  static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {
     if (father == null || container == null) {
       return true;
     }

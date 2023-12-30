@@ -225,12 +225,8 @@ class CoordinateV2 extends AbstractCoordinate {
     auxDotDigraph.addEdge(line);
   }
 
-  private boolean notNeedOccupySpaceForCluster(DNode node) {
-    return node.isVirtual() && !(node.isLabelNode() || node.isFlatLabelNode());
-  }
-
   private void adjClusterEdge(DNode node, DNode other) {
-    if (notNeedOccupySpaceForCluster(node) || !dotAttachment.haveClusters()) {
+    if (!dotAttachment.haveClusters()) {
       return;
     }
 

@@ -16,6 +16,8 @@
 
 package org.graphper.api.attributes;
 
+import java.io.Serializable;
+import org.graphper.api.ext.NodeShapePost;
 import org.graphper.draw.CustomizeShapeRender;
 import org.graphper.api.ext.ShapeCenterCalc;
 import org.graphper.api.ext.ShapePropCalc;
@@ -34,7 +36,7 @@ import org.graphper.api.ext.ShapePropCalc;
  * @see NodeShapeEnum System supports shapes by default
  * @see CustomizeShapeRender Renderer for custom shapes.
  */
-public interface NodeShape extends ShapeCenterCalc, ShapePropCalc {
+public interface NodeShape extends ShapeCenterCalc, ShapePropCalc, NodeShapePost, Serializable {
 
   /**
    * Returns the shape name.
