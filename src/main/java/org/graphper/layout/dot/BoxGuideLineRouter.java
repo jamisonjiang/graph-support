@@ -43,6 +43,7 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlatShifterStrategy;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 import org.graphper.util.ValueUtils;
 
 /**
@@ -153,8 +154,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       return;
     }
 
-    if (!Boolean.TRUE.toString()
-        .equalsIgnoreCase(System.getProperty("parallel.lines.case.distinction"))) {
+    if (!EnvProp.parallelLineDistinction()) {
       if (parallelLines.size() > 1) {
         symmetryParallelLine(parallelLines);
       }

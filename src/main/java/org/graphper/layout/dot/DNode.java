@@ -33,6 +33,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 
 class DNode extends VertexIndex implements Box, ShapePosition {
 
@@ -328,7 +329,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     if (splines == Splines.ORTHO) {
       nodeSizeExpander = new OrthoNodeSizeExpander(this);
-    } else if (drawGraph.usePortAxisExpander()) {
+    } else if (EnvProp.usePortAxisExpander()) {
       nodeSizeExpander = new PortNodeSizeExpander(drawGraph, this);
     } else {
       nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);

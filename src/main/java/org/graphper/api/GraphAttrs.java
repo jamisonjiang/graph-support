@@ -28,6 +28,7 @@ import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
+import org.graphper.util.EnvProp;
 
 /**
  * Graphviz attribute object.
@@ -44,7 +45,7 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   Color fontColor = Color.BLACK;
 
-  Rankdir rankdir = Rankdir.rankdir(System.getProperty("rankdir"));
+  Rankdir rankdir = EnvProp.defaultRankdir();
 
   Layout layout = Layout.DOT;
 
