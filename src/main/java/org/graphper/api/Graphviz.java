@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class Graphviz extends GraphContainer implements Serializable {
       synchronized (this) {
         this.svg = null;
       }
-      return new String(resource.bytes());
+      return new String(resource.bytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new ExecuteException(e);
     }
