@@ -159,16 +159,18 @@ public class ClusterAttrs implements Serializable, Cloneable {
     }
     ClusterAttrs that = (ClusterAttrs) o;
     return Double.compare(that.fontSize, fontSize) == 0
-        && Double.compare(that.penWidth, penWidth) == 0 && Objects.equals(id,
-                                                                          that.id)
-        && Objects.equals(label, that.label) && labelloc == that.labelloc
-        && labeljust == that.labeljust && Objects.equals(shape, that.shape)
-        && Objects.equals(styles, that.styles) && Objects.equals(bgColor,
-                                                               that.bgColor)
-        && Objects.equals(color, that.color) && Objects.equals(fontColor,
-                                                               that.fontColor)
-        && Objects.equals(fontName, that.fontName) && Objects.equals(margin,
-                                                                     that.margin)
+        && Double.compare(that.penWidth, penWidth) == 0
+        && Objects.equals(id, that.id)
+        && Objects.equals(label, that.label)
+        && labelloc == that.labelloc
+        && labeljust == that.labeljust
+        && Objects.equals(shape, that.shape)
+        && Objects.equals(styles, that.styles)
+        && Objects.equals(bgColor, that.bgColor)
+        && Objects.equals(color, that.color)
+        && Objects.equals(fontColor, that.fontColor)
+        && Objects.equals(fontName, that.fontName)
+        && Objects.equals(margin, that.margin)
         && Objects.equals(href, that.href) && Objects.equals(table, that.table)
         && Objects.equals(assemble, that.assemble);
   }

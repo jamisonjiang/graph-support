@@ -30,6 +30,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
+import org.graphper.layout.dot.MinCross.ClusterMerge;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
@@ -51,12 +52,15 @@ class RootCrossRank implements CrossRank {
 
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
-  RootCrossRank(DrawGraph drawGraph) {
+  private ClusterMerge clusterMerge;
+
+  RootCrossRank(DrawGraph drawGraph, ClusterMerge clusterMerge) {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
     this.root = new BasicCrossRank(drawGraph.getGraphviz());
     this.digraphProxy = new DedirectedEdgeGraph<>();
     this.rankCrossCacheMap = new HashMap<>();
+    this.clusterMerge = clusterMerge;
   }
 
   RootCrossRank(DrawGraph drawGraph, EdgeDedigraph<DNode, DLine> digraphProxy) {
@@ -518,9 +522,10 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean canExchange(DNode left, DNode right) {
-    if (left.getContainer() != right.getContainer()) {
+    if (possibleClusterIntersect(left, right)) {
       return false;
     }
+
     if (sameRankAdjacentRecord == null) {
       return true;
     }
@@ -543,6 +548,35 @@ class RootCrossRank implements CrossRank {
     }
 
     return true;
+  }
+
+  private boolean possibleClusterIntersect(DNode left, DNode right) {
+    if (childCrossRank == null || left.getContainer() == right.getContainer()) {
+      return false;
+    }
+
+    if (!isAdj(left, right) && left.getContainer() != right.getContainer()) {
+      return true;
+    }
+
+    GraphContainer container = childCrossRank.container;
+    GraphContainer leftDirC = DotAttachment
+        .clusterDirectContainer(drawGraph.getGraphviz(), container, left);
+    GraphContainer rightDirC = DotAttachment
+        .clusterDirectContainer(drawGraph.getGraphviz(), container, right);
+
+    if (leftDirC == null || rightDirC == null || leftDirC.isGraphviz() || rightDirC.isGraphviz()) {
+      return false;
+    }
+
+    return !clusterMerge.isSingleRankCluster(leftDirC)
+        && !clusterMerge.isSingleRankCluster(rightDirC);
+  }
+
+  private boolean isAdj(DNode left, DNode right) {
+    int leftIdx = getRankIndex(left);
+    int rightIdx = getRankIndex(right);
+    return Math.abs(leftIdx - rightIdx) == 1;
   }
 
   private void adjNodeAccess(boolean direction,

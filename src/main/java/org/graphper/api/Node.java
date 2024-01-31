@@ -371,7 +371,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     /**
      * Set the style of node, Please check the details {@link NodeStyle}.
      *
-     * @param styles node style
+     * @param styles node styles
      * @return node builder
      * @throws IllegalArgumentException empty styles or contains null style
      */

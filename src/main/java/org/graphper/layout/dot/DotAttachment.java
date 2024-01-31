@@ -182,11 +182,15 @@ class DotAttachment extends LayoutAttach {
   }
 
   GraphContainer clusterDirectContainer(GraphContainer parent, DNode node) {
-    if (node.getContainer() == parent) {
+    return clusterDirectContainer(getGraphviz(), parent, node);
+  }
+
+  static GraphContainer clusterDirectContainer(Graphviz graphviz,
+                                               GraphContainer parent, DNode node) {
+    if (node.getContainer() == parent || graphviz == null) {
       return null;
     }
 
-    Graphviz graphviz = getGraphviz();
     GraphContainer father;
     GraphContainer current = node.getContainer();
     while ((father = graphviz.effectiveFather(current)) != parent && father != null) {

@@ -153,7 +153,7 @@ public class Cluster extends GraphContainer implements Serializable {
     /**
      * Set the style of cluster, Please check the details {@link ClusterStyle}.
      *
-     * @param styles cluster style
+     * @param styles cluster styles
      * @return cluster builder
      * @throws IllegalArgumentException empty styles or contains null style
      */
