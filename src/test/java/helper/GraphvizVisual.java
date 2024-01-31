@@ -42,7 +42,7 @@ public class GraphvizVisual {
   private static final FileType FILE_TYPE = FileType.PNG;
 
   protected void visual(Graphviz graphviz) {
-//    System.setProperty("graph.quality.check", "true");
+    System.setProperty("graph.quality.check", "true");
     System.setProperty("use.local.img.converter", "true");
     try {
       visual(graphviz, false);

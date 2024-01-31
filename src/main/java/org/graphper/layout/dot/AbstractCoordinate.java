@@ -524,7 +524,7 @@ abstract class AbstractCoordinate {
         double leftBorder = containerLeftBorder(container);
         double rightBorder = containerRightBorder(container);
         Asserts.illegalArgument(node.getX() < leftBorder || node.getX() > rightBorder,
-                                "Node not in container");
+                                "Node " + node + " not in container " + container.id());
       }
 
       verTopMargin = getVerTopMargin(clusterDrawProp.getCluster());

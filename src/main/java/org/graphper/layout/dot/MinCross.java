@@ -593,6 +593,10 @@ class MinCross {
     Set<DNode> adjacent = rootCrossRank.getSameRankAdjacentRecord().outAdjacent(node);
     if (CollectionUtils.isNotEmpty(adjacent)) {
       for (DNode dNode : adjacent) {
+        if (node.getContainer() != dNode.getContainer()) {
+          continue;
+        }
+
         if (mark.contains(dNode)) {
           Entry<Integer, Integer> accessOrder = orderRecord.get(dNode);
           if (accessOrder != null) {
@@ -825,7 +829,8 @@ class MinCross {
             }
 
             DNode other = line.other(node);
-            if (other.getRank() == node.getRank() || isMark(other)) {
+            if (other.getRank() == node.getRank() || isMark(other)
+                || node.getContainer() != other.getContainer()) {
               continue;
             }
 
@@ -866,8 +871,11 @@ class MinCross {
       for (DLine dLine : adjacent) {
         DNode to = dLine.other(from);
 
-        // Make sure cluster of to not intersect with cluster of from
-        if (clusterIntersect(from, fromContainer, fromMin, fromMax, to)) {
+        /*
+         * 1. Make sure cluster of to not intersect with cluster of from;
+         * 2. Make sure only access head or tail node when to node in different cluster.
+         */
+        if (canNotAccessDiffCluster(from, fromContainer, fromMin, fromMax, to)) {
           continue;
         }
 
@@ -892,11 +900,14 @@ class MinCross {
       }
     }
 
-    private boolean clusterIntersect(DNode from, GraphContainer fromContainer,
-                                     int fromMin, int fromMax, DNode to) {
+    private boolean canNotAccessDiffCluster(DNode from, GraphContainer fromContainer,
+                                            int fromMin, int fromMax, DNode to) {
+      if (clusterExpand == null || clusterExpand.clusterMerge == null) {
+        return false;
+      }
+
       GraphContainer toContainer = to.getContainer();
-      if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()
-          && clusterExpand != null && clusterExpand.clusterMerge != null) {
+      if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()) {
         GraphContainer parentContainer = dotAttachment.commonParent(from, to);
         if (parentContainer != fromContainer && parentContainer != toContainer) {
           int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
@@ -906,6 +917,17 @@ class MinCross {
           }
         }
       }
+
+      if (toContainer.isCluster() && fromContainer != toContainer) {
+        int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
+        int toMax = clusterExpand.clusterMerge.maxRank((Cluster) toContainer);
+        if (from.getRank() < to.getRank()) {
+          return to.getRank() != toMin;
+        } else {
+          return to.getRank() != toMax;
+        }
+      }
+
       return false;
     }
 
