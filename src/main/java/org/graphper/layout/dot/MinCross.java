@@ -311,9 +311,11 @@ class MinCross {
       return;
     }
 
-    rootCrossRank = new RootCrossRank(dotAttachment.getDrawGraph());
+
     Graphviz graphviz = dotAttachment.getGraphviz();
-    clusterExpand = new ClusterExpand(new ClusterMerge());
+    ClusterMerge clusterMerge = new ClusterMerge();
+    clusterExpand = new ClusterExpand(clusterMerge);
+    rootCrossRank = new RootCrossRank(dotAttachment.getDrawGraph(), clusterMerge);
 
     Map<DNode, Set<DNode>> nodeHaveLine = new HashMap<>();
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
@@ -1016,7 +1018,7 @@ class MinCross {
     private boolean outHavePort;
   }
 
-  private static class ClusterMerge {
+  static class ClusterMerge {
 
     private final Map<Cluster, Map<Integer, DNode>> clusterRankProxyNode;
 
@@ -1066,6 +1068,14 @@ class MinCross {
       Asserts.illegalArgument(range == null,
                               "Do not have cluster rank record");
       return range.maxRank;
+    }
+
+    boolean isSingleRankCluster(GraphContainer container) {
+      if (container == null || !container.isCluster()) {
+        return false;
+      }
+      Cluster cluster = (Cluster) container;
+      return minRank(cluster) == maxRank(cluster);
     }
   }
 
