@@ -555,6 +555,10 @@ class RootCrossRank implements CrossRank {
       return false;
     }
 
+    if (!isAdj(left, right) && left.getContainer() != right.getContainer()) {
+      return true;
+    }
+
     GraphContainer container = childCrossRank.container;
     GraphContainer leftDirC = DotAttachment
         .clusterDirectContainer(drawGraph.getGraphviz(), container, left);
@@ -567,6 +571,12 @@ class RootCrossRank implements CrossRank {
 
     return !clusterMerge.isSingleRankCluster(leftDirC)
         && !clusterMerge.isSingleRankCluster(rightDirC);
+  }
+
+  private boolean isAdj(DNode left, DNode right) {
+    int leftIdx = getRankIndex(left);
+    int rightIdx = getRankIndex(right);
+    return Math.abs(leftIdx - rightIdx) == 1;
   }
 
   private void adjNodeAccess(boolean direction,
