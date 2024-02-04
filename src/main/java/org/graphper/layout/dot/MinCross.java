@@ -311,7 +311,6 @@ class MinCross {
       return;
     }
 
-
     Graphviz graphviz = dotAttachment.getGraphviz();
     ClusterMerge clusterMerge = new ClusterMerge();
     clusterExpand = new ClusterExpand(clusterMerge);
@@ -860,7 +859,9 @@ class MinCross {
       crossRank.exchange(from, crossRank.getNode(from.getRank(), idx));
       rankAccessIndex.put(from.getRank(), idx + 1);
 
-      GraphContainer fromContainer = from.getContainer();
+      GraphContainer fromContainer = dotAttachment
+          .clusterDirectContainer(crossRank.container(), from);
+      fromContainer = fromContainer == null ? from.getContainer() : fromContainer;
       int fromMin = 0;
       int fromMax = 0;
       if (fromContainer.isCluster() && clusterExpand != null
@@ -909,12 +910,14 @@ class MinCross {
         return false;
       }
 
-      GraphContainer parentContainer = DotAttachment.commonParent(dotAttachment.getGraphviz(), from, to);
+      GraphContainer parentContainer = DotAttachment
+          .commonParent(dotAttachment.getGraphviz(), from, to);
       if (parentContainer != crossRank.container()) {
         return false;
       }
 
-      GraphContainer toContainer = to.getContainer();
+      GraphContainer toContainer = dotAttachment.clusterDirectContainer(crossRank.container(), to);
+      toContainer = toContainer == null ? to.getContainer() : toContainer;
       if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()) {
         if (parentContainer != fromContainer && parentContainer != toContainer) {
           int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
@@ -1012,6 +1015,7 @@ class MinCross {
   }
 
   private static class ClusterRankRange {
+
     private int minRank = Integer.MAX_VALUE;
     private int maxRank = Integer.MIN_VALUE;
   }
