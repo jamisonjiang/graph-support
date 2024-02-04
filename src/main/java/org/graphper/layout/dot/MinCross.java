@@ -877,6 +877,7 @@ class MinCross {
          * 1. Make sure cluster of to not intersect with cluster of from;
          * 2. Make sure only access head or tail node when to node in different cluster.
          */
+
         if (canNotAccessDiffCluster(from, fromContainer, fromMin, fromMax, to)) {
           continue;
         }
@@ -908,9 +909,13 @@ class MinCross {
         return false;
       }
 
+      GraphContainer parentContainer = DotAttachment.commonParent(dotAttachment.getGraphviz(), from, to);
+      if (parentContainer != crossRank.container()) {
+        return false;
+      }
+
       GraphContainer toContainer = to.getContainer();
       if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()) {
-        GraphContainer parentContainer = dotAttachment.commonParent(from, to);
         if (parentContainer != fromContainer && parentContainer != toContainer) {
           int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
           int toMax = clusterExpand.clusterMerge.maxRank((Cluster) toContainer);
