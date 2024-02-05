@@ -28,8 +28,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import org.graphper.api.Cluster;
@@ -865,44 +867,57 @@ class MinCross {
       fromContainer = fromContainer == null ? from.getContainer() : fromContainer;
       int fromMin = 0;
       int fromMax = 0;
+      DNode clusterAdjRankNode = null;
+
       if (fromContainer.isCluster() && clusterExpand != null
           && clusterExpand.clusterMerge != null) {
-        fromMin = clusterExpand.clusterMerge.minRank((Cluster) fromContainer);
-        fromMax = clusterExpand.clusterMerge.maxRank((Cluster) fromContainer);
+        Cluster cluster = (Cluster) fromContainer;
+        fromMin = clusterExpand.clusterMerge.minRank(cluster);
+        fromMax = clusterExpand.clusterMerge.maxRank(cluster);
+        clusterAdjRankNode = clusterExpand.clusterMerge
+            .clusterMergeAdjRankNode(cluster, from, isOutDirection);
       }
 
       Iterable<DLine> adjacent = adjacentFunc.apply(from);
       for (DLine dLine : adjacent) {
         DNode to = dLine.other(from);
-
-        /*
-         * 1. Make sure cluster of to not intersect with cluster of from;
-         * 2. Make sure only access head or tail node when to node in different cluster.
-         */
-
-        if (canNotAccessDiffCluster(from, fromContainer, fromMin, fromMax, to)) {
-          continue;
-        }
-
-        if (dotAttachment.notContains(graphContainer, to.getContainer())) {
-          continue;
-        }
-
-        if (isOutDirection && to.getRank() == from.getRank()) {
-          if (sameRankAdjacentRecord == null) {
-            sameRankAdjacentRecord = new SameRankAdjacentRecord();
-          }
-
-          sameRankAdjacentRecord.addOutAdjacent(from, dLine);
-          continue;
-        }
-
-        if (isMark(to)) {
-          continue;
-        }
-
-        dfs(to, adjacentFunc);
+        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, to, dLine);
       }
+
+      if (clusterAdjRankNode != null) {
+        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, clusterAdjRankNode, null);
+      }
+    }
+
+    private void toDfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc,
+                       GraphContainer fromContainer, int fromMin,
+                       int fromMax, DNode to, DLine dLine) {
+      /*
+       * 1. Make sure cluster of to not intersect with cluster of from;
+       * 2. Make sure only access head or tail node when to node in different cluster.
+       */
+      if (canNotAccessDiffCluster(from, fromContainer, fromMin, fromMax, to)) {
+        return;
+      }
+
+      if (dotAttachment.notContains(graphContainer, to.getContainer())) {
+        return;
+      }
+
+      if (isOutDirection && to.getRank() == from.getRank() && dLine != null) {
+        if (sameRankAdjacentRecord == null) {
+          sameRankAdjacentRecord = new SameRankAdjacentRecord();
+        }
+
+        sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+        return;
+      }
+
+      if (isMark(to)) {
+        return;
+      }
+
+      dfs(to, adjacentFunc);
     }
 
     private boolean canNotAccessDiffCluster(DNode from, GraphContainer fromContainer,
@@ -1030,7 +1045,7 @@ class MinCross {
 
   static class ClusterMerge {
 
-    private final Map<Cluster, Map<Integer, DNode>> clusterRankProxyNode;
+    private final Map<Cluster, NavigableMap<Integer, DNode>> clusterRankProxyNode;
 
     private final Map<Cluster, ClusterRankRange> clusterRankRange;
 
@@ -1059,11 +1074,33 @@ class MinCross {
     }
 
     DNode getMergeNodeOrPut(Cluster cluster, DNode node) {
-      DNode n = clusterRankProxyNode.computeIfAbsent(cluster, c -> new HashMap<>())
+      DNode n = clusterRankProxyNode.computeIfAbsent(cluster, c -> new TreeMap<>())
           .computeIfAbsent(node.getRank(), k -> node);
 
       mergeNodeMap.put(node, n);
       return n;
+    }
+
+    DNode clusterMergeAdjRankNode(Cluster cluster, DNode node, boolean isNext) {
+      if (cluster == null || node == null) {
+        return null;
+      }
+
+      NavigableMap<Integer, DNode> clusterRankMap = clusterRankProxyNode.get(cluster);
+      if (clusterRankMap == null) {
+        return null;
+      }
+      Entry<Integer, DNode> adjRankMergeNode;
+      if (isNext) {
+        adjRankMergeNode = clusterRankMap.higherEntry(node.getRank());
+      } else {
+        adjRankMergeNode = clusterRankMap.lowerEntry(node.getRank());
+      }
+
+      if (adjRankMergeNode == null) {
+        return null;
+      }
+      return adjRankMergeNode.getValue();
     }
 
     int minRank(Cluster cluster) {
