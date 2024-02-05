@@ -655,6 +655,7 @@ class MinCross {
           continue;
         }
 
+        clusterProxyNode(node, cluster);
         crossRank.addNode(node);
 
         // If the two vertices are consistent, expand the vertex; and if it is directly under the
