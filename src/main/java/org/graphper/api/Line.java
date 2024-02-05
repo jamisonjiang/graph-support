@@ -17,6 +17,7 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
@@ -363,11 +364,13 @@ public class Line implements Comparable<Line>, Serializable {
     /**
      * Set the style of line, Please check the details {@link LineStyle}.
      *
-     * @param lineStyle line style
+     * @param styles line styles
      * @return line builder
+     * @throws IllegalArgumentException empty styles or contains null style
      */
-    public LineBuilder style(LineStyle lineStyle) {
-      lineAttrs.style = lineStyle;
+    public LineBuilder style(LineStyle... styles) {
+      Asserts.nullOrContainsNull(styles);
+      lineAttrs.styles = Arrays.asList(styles);
       return this;
     }
 
@@ -506,14 +509,10 @@ public class Line implements Comparable<Line>, Serializable {
      *
      * @param floatLabels float label array
      * @return line builder
-     * @throws IllegalArgumentException float labels is null or empty, or contains null item
+     * @throws IllegalArgumentException float labels is null or empty, or contains null element
      */
     public LineBuilder floatLabels(FloatLabel... floatLabels) {
-      Asserts.illegalArgument(floatLabels == null || floatLabels.length == 0,
-                              "floatLabels is empty");
-      for (FloatLabel floatLabel : floatLabels) {
-        Asserts.illegalArgument(floatLabel == null, "Float label array contains null item");
-      }
+      Asserts.nullOrContainsNull(floatLabels);
       lineAttrs.floatLabels = floatLabels;
       return this;
     }

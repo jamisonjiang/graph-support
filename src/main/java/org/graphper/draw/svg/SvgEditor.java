@@ -20,12 +20,17 @@ import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.util.List;
 import java.util.function.Consumer;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
+import java.util.function.Supplier;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.ext.Box;
+import org.graphper.def.FlatPoint;
+import org.graphper.def.Vectors;
+import org.graphper.draw.ClusterDrawProp;
+import org.graphper.draw.ContainerDrawProp;
+import org.graphper.draw.NodeDrawProp;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Svg editor for graph element.
@@ -33,6 +38,8 @@ import org.graphper.api.ext.Box;
  * @author Jamison Jiang
  */
 public class SvgEditor implements SvgConstants {
+
+  private static final int MAX_ROUNDED = 30;
 
   /**
    * Set each line text to svg.
@@ -90,8 +97,68 @@ public class SvgEditor implements SvgConstants {
       }
 
       textAttribute.lineAttributeConsumer.accept(
-          new TextLineAttribute(xc, yc, i, lines[i], textAttribute)
-      );
+          new TextLineAttribute(xc, yc, i, lines[i], textAttribute));
+    }
+  }
+
+  /**
+   * Draw polygon shape and common handle ROUNDED property for {@link org.graphper.api.Node} and
+   * {@link org.graphper.api.Cluster}.
+   *
+   * @param drawProp draw container needs drawing
+   * @param brush    svg brush need to generate element
+   * @param points   polygon points
+   * @throws NullPointerException     null container or null brush
+   * @throws IllegalArgumentException wrong size radius or wrong close path points or wrong
+   *                                  container type
+   */
+  public static Element polygonShape(ContainerDrawProp drawProp, SvgBrush brush, double... points) {
+    Asserts.nullArgument(brush, "brush");
+    Asserts.nullArgument(drawProp, "drawProp");
+
+    Element shapeEle;
+    boolean isRound = drawProp.containsRounded();
+    if (drawProp.isNodeProp()) {
+      NodeDrawProp nodeDrawProp = ((NodeDrawProp) drawProp);
+      if (isRound) {
+        shapeEle = brush.getShapeElement(nodeDrawProp, PATH_ELE);
+      } else {
+        shapeEle = brush.getShapeElement(nodeDrawProp, POLYGON_ELE);
+      }
+    } else if (drawProp.isClusterProp()) {
+      ClusterDrawProp clusterDrawProp = ((ClusterDrawProp) drawProp);
+      if (isRound) {
+        shapeEle = brush.getShapeElement(clusterDrawProp, PATH_ELE);
+      } else {
+        shapeEle = brush.getShapeElement(clusterDrawProp, POLYGON_ELE);
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupport container draw properties");
+    }
+
+    polygonShape(() -> shapeEle, isRound, points);
+    return shapeEle;
+  }
+
+  /**
+   * Draw polygon shape and common handle ROUNDED property.
+   *
+   * @param elementSupplier shape element supplier
+   * @param isRound         shape need rounded
+   * @param points          polygon points
+   * @throws NullPointerException     null element supplier or null shape element
+   * @throws IllegalArgumentException wrong size radius or wrong close path points
+   */
+  public static void polygonShape(Supplier<Element> elementSupplier, boolean isRound,
+                                  double... points) {
+    Asserts.nullArgument(elementSupplier, "Element supplier");
+    Element element = elementSupplier.get();
+    Asserts.nullArgument(element, "Shape element");
+
+    if (isRound) {
+      element.setAttribute(D, roundedShape(points));
+    } else {
+      element.setAttribute(POINTS, generatePolylinePoints(points));
     }
   }
 
@@ -137,9 +204,7 @@ public class SvgEditor implements SvgConstants {
     }
 
     start = start == null ? points.get(0) : start;
-    StringBuilder path = new StringBuilder(PATH_START_M)
-        .append(start.getX())
-        .append(COMMA)
+    StringBuilder path = new StringBuilder(PATH_START_M).append(start.getX()).append(COMMA)
         .append(start.getY());
 
     if (isCurve) {
@@ -150,10 +215,7 @@ public class SvgEditor implements SvgConstants {
 
     for (int i = 1; i < points.size(); i++) {
       FlatPoint flatPoint = points.get(i);
-      path.append(flatPoint.getX())
-          .append(COMMA)
-          .append(flatPoint.getY())
-          .append(SPACE);
+      path.append(flatPoint.getX()).append(COMMA).append(flatPoint.getY()).append(SPACE);
     }
     return path.toString();
   }
@@ -194,7 +256,7 @@ public class SvgEditor implements SvgConstants {
    * @param box           box
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
    * @throws NullPointerException     null box
-   * @throws IllegalArgumentException wring maximum rounded length
+   * @throws IllegalArgumentException wrong maximum rounded length
    */
   public static String roundedBox(int maxRoundedLen, Box box) {
     Asserts.nullArgument(box, "box");
@@ -206,38 +268,98 @@ public class SvgEditor implements SvgConstants {
     double downBorder = box.getDownBorder();
     int cornerLen = Math.min(maxRoundedLen, (int) box.getWidth() / 2);
     cornerLen = Math.min(cornerLen, (int) box.getHeight() / 2);
-    return pointsToSvgPath(true, leftBorder, upBorder + cornerLen,
-                           leftBorder, upBorder + cornerLen,
-                           leftBorder, downBorder - cornerLen,
-                           leftBorder, downBorder - cornerLen,
+    return pointsToSvgPath(true, leftBorder, upBorder + cornerLen, leftBorder, upBorder + cornerLen,
+                           leftBorder, downBorder - cornerLen, leftBorder, downBorder - cornerLen,
 
-                           leftBorder, downBorder,
-                           leftBorder, downBorder,
-                           leftBorder + cornerLen, downBorder,
+                           leftBorder, downBorder, leftBorder, downBorder, leftBorder + cornerLen,
+                           downBorder,
 
-                           leftBorder + cornerLen, downBorder,
-                           rightBorder - cornerLen, downBorder,
+                           leftBorder + cornerLen, downBorder, rightBorder - cornerLen, downBorder,
                            rightBorder - cornerLen, downBorder,
 
-                           rightBorder, downBorder,
-                           rightBorder, downBorder,
-                           rightBorder, downBorder - cornerLen,
+                           rightBorder, downBorder, rightBorder, downBorder, rightBorder,
+                           downBorder - cornerLen,
 
-                           rightBorder, downBorder - cornerLen,
-                           rightBorder, upBorder + cornerLen,
+                           rightBorder, downBorder - cornerLen, rightBorder, upBorder + cornerLen,
                            rightBorder, upBorder + cornerLen,
 
-                           rightBorder, upBorder,
-                           rightBorder, upBorder,
-                           rightBorder - cornerLen, upBorder,
+                           rightBorder, upBorder, rightBorder, upBorder, rightBorder - cornerLen,
+                           upBorder,
 
-                           rightBorder - cornerLen, upBorder,
-                           leftBorder + cornerLen, upBorder,
+                           rightBorder - cornerLen, upBorder, leftBorder + cornerLen, upBorder,
                            leftBorder + cornerLen, upBorder,
 
-                           leftBorder, upBorder,
-                           leftBorder, upBorder,
-                           leftBorder, upBorder + cornerLen);
+                           leftBorder, upBorder, leftBorder, upBorder, leftBorder,
+                           upBorder + cornerLen);
+  }
+
+  /**
+   * Returns a rounded shape points according to the close path points.
+   *
+   * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
+   * @throws IllegalArgumentException wrong size radius or wrong close path points
+   */
+  public static String roundedShape(double... path) {
+    return roundedShape(MAX_ROUNDED, path);
+  }
+
+  /**
+   * Returns a rounded shape points according to the close path points.
+   *
+   * @param radius rounded radius length
+   * @param path   close path points
+   * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
+   * @throws IllegalArgumentException wrong size radius or wrong close path points
+   */
+  public static String roundedShape(int radius, double... path) {
+    Asserts.illegalArgument(radius < 0, "radius cannnot less than 0");
+    Asserts.illegalArgument(path == null || path.length < 4, "shape points not enough");
+    Asserts.illegalArgument(path.length % 2 != 0, "shape points number should be even");
+    Asserts.illegalArgument(path[0] != path[path.length - 2] || path[1] != path[path.length - 1],
+                            "shape not enclose");
+
+    int j = 0;
+    FlatPoint current = new FlatPoint(0, 0);
+    FlatPoint next = new FlatPoint(0, 0);
+    double[] roundPath = new double[12 * (path.length / 2 - 1) + 2];
+
+    for (int i = 0; i < path.length - 3; i += 2) {
+      current.setX(path[i]);
+      current.setY(path[i + 1]);
+      next.setX(path[i + 2]);
+      next.setY(path[i + 3]);
+
+      FlatPoint dirVector = Vectors.sub(next, current);
+      Asserts.illegalArgument(dirVector.similarX(0, 0.001D) && dirVector.similarY(0, 0.001D),
+                              "Adjacent pair points of shape too close");
+      double ratio = radius / dirVector.dist();
+      if (ratio > 0.5) {
+        ratio = 0.5;
+      }
+      FlatPoint point = Vectors.multiple(dirVector, ratio);
+      point = Vectors.add(current, point);
+      roundPath[j++] = point.getX();
+      roundPath[j++] = point.getY();
+      roundPath[j++] = point.getX();
+      roundPath[j++] = point.getY();
+
+      point = Vectors.multiple(dirVector, 1 - ratio);
+      point = Vectors.add(current, point);
+      roundPath[j++] = point.getX();
+      roundPath[j++] = point.getY();
+      roundPath[j++] = point.getX();
+      roundPath[j++] = point.getY();
+
+      roundPath[j++] = path[i + 2];
+      roundPath[j++] = path[i + 3];
+      roundPath[j++] = path[i + 2];
+      roundPath[j++] = path[i + 3];
+    }
+
+    roundPath[roundPath.length - 2] = roundPath[0];
+    roundPath[roundPath.length - 1] = roundPath[1];
+
+    return pointsToSvgPath(true, roundPath);
   }
 
   /**
@@ -250,11 +372,10 @@ public class SvgEditor implements SvgConstants {
    */
   public static String generateBox(Box box) {
     Asserts.nullArgument(box, "box");
-    return generatePolylinePoints(box.getLeftBorder(), box.getUpBorder(),
-                                  box.getRightBorder(), box.getUpBorder(),
-                                  box.getRightBorder(), box.getDownBorder(),
-                                  box.getLeftBorder(), box.getDownBorder(),
-                                  box.getLeftBorder(), box.getUpBorder());
+    return generatePolylinePoints(box.getLeftBorder(), box.getUpBorder(), box.getRightBorder(),
+                                  box.getUpBorder(), box.getRightBorder(), box.getDownBorder(),
+                                  box.getLeftBorder(), box.getDownBorder(), box.getLeftBorder(),
+                                  box.getUpBorder());
   }
 
   /**
@@ -302,6 +423,10 @@ public class SvgEditor implements SvgConstants {
     return sb.toString();
   }
 
+  public static double strokeWidth(double penwidth, boolean isBold) {
+    return isBold ? Math.max(penwidth, 2) : penwidth;
+  }
+
   // -------------------------------------------- subclass --------------------------------------------
 
   public static class TextAttribute {
@@ -323,9 +448,8 @@ public class SvgEditor implements SvgConstants {
       this(centerPoint, fontsize, label, fontColor, DEFAULT_FONT, lineAttributeConsumer);
     }
 
-    public TextAttribute(FlatPoint centerPoint, double fontsize,
-                         String label, Color fontColor, String fontName,
-                         Consumer<TextLineAttribute> lineAttributeConsumer) {
+    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
+                         String fontName, Consumer<TextLineAttribute> lineAttributeConsumer) {
       Asserts.nullArgument(centerPoint, "centerPoint");
       Asserts.illegalArgument(StringUtils.isEmpty(label), "label can not be empty");
       this.centerPoint = centerPoint;

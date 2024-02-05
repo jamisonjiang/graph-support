@@ -21,8 +21,9 @@ import org.graphper.api.Assemble;
 import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.Labelloc;
-import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
@@ -48,7 +49,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
 
   private double labelVerOffset;
 
-  private RootCell Cell;
+  private RootCell cell;
 
   private boolean isCellProp;
 
@@ -74,6 +75,11 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
 
   public NodeAttrs nodeAttrs() {
     return nodeAttrs;
+  }
+
+  @Override
+  public boolean containsRounded() {
+    return nodeAttrs.getStyles().contains(NodeStyle.ROUNDED);
   }
 
   public String id() {
@@ -109,7 +115,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   @Override
-  public NodeShape nodeShape() {
+  public ShapePropCalc shapeProp() {
     return nodeAttrs.getNodeShape();
   }
 
@@ -130,11 +136,11 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   public RootCell getCell() {
-    return Cell;
+    return cell;
   }
 
-  public void setCell(RootCell Cell) {
-    this.Cell = Cell;
+  public void setCell(RootCell cell) {
+    this.cell = cell;
   }
 
   public void setCellContainer(NodeDrawProp cellContainer) {

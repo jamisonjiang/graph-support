@@ -81,9 +81,9 @@ class DotDigraph extends DirectedEdgeGraph<DNode, DLine> {
     DNode to = edge.to();
     GraphContainer container;
 
-    if (!DotAttachment.notContain(graphviz, from.getContainer(), to.getContainer())) {
+    if (!DotAttachment.notContains(graphviz, from.getContainer(), to.getContainer())) {
       container = from.getContainer();
-    } else if (!DotAttachment.notContain(graphviz, to.getContainer(), from.getContainer())) {
+    } else if (!DotAttachment.notContains(graphviz, to.getContainer(), from.getContainer())) {
       container = to.getContainer();
     } else {
       container = DotAttachment.commonParent(graphviz, edge.from(), edge.to());
@@ -189,7 +189,7 @@ class DotDigraph extends DirectedEdgeGraph<DNode, DLine> {
 
     private boolean nodeFilter(DNode node) {
       GraphContainer c = node.getContainer();
-      return !DotAttachment.notContain(graphviz, container, c);
+      return !DotAttachment.notContains(graphviz, container, c);
     }
 
     private boolean lineFilter(Line line) {
@@ -197,7 +197,7 @@ class DotDigraph extends DirectedEdgeGraph<DNode, DLine> {
       DNode to = nodeMap.get(line.head());
 
       GraphContainer c = DotAttachment.commonParent(graphviz, from, to);
-      return !DotAttachment.notContain(graphviz, container, c);
+      return !DotAttachment.notContains(graphviz, container, c);
     }
   }
 }

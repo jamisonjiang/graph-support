@@ -35,6 +35,7 @@ import org.graphper.util.Asserts;
  * segment exist in different containers, the "virtual vertex" will avoid entering the parent
  * container, which will make the line segment appear to be curved.
  */
+@Deprecated
 class Coordinate extends AbstractCoordinate {
 
   private ClusterNode clusterNode;
@@ -373,7 +374,7 @@ class Coordinate extends AbstractCoordinate {
         || clusterNode == null
         || !node.getContainer().isCluster()
         || node.getContainer() == container
-        || !dotAttachment.notContain(node.getContainer(), container)) {
+        || !dotAttachment.notContains(node.getContainer(), container)) {
       return node;
     }
 

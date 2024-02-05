@@ -27,6 +27,7 @@ import org.graphper.def.BiConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.util.EnvProp;
 import org.graphper.layout.Grid;
 import org.graphper.layout.Grid.GridAxis;
 import org.graphper.layout.Grid.GridBuilder;
@@ -582,7 +583,7 @@ public abstract class Maze {
   }
 
   private void checkOvg() {
-    if (!Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("ovg.check"))) {
+    if (!EnvProp.qualityCheck()) {
       return;
     }
 

@@ -23,11 +23,10 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.util.Asserts;
 
 /**
- * Renderer for custom node shapes. No matter how many types of rendering methods are supported in
- * the future, brushes corresponding to the rendering type will be provided for editing in this
- * method.
+ * Renderer for custom shapes. No matter how many types of rendering methods are supported in the
+ * future, brushes corresponding to the rendering type will be provided for editing in this method.
  *
- * <p>There are two ways to register a custom node shape renderer, the first is to manually call
+ * <p>There are two ways to register a custom shape renderer, the first is to manually call
  * the {@link #register(CustomizeShapeRender)} method, and the second is to register using SPI.
  *
  * @author Jamison Jiang
@@ -46,7 +45,7 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Register a custom node shape renderer. If the shape has the same name, the priority
+   * Register a custom shape renderer. If the shape has the same name, the priority
    * registration will take effect first, you can use {@link #registered(String)} to check whether
    * the corresponding shape has been registered.
    *
@@ -63,10 +62,10 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Returns the registered node shape renderer for the specified shape.
+   * Returns the registered shape renderer for the specified shape.
    *
    * @param shapeName shape name
-   * @return the node shape renderer
+   * @return the shape renderer
    */
   public static CustomizeShapeRender getCustomizeShapeRender(String shapeName) {
     if (CUSTOMIZE_REGISTER == null) {
@@ -88,9 +87,9 @@ public abstract class CustomizeShapeRender {
   // --------------------------------- Customize draw method ---------------------------------
 
   /**
-   * Returns the node shape name.
+   * Returns the shape name.
    *
-   * @return node shape name
+   * @return shape name
    */
   public abstract String getShapeName();
 
@@ -100,7 +99,17 @@ public abstract class CustomizeShapeRender {
    * @param nodeBrush    svg brush for drawing
    * @param nodeDrawProp node draw properties
    */
-  public abstract void drawSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp);
+  public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
+  }
+
+  /**
+   * Draw cluster shapes under the svg structure.
+   *
+   * @param clusterBrush    svg brush for drawing
+   * @param clusterDrawProp cluster draw properties
+   */
+  public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
+  }
 
   // --------------------------------- private method ---------------------------------
 

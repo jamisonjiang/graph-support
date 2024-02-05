@@ -19,11 +19,7 @@ package visual_case;
 import static org.graphper.api.Html.table;
 import static org.graphper.api.Html.td;
 
-import helper.DocumentUtils;
 import helper.GraphvizVisual;
-import helper.SerialHelper;
-import java.io.File;
-import java.io.IOException;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
@@ -34,6 +30,7 @@ import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.Labeljust;
+import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
@@ -309,13 +306,6 @@ public class BugCaseTest extends GraphvizVisual {
   }
 
   @Test
-  public void testWrongClusterFromSerial() throws IOException, ClassNotFoundException {
-    SerialHelper.readObj(o -> {
-      visual((Graphviz) o);
-    }, new File(DocumentUtils.getTestSerialPath() + "graph1"));
-  }
-
-  @Test
   public void testAllPortPosition() {
     /*
     digraph {
@@ -547,6 +537,120 @@ public class BugCaseTest extends GraphvizVisual {
         .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())
         .addNode(Node.builder().label("{hello|{|sssskkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk}|{fffffffffffffffff|}|{||||}|{|{|||}||}|{|}}").build())
         .addNode(Node.builder().label("{hello|{|{||{||{|}}}}|{|sssskkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk}|{fffffffffffffffff|}|{||||}||}").build())
+        .build();
+
+    visual(graphviz);
+  }
+
+  @Test
+  public void newLineMeasureTextWrong() {
+    Node n = Node.builder()
+        .shape(NodeShapeEnum.RECT)
+        .label("HELLO WORLD\n"
+                   + "HELLO WORLD HELLO WORLD HELLO WORLD HELLO WORLD\n"
+                   + "HELLO WORLD HELLO WORLD HELLO WORLD HELLO WORLD\n"
+                   + "HELLO WORLD HELLO WORLD HELLO WORLD HELLO WORLD\n"
+                   + "HELLO WORLD HELLO WORLD HELLO WORLD HELLO WORLD\n"
+                   + "HELLO WORLD HELLO WORLD HELLO WORLD HELLO WORLD\n"
+        )
+        .build();
+
+    visual(Graphviz.digraph().addNode(n).build());
+  }
+
+  @Test
+  public void wrongLabelloc() {
+    Node A = Node.builder().label("A").build();
+    Node B = Node.builder().label("B").build();
+    Node C = Node.builder().label("C").build();
+    Node AA = Node.builder().label("AA").build();
+    Node BB = Node.builder().label("BB").build();
+    Node CC = Node.builder().label("CC").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .rankdir(Rankdir.BT)
+        .addLine(BB, C)
+        .cluster(
+            Cluster.builder()
+                .label("Cluster A")
+                .labelloc(Labelloc.BOTTOM)
+                .addLine(C, A)
+                .addLine(C, B)
+                .build()
+        )
+        .cluster(
+            Cluster.builder()
+                .label("Cluster B")
+                .labelloc(Labelloc.BOTTOM)
+                .addLine(CC, AA)
+                .addLine(CC, BB)
+                .build()
+        )
+        .build();
+
+    visual(graphviz);
+  }
+
+  @Test
+  public void clusterOverlap() {
+    Node a = Node.builder().label("a").build();
+    Node b = Node.builder().label("b").build();
+    Node c = Node.builder().label("c").build();
+    Node d = Node.builder().label("d").build();
+    Node f = Node.builder().label("f").build();
+    Node l = Node.builder().label("l").build();
+    Node aa = Node.builder().label("aa").build();
+    Node bb = Node.builder().label("bb").build();
+    Node cc = Node.builder().label("cc").build();
+    Node ss = Node.builder().label("ss").build();
+    Node tt = Node.builder().label("tt").build();
+    Node gg = Node.builder().label("gg").build();
+    Node pp = Node.builder().label("pp").build();
+    Node ff = Node.builder().label("ff").build();
+    Node _12 = Node.builder().label("12").build();
+    Node _45 = Node.builder().label("45").build();
+    Node _34 = Node.builder().label("34").build();
+    Node _98 = Node.builder().label("98").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .addLine(c, bb)
+        .addLine(b, f)
+        .addLine(f, gg)
+        .addLine(f, ss)
+        .addLine(b, d)
+        .addLine(c, d)
+        .addLine(aa, d)
+        .addLine(l, aa)
+
+        .startClus()
+        .label("Cluster A")
+        .addLine(a, c)
+        .addLine(b, c)
+        .endClus()
+
+        .startClus()
+        .label("Cluster B")
+        .addLine(aa, cc)
+        .addLine(bb, cc)
+        .endClus()
+
+        .startClus()
+        .label("Cluster C")
+        .addLine(ss, tt)
+        .addLine(gg, pp)
+        .addLine(d, f)
+        .addLine(l, ff)
+        .addLine(ff, ss)
+        .endClus()
+
+        .startClus()
+        .label("Cluster D")
+        .addLine(_12, _45)
+        .addLine(_34, _98)
+        .addLine(_34, _45)
+        .addLine(_45, _98)
+        .endClus()
+
         .build();
 
     visual(graphviz);

@@ -16,7 +16,6 @@
 
 package org.graphper.api.attributes;
 
-public interface StyleItem {
+public interface Style {
 
-  String getName();
 }

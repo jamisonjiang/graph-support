@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg.line;
 
+import java.util.Collection;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
@@ -25,6 +26,8 @@ import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
+import org.graphper.draw.svg.SvgEditor;
+import org.graphper.util.CollectionUtils;
 
 public class LineStyleEditor implements LineEditor<SvgBrush> {
 
@@ -32,14 +35,9 @@ public class LineStyleEditor implements LineEditor<SvgBrush> {
   public boolean edit(LineDrawProp line, SvgBrush brush) {
     setArrowProp(line.lineAttrs(), brush);
 
-    LineStyle style = line.lineAttrs().getStyle();
-    if (style == null) {
+    Collection<LineStyle> styles = line.lineAttrs().getStyles();
+    if (CollectionUtils.isEmpty(styles)) {
       return true;
-    }
-
-    if (style == LineStyle.INVIS) {
-      brush.drawBoard().removeLine(line.getLine());
-      return false;
     }
 
     Element pathEle = brush.getOrCreateChildElementById(
@@ -47,26 +45,27 @@ public class LineStyleEditor implements LineEditor<SvgBrush> {
         SvgConstants.PATH_ELE
     );
 
-    if (style == LineStyle.DASHED) {
-      dashed(pathEle);
-      return true;
-    }
+    for (LineStyle style : styles) {
+      if (style == LineStyle.DASHED) {
+        dashed(pathEle);
+        continue;
+      }
 
-    if (style == LineStyle.DOTTED) {
-      dotted(pathEle);
-      return true;
+      if (style == LineStyle.DOTTED) {
+        dotted(pathEle);
+      }
     }
-
-    if (style == LineStyle.BOLD) {
-      bold(pathEle);
-      return true;
-    }
-
     return true;
   }
 
   private void setArrowProp(LineAttrs lineAttrs, SvgBrush brush) {
     Double penWidth = lineAttrs.getPenWidth();
+    boolean haveBold = lineAttrs.getStyles().contains(LineStyle.BOLD);
+    if (penWidth != null) {
+      penWidth = SvgEditor.strokeWidth(penWidth, haveBold);
+    } else if (haveBold) {
+      penWidth = 2.0;
+    }
 
     Color color = lineAttrs.getColor();
     ArrowShape arrowHead = lineAttrs.getArrowHead();
@@ -98,9 +97,5 @@ public class LineStyleEditor implements LineEditor<SvgBrush> {
   private void dotted(Element pathEle) {
     pathEle.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
     pathEle.setAttribute(SvgConstants.STROKE_DASHARRAY, "1,5");
-  }
-
-  private void bold(Element shape) {
-    shape.setAttribute(SvgConstants.STROKE_WIDTH, "2");
   }
 }

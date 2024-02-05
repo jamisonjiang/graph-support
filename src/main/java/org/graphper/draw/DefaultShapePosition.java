@@ -17,6 +17,7 @@
 package org.graphper.draw;
 
 import java.util.Objects;
+import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.util.Asserts;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.ext.DefaultBox;
@@ -29,24 +30,18 @@ import org.graphper.api.ext.ShapePosition;
  */
 public class DefaultShapePosition extends DefaultBox implements ShapePosition {
 
-  private final NodeShape nodeShape;
+  private final ShapePropCalc shapeProp;
 
   public DefaultShapePosition(double x, double y, double height,
                               double width, NodeShape nodeShape) {
     super(x - width / 2, x + width / 2, y - height / 2, y + height / 2);
     Asserts.nullArgument(nodeShape, "nodeShape");
-    this.nodeShape = nodeShape;
+    this.shapeProp = nodeShape;
   }
 
-  /**
-   * Returns a primitive describing the shape the current object should conform to. Although
-   * {@link NodeShape} is used to describe, the current element is not necessarily a node.
-   *
-   * @return current element shape
-   */
   @Override
-  public NodeShape nodeShape() {
-    return nodeShape;
+  public ShapePropCalc shapeProp() {
+    return shapeProp;
   }
 
   @Override
@@ -61,11 +56,12 @@ public class DefaultShapePosition extends DefaultBox implements ShapePosition {
       return false;
     }
     DefaultShapePosition that = (DefaultShapePosition) o;
-    return nodeShape == that.nodeShape;
+    return shapeProp == that.shapeProp;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), nodeShape);
+    return Objects.hash(super.hashCode(), shapeProp);
   }
+
 }

@@ -61,7 +61,6 @@ public abstract class LineClip {
 
   private static final FlatPoint FLOAT_LABEL_LEFT_OFFSET = new UnmodifyFlatPoint(-0.5, -0.5);
   private static final FlatPoint FLOAT_LABEL_RIGHT_OFFSET = new UnmodifyFlatPoint(-0.5, 0.5);
-  private static final FlatPoint FLOAT_LABEL_UP_OFFSET = FLOAT_LABEL_RIGHT_OFFSET;
   private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
 
   protected DrawGraph drawGraph;
@@ -638,8 +637,8 @@ public abstract class LineClip {
       return node;
     }
 
-    RootCell Cell = node.getCell();
-    Cell cell = Cell.getCellById(cellId);
+    RootCell rootCell = node.getCell();
+    Cell cell = rootCell.getCellById(cellId);
     if (cell == null) {
       return node;
     }

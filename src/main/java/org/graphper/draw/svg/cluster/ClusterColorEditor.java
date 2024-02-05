@@ -31,8 +31,8 @@ public class ClusterColorEditor extends SvgEditor implements ClusterEditor<SvgBr
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
     cluster.check();
 
+    ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
     for (Element clusterEle : brush.getEleGroup(SHAPE_GROUP_KEY)) {
-      ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
       Color bgColor = clusterAttrs.getBgColor();
       if (bgColor != null) {
         clusterEle.setAttribute(SvgConstants.FILL, bgColor.value());

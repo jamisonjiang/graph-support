@@ -17,6 +17,7 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Line.LineBuilder;
@@ -370,11 +371,13 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     /**
      * Set the style of node, Please check the details {@link NodeStyle}.
      *
-     * @param nodeStyle node style
+     * @param styles node styles
      * @return node builder
+     * @throws IllegalArgumentException empty styles or contains null style
      */
-    public NodeBuilder style(NodeStyle nodeStyle) {
-      nodeAttrs.style = nodeStyle;
+    public NodeBuilder style(NodeStyle... styles) {
+      Asserts.nullOrContainsNull(styles);
+      nodeAttrs.styles = Arrays.asList(styles);
       return this;
     }
 

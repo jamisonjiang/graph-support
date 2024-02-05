@@ -224,7 +224,7 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
       return false;
     }
 
-    return lineAttrs().getStyle() == LineStyle.INVIS;
+    return lineAttrs().getStyles().contains(LineStyle.INVIS);
   }
 
   @Override

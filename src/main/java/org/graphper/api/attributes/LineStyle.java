@@ -21,30 +21,30 @@ package org.graphper.api.attributes;
  *
  * @author Jamison Jiang
  */
-public interface LineStyle extends StyleItem {
+public enum LineStyle {
 
   /**
    * Dashed line consisting of a series of line segment.
    */
-  LineStyle DASHED = NameStyle.DASHED;
+  DASHED,
 
   /**
    * Dotted line consisting of a series of points.
    */
-  LineStyle DOTTED = NameStyle.DOTTED;
+  DOTTED,
 
   /**
    * Line segments are drawn as solid lines.
    */
-  LineStyle SOLID = NameStyle.SOLID;
+  SOLID,
 
   /**
    * Hide line segments when rendering (but the attributes are valid during layout).
    */
-  LineStyle INVIS = NameStyle.INVIS;
+  INVIS,
 
   /**
    * Draws the line segment boldly.
    */
-  LineStyle BOLD = NameStyle.BOLD;
+  BOLD
 }

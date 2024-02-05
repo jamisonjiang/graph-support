@@ -18,6 +18,8 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
@@ -25,6 +27,7 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.api.attributes.Port;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Line attribute object.
@@ -67,7 +70,7 @@ public class LineAttrs implements Serializable, Cloneable {
 
   String label;
 
-  LineStyle style;
+  Collection<LineStyle> styles;
 
   String lhead;
 
@@ -160,8 +163,11 @@ public class LineAttrs implements Serializable, Cloneable {
     return minlen;
   }
 
-  public LineStyle getStyle() {
-    return style;
+  public Collection<LineStyle> getStyles() {
+    if (CollectionUtils.isEmpty(styles)) {
+      return Collections.emptyList();
+    }
+    return styles;
   }
 
   public String getLhead() {
@@ -246,7 +252,7 @@ public class LineAttrs implements Serializable, Cloneable {
         && Objects.equals(minlen, lineAttrs.minlen)
         && Objects.equals(weight, lineAttrs.weight)
         && Objects.equals(label, lineAttrs.label)
-        && Objects.equals(style, lineAttrs.style)
+        && Objects.equals(styles, lineAttrs.styles)
         && Objects.equals(lhead, lineAttrs.lhead)
         && Objects.equals(ltail, lineAttrs.ltail)
         && Objects.equals(radian, lineAttrs.radian)
@@ -264,7 +270,7 @@ public class LineAttrs implements Serializable, Cloneable {
   public int hashCode() {
     int result = Objects.hash(id, controlPoints, showboxes, arrowHead, arrowTail, arrowSize, color,
                               dir, fontColor, fontSize, fontName, headclip, tailclip, minlen,
-                              weight, label, style, lhead, ltail, radian, tailPort, headPort,
+                              weight, label, styles, lhead, ltail, radian, tailPort, headPort,
                               tailCell, headCell, href, penWidth, table, assemble);
     result = 31 * result + Arrays.hashCode(floatLabels);
     return result;
@@ -289,7 +295,7 @@ public class LineAttrs implements Serializable, Cloneable {
         ", minlen=" + minlen +
         ", weight=" + weight +
         ", label='" + label + '\'' +
-        ", style=" + style +
+        ", styles=" + styles +
         ", lhead='" + lhead + '\'' +
         ", ltail='" + ltail + '\'' +
         ", radian=" + radian +

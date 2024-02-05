@@ -24,26 +24,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import org.graphper.api.Line;
-import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
-import org.graphper.draw.DefaultShapePosition;
-import org.graphper.draw.DrawGraph;
-import org.graphper.draw.LineDrawProp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.Curves;
 import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
+import org.graphper.draw.DefaultShapePosition;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.api.attributes.Port;
-import org.graphper.layout.dot.RankContent.RankNode;
+import org.graphper.util.EnvProp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractDotLineRouter extends LineClip implements DotLineRouter {
 
@@ -175,32 +176,32 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
   public static FlatPoint straightLineClipShape(ShapePosition shapePosition,
                                                 FlatPoint inPoint, FlatPoint outPoint) {
     Asserts.nullArgument(shapePosition, "shapePosition");
-    return straightLineClipShape(shapePosition, shapePosition.nodeShape(), inPoint, outPoint);
+    return straightLineClipShape(shapePosition, shapePosition.shapeProp(), inPoint, outPoint);
   }
 
   /**
    * Divide the path using the tangent vector that the path intersects at the node boundary to fit
    * the path to the node shape.
    *
-   * @param box       node box
-   * @param nodeShape node shape
-   * @param inPoint   point inside node
-   * @param outPoint  point outside node
+   * @param box           node box
+   * @param shapePropCalc node shape properties function
+   * @param inPoint       point inside node
+   * @param outPoint      point outside node
    * @return border crossing point
    */
-  public static FlatPoint straightLineClipShape(Box box, NodeShape nodeShape,
+  public static FlatPoint straightLineClipShape(Box box, ShapePropCalc shapePropCalc,
                                                 FlatPoint inPoint, FlatPoint outPoint) {
     Asserts.nullArgument(inPoint, "inPoint");
     Asserts.nullArgument(outPoint, "outPoint");
     Asserts.nullArgument(box, "shapePosition");
-    Asserts.nullArgument(nodeShape, "shapePosition.nodeShape()");
+    Asserts.nullArgument(shapePropCalc, "shapePosition.nodeShape()");
 
     Asserts.illegalArgument(
-        !nodeShape.in(box, inPoint),
+        !shapePropCalc.in(box, inPoint),
         "The specified internal node is not inside the node"
     );
     Asserts.illegalArgument(
-        nodeShape.in(box, outPoint),
+        shapePropCalc.in(box, outPoint),
         "The specified external node is inside the node"
     );
 
@@ -211,7 +212,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     do {
       midPoint = new FlatPoint((in.getX() + out.getX()) / 2, (in.getY() + out.getY()) / 2);
 
-      if (nodeShape.in(box, midPoint)) {
+      if (shapePropCalc.in(box, midPoint)) {
         in = midPoint;
       } else {
         out = midPoint;
@@ -233,7 +234,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
   public static ThirdOrderBezierCurve besselCurveClipShape(ShapePosition shapePosition,
                                                            ThirdOrderBezierCurve bezierCurve) {
     Asserts.nullArgument(shapePosition, "shapePosition");
-    Asserts.nullArgument(shapePosition.nodeShape(), "shapePosition.nodeShape()");
+    Asserts.nullArgument(shapePosition.shapeProp(), "shapePosition.nodeShape()");
     Asserts.nullArgument(bezierCurve, "bezierCurve");
 
     if (shapePosition.getHeight() <= 0 || shapePosition.getWidth() <= 0) {
@@ -245,10 +246,10 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     FlatPoint v3 = bezierCurve.getV3();
     FlatPoint v4 = bezierCurve.getV4();
 
-    NodeShape nodeShape = shapePosition.nodeShape();
+    ShapePropCalc shapePropCalc = shapePosition.shapeProp();
 
-    boolean v1In = nodeShape.in(shapePosition, v1);
-    boolean v4In = nodeShape.in(shapePosition, v4);
+    boolean v1In = shapePropCalc.in(shapePosition, v1);
+    boolean v4In = shapePropCalc.in(shapePosition, v4);
 
     if (v1In && v4In) {
       return null;
@@ -265,7 +266,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     do {
       FlatPoint midPoint = Curves.besselEquationCalc((in + out) / 2, points);
 
-      if (nodeShape.in(shapePosition, midPoint)) {
+      if (shapePropCalc.in(shapePosition, midPoint)) {
         in = (in + out) / 2;
       } else {
         out = (in + out) / 2;
@@ -291,7 +292,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
       return;
     }
 
-    boolean portAxisSelfLineMode = drawGraph.usePortAxisExpander();
+    boolean portAxisSelfLineMode = EnvProp.usePortAxisExpander();
     FlatPoint center = new FlatPoint(node.getX(), node.getY());
     for (DLine selfLine : node.getSelfLines()) {
       LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
@@ -475,20 +476,20 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
                                                                    boolean firstStart,
                                                                    ShapePosition shapePosition) {
     Asserts.nullArgument(shapePosition, "shapePosition");
-    Asserts.nullArgument(shapePosition.nodeShape(), "shapePosition.nodeShape()");
+    Asserts.nullArgument(shapePosition.shapeProp(), "shapePosition.nodeShape()");
 
     Integer idx = null;
     Integer count = null;
 
-    NodeShape nodeShape = shapePosition.nodeShape();
+    ShapePropCalc shapeProp = shapePosition.shapeProp();
 
     E point = getFirst(path);
-    if (firstStart && point != null && nodeShape.in(shapePosition, point)) {
+    if (firstStart && point != null && shapeProp.in(shapePosition, point)) {
       idx = 0;
       count = unit;
     } else {
       point = getLast(path);
-      if (point != null && nodeShape.in(shapePosition, point)) {
+      if (point != null && shapeProp.in(shapePosition, point)) {
         idx = path.size() - 1;
         count = -unit;
       }
@@ -501,8 +502,8 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     E pre = null;
     do {
       if (pre != null) {
-        boolean preIn = nodeShape.in(shapePosition, pre);
-        boolean pointIn = nodeShape.in(shapePosition, point);
+        boolean preIn = shapeProp.in(shapePosition, pre);
+        boolean pointIn = shapeProp.in(shapePosition, point);
 
         if (preIn != pointIn) {
           return new InOutPointPair(

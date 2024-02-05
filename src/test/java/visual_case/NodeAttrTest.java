@@ -70,11 +70,11 @@ public class NodeAttrTest extends GraphvizVisual {
 
   static Stream<Node> styleCases() {
     return Stream.of(
-        Node.builder().label(NodeStyle.DASHED.getName()).style(NodeStyle.DASHED).build(),
-        Node.builder().label(NodeStyle.DOTTED.getName()).style(NodeStyle.DOTTED).build(),
-        Node.builder().label(NodeStyle.SOLID.getName()).style(NodeStyle.SOLID).build(),
-        Node.builder().label(NodeStyle.INVIS.getName()).style(NodeStyle.INVIS).build(),
-        Node.builder().label(NodeStyle.BOLD.getName()).style(NodeStyle.BOLD).build()
+        Node.builder().label(NodeStyle.DASHED.name()).style(NodeStyle.DASHED).build(),
+        Node.builder().label(NodeStyle.DOTTED.name()).style(NodeStyle.DOTTED).build(),
+        Node.builder().label(NodeStyle.SOLID.name()).style(NodeStyle.SOLID).build(),
+        Node.builder().label(NodeStyle.INVIS.name()).style(NodeStyle.INVIS).build(),
+        Node.builder().label(NodeStyle.BOLD.name()).style(NodeStyle.BOLD).build()
     );
   }
 

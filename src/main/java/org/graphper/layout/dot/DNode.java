@@ -33,6 +33,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 
 class DNode extends VertexIndex implements Box, ShapePosition {
 
@@ -328,7 +329,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     if (splines == Splines.ORTHO) {
       nodeSizeExpander = new OrthoNodeSizeExpander(this);
-    } else if (drawGraph.usePortAxisExpander()) {
+    } else if (EnvProp.usePortAxisExpander()) {
       nodeSizeExpander = new PortNodeSizeExpander(drawGraph, this);
     } else {
       nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
@@ -347,7 +348,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     if (isLabelNode()) {
       return 0;
     }
-    double lw = nodeShape().leftWidth(width);
+    double lw = shapeProp().leftWidth(width);
     if (nodeSizeExpander != null) {
       lw += nodeSizeExpander.getLeftWidthOffset();
     }
@@ -359,7 +360,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
       return width;
     }
 
-    double rw = nodeShape().rightWidth(width);
+    double rw = shapeProp().rightWidth(width);
     if (nodeSizeExpander != null) {
       rw += nodeSizeExpander.getRightWidthOffset();
     }
@@ -367,7 +368,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   }
 
   double topHeight() {
-    double th = nodeShape().topHeight(height);
+    double th = shapeProp().topHeight(height);
     if (nodeSizeExpander != null) {
       th += nodeSizeExpander.getTopHeightOffset();
     }
@@ -375,7 +376,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   }
 
   double bottomHeight() {
-    double bh = nodeShape().bottomHeight(height);
+    double bh = shapeProp().bottomHeight(height);
     if (nodeSizeExpander != null) {
       bh += nodeSizeExpander.getBottomHeightOffset();
     }
@@ -383,23 +384,23 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   }
 
   double realLeftWidth() {
-    return nodeShape().leftWidth(width);
+    return shapeProp().leftWidth(width);
   }
 
   double realRightWidth() {
     if (isLabelNode()) {
       return width;
     } else {
-      return nodeShape().rightWidth(width);
+      return shapeProp().rightWidth(width);
     }
   }
 
   double realTopHeight() {
-    return nodeShape().topHeight(height);
+    return shapeProp().topHeight(height);
   }
 
   double realBottomHeight() {
-    return nodeShape().bottomHeight(height);
+    return shapeProp().bottomHeight(height);
   }
 
   @Override
@@ -469,8 +470,8 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   }
 
   @Override
-  public NodeShape nodeShape() {
-    if (isVirtual() || nodeAttrs == null) {
+  public NodeShape shapeProp() {
+   if (isVirtual() || nodeAttrs == null) {
       return NodeShapeEnum.CIRCLE;
     }
 

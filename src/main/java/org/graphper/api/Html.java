@@ -18,6 +18,8 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.graphper.api.attributes.Color;
@@ -79,7 +81,7 @@ public class Html {
 
     private String href;
 
-    private NodeStyle style;
+    private Collection<NodeStyle> styles;
 
     protected abstract T self();
 
@@ -201,11 +203,12 @@ public class Html {
     /**
      * Set the style of the element.
      *
-     * @param style element style
+     * @param styles element styles
      * @return this element
      */
-    public T style(NodeStyle style) {
-      this.style = style;
+    public T style(NodeStyle... styles) {
+      Asserts.nullOrContainsNull(styles);
+      this.styles = Arrays.asList(styles);
       return self();
     }
 
@@ -245,8 +248,11 @@ public class Html {
       return href;
     }
 
-    public NodeStyle getStyle() {
-      return style;
+    public Collection<NodeStyle> getStyles() {
+      if (CollectionUtils.isEmpty(styles)) {
+        return Collections.emptyList();
+      }
+      return styles;
     }
 
     public Labelloc getValign() {
@@ -622,14 +628,14 @@ public class Html {
       return 5;
     }
 
-    public NodeStyle getStyle(Table table) {
-      if (super.getStyle() != null) {
-        return super.getStyle();
+    public Collection<NodeStyle> getStyles(Table table) {
+      if (CollectionUtils.isNotEmpty(super.getStyles())) {
+        return super.getStyles();
       }
-      if (table != null && table.getStyle() != null) {
-        return table.getStyle();
+      if (table != null) {
+        return table.getStyles();
       }
-      return null;
+      return Collections.emptyList();
     }
 
     public boolean isFixedSize(Table table) {

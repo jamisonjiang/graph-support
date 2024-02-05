@@ -33,6 +33,7 @@ import org.graphper.api.Html.Td;
 import org.graphper.api.Html.Tr;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
+import org.graphper.api.attributes.NodeStyle;
 import org.graphper.def.CycleDependencyException;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
@@ -395,17 +396,18 @@ public class HtmlConvert {
     double width = tableHelper.getWidth() / Graphviz.PIXEL;
     double height = tableHelper.getHeight() / Graphviz.PIXEL;
     AssembleBuilder assembleBuilder = Assemble.builder().width(width).height(height);
-    assembleBuilder.addCell(0, 0,
-                            Node.builder()
-                                .id(table.getId())
-                                .width(width)
-                                .height(height)
-                                .href(table.getHref())
-                                .style(table.getStyle())
-                                .color(table.getColor())
-                                .fillColor(table.getBgColor())
-                                .penWidth(table.getBorder())
-                                .build());
+    NodeBuilder nodeBuilder = Node.builder()
+        .id(table.getId())
+        .width(width)
+        .height(height)
+        .href(table.getHref())
+        .color(table.getColor())
+        .fillColor(table.getBgColor())
+        .penWidth(table.getBorder());
+    if (CollectionUtils.isNotEmpty(table.getStyles())) {
+      nodeBuilder.style(table.getStyles().toArray(new NodeStyle[0]));
+    }
+    assembleBuilder.addCell(0, 0, nodeBuilder.build());
 
     for (int r = 0; r < table.rowNum(); r++) {
       Tr tr = table.getTr(r);
@@ -435,12 +437,15 @@ public class HtmlConvert {
             .labeljust(td.getAlign(table))
             .labelloc(td.getValign(table))
             .penWidth(td.getBorder(table))
-            .style(td.getStyle(table))
             .fontName(td.getFontName())
             .color(td.getColor())
             .fontColor(td.getFontColor())
             .fillColor(td.getBgColor())
             .fontSize(td.getFontSize());
+
+        if (CollectionUtils.isNotEmpty(td.getStyles(table))) {
+          cellBuilder.style(td.getStyles(table).toArray(new NodeStyle[0]));
+        }
 
         Table childTable = td.getTable();
         if (childTable != null) {
@@ -483,6 +488,7 @@ public class HtmlConvert {
     int margin = td.getCellPadding(table) + table.getCellSpacing();
     tdBox.size = td.getShape().minContainerSize(labelSize.getHeight() + margin,
                                                 labelSize.getWidth() + margin);
+    Asserts.nullArgument(tdBox.size, "Node shape cannot return null outer box size");
     tdBox.size.setWidth(Math.max(width, tdBox.size.getWidth()));
     tdBox.size.setHeight(Math.max(height, tdBox.size.getHeight()));
   }

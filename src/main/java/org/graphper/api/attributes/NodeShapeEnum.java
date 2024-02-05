@@ -24,6 +24,7 @@ import org.graphper.api.ext.CirclePropCalc;
 import org.graphper.api.ext.CylinderPropCalc;
 import org.graphper.api.ext.DiamondPropCalc;
 import org.graphper.api.ext.EllipsePropCalc;
+import org.graphper.api.ext.NodeShapePost;
 import org.graphper.api.ext.NotePropCalc;
 import org.graphper.api.ext.ParallelogramPropCalc;
 import org.graphper.api.ext.PlainPropCalc;
@@ -31,6 +32,7 @@ import org.graphper.api.ext.PointPropCalc;
 import org.graphper.api.ext.RecordPropCalc;
 import org.graphper.api.ext.RectanglePropCalc;
 import org.graphper.api.ext.RegularPolylinePropCalc;
+import org.graphper.api.ext.RegularPolylinePropCalc.RegularPolyShapePost;
 import org.graphper.api.ext.ShapeCenterCalc;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.api.ext.StarPropCalc;
@@ -75,11 +77,20 @@ public enum NodeShapeEnum implements NodeShape {
 
   CYLINDER("cylinder", new CylinderPropCalc()),
 
+  PENTAGON("pentagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(5)),
+
+  HEXAGON("hexagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(6)),
+
+  SEPTAGON("septagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(7)),
+
+  OCTAGON("octagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(8)),
+
   /**
    * Rules and more deformations, like: square, regular pentagon, regular hexagon. Please check
    * {@link NodeBuilder#sides(int)}.
    */
-  REGULAR_POLYLINE("regular_polyline", 0.75, 0.75, new RegularPolylinePropCalc()),
+  REGULAR_POLYLINE("regular_polyline", 0.75, 0.75,
+                   new RegularPolylinePropCalc(), new RegularPolyShapePost()),
 
   /**
    * When the node label is an <strong>Cell Expression</strong>, the node will be displayed as a
@@ -104,25 +115,35 @@ public enum NodeShapeEnum implements NodeShape {
 
   private final ShapePropCalc shapePropCalc;
 
+  private final NodeShapePost nodeShapePost;
+
   NodeShapeEnum(String name, ShapePropCalc shapePropCalc) {
     this.name = name;
     this.shapeCenterCalc = SymmetryShapeCenterCalc.SSPC;
     this.shapePropCalc = shapePropCalc;
+    this.nodeShapePost = null;
   }
 
-  NodeShapeEnum(String name, double defaultHeight,
-                double defaultWidth, ShapePropCalc shapePropCalc) {
-    this(name, defaultHeight, defaultWidth, SymmetryShapeCenterCalc.SSPC, shapePropCalc);
-  }
-
-  NodeShapeEnum(String name, double defaultHeight,
-                double defaultWidth, ShapeCenterCalc shapeCenterCalc,
+  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
                 ShapePropCalc shapePropCalc) {
+    this(name, defaultHeight, defaultWidth, SymmetryShapeCenterCalc.SSPC, shapePropCalc, null);
+  }
+
+  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
+                ShapePropCalc shapePropCalc, NodeShapePost nodeShapePost) {
+    this(name, defaultHeight, defaultWidth, SymmetryShapeCenterCalc.SSPC,
+         shapePropCalc, nodeShapePost);
+  }
+
+  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
+                ShapeCenterCalc shapeCenterCalc, ShapePropCalc shapePropCalc,
+                NodeShapePost nodeShapePost) {
     this.name = name;
     this.defaultHeight = defaultHeight;
     this.defaultWidth = defaultWidth;
     this.shapeCenterCalc = shapeCenterCalc;
     this.shapePropCalc = shapePropCalc;
+    this.nodeShapePost = nodeShapePost;
   }
 
   @Override
@@ -195,7 +216,7 @@ public enum NodeShapeEnum implements NodeShape {
 
   @Override
   public NodeShape post(NodeAttrs nodeAttrs) {
-    return shapePropCalc.post(nodeAttrs);
+    return nodeShapePost != null ? nodeShapePost.post(nodeAttrs) : this;
   }
 
   @Override

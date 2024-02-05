@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.graphper.draw.ClusterDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.api.Node;
@@ -102,6 +103,19 @@ public class SvgBrush implements Brush {
    */
   public Element getShapeElement(NodeDrawProp node, String tagName) {
     String shapeId = SvgBrush.getId(nodeId(node.getNode()), tagName);
+    return getOrCreateShapeEleById(shapeId, tagName);
+  }
+
+  /**
+   * Get the child element under the current element according to the cluster and element tag, if
+   * there is no one, create one, if there is, return it directly.
+   *
+   * @param cluster cluster
+   * @param tagName element tag name
+   * @return child element
+   */
+  public Element getShapeElement(ClusterDrawProp cluster, String tagName) {
+    String shapeId = SvgBrush.getId(drawBoard().clusterId(cluster), tagName);
     return getOrCreateShapeEleById(shapeId, tagName);
   }
 

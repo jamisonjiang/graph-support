@@ -17,11 +17,15 @@
 package org.graphper.api;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import org.graphper.api.Html.Table;
+import org.graphper.api.attributes.ClusterShape;
+import org.graphper.api.attributes.ClusterShapeEnum;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
+import org.graphper.api.attributes.Layout;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.util.Asserts;
 
@@ -107,7 +111,7 @@ public class Cluster extends GraphContainer implements Serializable {
      *
      * @param labeljust labeljust to be added to this cluster
      * @return cluster builder
-     * @throws NullPointerException null labbeljust
+     * @throws NullPointerException null labeljust
      */
     public B labeljust(Labeljust labeljust) {
       Asserts.nullArgument(labeljust, "labeljust");
@@ -116,13 +120,46 @@ public class Cluster extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the font style of cluster.
+     * Set the shape of the cluster, for the shapes supported by default, please check
+     * {@link ClusterShapeEnum}.
      *
-     * @param style cluster style
+     * <p>Cluster shapes except {@link ClusterShapeEnum#RECT} no guarantee that cluster container
+     * will surround all nodes under {@link Layout#DOT} engine but will try best estimated the
+     * container size by {@link ClusterShape#minContainerSize(double, double)} method, but still
+     * have the following principles as much as possible surround all nodes:
+     * <ul>
+     *   <li>The gap between internal box and external box is as small ass possible, it means output
+     *   of {@link ClusterShape#minContainerSize(double, double)} of current shape close enough than input.
+     *   e.g, {@link ClusterShapeEnum#RECT} no gap between internal and external boxes.
+     *   <li>Internal nodes are kept isolated from external nodes of cluster, it means interact edges
+     *   from internal nodes to external nodes as little as possible.
+     *   <li>Avoid cluster nesting as much as possible if cluster shapes is not {@link ClusterShapeEnum#RECT}
+     *   (or the cluster shape no gap between internal and external box like RECT shape), the error in
+     *   evaluation will be magnified in this case.
+     *   <li>Manual adjust {@link #margin(double)} reserve enough internal space to avoid nodes
+     *   overflow cluster container.
+     * </ul>
+     *
+     * @param shape cluster shape
      * @return cluster builder
+     * @throws NullPointerException null cluster shape
      */
-    public B style(ClusterStyle style) {
-      clusterAttrs.style = style;
+    public B shape(ClusterShape shape) {
+      Asserts.nullArgument(shape, "shape");
+      clusterAttrs.shape = shape;
+      return self();
+    }
+
+    /**
+     * Set the style of cluster, Please check the details {@link ClusterStyle}.
+     *
+     * @param styles cluster styles
+     * @return cluster builder
+     * @throws IllegalArgumentException empty styles or contains null style
+     */
+    public B style(ClusterStyle... styles) {
+      Asserts.nullOrContainsNull(styles);
+      clusterAttrs.styles = Arrays.asList(styles);
       return self();
     }
 

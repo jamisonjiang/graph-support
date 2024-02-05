@@ -29,7 +29,7 @@ public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBru
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
     ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
-    if (clusterAttrs.getStyle() == ClusterStyle.INVIS) {
+    if (clusterAttrs.getStyles().contains(ClusterStyle.INVIS)) {
       return false;
     }
     if (clusterAttrs.getHref() == null) {
