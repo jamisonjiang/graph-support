@@ -657,6 +657,7 @@ class MinCross {
           continue;
         }
 
+        // Merge node occupied cluster proxy node first
         clusterProxyNode(node, cluster);
         crossRank.addNode(node);
 
@@ -874,6 +875,10 @@ class MinCross {
         Cluster cluster = (Cluster) fromContainer;
         fromMin = clusterExpand.clusterMerge.minRank(cluster);
         fromMax = clusterExpand.clusterMerge.maxRank(cluster);
+
+        /*
+         * Get merge node of adjacent of cluster
+         */
         clusterAdjRankNode = clusterExpand.clusterMerge
             .clusterMergeAdjRankNode(cluster, from, isOutDirection);
       }
@@ -884,6 +889,11 @@ class MinCross {
         toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, to, dLine);
       }
 
+      /*
+       * If from node in cluster, the rank of from node located possible
+       * no any edges with the merge node of adjacent rank, we should
+       * guarantee the next rank merge node accessed first even no any edges between them.
+       */
       if (clusterAdjRankNode != null) {
         toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, clusterAdjRankNode, null);
       }
@@ -932,6 +942,7 @@ class MinCross {
         return false;
       }
 
+      // Clusters of two nodes should not have any intersect of rank
       GraphContainer toContainer = dotAttachment.clusterDirectContainer(crossRank.container(), to);
       toContainer = toContainer == null ? to.getContainer() : toContainer;
       if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()) {
@@ -944,6 +955,10 @@ class MinCross {
         }
       }
 
+      /*
+       * Only access the node which have different cluster with from node
+       * if to node located at the top/bottom rank of cluster (depends on the direction)
+       */
       if (toContainer.isCluster() && fromContainer != toContainer) {
         int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
         int toMax = clusterExpand.clusterMerge.maxRank((Cluster) toContainer);

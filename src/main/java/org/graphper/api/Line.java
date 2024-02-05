@@ -364,7 +364,7 @@ public class Line implements Comparable<Line>, Serializable {
     /**
      * Set the style of line, Please check the details {@link LineStyle}.
      *
-     * @param styles line style
+     * @param styles line styles
      * @return line builder
      * @throws IllegalArgumentException empty styles or contains null style
      */
