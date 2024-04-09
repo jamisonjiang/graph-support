@@ -31,4 +31,14 @@ public interface FontSelector extends EnvStrategy {
    * @return default font name
    */
   String defaultFont();
+
+  /**
+   * Return true if font exists in system.
+   *
+   * @param fontName font name
+   * @return true if font exists in system
+   */
+  default boolean exists(String fontName) {
+    return true;
+  }
 }

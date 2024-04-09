@@ -31,6 +31,7 @@ import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 
 /**
  * Svg editor for graph element.
@@ -63,7 +64,8 @@ public class SvgEditor implements SvgConstants {
     }
 
     if (attribute.fontName != null) {
-      text.setAttribute(FONT_FAMILY, attribute.fontName);
+      String fontName = FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
+      text.setAttribute(FONT_FAMILY, fontName);
     }
   }
 
@@ -84,7 +86,7 @@ public class SvgEditor implements SvgConstants {
     String[] lines = textAttribute.label.split("\n");
     int midIndex = (lines.length - 1) / 2;
     boolean oddLen = (lines.length & 1) == 1;
-    double xc = textAttribute.centerPoint.getX() - halfHeight / 8;
+    double xc = textAttribute.centerPoint.getX();
     double yc;
     double t = halfHeight / 3;
 
