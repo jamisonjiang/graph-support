@@ -193,7 +193,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     double x = toDouble(ele.getAttribute(X));
     double y = toDouble(ele.getAttribute(Y));
     String fontName = ele.getAttribute(FONT_FAMILY);
-    fontName = fontName == null ? DEFAULT_FONT : fontName;
+    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
     Integer color = toColor(ele.getAttribute(FILL));
 

@@ -30,10 +30,13 @@ public class FontUtils {
   public static final String DEFAULT_FONT;
 
   private static final MeasureText MEASURE_TEXT;
+  private static final FontSelector FONT_SELECTOR;
 
   static {
     MEASURE_TEXT = selectMeasureText();
-    DEFAULT_FONT = selectDefaultFont();
+    FONT_SELECTOR = selectFontSelector();
+    String defaultFont = FONT_SELECTOR != null ? FONT_SELECTOR.defaultFont() : null;
+    DEFAULT_FONT = StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
   }
 
   private static MeasureText selectMeasureText() {
@@ -56,7 +59,7 @@ public class FontUtils {
     return measureText;
   }
 
-  private static String selectDefaultFont() {
+  private static FontSelector selectFontSelector() {
     ServiceLoader<FontSelector> fontSelectorServiceLoader = ServiceLoader.load(FontSelector.class);
     FontSelector fontSelector = null;
     for (FontSelector fs : fontSelectorServiceLoader) {
@@ -69,8 +72,10 @@ public class FontUtils {
       }
     }
 
-    String defaultFont = fontSelector != null ? fontSelector.defaultFont() : null;
-    return StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
+    if (fontSelector == null) {
+      throw new RuntimeException("Could not find any available FontSelector");
+    }
+    return fontSelector;
   }
 
   /**
@@ -91,5 +96,9 @@ public class FontUtils {
     }
     size.setWidth(size.getWidth() + widthIncr);
     return size;
+  }
+
+  public static boolean fontExists(String fontName) {
+    return FONT_SELECTOR.exists(fontName);
   }
 }
