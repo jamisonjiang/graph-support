@@ -173,7 +173,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
     g2d.setColor(color);
 
-    fontName = fontName == null ? DEFAULT_FONT : fontName;
+    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
     g2d.setFont(new Font(fontName, Font.PLAIN, fontSize));
     g2d.drawString(text, (float) (x - (size.getWidth() / 2)), (float) y);
   }

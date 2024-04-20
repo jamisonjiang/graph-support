@@ -19,6 +19,7 @@ package org.graphper.layout;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -30,7 +31,8 @@ import org.graphper.def.FlatPoint;
  *
  * @author Jamison Jiang
  */
-public class AWTMeasureText implements MeasureText, FontSelector {
+public class AWTMeasureText extends AbstractFontSelector implements MeasureText, FontSelector {
+
 
   @Override
   public int order() {
@@ -53,7 +55,7 @@ public class AWTMeasureText implements MeasureText, FontSelector {
       return new FlatPoint(0, 0);
     }
 
-    fontName = fontName == null ? DEFAULT_FONT : fontName;
+    fontName = exists(fontName) ? fontName : DEFAULT_FONT;
     Font font = new Font(fontName, Font.PLAIN, (int) fontSize);
     AffineTransform transform = font.getTransform();
     FontRenderContext render = new FontRenderContext(transform, true, true);
@@ -72,7 +74,7 @@ public class AWTMeasureText implements MeasureText, FontSelector {
   }
 
   @Override
-  public String defaultFont() {
-    return "Default";
+  protected String[] listAllSystemFonts() {
+    return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
   }
 }
