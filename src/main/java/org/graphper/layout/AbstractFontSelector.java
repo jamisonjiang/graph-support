@@ -21,6 +21,13 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Provide the basic font select policy is try best to fount the most popular font from exists fonts
+ * int system as the {@link #defaultFont()} when caller not set any font or set font not exists in
+ * system (detected by {@link #exists(String)}).
+ *
+ * @author Jamison Jiang
+ */
 public abstract class AbstractFontSelector implements FontSelector {
 
   private static final String[] TOP_POPULAR_FONTS = {
@@ -76,20 +83,25 @@ public abstract class AbstractFontSelector implements FontSelector {
       "Courier Prime"
   };
 
-  private volatile Set<String> ALL_AVAILABLE_FONTS;
+  private Set<String> allAvailableFonts;
 
+  /**
+   * Returns default font name when not set fontName attribute.
+   *
+   * @return default font name
+   */
   @Override
   public String defaultFont() {
-    String[] fonts = listSystemDefaultFonts();
+    String[] fonts = listAllSystemFonts();
     if (fonts == null || fonts.length == 0) {
       return TOP_POPULAR_FONTS[0];
     }
 
-    ALL_AVAILABLE_FONTS = new HashSet<>(fonts.length);
-    ALL_AVAILABLE_FONTS.addAll(Arrays.asList(fonts));
+    allAvailableFonts = new HashSet<>(fonts.length);
+    allAvailableFonts.addAll(Arrays.asList(fonts));
 
     for (String font : TOP_POPULAR_FONTS) {
-      if (ALL_AVAILABLE_FONTS.contains(font)) {
+      if (allAvailableFonts.contains(font)) {
         return font;
       }
     }
@@ -97,18 +109,29 @@ public abstract class AbstractFontSelector implements FontSelector {
     return fonts[0];
   }
 
+  /**
+   * Return true if font exists in system.
+   *
+   * @param fontName font name
+   * @return true if font exists in system
+   */
   @Override
   public boolean exists(String fontName) {
     if (Objects.isNull(fontName)) {
       return false;
     }
 
-    if (ALL_AVAILABLE_FONTS == null) {
+    if (allAvailableFonts == null) {
       return true;
     }
 
-    return ALL_AVAILABLE_FONTS.contains(fontName);
+    return allAvailableFonts.contains(fontName);
   }
 
-  protected abstract String[] listSystemDefaultFonts();
+  /**
+   * Return all system available fonts.
+   *
+   * @return all system available fonts
+   */
+  protected abstract String[] listAllSystemFonts();
 }

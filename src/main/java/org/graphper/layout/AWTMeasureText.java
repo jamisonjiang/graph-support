@@ -74,7 +74,7 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   }
 
   @Override
-  protected String[] listSystemDefaultFonts() {
+  protected String[] listAllSystemFonts() {
     return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
   }
 }
