@@ -20,6 +20,7 @@ import helper.GraphvizVisual;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.junit.jupiter.api.Test;
 
 public class FdpTest extends GraphvizVisual {
@@ -36,7 +37,7 @@ public class FdpTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz.digraph()
         .layout(Layout.FDP)
-//        .tempNode(Node.builder().shape(NodeShapeEnum.POINT).build())
+        .tempNode(Node.builder().shape(NodeShapeEnum.POINT).build())
 //        .addLine(a, b)
 //        .addLine(a, c)
 //        .addLine(a, d)

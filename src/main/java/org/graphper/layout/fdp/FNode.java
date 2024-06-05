@@ -49,4 +49,9 @@ public class FNode extends ANode {
     this.x = (int) Math.floor(x + 0.5);
     this.y = (int) Math.floor(y + 0.5);
   }
+
+  public void setDispLocation(double x, double y) {
+    this.dispX = (int) Math.floor(x + 0.5);
+    this.dispY = (int) Math.floor(y + 0.5);
+  }
 }
