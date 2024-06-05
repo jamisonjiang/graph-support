@@ -125,7 +125,7 @@ public abstract class LineClip {
         || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
-        DNode dNode = dotDigraph.getDNode(from);
+        DNode dNode = dotDigraph.getNode(from);
         Asserts.illegalArgument(dNode == null, "Can not found from node of line prop");
         clusterDrawProp = findLineEndPointCluster(
             dNode.getContainer(),
@@ -145,7 +145,7 @@ public abstract class LineClip {
           || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
-          DNode dNode = dotDigraph.getDNode(to);
+          DNode dNode = dotDigraph.getNode(to);
           Asserts.illegalArgument(dNode == null, "Can not found to node of line prop");
           clusterDrawProp = findLineEndPointCluster(
               dNode.getContainer(),

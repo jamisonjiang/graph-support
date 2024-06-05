@@ -24,18 +24,16 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
-import org.graphper.api.attributes.NodeShape;
-import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
+import org.graphper.layout.ANode;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.EnvProp;
 
-class DNode extends VertexIndex implements Box, ShapePosition {
+class DNode extends ANode implements Box, ShapePosition {
 
   private static final long serialVersionUID = -7182604069185202045L;
 
@@ -46,8 +44,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   private static final int AUX_MODE = 1;
 
   private static final int NOT_ADJUST_MID = 0x400;
-
-  private final Node node;
 
   private int rank;
 
@@ -67,10 +63,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   // Median value, used to sort the same rank.
   private double median;
 
-  private double x;
-
-  private double y;
-
   private double width;
 
   private double height;
@@ -83,9 +75,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
 
   // Self lines
   private List<DLine> selfLines;
-
-  // The parent container, if it is null, it means the root container
-  private GraphContainer container;
 
   private NodeAttrs nodeAttrs;
 
@@ -109,7 +98,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
 
   private DNode(Node node, double width, double height, double nodeSep, Line labelLine,
                 DLine flatLabelLine) {
-    this.node = node;
+    super(node);
     this.width = width;
     this.height = height;
     this.nodeSep = nodeSep;
@@ -145,16 +134,8 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     return node;
   }
 
-  Node getNode() {
-    return node;
-  }
-
-  void setNodeAttrs(NodeAttrs nodeAttrs) {
-    this.nodeAttrs = nodeAttrs;
-  }
-
   boolean isVirtual() {
-    return node == null;
+    return empty();
   }
 
   boolean isLabelNode() {
@@ -230,17 +211,9 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     return x;
   }
 
-  void setX(double x) {
-    this.x = x;
-  }
-
   @Override
   public double getY() {
     return y;
-  }
-
-  void setY(double y) {
-    this.y = y;
   }
 
   @Override
@@ -467,23 +440,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
 
   Line getLabelLine() {
     return labelLine;
-  }
-
-  @Override
-  public NodeShape shapeProp() {
-   if (isVirtual() || nodeAttrs == null) {
-      return NodeShapeEnum.CIRCLE;
-    }
-
-    return nodeAttrs.getNodeShape();
-  }
-
-  GraphContainer getContainer() {
-    return container;
-  }
-
-  void setContainer(GraphContainer container) {
-    this.container = container;
   }
 
   boolean isTail(DLine line) {

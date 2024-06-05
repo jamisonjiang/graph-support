@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout.fdp;
 
 import java.util.Map;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.layout.LayoutGraph;
 
-class DotDigraph extends LayoutGraph<DNode, DLine> {
+public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
-  public DotDigraph(int capacity) {
+  private static final long serialVersionUID = -8146655556364875422L;
+
+  public FdpGraph(int capacity) {
     super(capacity);
   }
 
-  public DotDigraph(int capacity, Graphviz graphviz,
-                    Map<Node, DNode> nodeMap) {
+  public FdpGraph(int capacity, Graphviz graphviz,
+                  Map<Node, FNode> nodeMap) {
     super(capacity, graphviz, nodeMap);
   }
 }

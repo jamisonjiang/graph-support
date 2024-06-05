@@ -14,21 +14,39 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout.fdp;
 
-import java.util.Map;
-import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
-import org.graphper.layout.LayoutGraph;
+import org.graphper.layout.ANode;
 
-class DotDigraph extends LayoutGraph<DNode, DLine> {
+public class FNode extends ANode {
 
-  public DotDigraph(int capacity) {
-    super(capacity);
+  private double dispX;
+
+  private double dispY;
+
+  public FNode(Node node) {
+    super(node);
   }
 
-  public DotDigraph(int capacity, Graphviz graphviz,
-                    Map<Node, DNode> nodeMap) {
-    super(capacity, graphviz, nodeMap);
+  public double getDispX() {
+    return dispX;
+  }
+
+  public void setDispX(double dispX) {
+    this.dispX = dispX;
+  }
+
+  public double getDispY() {
+    return dispY;
+  }
+
+  public void setDispY(double dispY) {
+    this.dispY = dispY;
+  }
+
+  public void setLocation(double x, double y) {
+    this.x = (int) Math.floor(x + 0.5);
+    this.y = (int) Math.floor(y + 0.5);
   }
 }

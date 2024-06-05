@@ -19,19 +19,18 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.graphper.def.AbstractDirectedEdge;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.LineStyle;
+import org.graphper.def.FlatPoint;
+import org.graphper.layout.ALine;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
 
-class DLine extends AbstractDirectedEdge<DNode, DLine> {
+class DLine extends ALine<DNode, DLine> {
 
   private static final long serialVersionUID = -4923098199188113451L;
 
-  private final Line line;
 
   // The cut value
   private double cutVal;
@@ -67,9 +66,8 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
   DLine(DNode left, DNode right, Line line,
         LineAttrs lineAttrs, double weight, int limit,
         FlatPoint labelSize, boolean realTimeLimit) {
-    super(left, right, weight);
+    super(left, right, weight, line);
 
-    this.line = line;
     this.limit = limit;
     this.labelSize = labelSize;
     if (line != null) {
@@ -77,10 +75,6 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
     }
     this.lineAttrs = lineAttrs;
     this.realTimeLimit = realTimeLimit;
-  }
-
-  Line getLine() {
-    return line;
   }
 
   LineAttrs lineAttrs() {

@@ -17,6 +17,7 @@
 package org.graphper.api.attributes;
 
 import org.graphper.layout.LayoutEngine;
+import org.graphper.layout.fdp.FdpLayoutEngine;
 import org.graphper.util.Asserts;
 import org.graphper.layout.dot.DotLayoutEngine;
 
@@ -32,7 +33,9 @@ public enum Layout {
    * same direction (top to bottom, or left to right) and then attempts to avoid edge crossings and
    * reduce edge length.
    */
-  DOT(new DotLayoutEngine());
+  DOT(new DotLayoutEngine()),
+
+  FDP(new FdpLayoutEngine());
 
   private final LayoutEngine layoutEngine;
 
