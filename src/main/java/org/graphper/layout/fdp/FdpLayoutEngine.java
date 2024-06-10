@@ -17,7 +17,6 @@
 package org.graphper.layout.fdp;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,58 +97,23 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     initializePositionsGrid(graph, width, height);
 
+    long startTime = System.currentTimeMillis();
+
     // Force-directed algorithm
-    gridForceGraph(drawGraph, graph, iterations, temperature, coolingFactor, k, width, height);
-
-    drawGraph.syncToGraphvizBorder();
-  }
-
-  private static void gridForceGraph(DrawGraph drawGraph, FdpGraph graph, int iterations,
-                                     double temperature, double coolingFactor,
-                                     double k, int width, int height) {
-    int gridSize = graph.vertexNum() * 10; //
-    int gridWidth = (int) Math.ceil(width / (double) gridSize);
-    int gridHeight = (int) Math.ceil(height / (double) gridSize);
     for (int i = 0; i < iterations; i++) {
-      // Initialize grid
-      Cell[][] grid = new Cell[gridWidth][gridHeight];
-      for (int x = 0; x < gridWidth; x++) {
-        for (int y = 0; y < gridHeight; y++) {
-          grid[x][y] = new Cell();
-        }
-      }
-
-      for (FNode v : graph) {
-        int gridX = Math.min((int) Math.abs(v.getX() / gridSize), gridWidth - 1);
-        int gridY = Math.min((int) Math.abs(v.getY() / gridSize), gridHeight - 1);
-        grid[gridX][gridY].vertices.add(v);
-      }
-
       // Calculate repulsive forces
-      for (int x = 0; x < gridWidth; x++) {
-        for (int y = 0; y < gridHeight; y++) {
-          Cell cell = grid[x][y];
-          for (FNode v : cell.vertices) {
-            v.setDispLocation(0, 0);
-            for (int dx = -1; dx <= 1; dx++) {
-              for (int dy = -1; dy <= 1; dy++) {
-                int nx = x + dx;
-                int ny = y + dy;
-                if (nx >= 0 && ny >= 0 && nx < gridWidth && ny < gridHeight) {
-                  for (FNode u : grid[nx][ny].vertices) {
-                    if (v != u) {
-                      double deltaX = v.getX() - u.getX();
-                      double deltaY = v.getY() - u.getY();
-                      double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                      if (distance > 0) {
-                        double repulsiveForce = k * k / distance;
-                        v.setDispLocation(v.getDispX() + (deltaX / distance) * repulsiveForce,
-                                          v.getDispY() + (deltaY / distance) * repulsiveForce);
-                      }
-                    }
-                  }
-                }
-              }
+      for (FNode v : graph) {
+        v.setDispX(0);
+        v.setDispY(0);
+        for (FNode u : graph) {
+          if (v != u) {
+            double deltaX = v.getX() - u.getX();
+            double deltaY = v.getY() - u.getY();
+            double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            if (distance > 0) {
+              double repulsiveForce = k * k / distance;
+              v.setDispX(v.getDispX() + (deltaX / distance) * repulsiveForce);
+              v.setDispY(v.getDispY() + (deltaY / distance) * repulsiveForce);
             }
           }
         }
@@ -157,18 +121,20 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
       // Calculate attractive forces
       for (FNode n : graph) {
-        for (FLine e : graph.adjacent(n)) {
-          FNode v = e.from();
-          FNode u = e.to();
-          double deltaX = v.getX() - u.getX();
-          double deltaY = v.getY() - u.getY();
+        for (FLine edge : graph.adjacent(n)) {
+          FNode from = edge.from();
+          FNode to = edge.to();
+          double deltaX = from.getX() - to.getX();
+          double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           if (distance > 0) {
             double attractiveForce = (distance * distance) / k;
             double dispX = (deltaX / distance) * attractiveForce;
             double dispY = (deltaY / distance) * attractiveForce;
-            v.setDispLocation(v.getDispX() - dispX, v.getDispY() - dispY);
-            u.setDispLocation(u.getDispX() + dispX, u.getDispY() + dispY);
+            from.setDispX(from.getDispX() - dispX);
+            from.setDispY(from.getDispY() - dispY);
+            to.setDispX(to.getDispX() + dispX);
+            to.setDispY(to.getDispY() + dispY);
           }
         }
       }
@@ -177,16 +143,18 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       for (FNode v : graph) {
         double displacement = Math.sqrt(v.getDispX() * v.getDispX() + v.getDispY() * v.getDispY());
         if (displacement > 0) {
-          v.setLocation(v.getX() + (v.getDispX() / displacement) * Math.min(displacement,
-                                                                            temperature),
-                        v.getY() + (v.getDispY() / displacement) * Math.min(displacement,
-                                                                            temperature));
+          v.setX(v.getX() + (v.getDispX() / displacement) * Math.min(displacement, temperature));
+          v.setY(v.getY() + (v.getDispY() / displacement) * Math.min(displacement, temperature));
         }
       }
 
       // Cool down
       temperature *= coolingFactor;
     }
+
+    long endTime = System.currentTimeMillis();
+
+    System.out.println("fdp layout time " + (endTime - startTime) + "ms");
 
     for (FNode node : graph) {
       NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
@@ -201,6 +169,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
     }
 
+
     // Calculate attractive forces
     for (FNode n : graph) {
       for (FLine edge : graph.adjacent(n)) {
@@ -212,6 +181,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         line.add(new FlatPoint(to.getX(), to.getY()));
       }
     }
+
+    drawGraph.syncToGraphvizBorder();
   }
 
   @Override
@@ -231,10 +202,5 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       v.setLocation(col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
       i++;
     }
-  }
-
-  private static class Cell {
-
-    List<FNode> vertices = new ArrayList<>();
   }
 }

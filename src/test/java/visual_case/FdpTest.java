@@ -39,8 +39,7 @@ public class FdpTest extends GraphvizVisual {
         .layout(Layout.FDP)
         .tempNode(Node.builder().shape(NodeShapeEnum.POINT).build())
 //        .addLine(a, b)
-//        .addLine(a, c)
-//        .addLine(a, d)
+//        .addLine(b, c)
 
         .addLine(a, b)
         .addLine(a, c)
