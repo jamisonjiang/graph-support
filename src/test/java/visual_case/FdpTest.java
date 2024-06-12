@@ -38,19 +38,19 @@ public class FdpTest extends GraphvizVisual {
     Graphviz graphviz = Graphviz.digraph()
         .layout(Layout.FDP)
         .tempNode(Node.builder().shape(NodeShapeEnum.POINT).build())
-//        .addLine(a, b)
-//        .addLine(b, c)
-
         .addLine(a, b)
-        .addLine(a, c)
-        .addLine(a, d)
-        .addLine(a, e)
         .addLine(b, c)
-        .addLine(b, d)
-        .addLine(b, e)
-        .addLine(c, d)
-        .addLine(c, e)
-        .addLine(d, e)
+
+//        .addLine(a, b)
+//        .addLine(a, c)
+//        .addLine(a, d)
+//        .addLine(a, e)
+//        .addLine(b, c)
+//        .addLine(b, d)
+//        .addLine(b, e)
+//        .addLine(c, d)
+//        .addLine(c, e)
+//        .addLine(d, e)
         .build();
 
     visual(graphviz);
