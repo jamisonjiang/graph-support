@@ -17,9 +17,15 @@
 package org.graphper.layout.fdp;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
@@ -35,6 +41,11 @@ import org.graphper.layout.ShifterStrategy;
 public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializable {
 
   private static final long serialVersionUID = 4639188492816085348L;
+
+  @Override
+  protected List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
+    return null;
+  }
 
   @Override
   protected LayoutAttach attachment(DrawGraph drawGraph) {
@@ -102,11 +113,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
     double coolingFactor = 0.95;
-    double k = Math.sqrt((width * height) * graphAttrs.getK() / (double) vertexCount);
+    double k = Math.sqrt((width * height) * graphAttrs.getK() / vertexCount);
 
-    initializePositionsGrid(graph, width, height);
+    initializePositions(graph, width, height);
 
-    fdpLayout(drawGraph, graph, iterations, temperature, coolingFactor, k);
+    fdpLayout(graph, iterations, temperature, coolingFactor, k);
 
     for (FNode node : graph) {
       if (node.empty()) {
@@ -126,9 +137,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
     }
 
-    // Calculate attractive forces
     for (FNode n : graph) {
       for (FLine edge : graph.adjacent(n)) {
+        if (edge.empty()) {
+          continue;
+        }
+
         FNode from = edge.from();
         FNode to = edge.to();
         LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
@@ -141,8 +155,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     drawGraph.syncToGraphvizBorder();
   }
 
-  protected void fdpLayout(DrawGraph drawGraph, FdpGraph graph, int iterations,
-                           double temperature, double coolingFactor, double k) {
+  protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
+                           double coolingFactor, double k) {
     int vertexCount = graph.vertexNum();
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
@@ -166,7 +180,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
 
-      // Calculate attractive forces
+      // Calculate attractive force
+      graph.forEachEdges(edge -> {
+
+      });
       for (FNode n : graph) {
         int nd = graph.degree(n);
         for (FLine edge : graph.adjacent(n)) {
@@ -176,9 +193,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaX = from.getX() - to.getX();
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          double localK = k / Math.max(edge.weight(), 1);
-          localK = k * Math.max(edge.weight(), 1) /
-              (Math.max(Math.sqrt((nd + td)), 0.1) * Math.sqrt(vertexCount));
+          double localK = k / (Math.max(edge.weight(), 1)
+              * (Math.max(Math.sqrt((nd + td)), 0.1)
+              * Math.sqrt(vertexCount)));
+
           if (distance > 0 && localK > 0) {
             double attractiveForce = (distance * distance) / localK;
             double dispX = (deltaX / distance) * attractiveForce;
@@ -205,22 +223,103 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  @Override
-  protected List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
-    return null;
+  public void initializePositions(FdpGraph graph, int width, int height) {
+    FNode startVertex = null;
+    for (FNode n : graph) {
+      startVertex = n;
+      break;
+    }
+
+    if (startVertex == null) {
+      return;
+    }
+
+    Map<FNode, List<FNode>> singlePath = null;
+    Queue<FNode> queue = new LinkedList<>();
+    Set<FNode> visited = new HashSet<>();
+    queue.add(startVertex);
+    visited.add(startVertex);
+
+    int layer = 0;
+    int layerSize = 1;
+    int currentLayerSize = 0;
+    double angleStep = 2 * Math.PI / graph.vertexNum();
+    int radiusStep = Math.min(width, height) / 10;
+
+    while (!queue.isEmpty()) {
+      FNode v = queue.poll();
+      double angle = currentLayerSize * angleStep;
+      int radius = layer * radiusStep;
+      v.setLocation((double) width / 2 + radius * Math.cos(angle),
+                    (double) height / 2 + radius * Math.sin(angle));
+      currentLayerSize++;
+      if (currentLayerSize >= layerSize) {
+        layer++;
+        layerSize *= 2;
+        currentLayerSize = 0;
+      }
+
+      FNode accessNode = null;
+      for (FLine line : graph.adjacent(v)) {
+        FNode u = line.other(v);
+        if (visited.contains(u)) {
+          accessNode = u;
+        } else {
+          queue.add(u);
+          visited.add(u);
+        }
+      }
+
+      if (!isSinglePathNode(graph, v)) {
+        continue;
+      }
+
+      if (singlePath == null) {
+        singlePath = new HashMap<>();
+      }
+      List<FNode> path = singlePath.get(accessNode);
+      if (path == null) {
+        path = new ArrayList<>();
+      }
+      path.add(v);
+      singlePath.put(v, path);
+      if (accessNode != null) {
+        singlePath.remove(accessNode);
+      }
+    }
+
+    if (singlePath == null) {
+      return;
+    }
+
+    visited.clear();
+    for (Entry<FNode, List<FNode>> entry : singlePath.entrySet()) {
+      List<FNode> simplePath = entry.getValue();
+      if (simplePath.size() < 3) {
+        continue;
+      }
+
+      FNode gravityNode = new FNode(null);
+      for (FNode n : simplePath) {
+        graph.addEdge(new FLine(gravityNode, n));
+      }
+    }
   }
 
-  private void initializePositionsGrid(FdpGraph graph, int width, int height) {
-    int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
-    double cellWidth = width / (double) gridSize;
-    double cellHeight = height / (double) gridSize;
-
-    int i = 0;
-    for (FNode v : graph) {
-      int row = i / gridSize;
-      int col = i % gridSize;
-      v.setLocation(col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
-      i++;
+  private boolean isSinglePathNode(FdpGraph graph, FNode n) {
+    if (graph.degree(n) > 2) {
+      return false;
     }
+
+    FNode firstAdjNode = null;
+    for (FLine line : graph.adjacent(n)) {
+      if (firstAdjNode == null) {
+        firstAdjNode = line.other(n);
+      } else {
+        return firstAdjNode != line.other(n);
+      }
+    }
+
+    return true;
   }
 }

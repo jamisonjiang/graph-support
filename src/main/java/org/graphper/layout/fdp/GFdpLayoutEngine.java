@@ -18,14 +18,13 @@ package org.graphper.layout.fdp;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.graphper.draw.DrawGraph;
 
 public class GFdpLayoutEngine extends FdpLayoutEngine {
 
   private static final long serialVersionUID = 5753649446512849866L;
 
   @Override
-  protected void fdpLayout(DrawGraph drawGraph, FdpGraph graph, int iterations, double temperature,
+  protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
                            double coolingFactor, double k) {
     int width = Math.max(graph.vertexNum() * 50, 100);
     int height = width;

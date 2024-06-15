@@ -21,6 +21,10 @@ import org.graphper.layout.ALine;
 
 public class FLine extends ALine<FNode, FLine> {
 
+  public FLine(FNode from, FNode to) {
+    super(from, to, null);
+  }
+
   public FLine(FNode from, FNode to, Line line) {
     super(from, to, line);
   }

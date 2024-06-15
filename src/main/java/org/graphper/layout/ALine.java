@@ -47,4 +47,8 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
   public Line getLine() {
     return line;
   }
+
+  public boolean empty() {
+    return line == null;
+  }
 }

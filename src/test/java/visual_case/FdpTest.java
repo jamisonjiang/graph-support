@@ -42,11 +42,12 @@ public class FdpTest extends GraphvizVisual {
         .addLine(c, d)
         .addLine(d, e)
         .addLine(e, f)
-        .addLine(g, b)
-        .addLine(g, c)
-        .addLine(g, d)
-        .addLine(g, e)
-        .addLine(g, f)
+
+//        .addLine(g, b)
+//        .addLine(g, c)
+//        .addLine(g, d)
+//        .addLine(g, e)
+//        .addLine(g, f)
 
 //        .addLine(a, b)
 //        .addLine(a, c)
