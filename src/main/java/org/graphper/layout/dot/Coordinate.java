@@ -430,8 +430,6 @@ class Coordinate extends AbstractCoordinate {
 
   private static class ClusterDotDigraph extends DotDigraph {
 
-    private static final long serialVersionUID = -7097358089045601860L;
-
     private Map<Cluster, DotDigraph> clusterGraph;
 
     ClusterDotDigraph(int capacity) {

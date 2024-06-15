@@ -23,14 +23,8 @@ import org.graphper.layout.LayoutGraph;
 
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
-  private static final long serialVersionUID = -8146655556364875422L;
-
-  public FdpGraph(int capacity) {
-    super(capacity);
-  }
-
   public FdpGraph(int capacity, Graphviz graphviz,
                   Map<Node, FNode> nodeMap) {
-    super(capacity, graphviz, nodeMap);
+    super(capacity, graphviz, nodeMap, true);
   }
 }

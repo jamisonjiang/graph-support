@@ -115,7 +115,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double coolingFactor = 0.95;
     double k = Math.sqrt((width * height) * graphAttrs.getK() / vertexCount);
 
-    initializePositions(graph, width, height);
+    initializePositions(graph, width, height, true);
 
     fdpLayout(graph, iterations, temperature, coolingFactor, k);
 
@@ -181,9 +181,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
 
       // Calculate attractive force
-      graph.forEachEdges(edge -> {
-
-      });
       for (FNode n : graph) {
         int nd = graph.degree(n);
         for (FLine edge : graph.adjacent(n)) {
@@ -223,7 +220,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  public void initializePositions(FdpGraph graph, int width, int height) {
+  public void initializePositions(FdpGraph graph, int width, int height, boolean isFirst) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -270,7 +267,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
 
-      if (!isSinglePathNode(graph, v)) {
+      if (!isSinglePathNode(graph, v) || !isFirst) {
         continue;
       }
 
@@ -292,18 +289,43 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       return;
     }
 
-    visited.clear();
     for (Entry<FNode, List<FNode>> entry : singlePath.entrySet()) {
       List<FNode> simplePath = entry.getValue();
+      if (simplePath.size() < 2) {
+        continue;
+      }
+
+      FNode first = simplePath.get(0);
+      FNode second = simplePath.get(1);
+      FNode secondLast = simplePath.get(simplePath.size() - 2);
+      FNode last = simplePath.get(simplePath.size() - 1);
+
+      for (FLine l : graph.adjacent(first)) {
+        FNode o = l.other(first);
+        if (o == second) {
+          continue;
+        }
+        simplePath.add(o);
+      }
+      for (FLine l : graph.adjacent(last)) {
+        FNode o = l.other(last);
+        if (o == secondLast) {
+          continue;
+        }
+        simplePath.add(o);
+      }
+
       if (simplePath.size() < 3) {
         continue;
       }
 
       FNode gravityNode = new FNode(null);
       for (FNode n : simplePath) {
-        graph.addEdge(new FLine(gravityNode, n));
+        graph.addEdge(new FLine(gravityNode, n, 1, null));
       }
     }
+
+    initializePositions(graph, width, height, false);
   }
 
   private boolean isSinglePathNode(FdpGraph graph, FNode n) {

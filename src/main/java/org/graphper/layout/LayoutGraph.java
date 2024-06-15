@@ -19,6 +19,7 @@ package org.graphper.layout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.graphper.api.Cluster;
@@ -29,32 +30,35 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.def.BiConcatIterable;
 import org.graphper.def.ConcatIterable;
+import org.graphper.def.DedirectedEdgeGraph;
+import org.graphper.def.Digraph.EdgeDigraph;
 import org.graphper.def.DirectedEdgeGraph;
+import org.graphper.def.EdgeOpGraph;
 import org.graphper.util.CollectionUtils;
 
-public class LayoutGraph<N extends ANode, E extends ALine<N, E>> extends DirectedEdgeGraph<N, E> {
-
-  private static final long serialVersionUID = 4156356911374765554L;
+public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements EdgeOpGraph<N, E> {
 
   private final Graphviz graphviz;
 
   private final Map<Node, N> nodeMap;
 
+  private final EdgeDigraph<N, E> graph;
+
   private Map<GraphContainer, GraphGroup> containerMap;
 
   public LayoutGraph(int capacity) {
-    this(capacity, null, null);
+    this(capacity, null, null, false);
   }
 
-  public LayoutGraph(int capacity, Graphviz graphviz, Map<Node, N> nodeMap) {
-    super(capacity);
+  public LayoutGraph(int capacity, Graphviz graphviz, Map<Node, N> nodeMap, boolean isDedigraph) {
     this.graphviz = graphviz;
     this.nodeMap = nodeMap;
+    graph = isDedigraph ? new DedirectedEdgeGraph<>(capacity) : new DirectedEdgeGraph<>(capacity);
   }
 
   @Override
   public boolean add(N node) {
-    super.add(node);
+    graph.add(node);
 
     if (nodeMap != null) {
       nodeMap.put(node.getNode(), node);
@@ -71,8 +75,23 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> extends Directe
   }
 
   @Override
+  public boolean remove(Object v) {
+    return graph.remove(v);
+  }
+
+  @Override
+  public Iterable<E> adjacent(Object v) {
+    return graph.adjacent(v);
+  }
+
+  @Override
+  public Iterable<E> edges() {
+    return graph.edges();
+  }
+
+  @Override
   public void addEdge(E edge) {
-    super.addEdge(edge);
+    graph.addEdge(edge);
 
     if (notAddChildContainer(edge.from()) || notAddChildContainer(edge.to())) {
       return;
@@ -105,7 +124,7 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> extends Directe
       return Collections.emptyList();
     }
     if (graphviz == graphContainer) {
-      return this;
+      return graph;
     }
 
     GraphGroup graphGroup = containerMap().get(graphContainer);
@@ -122,6 +141,70 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> extends Directe
 
     GraphGroup graphGroup = containerMap().get(graphContainer);
     return graphGroup == null ? Collections.emptySet() : graphGroup.lines();
+  }
+
+  @Override
+  public int vertexNum() {
+    return graph.vertexNum();
+  }
+
+  @Override
+  public int edgeNum() {
+    return graph.edgeNum();
+  }
+
+  @Override
+  public int degree(N n) {
+    return graph.degree(n);
+  }
+
+  @Override
+  public int selfLoops(N n) {
+    return graph.selfLoops(n);
+  }
+
+  @Override
+  public int maxDegree() {
+    return graph.maxDegree();
+  }
+
+  @Override
+  public double averageDegree() {
+    return graph.maxDegree();
+  }
+
+  @Override
+  public int numberOfLoops() {
+    return graph.numberOfLoops();
+  }
+
+  @Override
+  public N[] toArray() {
+    return graph.toArray();
+  }
+
+  @Override
+  public EdgeOpGraph<N, E> copy() {
+    return graph.copy();
+  }
+
+  @Override
+  public void clear() {
+    graph.clear();
+  }
+
+  @Override
+  public boolean removeEdge(E e) {
+    return graph.removeEdge(e);
+  }
+
+  public E reverseEdge(E e) {
+    return graph.reverseEdge(e);
+  }
+
+  @Override
+  public Iterator<N> iterator() {
+    return graph.iterator();
   }
 
   public static <N extends ANode, E extends ALine<N, E>> Iterable<Cluster> clusters(
