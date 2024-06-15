@@ -97,6 +97,38 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     initializePositionsGrid(graph, width, height);
 
+    fdpLayout(drawGraph, graph, iterations, temperature, coolingFactor, k);
+
+    for (FNode node : graph) {
+      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
+      nodeDrawProp.setLeftBorder(node.getLeftBorder());
+      nodeDrawProp.setRightBorder(node.getRightBorder());
+      nodeDrawProp.setUpBorder(node.getUpBorder());
+      nodeDrawProp.setDownBorder(node.getDownBorder());
+
+      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder());
+      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder());
+      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder());
+      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
+    }
+
+    // Calculate attractive forces
+    for (FNode n : graph) {
+      for (FLine edge : graph.adjacent(n)) {
+        FNode from = edge.from();
+        FNode to = edge.to();
+        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
+        line.markIsLineSegment();
+        line.add(new FlatPoint(from.getX(), from.getY()));
+        line.add(new FlatPoint(to.getX(), to.getY()));
+      }
+    }
+
+    drawGraph.syncToGraphvizBorder();
+  }
+
+  protected void fdpLayout(DrawGraph drawGraph, FdpGraph graph, int iterations,
+                           double temperature, double coolingFactor, double k) {
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
       // Calculate repulsive forces
@@ -149,34 +181,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       // Cool down
       temperature *= coolingFactor;
     }
-
-    for (FNode node : graph) {
-      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
-      nodeDrawProp.setLeftBorder(node.getLeftBorder());
-      nodeDrawProp.setRightBorder(node.getRightBorder());
-      nodeDrawProp.setUpBorder(node.getUpBorder());
-      nodeDrawProp.setDownBorder(node.getDownBorder());
-
-      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder());
-      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
-    }
-
-
-    // Calculate attractive forces
-    for (FNode n : graph) {
-      for (FLine edge : graph.adjacent(n)) {
-        FNode from = edge.from();
-        FNode to = edge.to();
-        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
-        line.markIsLineSegment();
-        line.add(new FlatPoint(from.getX(), from.getY()));
-        line.add(new FlatPoint(to.getX(), to.getY()));
-      }
-    }
-
-    drawGraph.syncToGraphvizBorder();
   }
 
   @Override
