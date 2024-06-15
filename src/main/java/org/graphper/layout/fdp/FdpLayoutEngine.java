@@ -106,12 +106,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
     int vertexCount = graph.vertexNum();
+    int edgeCount = Math.max(1, graph.edgeNum());
     int width = Math.max(vertexCount * 50, 100);
     int height = width;
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
     double coolingFactor = 0.95;
-    double k = Math.sqrt((width * height) * graphAttrs.getK() / vertexCount);
+    double k = Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
     initializePositions(graph, width, height);
 
@@ -178,10 +179,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
 
-      // Calculate attractive force
-      graph.forEachEdges(edge -> {
-
-      });
       for (FNode n : graph) {
         int nd = graph.degree(n);
         for (FLine edge : graph.adjacent(n)) {
@@ -192,7 +189,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           double localK = k / (Math.max(edge.weight(), 1)
-              * (Math.max(Math.sqrt((nd + td)), 0.1)
+              * (Math.max(Math.sqrt((nd + td)) / 2, 0.1)
               * Math.sqrt(vertexCount)));
 
           if (distance > 0 && localK > 0) {
