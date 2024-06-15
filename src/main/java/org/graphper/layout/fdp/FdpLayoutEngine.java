@@ -17,13 +17,11 @@
 package org.graphper.layout.fdp;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import org.graphper.api.GraphAttrs;
@@ -115,7 +113,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double coolingFactor = 0.95;
     double k = Math.sqrt((width * height) * graphAttrs.getK() / vertexCount);
 
-    initializePositions(graph, width, height, true);
+    initializePositions(graph, width, height);
 
     fdpLayout(graph, iterations, temperature, coolingFactor, k);
 
@@ -181,6 +179,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
 
       // Calculate attractive force
+      graph.forEachEdges(edge -> {
+
+      });
       for (FNode n : graph) {
         int nd = graph.degree(n);
         for (FLine edge : graph.adjacent(n)) {
@@ -220,7 +221,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  public void initializePositions(FdpGraph graph, int width, int height, boolean isFirst) {
+  public void initializePositions(FdpGraph graph, int width, int height) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -231,7 +232,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       return;
     }
 
-    Map<FNode, List<FNode>> singlePath = null;
     Queue<FNode> queue = new LinkedList<>();
     Set<FNode> visited = new HashSet<>();
     queue.add(startVertex);
@@ -256,68 +256,14 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         currentLayerSize = 0;
       }
 
-      FNode accessNode = null;
       for (FLine line : graph.adjacent(v)) {
         FNode u = line.other(v);
         if (visited.contains(u)) {
-          accessNode = u;
-        } else {
-          queue.add(u);
-          visited.add(u);
+          continue;
         }
-      }
-
-      if (!isSinglePathNode(graph, v) || !isFirst) {
-        continue;
-      }
-
-      if (singlePath == null) {
-        singlePath = new HashMap<>();
-      }
-      List<FNode> path = singlePath.get(accessNode);
-      if (path == null) {
-        path = new ArrayList<>();
-      }
-      path.add(v);
-      singlePath.put(v, path);
-      if (accessNode != null) {
-        singlePath.remove(accessNode);
+        queue.add(u);
+        visited.add(u);
       }
     }
-
-    if (singlePath == null) {
-      return;
-    }
-
-    for (Entry<FNode, List<FNode>> entry : singlePath.entrySet()) {
-      List<FNode> simplePath = entry.getValue();
-      if (simplePath.size() < 3) {
-        continue;
-      }
-
-      FNode gravityNode = new FNode(null);
-      for (FNode n : simplePath) {
-        graph.addEdge(new FLine(gravityNode, n, 1, null));
-      }
-    }
-
-    initializePositions(graph, width, height, false);
-  }
-
-  private boolean isSinglePathNode(FdpGraph graph, FNode n) {
-    if (graph.degree(n) > 2) {
-      return false;
-    }
-
-    FNode firstAdjNode = null;
-    for (FLine line : graph.adjacent(n)) {
-      if (firstAdjNode == null) {
-        firstAdjNode = line.other(n);
-      } else {
-        return firstAdjNode != line.other(n);
-      }
-    }
-
-    return true;
   }
 }
