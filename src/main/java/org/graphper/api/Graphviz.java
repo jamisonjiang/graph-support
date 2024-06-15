@@ -531,6 +531,18 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    public GraphvizBuilder maxiter(int maxiter) {
+      Asserts.illegalArgument(maxiter < 1, "maxiter " + maxiter + " can not be less than 1");
+      graphAttrs.maxiter = maxiter;
+      return self();
+    }
+
+    public GraphvizBuilder k(double k) {
+      Asserts.illegalArgument(k < 0, "spring constant can not be less than 0");
+      graphAttrs.k = k;
+      return self();
+    }
+
     /**
      * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
      * graph, the program will calculate the size of the label, and then automatically put the label

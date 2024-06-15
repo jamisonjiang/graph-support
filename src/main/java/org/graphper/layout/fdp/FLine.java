@@ -24,4 +24,8 @@ public class FLine extends ALine<FNode, FLine> {
   public FLine(FNode from, FNode to, Line line) {
     super(from, to, line);
   }
+
+  public FLine(FNode from, FNode to, double weight, Line line) {
+    super(from, to, weight, line);
+  }
 }
