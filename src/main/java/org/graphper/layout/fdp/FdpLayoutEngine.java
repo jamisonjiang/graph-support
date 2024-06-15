@@ -291,30 +291,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     for (Entry<FNode, List<FNode>> entry : singlePath.entrySet()) {
       List<FNode> simplePath = entry.getValue();
-      if (simplePath.size() < 2) {
-        continue;
-      }
-
-      FNode first = simplePath.get(0);
-      FNode second = simplePath.get(1);
-      FNode secondLast = simplePath.get(simplePath.size() - 2);
-      FNode last = simplePath.get(simplePath.size() - 1);
-
-      for (FLine l : graph.adjacent(first)) {
-        FNode o = l.other(first);
-        if (o == second) {
-          continue;
-        }
-        simplePath.add(o);
-      }
-      for (FLine l : graph.adjacent(last)) {
-        FNode o = l.other(last);
-        if (o == secondLast) {
-          continue;
-        }
-        simplePath.add(o);
-      }
-
       if (simplePath.size() < 3) {
         continue;
       }
