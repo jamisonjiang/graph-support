@@ -193,6 +193,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
                            double coolingFactor, double k) {
     int vertexCount = graph.vertexNum();
+    double ksqaure = k * k;
+    double edgeK = k / Math.sqrt(vertexCount);
+
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
       // Calculate repulsive forces
@@ -208,7 +211,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaY = n.getY() - t.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           if (distance > 0) {
-            double repulsiveForce = k * k / distance;
+            double repulsiveForce = ksqaure / distance;
             n.setDispX(n.getDispX() + (deltaX / distance) * repulsiveForce);
             n.setDispY(n.getDispY() + (deltaY / distance) * repulsiveForce);
           }
@@ -216,17 +219,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
 
       for (FNode n : graph) {
-        int nd = graph.degree(n);
         for (FLine edge : graph.adjacent(n)) {
           FNode from = edge.from();
           FNode to = edge.to();
-          int td = graph.degree(to);
           double deltaX = from.getX() - to.getX();
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          double localK = k / (Math.max(edge.weight(), 1)
-              * (Math.max(Math.sqrt((nd + td)), 0.1)
-              * Math.sqrt(vertexCount)));
+          double localK = edgeK / Math.max(edge.weight(), 1);
 
           if (distance > 0 && localK > 0) {
             double attractiveForce = (distance * distance) / localK;
@@ -300,7 +299,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  // Resolve overlaps using a simple collision detection algorithm
   private static void resolveOverlaps(FdpGraph graph) {
     boolean overlapResolved;
     for (int iteration = 0; iteration < 100; iteration++) {
@@ -314,13 +312,15 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaX = v.getX() - u.getX();
           double deltaY = v.getY() - u.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          if (distance > 0) {
-            // Calculate overlap resolution displacement
-            double overlap = (v.getWidth() / 2.0 + u.getWidth() / 2.0) - Math.abs(deltaX);
-            double dx = (deltaX / distance) * overlap / 2.0;
-            double dy = (deltaY / distance) * overlap / 2.0;
-            v.setLocation(v.getX() + dx, v.getY() + dy);
-            u.setLocation(u.getX() - dx, u.getY() - dy);
+
+          double overlap = (v.getWidth() / 2.0 + u.getWidth() / 2.0) - Math.abs(deltaX);
+          double dx = (deltaX / distance) * overlap / 2.0;
+          double dy = (deltaY / distance) * overlap / 2.0;
+
+          v.setLocation(v.getX() + dx, v.getY() + dy);
+          u.setLocation(u.getX() - dx, u.getY() - dy);
+
+          if (v.isOverlap(u)) {
             overlapResolved = false;
           }
         }
