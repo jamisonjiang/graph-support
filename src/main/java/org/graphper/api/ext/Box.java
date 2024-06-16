@@ -139,4 +139,15 @@ public interface Box {
     return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
         && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
   }
+
+  default boolean isOverlap(Box box) {
+    if (box == null) {
+      return false;
+    }
+
+    return in(box.getLeftBorder(), box.getUpBorder())
+        || in(box.getLeftBorder(), box.getDownBorder())
+        || in(box.getRightBorder(), box.getUpBorder())
+        || in(box.getRightBorder(), box.getDownBorder());
+  }
 }

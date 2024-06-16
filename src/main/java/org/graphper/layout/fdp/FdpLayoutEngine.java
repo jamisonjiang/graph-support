@@ -105,6 +105,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     FdpGraph graph = fdpAttachment.getFdpGraph();
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
+    conComp(graph);
+
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
     int width = Math.max(vertexCount * 50, 100);
@@ -117,6 +119,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     initializePositions(graph, width, height);
 
     fdpLayout(graph, iterations, temperature, coolingFactor, k);
+
+    if (!graphAttrs.isOverlap()) {
+      resolveOverlaps(graph);
+    }
 
     for (FNode node : graph) {
       if (node.empty()) {
@@ -154,6 +160,36 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     drawGraph.syncToGraphvizBorder();
   }
 
+  private void conComp(FdpGraph graph) {
+    Set<FNode> visited = new HashSet<>();
+
+    FNode preComFirstNode = null;
+    for (FNode n : graph) {
+      if (visited.contains(n)) {
+        continue;
+      }
+
+      if (preComFirstNode != null) {
+        graph.addEdge(new FLine(preComFirstNode, n, 1, null));
+      }
+      preComFirstNode = n;
+      dfs(n, graph, visited);
+    }
+  }
+
+  private void dfs(FNode n, FdpGraph graph, Set<FNode> visited) {
+    visited.add(n);
+
+    for (FLine line : graph.adjacent(n)) {
+      FNode w = line.other(n);
+      if (visited.contains(w)) {
+        continue;
+      }
+
+      dfs(w, graph, visited);
+    }
+  }
+
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
                            double coolingFactor, double k) {
     int vertexCount = graph.vertexNum();
@@ -189,7 +225,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           double localK = k / (Math.max(edge.weight(), 1)
-              * (Math.max(Math.sqrt((nd + td)) / 2, 0.1)
+              * (Math.max(Math.sqrt((nd + td)), 0.1)
               * Math.sqrt(vertexCount)));
 
           if (distance > 0 && localK > 0) {
@@ -260,6 +296,38 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
         queue.add(u);
         visited.add(u);
+      }
+    }
+  }
+
+  // Resolve overlaps using a simple collision detection algorithm
+  private static void resolveOverlaps(FdpGraph graph) {
+    boolean overlapResolved;
+    for (int iteration = 0; iteration < 100; iteration++) {
+      overlapResolved = true;
+      for (FNode v : graph) {
+        for (FNode u : graph) {
+          if (u == v || !v.isOverlap(u)) {
+            continue;
+          }
+
+          double deltaX = v.getX() - u.getX();
+          double deltaY = v.getY() - u.getY();
+          double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          if (distance > 0) {
+            // Calculate overlap resolution displacement
+            double overlap = (v.getWidth() / 2.0 + u.getWidth() / 2.0) - Math.abs(deltaX);
+            double dx = (deltaX / distance) * overlap / 2.0;
+            double dy = (deltaY / distance) * overlap / 2.0;
+            v.setLocation(v.getX() + dx, v.getY() + dy);
+            u.setLocation(u.getX() - dx, u.getY() - dy);
+            overlapResolved = false;
+          }
+        }
+      }
+
+      if (overlapResolved) {
+        break;
       }
     }
   }

@@ -85,7 +85,9 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   int maxiter = 100;
 
-  double k = 1.0;
+  double k = 1;
+
+  boolean overlap = false;
 
   public Splines getSplines() {
     return splines;
@@ -183,6 +185,10 @@ public class GraphAttrs implements Serializable, Cloneable {
     return k;
   }
 
+  public boolean isOverlap() {
+    return overlap;
+  }
+
   @Override
   public GraphAttrs clone() {
     try {
@@ -205,10 +211,10 @@ public class GraphAttrs implements Serializable, Cloneable {
         && nslimit1 == that.nslimit1 && Double.compare(that.rankSep, rankSep) == 0
         && mclimit == that.mclimit && Double.compare(that.fontSize, fontSize) == 0
         && compound == that.compound && showGrid == that.showGrid && maxiter == that.maxiter
-        && Double.compare(that.k, k) == 0 && Objects.equals(bgColor, that.bgColor)
-        && splines == that.splines && Objects.equals(fontColor, that.fontColor)
-        && rankdir == that.rankdir && layout == that.layout && Objects.equals(label,
-                                                                              that.label)
+        && Double.compare(that.k, k) == 0 && overlap == that.overlap
+        && Objects.equals(bgColor, that.bgColor) && splines == that.splines
+        && Objects.equals(fontColor, that.fontColor) && rankdir == that.rankdir
+        && layout == that.layout && Objects.equals(label, that.label)
         && Objects.equals(fontName, that.fontName) && labelloc == that.labelloc
         && labeljust == that.labeljust && Objects.equals(scale, that.scale)
         && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
@@ -220,7 +226,7 @@ public class GraphAttrs implements Serializable, Cloneable {
   public int hashCode() {
     return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName,
                         labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit,
-                        fontSize, compound, showGrid, href, table, assemble, maxiter, k);
+                        fontSize, compound, showGrid, href, table, assemble, maxiter, k, overlap);
   }
 
   @Override
@@ -250,6 +256,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", assemble=" + assemble +
         ", maxiter=" + maxiter +
         ", k=" + k +
+        ", overlap=" + overlap +
         '}';
   }
 }

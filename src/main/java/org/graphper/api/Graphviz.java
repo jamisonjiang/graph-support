@@ -543,6 +543,11 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    public GraphvizBuilder overlap(boolean overlap) {
+      graphAttrs.overlap = overlap;
+      return self();
+    }
+
     /**
      * Set an {@link Assemble} to replace the {@link #label(String)}. When setting a label for a
      * graph, the program will calculate the size of the label, and then automatically put the label
