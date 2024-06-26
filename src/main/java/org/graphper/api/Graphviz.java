@@ -532,7 +532,7 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     public GraphvizBuilder maxiter(int maxiter) {
-      Asserts.illegalArgument(maxiter < 1, "maxiter " + maxiter + " can not be less than 1");
+      Asserts.illegalArgument(maxiter < 0, "maxiter " + maxiter + " can not be less than 0");
       graphAttrs.maxiter = maxiter;
       return self();
     }

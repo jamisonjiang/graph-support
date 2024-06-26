@@ -207,6 +207,10 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
     return graph.iterator();
   }
 
+  public Graphviz getGraphviz() {
+    return graphviz;
+  }
+
   public static <N extends ANode, E extends ALine<N, E>> Iterable<Cluster> clusters(
       GraphContainer container) {
     List<Iterable<Cluster>> iterables = null;

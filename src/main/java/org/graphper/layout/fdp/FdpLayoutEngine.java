@@ -116,9 +116,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double coolingFactor = 0.95;
     double k = Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
+//    initializePositionsGrid(graph, width, height);
+//    initializeCircularLayout(graph, width, height);
     initializePositions(graph, width, height);
 
-    fdpLayout(graph, iterations, temperature, coolingFactor, k);
+    fdpLayout(graph, iterations, temperature, coolingFactor, k, width, height);
 
     if (!graphAttrs.isOverlap()) {
       resolveOverlaps(graph);
@@ -191,10 +193,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
-                           double coolingFactor, double k) {
+                           double coolingFactor, double k, double width, double height) {
     int vertexCount = graph.vertexNum();
     double ksqaure = k * k;
     double edgeK = k / Math.sqrt(vertexCount);
+    double gravityStrength = 0.1;
+    boolean overlap = graph.getGraphviz().graphAttrs().isOverlap();
 
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
@@ -239,6 +243,16 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
 
+      // Apply gravity to pull nodes towards the center
+      FlatPoint center = new FlatPoint(width / 2, height / 2);
+      for (FNode n : graph) {
+        double deltaX = center.getX() - n.getX();
+        double deltaY = center.getY() - n.getY();
+        n.setDispLocation(n.getDispX() + gravityStrength * deltaX,
+                          n.getDispY() + gravityStrength * deltaY);
+      }
+
+
       // Limit the displacement and update positions
       for (FNode v : graph) {
         double displacement = Math.sqrt(v.getDispX() * v.getDispX() + v.getDispY() * v.getDispY());
@@ -250,6 +264,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
       // Cool down
       temperature *= coolingFactor;
+
+      if (!overlap) {
+        resolveOverlaps(graph);
+      }
+
+//      applyBarycenterHeuristic(graph);
     }
   }
 
@@ -299,6 +319,38 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
+  private void initializePositionsGrid(FdpGraph graph, int width, int height) {
+    int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
+    double cellWidth = width / (double) gridSize;
+    double cellHeight = height / (double) gridSize;
+
+    int i = 0;
+    for (FNode v : graph) {
+      int row = i / gridSize;
+      int col = i % gridSize;
+      v.setLocation(col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
+      i++;
+    }
+  }
+
+  // Initialize positions using a circular layout
+  private static void initializeCircularLayout(FdpGraph graph, int width, int height) {
+    double angleIncrement = 2 * Math.PI / graph.vertexNum();
+    int centerX = width / 2;
+    int centerY = height / 2;
+    int radius = Math.min(width, height) / 3;
+
+    int i = 0;
+    for (FNode node : graph) {
+      double angle = i * angleIncrement;
+      int x = (int) (centerX + radius * Math.cos(angle));
+      int y = (int) (centerY + radius * Math.sin(angle));
+      node.setX(x);
+      node.setY(y);
+      i++;
+    }
+  }
+
   private static void resolveOverlaps(FdpGraph graph) {
     boolean overlapResolved;
     for (int iteration = 0; iteration < 100; iteration++) {
@@ -330,5 +382,16 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         break;
       }
     }
+  }
+
+  private static void applyBarycenterHeuristic(FdpGraph graph) {
+    graph.forEachEdges(edge -> {
+      FNode v = edge.from();
+      FNode u = edge.to();
+      double avgX = (v.getX() + u.getX()) / 2.0;
+      double avgY = (v.getY() + u.getY()) / 2.0;
+      v.setLocation((v.getX() + avgX) / 2.0, (v.getY() + avgY) / 2.0);
+      u.setLocation((u.getX() + avgX) / 2.0, (u.getY() + avgY) / 2.0);
+    });
   }
 }

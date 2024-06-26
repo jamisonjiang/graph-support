@@ -25,9 +25,7 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
 
   @Override
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
-                           double coolingFactor, double k) {
-    int width = Math.max(graph.vertexNum() * 50, 100);
-    int height = width;
+                           double coolingFactor, double k, double width, double height) {
     int gridSize = graph.vertexNum() * 10; //
     int gridWidth = (int) Math.ceil(width / (double) gridSize);
     int gridHeight = (int) Math.ceil(height / (double) gridSize);
