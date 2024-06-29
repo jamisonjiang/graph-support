@@ -200,7 +200,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double ksqaure = k * k;
     double edgeK = k / Math.sqrt(vertexCount);
     double gravityStrength = 0.1;
-    boolean overlap = graph.getGraphviz().graphAttrs().isOverlap();
 
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
