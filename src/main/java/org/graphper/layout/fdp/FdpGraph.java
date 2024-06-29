@@ -17,17 +17,64 @@
 package org.graphper.layout.fdp;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.LayoutGraph;
 
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
+  private Map<FNode, Set<FNode>> adjRecord;
+
   public FdpGraph(int capacity, Graphviz graphviz,
                   Map<Node, FNode> nodeMap) {
     super(capacity, graphviz, nodeMap, true);
+  }
+
+  @Override
+  public void addEdge(FLine edge) {
+    if (Objects.isNull(edge)) {
+      return;
+    }
+
+    FNode from = edge.from();
+    FNode to = edge.to();
+
+    if (adjAlreadyExists(from, to) || adjAlreadyExists(to, from)) {
+      return;
+    }
+
+    super.addEdge(edge);
+    recordAdj(from, to);
+  }
+
+  private boolean adjAlreadyExists(FNode from, FNode to) {
+    Set<FNode> adj = adjRecord().get(from);
+    if (adj == null) {
+      return false;
+    }
+    return adj.contains(to);
+  }
+
+  private void recordAdj(FNode from, FNode to) {
+    adjRecord().computeIfAbsent(from, k -> new HashSet<>()).add(to);
+    adjRecord().computeIfAbsent(to, k -> new HashSet<>()).add(from);
+  }
+
+  private Map<FNode, Set<FNode>> adjRecord() {
+    if (adjRecord == null) {
+      adjRecord = new HashMap<>();
+    }
+    return adjRecord;
+  }
+
+  public Iterable<FLine> outAdjacent(Object n) {
+    return ((EdgeDedigraph<FNode, FLine>) graph).outAdjacent(n);
   }
 
   @Override

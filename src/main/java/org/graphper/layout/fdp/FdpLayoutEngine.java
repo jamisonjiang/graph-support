@@ -110,7 +110,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
-//    int width = Math.max(vertexCount * 50, 100);
+//    int width = Math.max(vertexCount * 10, 100);
 //    int height = width;
     int width = 800;
     int height = 800;
@@ -227,7 +227,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       for (FNode n : graph) {
         int nd = graph.degree(n);
 
-        for (FLine edge : graph.adjacent(n)) {
+        for (FLine edge : graph.outAdjacent(n)) {
           FNode p1 = edge.from();
           FNode p2 = edge.to();
           double vx = p1.getX() - p2.getX();
@@ -277,7 +277,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         if (dlen > 0) {
           dlen = Math.sqrt(dlen) / 2;
           n.setRepulsionX(n.getRepulsionX() + dx / dlen);
-          n.setRepulsionY(n.getRepulsionY() + dx / dlen);
+          n.setRepulsionY(n.getRepulsionY() + dy / dlen);
         }
       }
 
