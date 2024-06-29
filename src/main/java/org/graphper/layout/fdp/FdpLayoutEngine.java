@@ -33,7 +33,6 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
-import org.graphper.layout.FlatShifterStrategy;
 import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.ShifterStrategy;
 
@@ -110,7 +109,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
-//    int width = Math.max(vertexCount * 10, 100);
+//    int width = Math.max(vertexCount * 50, 100);
 //    int height = width;
     int width = 800;
     int height = 800;
@@ -122,23 +121,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 //    initializePositionsGrid(graph, width, height);
 //    initializeCircularLayout(graph, width, height);
     initializePositions(graph, width, height);
-
-    double maxX = -Double.MAX_VALUE;
-    double maxY = -Double.MAX_VALUE;
-    for (FNode v : graph) {
-      maxX = Math.max(v.getX(), maxX);
-      maxY = Math.max(v.getY(), maxY);
-    }
-
-    FlatShifterStrategy shifter = new FlatShifterStrategy(width - maxX, height - maxY);
-    for (FNode v : graph) {
-      FlatPoint point = new FlatPoint(v.getX(), v.getY());
-      shifter.movePoint(point);
-      point.setX(point.getX());
-      point.setY(point.getY());
-      String label = v.getNode().nodeAttrs().getLabel();
-      System.setProperty("fdp." + label, v.getX() + "," + v.getY());
-    }
 
     fdpLayout(graph, iterations, temperature, coolingFactor, k, width, height);
 
@@ -164,13 +146,19 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
     }
 
-    for (Line edge : drawGraph.getGraphviz().lines()) {
-      FNode from = graph.getNode(edge.tail());
-      FNode to = graph.getNode(edge.head());
-      LineDrawProp line = drawGraph.getLineDrawProp(edge);
-      line.markIsLineSegment();
-      line.add(new FlatPoint(from.getX(), from.getY()));
-      line.add(new FlatPoint(to.getX(), to.getY()));
+    for (FNode n : graph) {
+      for (FLine edge : graph.adjacent(n)) {
+        if (edge.empty()) {
+          continue;
+        }
+
+        FNode from = edge.from();
+        FNode to = edge.to();
+        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
+        line.markIsLineSegment();
+        line.add(new FlatPoint(from.getX(), from.getY()));
+        line.add(new FlatPoint(to.getX(), to.getY()));
+      }
     }
 
     drawGraph.syncToGraphvizBorder();
@@ -211,108 +199,80 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     int vertexCount = graph.vertexNum();
     double ksqaure = k * k;
     double edgeK = k / Math.sqrt(vertexCount);
+    double gravityStrength = 0.1;
     boolean overlap = graph.getGraphviz().graphAttrs().isOverlap();
 
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
-      for (FNode node : graph) {
-        node.setDx(node.getDx() / 4);
-        node.setDy(node.getDy() / 4);
-        node.setEdgedx(0);
-        node.setEdgedy(0);
-        node.setRepulsionX(0);
-        node.setRepulsionY(0);
-      }
-
-      for (FNode n : graph) {
-        int nd = graph.degree(n);
-
-        for (FLine edge : graph.outAdjacent(n)) {
-          FNode p1 = edge.from();
-          FNode p2 = edge.to();
-          double vx = p1.getX() - p2.getX();
-          double vy = p1.getY() - p2.getY();
-          double len = Math.sqrt(vx * vx + vy * vy);
-          double desiredLen = 30;
-
-          len = (len == 0) ? .0001 : len;
-          double f =  (1.0 / 3.0) * (desiredLen - len) / len;
-
-          f = f * Math.pow(0.7, (nd + graph.degree(p2) - 2));
-
-          // the actual movement distance 'dx' is the force multiplied by the
-          // distance to go.
-          double dx = f * vx;
-          double dy = f * vy;
-
-          p1.setEdgedx(p1.getEdgedx() + dx);
-          p1.setEdgedy(p1.getEdgedy() + dy);
-          p2.setEdgedx(p2.getEdgedx() - dx);
-          p2.setEdgedy(p2.getEdgedy() - dy);
-        }
-      }
-
       // Calculate repulsive forces
       for (FNode n : graph) {
-        double dx = 0;
-        double dy = 0;
+        n.setRepulsionX(0);
+        n.setRepulsionY(0);
         for (FNode t : graph) {
           if (n == t) {
             continue;
           }
 
-          double vx = n.getX() - t.getX();
-          double vy = n.getY() - t.getY();
-          double distanceSq = vx * vx + vy * vy;
-          if (distanceSq == 0) {
-            dx += 0.1;
-            dy += 0.1;
-          } else {
-            dx += vx / distanceSq;
-            dy += vy / distanceSq;
+          double deltaX = n.getX() - t.getX();
+          double deltaY = n.getY() - t.getY();
+          double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          if (distance > 0) {
+            double repulsiveForce = ksqaure / distance;
+            n.setRepulsionX(n.getRepulsionX() + (deltaX / distance) * repulsiveForce);
+            n.setRepulsionY(n.getRepulsionY() + (deltaY / distance) * repulsiveForce);
           }
-        }
-
-        double dlen = dx * dx + dy * dy;
-        if (dlen > 0) {
-          dlen = Math.sqrt(dlen) / 2;
-          n.setRepulsionX(n.getRepulsionX() + dx / dlen);
-          n.setRepulsionY(n.getRepulsionY() + dy / dlen);
         }
       }
 
+      for (FNode n : graph) {
+        for (FLine edge : graph.adjacent(n)) {
+          FNode from = edge.from();
+          FNode to = edge.to();
+          double deltaX = from.getX() - to.getX();
+          double deltaY = from.getY() - to.getY();
+          double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          double localK = edgeK / Math.max(edge.weight(), 1);
+
+          if (distance > 0 && localK > 0) {
+            double attractiveForce = (distance * distance) / localK;
+            double dispX = (deltaX / distance) * attractiveForce;
+            double dispY = (deltaY / distance) * attractiveForce;
+            from.setRepulsionX(from.getRepulsionX() - dispX);
+            from.setRepulsionY(from.getRepulsionY() - dispY);
+            to.setRepulsionX(to.getRepulsionX() + dispX);
+            to.setRepulsionY(to.getRepulsionY() + dispY);
+          }
+        }
+      }
+
+      // Apply gravity to pull nodes towards the center
+      FlatPoint center = new FlatPoint(width / 2, height / 2);
+      for (FNode n : graph) {
+        double deltaX = center.getX() - n.getX();
+        double deltaY = center.getY() - n.getY();
+        n.setRepulsionLocation(n.getRepulsionX() + gravityStrength * deltaX,
+                          n.getRepulsionY() + gravityStrength * deltaY);
+      }
+
+
       // Limit the displacement and update positions
       for (FNode v : graph) {
-        v.setDx(v.getDx() + v.getRepulsionX() + v.getEdgedx());
-        v.setDy(v.getDy() + v.getRepulsionY() + v.getEdgedy());
-
-        // keeps nodes from moving any faster than 5 per time unit
-        v.setLocation(v.getX() + Math.max(-5, Math.min(5, v.getDx())),
-                        v.getY() + Math.max(-5, Math.min(5, v.getDy())));
-
-        if (v.getX() < 0) {
-          v.setLocation(0, v.getY());
-        } else if (v.getX() > width) {
-          v.setLocation(width, v.getY());
+        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX()
+                                            + v.getRepulsionY() * v.getRepulsionY());
+        if (displacement > 0) {
+          v.setX(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature));
+          v.setY(v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature));
         }
-        if (v.getY() < 0) {
-          v.setLocation(v.getX(), 0);
-        } else if (v.getY() > height) {
-          v.setLocation(v.getX(), height);
-        }
-//        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
-//        if (displacement > 0) {
-//          v.setX(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature));
-//          v.setY(v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature));
-//        }
       }
 
       // Cool down
       temperature *= coolingFactor;
 
-//      if (!overlap) {
-//        resolveOverlaps(graph);
-//      }
+      if (!overlap) {
+        resolveOverlaps(graph);
+      }
+
+//      applyBarycenterHeuristic(graph);
     }
   }
 
@@ -425,5 +385,16 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         break;
       }
     }
+  }
+
+  private static void applyBarycenterHeuristic(FdpGraph graph) {
+    graph.forEachEdges(edge -> {
+      FNode v = edge.from();
+      FNode u = edge.to();
+      double avgX = (v.getX() + u.getX()) / 2.0;
+      double avgY = (v.getY() + u.getY()) / 2.0;
+      v.setLocation((v.getX() + avgX) / 2.0, (v.getY() + avgY) / 2.0);
+      u.setLocation((u.getX() + avgX) / 2.0, (u.getY() + avgY) / 2.0);
+    });
   }
 }
