@@ -225,7 +225,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
 
       for (FNode n : graph) {
-        for (FLine edge : graph.adjacent(n)) {
+        for (FLine edge : graph.outAdjacent(n)) {
           FNode from = edge.from();
           FNode to = edge.to();
           double deltaX = from.getX() - to.getX();
@@ -254,7 +254,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
                           n.getRepulsionY() + gravityStrength * deltaY);
       }
 
-
       // Limit the displacement and update positions
       for (FNode v : graph) {
         double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX()
@@ -267,12 +266,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
       // Cool down
       temperature *= coolingFactor;
-
-      if (!overlap) {
-        resolveOverlaps(graph);
-      }
-
-//      applyBarycenterHeuristic(graph);
     }
   }
 
@@ -385,16 +378,5 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         break;
       }
     }
-  }
-
-  private static void applyBarycenterHeuristic(FdpGraph graph) {
-    graph.forEachEdges(edge -> {
-      FNode v = edge.from();
-      FNode u = edge.to();
-      double avgX = (v.getX() + u.getX()) / 2.0;
-      double avgY = (v.getY() + u.getY()) / 2.0;
-      v.setLocation((v.getX() + avgX) / 2.0, (v.getY() + avgY) / 2.0);
-      u.setLocation((u.getX() + avgX) / 2.0, (u.getY() + avgY) / 2.0);
-    });
   }
 }

@@ -18,8 +18,9 @@ package org.graphper.api.attributes;
 
 import org.graphper.layout.LayoutEngine;
 import org.graphper.layout.dot.DotLayoutEngine;
-import org.graphper.layout.fdp.GFdpLayoutEngine;
 import org.graphper.layout.fdp.FdpLayoutEngine;
+import org.graphper.layout.fdp.GFdpLayoutEngine;
+import org.graphper.layout.fdp.JFdpLayoutEngine;
 import org.graphper.util.Asserts;
 
 /**
@@ -37,7 +38,7 @@ public enum Layout {
   DOT(new DotLayoutEngine()),
 
   FDP(new FdpLayoutEngine()),
-
+  JFDP(new JFdpLayoutEngine()),
   GFDP(new GFdpLayoutEngine());
 
   private final LayoutEngine layoutEngine;
