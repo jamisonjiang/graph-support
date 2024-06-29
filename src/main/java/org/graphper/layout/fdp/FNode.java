@@ -21,37 +21,79 @@ import org.graphper.layout.ANode;
 
 public class FNode extends ANode {
 
-  private double dispX;
+  private double edgedx;
 
-  private double dispY;
+  private double edgedy;
+
+  private double repulsionX;
+
+  private double repulsionY;
+
+  private double dx;
+
+  private double dy;
 
   public FNode(Node node) {
     super(node);
   }
 
-  public double getDispX() {
-    return dispX;
+  public double getRepulsionX() {
+    return repulsionX;
   }
 
-  public void setDispX(double dispX) {
-    this.dispX = dispX;
+  public void setRepulsionX(double repulsionX) {
+    this.repulsionX = repulsionX;
   }
 
-  public double getDispY() {
-    return dispY;
+  public double getRepulsionY() {
+    return repulsionY;
   }
 
-  public void setDispY(double dispY) {
-    this.dispY = dispY;
+  public void setRepulsionY(double repulsionY) {
+    this.repulsionY = repulsionY;
+  }
+
+  public double getEdgedx() {
+    return edgedx;
+  }
+
+  public void setEdgedx(double edgedx) {
+    this.edgedx = edgedx;
+  }
+
+  public double getEdgedy() {
+    return edgedy;
+  }
+
+  public void setEdgedy(double edgedy) {
+    this.edgedy = edgedy;
+  }
+
+  public double getDx() {
+    return dx;
+  }
+
+  public void setDx(double dx) {
+    this.dx = dx;
+  }
+
+  public double getDy() {
+    return dy;
+  }
+
+  public void setDy(double dy) {
+    this.dy = dy;
   }
 
   public void setLocation(double x, double y) {
-    this.x = (int) Math.floor(x + 0.5);
-    this.y = (int) Math.floor(y + 0.5);
+//    this.x = (int) Math.floor(x + 0.5);
+//    this.y = (int) Math.floor(y + 0.5);
+    this.x = x;
+    this.y = y;
   }
 
-  public void setDispLocation(double x, double y) {
-    this.dispX = (int) Math.floor(x + 0.5);
-    this.dispY = (int) Math.floor(y + 0.5);
+  public void setRepulsionLocation(double x, double y) {
+    this.repulsionX = (int) Math.floor(x + 0.5);
+    this.repulsionY = (int) Math.floor(y + 0.5);
   }
 }

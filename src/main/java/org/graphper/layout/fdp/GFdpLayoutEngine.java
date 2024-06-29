@@ -50,7 +50,7 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
         for (int y = 0; y < gridHeight; y++) {
           Cell cell = grid[x][y];
           for (FNode v : cell.vertices) {
-            v.setDispLocation(0, 0);
+            v.setRepulsionLocation(0, 0);
             for (int dx = -1; dx <= 1; dx++) {
               for (int dy = -1; dy <= 1; dy++) {
                 int nx = x + dx;
@@ -63,8 +63,8 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
                       double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                       if (distance > 0) {
                         double repulsiveForce = k * k / distance;
-                        v.setDispLocation(v.getDispX() + (deltaX / distance) * repulsiveForce,
-                                          v.getDispY() + (deltaY / distance) * repulsiveForce);
+                        v.setRepulsionLocation(v.getRepulsionX() + (deltaX / distance) * repulsiveForce,
+                                               v.getRepulsionY() + (deltaY / distance) * repulsiveForce);
                       }
                     }
                   }
@@ -87,20 +87,20 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
             double attractiveForce = (distance * distance) / k;
             double dispX = (deltaX / distance) * attractiveForce;
             double dispY = (deltaY / distance) * attractiveForce;
-            v.setDispLocation(v.getDispX() - dispX, v.getDispY() - dispY);
-            u.setDispLocation(u.getDispX() + dispX, u.getDispY() + dispY);
+            v.setRepulsionLocation(v.getRepulsionX() - dispX, v.getRepulsionY() - dispY);
+            u.setRepulsionLocation(u.getRepulsionX() + dispX, u.getRepulsionY() + dispY);
           }
         }
       }
 
       // Limit the displacement and update positions
       for (FNode v : graph) {
-        double displacement = Math.sqrt(v.getDispX() * v.getDispX() + v.getDispY() * v.getDispY());
+        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
-          v.setLocation(v.getX() + (v.getDispX() / displacement) * Math.min(displacement,
-                                                                            temperature),
-                        v.getY() + (v.getDispY() / displacement) * Math.min(displacement,
-                                                                            temperature));
+          v.setLocation(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement,
+                                                                                 temperature),
+                        v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement,
+                                                                                 temperature));
         }
       }
 

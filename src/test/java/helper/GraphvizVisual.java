@@ -45,7 +45,7 @@ public class GraphvizVisual {
     System.setProperty("graph.quality.check", "true");
     System.setProperty("use.local.img.converter", "true");
     try {
-      visual(graphviz, true);
+      visual(graphviz, false);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

@@ -38,13 +38,13 @@ import org.graphper.util.CollectionUtils;
 
 public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements EdgeOpGraph<N, E> {
 
-  private final Graphviz graphviz;
+  protected final Graphviz graphviz;
 
-  private final Map<Node, N> nodeMap;
+  protected final Map<Node, N> nodeMap;
 
-  private final EdgeDigraph<N, E> graph;
+  protected final EdgeDigraph<N, E> graph;
 
-  private Map<GraphContainer, GraphGroup> containerMap;
+  protected Map<GraphContainer, GraphGroup> containerMap;
 
   public LayoutGraph(int capacity) {
     this(capacity, null, null, false);

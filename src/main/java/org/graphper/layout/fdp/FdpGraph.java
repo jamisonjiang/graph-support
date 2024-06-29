@@ -16,9 +16,11 @@
 
 package org.graphper.layout.fdp;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.def.FlatPoint;
 import org.graphper.layout.LayoutGraph;
 
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
@@ -26,5 +28,14 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
   public FdpGraph(int capacity, Graphviz graphviz,
                   Map<Node, FNode> nodeMap) {
     super(capacity, graphviz, nodeMap, true);
+  }
+
+  @Override
+  public String toString() {
+    Map<String, FlatPoint> map = new HashMap<>();
+    nodeMap.forEach((k, v) -> {
+      map.put(k.nodeAttrs().getLabel(), new FlatPoint(v.getX(), v.getY()));
+    });
+    return map.toString();
   }
 }
