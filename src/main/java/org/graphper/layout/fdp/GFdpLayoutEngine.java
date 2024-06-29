@@ -26,9 +26,9 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
   @Override
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
                            double coolingFactor, double k, double width, double height) {
-    int gridSize = graph.vertexNum() * 10; //
-    int gridWidth = (int) Math.ceil(width / (double) gridSize);
-    int gridHeight = (int) Math.ceil(height / (double) gridSize);
+    int gridSize = graph.vertexNum() * 10;
+    int gridWidth = (int) width;
+    int gridHeight = (int) height;
 
     for (int i = 0; i < iterations; i++) {
       // Initialize grid
@@ -63,8 +63,9 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
                       double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                       if (distance > 0) {
                         double repulsiveForce = k * k / distance;
-                        v.setRepulsionLocation(v.getRepulsionX() + (deltaX / distance) * repulsiveForce,
-                                               v.getRepulsionY() + (deltaY / distance) * repulsiveForce);
+                        v.setRepulsionLocation(
+                            v.getRepulsionX() + (deltaX / distance) * repulsiveForce,
+                            v.getRepulsionY() + (deltaY / distance) * repulsiveForce);
                       }
                     }
                   }
@@ -95,7 +96,8 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
 
       // Limit the displacement and update positions
       for (FNode v : graph) {
-        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
+        double displacement = Math.sqrt(
+            v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
           v.setLocation(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement,
                                                                                  temperature),
