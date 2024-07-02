@@ -23,6 +23,8 @@ public class JFdpLayoutEngine extends FdpLayoutEngine {
   @Override
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
                            double coolingFactor, double k, double width, double height) {
+    width = Math.max(800, graph.edgeNum() + graph.vertexNum());
+    height = width;
     for (int i = 0; i < iterations; i++) {
       for (FNode node : graph) {
         node.setDx(node.getDx() / 4);
@@ -93,8 +95,12 @@ public class JFdpLayoutEngine extends FdpLayoutEngine {
         v.setDy(v.getDy() + v.getRepulsionY() + v.getEdgedy());
 
         // keeps nodes from moving any faster than 5 per time unit
-        v.setLocation(v.getX() + Math.max(-5, Math.min(5, v.getDx())),
-                      v.getY() + Math.max(-5, Math.min(5, v.getDy())));
+//        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX()
+//                                            + v.getRepulsionY() * v.getRepulsionY());
+//        double advance = (v.getRepulsionX() / displacement) * Math.min(displacement, temperature);
+        double advance = 10;
+        v.setLocation(v.getX() + Math.max(-advance, Math.min(advance, v.getDx())),
+                      v.getY() + Math.max(-advance, Math.min(advance, v.getDy())));
 
         if (v.getX() < 0) {
           v.setLocation(0, v.getY());
@@ -107,6 +113,8 @@ public class JFdpLayoutEngine extends FdpLayoutEngine {
           v.setLocation(v.getX(), height);
         }
       }
+
+//      temperature *= coolingFactor;
     }
   }
 }

@@ -109,14 +109,15 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
-//    int width = Math.max(vertexCount * 50, 100);
+//    int width = Math.max(vertexCount * 10, 100);
 //    int height = width;
-    int width = 800;
-    int height = 800;
+    int width = 200;
+    int height = 200;
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
     double coolingFactor = 0.95;
     double k = Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
+//    double k = Math.sqrt(width * height)* graphAttrs.getK();
 
 //    initializePositionsGrid(graph, width, height);
 //    initializeCircularLayout(graph, width, height);
@@ -198,7 +199,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
                            double coolingFactor, double k, double width, double height) {
     int vertexCount = graph.vertexNum();
     double ksqaure = k * k;
-    double edgeK = k / Math.sqrt(vertexCount);
+//    double edgeK = k / vertexCount;
+    double edgeK = k;
     double gravityStrength = 0.1;
 
     // Force-directed algorithm
@@ -260,11 +262,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         if (displacement > 0) {
           v.setX(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature));
           v.setY(v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature));
+//          v.setX(v.getX() + (v.getRepulsionX() / displacement) * 5);
+//          v.setY(v.getY() + (v.getRepulsionY() / displacement) * 5);
         }
       }
 
       // Cool down
-      temperature *= coolingFactor;
+//      temperature *= coolingFactor;
     }
   }
 

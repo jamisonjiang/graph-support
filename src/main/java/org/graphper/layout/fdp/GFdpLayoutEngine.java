@@ -29,6 +29,8 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
     int gridSize = graph.vertexNum() * 10;
     int gridWidth = (int) width;
     int gridHeight = (int) height;
+//    double edgeK = Math.max(k / graph.vertexNum(), 0.00001);
+    double edgeK = k;
 
     for (int i = 0; i < iterations; i++) {
       // Initialize grid
@@ -85,7 +87,7 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
           double deltaY = v.getY() - u.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
           if (distance > 0) {
-            double attractiveForce = (distance * distance) / k;
+            double attractiveForce = (distance * distance) / edgeK;
             double dispX = (deltaX / distance) * attractiveForce;
             double dispY = (deltaY / distance) * attractiveForce;
             v.setRepulsionLocation(v.getRepulsionX() - dispX, v.getRepulsionY() - dispY);
@@ -106,7 +108,7 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
         }
       }
 
-      temperature *= coolingFactor;
+//      temperature *= coolingFactor;
     }
   }
 

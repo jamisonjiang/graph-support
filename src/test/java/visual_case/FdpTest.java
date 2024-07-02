@@ -36,8 +36,8 @@ public class FdpTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz.digraph()
         .layout(Layout.FDP)
-//        .overlap(true)
-        .k(1)
+        .overlap(true)
+//        .k(1)
 //        .addNode(a, b, c, d, e, f)
 //        .tempNode(Node.builder().shape(NodeShapeEnum.POINT).build())
 //        .addLine(a, b)
