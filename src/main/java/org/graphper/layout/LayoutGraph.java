@@ -164,6 +164,16 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
   }
 
   @Override
+  public N start() {
+    return graph.start();
+  }
+
+  @Override
+  public N next(N n) {
+    return graph.next(n);
+  }
+
+  @Override
   public int maxDegree() {
     return graph.maxDegree();
   }

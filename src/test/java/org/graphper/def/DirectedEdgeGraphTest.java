@@ -56,6 +56,12 @@ public class DirectedEdgeGraphTest {
 
     assertGraph(4, 3, 3, 1, digraph);
     Assertions.assertEquals(1, digraph.selfLoops(n4));
+
+    Assertions.assertEquals(n2, digraph.next(n1));
+    Assertions.assertEquals(n3, digraph.next(n2));
+    Assertions.assertEquals(n4, digraph.next(n3));
+    Assertions.assertNull(digraph.next(n4));
+    Assertions.assertNull(digraph.next(n5));
   }
 
   @Test

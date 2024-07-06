@@ -74,6 +74,11 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
     return digraph.adjacent(v);
   }
 
+  @Override
+  public V next(V v) {
+    return digraph.next(v);
+  }
+
   /**
    * Returns a copy of the {@code DedirectedGraph}.
    *

@@ -165,6 +165,11 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
     return super.remove(v);
   }
 
+  @Override
+  public V next(V v) {
+    return digraph.next(v);
+  }
+
   /**
    * Removes an edge to the graph. If the graph changes due to removing this edge, return true.
    *

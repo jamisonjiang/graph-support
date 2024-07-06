@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.InitPos;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
@@ -545,6 +546,12 @@ public class Graphviz extends GraphContainer implements Serializable {
 
     public GraphvizBuilder overlap(boolean overlap) {
       graphAttrs.overlap = overlap;
+      return self();
+    }
+
+    public GraphvizBuilder initPos(InitPos pos) {
+      Asserts.nullArgument(pos, "null pos");
+      graphAttrs.initPos = pos;
       return self();
     }
 

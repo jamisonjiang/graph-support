@@ -107,62 +107,18 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     conComp(graph);
 
-    int vertexCount = graph.vertexNum();
-    int edgeCount = Math.max(1, graph.edgeNum());
-//    int width = Math.max(vertexCount * 10, 100);
-//    int height = width;
     int width = 200;
     int height = 200;
+    int vertexCount = graph.vertexNum();
+    int edgeCount = Math.max(1, graph.edgeNum());
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
-    double coolingFactor = 0.95;
     double k = Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
-//    double k = Math.sqrt(width * height)* graphAttrs.getK();
 
-//    initializePositionsGrid(graph, width, height);
-//    initializeCircularLayout(graph, width, height);
-    initializePositions(graph, width, height);
-
-    fdpLayout(graph, iterations, temperature, coolingFactor, k, width, height);
-
-    if (!graphAttrs.isOverlap()) {
-      resolveOverlaps(graph);
-    }
-
-    for (FNode node : graph) {
-      if (node.empty()) {
-        continue;
-      }
-
-      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
-      nodeDrawProp.setLeftBorder(node.getLeftBorder());
-      nodeDrawProp.setRightBorder(node.getRightBorder());
-      nodeDrawProp.setUpBorder(node.getUpBorder());
-      nodeDrawProp.setDownBorder(node.getDownBorder());
-      nodeLabelSet(nodeDrawProp, drawGraph, true);
-
-      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder());
-      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
-    }
-
-    for (FNode n : graph) {
-      for (FLine edge : graph.adjacent(n)) {
-        if (edge.empty()) {
-          continue;
-        }
-
-        FNode from = edge.from();
-        FNode to = edge.to();
-        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
-        line.markIsLineSegment();
-        line.add(new FlatPoint(from.getX(), from.getY()));
-        line.add(new FlatPoint(to.getX(), to.getY()));
-      }
-    }
-
-    drawGraph.syncToGraphvizBorder();
+    initPos(graph, graphAttrs, width, height);
+    fdpLayout(graph, iterations, temperature, k, width, height);
+    tryDecreaseDensity(graph);
+    applyGraphInfo(drawGraph, graph);
   }
 
   private void conComp(FdpGraph graph) {
@@ -195,17 +151,38 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
+  private void initPos(FdpGraph graph, GraphAttrs graphAttrs, int width, int height) {
+    switch (graphAttrs.getInitPos()) {
+      case GRID:
+        initializePositionsGrid(graph, width, height);
+        break;
+      case CIRCLE:
+        initializeCircularLayout(graph, width, height);
+        break;
+      case SECTOR:
+      default:
+        initializePositions(graph, width, height);
+        break;
+    }
+  }
+
   protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
-                           double coolingFactor, double k, double width, double height) {
-    int vertexCount = graph.vertexNum();
+                           double k, double width, double height) {
     double ksqaure = k * k;
-//    double edgeK = k / vertexCount;
-    double edgeK = k;
     double gravityStrength = 0.1;
 
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
       // Calculate repulsive forces
+
+//      FNode start = graph.start();
+//      for (FNode n = start; n != null; n = graph.next(n)) {
+//        FNode w = graph.next(n);
+//        for (; w != null; w = graph.next(w)) {
+//
+//        }
+//      }
+
       for (FNode n : graph) {
         n.setRepulsionX(0);
         n.setRepulsionY(0);
@@ -232,7 +209,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaX = from.getX() - to.getX();
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          double localK = edgeK / Math.max(edge.weight(), 1);
+          double localK = k / Math.max(edge.weight(), 1);
 
           if (distance > 0 && localK > 0) {
             double attractiveForce = (distance * distance) / localK;
@@ -262,13 +239,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         if (displacement > 0) {
           v.setX(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature));
           v.setY(v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature));
-//          v.setX(v.getX() + (v.getRepulsionX() / displacement) * 5);
-//          v.setY(v.getY() + (v.getRepulsionY() / displacement) * 5);
         }
       }
-
-      // Cool down
-//      temperature *= coolingFactor;
     }
   }
 
@@ -350,7 +322,19 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private static void resolveOverlaps(FdpGraph graph) {
+  private void tryDecreaseDensity(FdpGraph graph) {
+    if (graph.getGraphviz().graphAttrs().isOverlap()) {
+      return;
+    }
+
+    for (int i = 0; i < 9; i++) {
+
+    }
+
+    resolveOverlaps(graph);
+  }
+
+  private void resolveOverlaps(FdpGraph graph) {
     boolean overlapResolved;
     for (int iteration = 0; iteration < 100; iteration++) {
       overlapResolved = true;
@@ -381,5 +365,58 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         break;
       }
     }
+  }
+
+  private int overlapNum(FdpGraph graph) {
+    int overlap = 0;
+    FNode start = graph.start();
+
+    for (FNode n = start; n != null; n = graph.next(n)) {
+      FNode w = graph.next(n);
+      for (; w != null; w = graph.next(w)) {
+        if (n.isOverlap(w)) {
+          overlap++;
+        }
+      }
+    }
+
+    return overlap;
+  }
+
+  private static void applyGraphInfo(DrawGraph drawGraph, FdpGraph graph) {
+    for (FNode node : graph) {
+      if (node.empty()) {
+        continue;
+      }
+
+      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
+      nodeDrawProp.setLeftBorder(node.getLeftBorder());
+      nodeDrawProp.setRightBorder(node.getRightBorder());
+      nodeDrawProp.setUpBorder(node.getUpBorder());
+      nodeDrawProp.setDownBorder(node.getDownBorder());
+      nodeLabelSet(nodeDrawProp, drawGraph, true);
+
+      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder());
+      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder());
+      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder());
+      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
+    }
+
+    for (FNode n : graph) {
+      for (FLine edge : graph.adjacent(n)) {
+        if (edge.empty()) {
+          continue;
+        }
+
+        FNode from = edge.from();
+        FNode to = edge.to();
+        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
+        line.markIsLineSegment();
+        line.add(new FlatPoint(from.getX(), from.getY()));
+        line.add(new FlatPoint(to.getX(), to.getY()));
+      }
+    }
+
+    drawGraph.syncToGraphvizBorder();
   }
 }

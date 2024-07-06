@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.InitPos;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
@@ -88,6 +89,8 @@ public class GraphAttrs implements Serializable, Cloneable {
   double k = 1;
 
   boolean overlap = false;
+
+  InitPos initPos = InitPos.SECTOR;
 
   public Splines getSplines() {
     return splines;
@@ -189,6 +192,10 @@ public class GraphAttrs implements Serializable, Cloneable {
     return overlap;
   }
 
+  public InitPos getInitPos() {
+    return initPos;
+  }
+
   @Override
   public GraphAttrs clone() {
     try {
@@ -219,14 +226,16 @@ public class GraphAttrs implements Serializable, Cloneable {
         && labeljust == that.labeljust && Objects.equals(scale, that.scale)
         && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
         && Objects.equals(table, that.table) && Objects.equals(assemble,
-                                                               that.assemble);
+                                                               that.assemble)
+        && initPos == that.initPos;
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName,
                         labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit,
-                        fontSize, compound, showGrid, href, table, assemble, maxiter, k, overlap);
+                        fontSize, compound, showGrid, href, table, assemble, maxiter, k, overlap,
+                        initPos);
   }
 
   @Override
@@ -257,6 +266,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", maxiter=" + maxiter +
         ", k=" + k +
         ", overlap=" + overlap +
+        ", initPos=" + initPos +
         '}';
   }
 }
