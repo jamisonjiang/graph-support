@@ -123,7 +123,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
   @Override
   public NodeShape shapeProp() {
     if (empty() || nodeAttrs == null) {
-      return NodeShapeEnum.CIRCLE;
+      return NodeShapeEnum.ELLIPSE;
     }
 
     return nodeAttrs.getNodeShape();

@@ -39,6 +39,10 @@ public class JFdpLayoutEngine extends FdpLayoutEngine {
         int nd = graph.degree(n);
 
         for (FLine edge : graph.outAdjacent(n)) {
+          if (edge.isSelf()) {
+            continue;
+          }
+
           FNode p1 = edge.from();
           FNode p2 = edge.to();
           double vx = p1.getX() - p2.getX();

@@ -21,6 +21,7 @@ import org.graphper.layout.ANode;
 
 public class FNode extends ANode {
 
+  private static final long serialVersionUID = 6123993374954612168L;
   private double edgedx;
 
   private double edgedy;

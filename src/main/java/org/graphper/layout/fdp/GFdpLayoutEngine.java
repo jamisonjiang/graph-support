@@ -79,6 +79,10 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
       // Calculate attractive forces
       for (FNode n : graph) {
         for (FLine e : graph.outAdjacent(n)) {
+          if (e.isSelf()) {
+            continue;
+          }
+
           FNode v = e.from();
           FNode u = e.to();
           double deltaX = v.getX() - u.getX();

@@ -174,15 +174,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     // Force-directed algorithm
     for (int i = 0; i < iterations; i++) {
       // Calculate repulsive forces
-
-//      FNode start = graph.start();
-//      for (FNode n = start; n != null; n = graph.next(n)) {
-//        FNode w = graph.next(n);
-//        for (; w != null; w = graph.next(w)) {
-//
-//        }
-//      }
-
       for (FNode n : graph) {
         n.setRepulsionX(0);
         n.setRepulsionY(0);
@@ -204,6 +195,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
       for (FNode n : graph) {
         for (FLine edge : graph.outAdjacent(n)) {
+          if (edge.isSelf()) {
+            continue;
+          }
+
           FNode from = edge.from();
           FNode to = edge.to();
           double deltaX = from.getX() - to.getX();
@@ -322,16 +317,135 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private void tryDecreaseDensity(FdpGraph graph) {
-    if (graph.getGraphviz().graphAttrs().isOverlap()) {
+   void tryDecreaseDensity(FdpGraph graph) {
+    GraphAttrs graphAttrs = graph.getGraphviz().graphAttrs();
+    if (graphAttrs.isOverlap()) {
       return;
     }
 
-    for (int i = 0; i < 9; i++) {
+    int overlap = overlapNum(graph);
+    if (overlap == 0) {
+      return;
+    }
 
+    double k = graphAttrs.getK();
+    int nodeNum = graph.vertexNum();
+    double temperature = 72;
+    int maxLoopNum = graphAttrs.getMaxiter() / 2;
+    for (int i = 0; i < 9; i++) {
+      double k2 = k * k;
+      double xOv = 1.5 * k2;
+      double xNonov = graph.edgeNum() * xOv * 2.0 / (nodeNum * (nodeNum - 1));
+
+      for (int j = 0; j < maxLoopNum; j++) {
+        double temp = temperature * (maxLoopNum - j) / maxLoopNum;
+        if (temp <= 0) {
+          break;
+        }
+
+        overlap = adjust(graph, k, temp, xOv, xNonov);
+        if (overlap == 0) {
+          break;
+        }
+      }
+
+      k += k;
     }
 
     resolveOverlaps(graph);
+  }
+
+  private int adjust(FdpGraph graph, double k, double temp, double xOv, double xNonov) {
+    for (FNode node : graph) {
+      node.setRepulsionX(0);
+      node.setRepulsionY(0);
+    }
+
+    int overlap = 0;
+    for (FNode n = graph.start(); n != null; n = graph.next(n)) {
+      for (FNode w = graph.next(n); w != null; w = graph.next(w)) {
+        overlap += applyRepulsive(n, w, xOv, xNonov);
+      }
+
+//      for (FLine edge : graph.outAdjacent(n)) {
+//        if (edge.isSelf()) {
+//          continue;
+//        }
+//
+//        applyAttractive(n, edge.other(n), k);
+//      }
+    }
+
+    if (overlap == 0) {
+      return 0;
+    }
+
+    double temp2 = temp * temp;
+    for (FNode node : graph) {
+      double dispX = node.getRepulsionX();
+      double dispY = node.getRepulsionY();
+      double len2 = dispX * dispX + dispY * dispY;
+
+      if (len2 < temp2) {
+        node.setX(node.getX() + dispX);
+        node.setY(node.getY() + dispY);
+      } else {
+        double len = Math.sqrt(len2);
+        node.setX(node.getX() + dispX * temp / len);
+        node.setY(node.getY() + dispY * temp / len);
+      }
+    }
+
+    return overlap;
+  }
+
+  private double applyRepulsive(FNode p, FNode q, double xOv, double xNonov) {
+    double deltaX = q.getX() - p.getX();
+    double deltaY = q.getY() - p.getY();
+    double dist2 = deltaX * deltaX + deltaY * deltaY;
+
+    while (dist2 == 0) {
+      deltaX = 5 - Math.random() * 10;
+      deltaY = 5 - Math.random() * 10;
+      dist2 = deltaX * deltaX + deltaY * deltaY;
+    }
+
+    double force;
+    boolean overlap = p.isOverlap(q);
+    if (overlap) {
+      force = xOv / dist2;
+    } else {
+      force = xNonov / dist2;
+    }
+
+    q.setRepulsionX(q.getRepulsionX() + deltaX * force);
+    q.setRepulsionY(q.getRepulsionY() + deltaY * force);
+    p.setRepulsionX(p.getRepulsionX() - deltaX * force);
+    p.setRepulsionY(p.getRepulsionY() - deltaY * force);
+
+    return overlap ? 1 : 0;
+  }
+
+  private void applyAttractive(FNode p, FNode q, double k) {
+    if (p.isOverlap(q)) {
+      return;
+    }
+
+    double deltaX = p.getX() - q.getX();
+    double deltaY = p.getY() - q.getY();
+    double dist = Math.hypot(deltaX, deltaY);
+    double din = rad(p) + rad(q);
+    double dout = dist - din;
+    double force = dout * dout / ((k + din) * dist);
+
+    q.setRepulsionX(q.getRepulsionX() - deltaX * force);
+    q.setRepulsionY(q.getRepulsionY() - deltaY * force);
+    p.setRepulsionX(p.getRepulsionX() + deltaX * force);
+    p.setRepulsionY(p.getRepulsionY() + deltaY * force);
+  }
+
+  private double rad(FNode node) {
+    return Math.hypot(node.getWidth(), node.getHeight());
   }
 
   private void resolveOverlaps(FdpGraph graph) {
@@ -369,11 +483,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   private int overlapNum(FdpGraph graph) {
     int overlap = 0;
-    FNode start = graph.start();
 
-    for (FNode n = start; n != null; n = graph.next(n)) {
-      FNode w = graph.next(n);
-      for (; w != null; w = graph.next(w)) {
+    for (FNode n = graph.start(); n != null; n = graph.next(n)) {
+      for (FNode w = graph.next(n); w != null; w = graph.next(w)) {
         if (n.isOverlap(w)) {
           overlap++;
         }
@@ -403,7 +515,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     for (FNode n : graph) {
-      for (FLine edge : graph.adjacent(n)) {
+      for (FLine edge : graph.outAdjacent(n)) {
         if (edge.empty()) {
           continue;
         }

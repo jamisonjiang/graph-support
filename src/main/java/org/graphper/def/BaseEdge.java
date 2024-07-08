@@ -56,4 +56,13 @@ public interface BaseEdge<V, B extends BaseEdge<V, B>> {
    * @return a copy of the edge
    */
   B copy();
+
+  /**
+   * Return true if edge is self edge.
+   *
+   * @return true if edge is self edge
+   */
+  default boolean isSelf() {
+    return either() == other(either());
+  }
 }
