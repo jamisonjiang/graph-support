@@ -330,12 +330,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     double k = graphAttrs.getK();
     int nodeNum = graph.vertexNum();
-    double temperature = 72;
+    double temperature = 36;
     int maxLoopNum = graphAttrs.getMaxiter() / 2;
     for (int i = 0; i < 9; i++) {
       double k2 = k * k;
-      double xOv = 1.5 * k2;
-      double xNonov = graph.edgeNum() * xOv * 2.0 / (nodeNum * (nodeNum - 1));
+      double xOv = 6 * k2;
+      double xNonov = graph.edgeNum() * xOv * graphAttrs.getK() * 18 / (nodeNum * (nodeNum - 1));
 
       for (int j = 0; j < maxLoopNum; j++) {
         double temp = temperature * (maxLoopNum - j) / maxLoopNum;
