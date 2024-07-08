@@ -26,6 +26,7 @@ import java.util.Queue;
 import java.util.Set;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.def.FlatPoint;
@@ -330,12 +331,14 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     double k = graphAttrs.getK();
     int nodeNum = graph.vertexNum();
-    double temperature = 36;
+    int edgeNum = graph.edgeNum();
+    double temperature = Graphviz.PIXEL;
     int maxLoopNum = graphAttrs.getMaxiter() / 2;
+    double expand = graphAttrs.getK() * Math.pow((double) edgeNum / nodeNum, 6);
     for (int i = 0; i < 9; i++) {
       double k2 = k * k;
       double xOv = 6 * k2;
-      double xNonov = graph.edgeNum() * xOv * graphAttrs.getK() * 18 / (nodeNum * (nodeNum - 1));
+      double xNonov = xOv * expand / nodeNum;
 
       for (int j = 0; j < maxLoopNum; j++) {
         double temp = temperature * (maxLoopNum - j) / maxLoopNum;
