@@ -375,7 +375,7 @@ abstract class AdjEdgeGraph<V, E extends BaseEdge<V, E>> extends
   }
 
   @SuppressWarnings("unchecked")
-  public Iterable<E> adjacent(Object v, boolean next) {
+  private Iterable<E> adjacent(Object v, boolean next) {
     if (v == null) {
       return (EdgeBag<V, E>) EdgeBag.EMPTY;
     }
