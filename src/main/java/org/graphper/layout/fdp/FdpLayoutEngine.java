@@ -225,7 +225,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         double deltaX = center.getX() - n.getX();
         double deltaY = center.getY() - n.getY();
         n.setRepulsionLocation(n.getRepulsionX() + gravityStrength * deltaX,
-                          n.getRepulsionY() + gravityStrength * deltaY);
+                               n.getRepulsionY() + gravityStrength * deltaY);
       }
 
       // Limit the displacement and update positions
@@ -318,7 +318,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-   void tryDecreaseDensity(FdpGraph graph) {
+  void tryDecreaseDensity(FdpGraph graph) {
     GraphAttrs graphAttrs = graph.getGraphviz().graphAttrs();
     if (graphAttrs.isOverlap()) {
       return;
@@ -334,7 +334,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     int edgeNum = graph.edgeNum();
     double temperature = Graphviz.PIXEL;
     int maxLoopNum = graphAttrs.getMaxiter() / 2;
-    double expand = graphAttrs.getK() * Math.pow((double) edgeNum / nodeNum, 6);
+    double expand = graphAttrs.getK() * ((double) edgeNum / nodeNum);
     for (int i = 0; i < 9; i++) {
       double k2 = k * k;
       double xOv = 6 * k2;
@@ -350,6 +350,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         if (overlap == 0) {
           break;
         }
+        xNonov *= 1.1;
       }
 
       k += k;
@@ -370,13 +371,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         overlap += applyRepulsive(n, w, xOv, xNonov);
       }
 
-//      for (FLine edge : graph.outAdjacent(n)) {
-//        if (edge.isSelf()) {
-//          continue;
-//        }
-//
-//        applyAttractive(n, edge.other(n), k);
-//      }
+      for (FLine edge : graph.outAdjacent(n)) {
+        if (edge.isSelf()) {
+          continue;
+        }
+
+        applyAttractive(n, edge.other(n), k);
+      }
     }
 
     if (overlap == 0) {
@@ -434,8 +435,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       return;
     }
 
-    double deltaX = p.getX() - q.getX();
-    double deltaY = p.getY() - q.getY();
+    double deltaX = q.getX() - p.getX();
+    double deltaY = q.getY() - p.getY();
     double dist = Math.hypot(deltaX, deltaY);
     double din = rad(p) + rad(q);
     double dout = dist - din;
