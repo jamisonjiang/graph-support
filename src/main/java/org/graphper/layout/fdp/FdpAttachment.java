@@ -26,15 +26,13 @@ public class FdpAttachment extends LayoutAttach {
 
   private final FdpGraph fdpGraph;
 
-  private final DrawGraph drawGraph;
-
   private final Map<Node, FNode> nodeRecord;
 
   public FdpAttachment(FdpGraph fdpGraph, DrawGraph drawGraph, Map<Node, FNode> nodeRecord) {
+    super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");
     Asserts.nullArgument(fdpGraph, "fdpGraph");
     this.fdpGraph = fdpGraph;
-    this.drawGraph = drawGraph;
     this.nodeRecord = nodeRecord;
   }
 

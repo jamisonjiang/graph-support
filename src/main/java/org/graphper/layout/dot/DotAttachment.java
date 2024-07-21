@@ -48,8 +48,6 @@ class DotAttachment extends LayoutAttach {
 
   private final Map<Node, DNode> nodeRecord;
 
-  private final DrawGraph drawGraph;
-
   private boolean haveSubgraphs;
 
   private List<DLine> labelLines;
@@ -61,9 +59,9 @@ class DotAttachment extends LayoutAttach {
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
   public DotAttachment(DotDigraph dotDigraph, DrawGraph drawGraph, Map<Node, DNode> nodeRecord) {
+    super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.dotDigraph = dotDigraph;
-    this.drawGraph = drawGraph;
     this.nodeRecord = nodeRecord;
   }
 
@@ -87,14 +85,6 @@ class DotAttachment extends LayoutAttach {
 
   DotDigraph getDotDigraph() {
     return dotDigraph;
-  }
-
-  DrawGraph getDrawGraph() {
-    return drawGraph;
-  }
-
-  Graphviz getGraphviz() {
-    return drawGraph.getGraphviz();
   }
 
   DNode get(Node node) {
@@ -169,25 +159,6 @@ class DotAttachment extends LayoutAttach {
 
   GraphContainer commonParent(DNode v, DNode w) {
     return commonParent(getGraphviz(), v, w);
-  }
-
-  GraphContainer clusterDirectContainer(GraphContainer parent, DNode node) {
-    return clusterDirectContainer(getGraphviz(), parent, node);
-  }
-
-  static GraphContainer clusterDirectContainer(Graphviz graphviz,
-                                               GraphContainer parent, DNode node) {
-    if (node.getContainer() == parent || graphviz == null) {
-      return null;
-    }
-
-    GraphContainer father;
-    GraphContainer current = node.getContainer();
-    while ((father = graphviz.effectiveFather(current)) != parent && father != null) {
-      current = father;
-    }
-
-    return father == parent ? current : null;
   }
 
   void addGeneratePort(DLine line) {

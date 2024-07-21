@@ -82,7 +82,6 @@ public class CurvePathClip extends PathClip<LineDrawProp> {
 
     if (inOutPair != null) {
       ThirdOrderBezierCurve curve = getCurve(path, inOutPair);
-
       subPath(path, inOutPair, besselCurveClipShape(clusterDrawProp, curve));
     } else {
       path.clear();
@@ -97,7 +96,6 @@ public class CurvePathClip extends PathClip<LineDrawProp> {
 
     if (inOutPair != null) {
       ThirdOrderBezierCurve curve = getCurve(path, inOutPair);
-
       subPath(path, inOutPair, besselCurveClipShape(node, curve));
     }
 

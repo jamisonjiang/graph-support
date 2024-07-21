@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.api.ext.Box;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
@@ -65,7 +66,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     recordAdj(from, to);
   }
 
-  private boolean adjAlreadyExists(FNode from, FNode to) {
+  public boolean adjAlreadyExists(FNode from, FNode to) {
     Set<FNode> adj = adjRecord().get(from);
     if (adj == null) {
       return false;
@@ -73,7 +74,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     return adj.contains(to);
   }
 
-  private void recordAdj(FNode from, FNode to) {
+  public void recordAdj(FNode from, FNode to) {
     adjRecord().computeIfAbsent(from, k -> new HashSet<>()).add(to);
     adjRecord().computeIfAbsent(to, k -> new HashSet<>()).add(from);
   }
@@ -99,11 +100,15 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
   }
 
 
-  public static class AreaGraph extends DedirectedEdgeGraph<FNode, FLine> {
+  public static class AreaGraph extends DedirectedEdgeGraph<FNode, FLine> implements Box {
 
     private static final long serialVersionUID = -8984880695666572968L;
 
     private final Rectangle area;
+
+    private FNode minXNode;
+
+    private FNode minYNode;
 
     public AreaGraph(int capacity) {
       super(capacity);
@@ -124,6 +129,13 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       area.updateXAxisRange(node.getRightBorder());
       area.updateYAxisRange(node.getUpBorder());
       area.updateYAxisRange(node.getDownBorder());
+
+      if (minXNode == null || minXNode.getLeftBorder() > node.getLeftBorder()) {
+        minXNode = node;
+      }
+      if (minYNode == null || minYNode.getUpBorder() > node.getUpBorder()) {
+        minYNode = node;
+      }
     }
 
     public void initArea() {
@@ -136,6 +148,34 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
     public double height() {
       return area.getHeight();
+    }
+
+    @Override
+    public double getLeftBorder() {
+      return area.getLeftBorder();
+    }
+
+    @Override
+    public double getRightBorder() {
+      return area.getRightBorder();
+    }
+
+    @Override
+    public double getUpBorder() {
+      return area.getUpBorder();
+    }
+
+    @Override
+    public double getDownBorder() {
+      return area.getDownBorder();
+    }
+
+    public FNode getMinXNode() {
+      return minXNode;
+    }
+
+    public FNode getMinYNode() {
+      return minYNode;
     }
   }
 }

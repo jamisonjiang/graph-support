@@ -119,7 +119,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
     if (fdpAttachment.haveClusters()) {
-      layout(graph, graph.getGraphviz(), graphAttrs);
+      layout(fdpAttachment, graph.getGraphviz(), graphAttrs);
     } else {
       layout(graph.getGraph(), graphAttrs);
     }
@@ -127,7 +127,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     applyGraphInfo(drawGraph, graph);
   }
 
-  private AreaGraph layout(FdpGraph graph, GraphContainer container, GraphAttrs graphAttrs) {
+  private AreaGraph layout(FdpAttachment attachment, GraphContainer container,
+                           GraphAttrs graphAttrs) {
+    FdpGraph graph = attachment.getFdpGraph();
     AreaGraph proxyGraph = new AreaGraph(graph.vertexNum());
     for (FNode node : graph.nodes(container)) {
       if (node.getContainer() == container) {
@@ -135,19 +137,63 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
     }
 
+    Map<GraphContainer, ClusterNode> clusterNode = new HashMap<>();
     for (Cluster cluster : clusters(container)) {
-      AreaGraph clusterNode = layout(graph, cluster, graphAttrs);
+      AreaGraph subGraph = layout(attachment, cluster, graphAttrs);
       FNode fNode = new FNode(null);
-      fNode.setWidth(clusterNode.width());
-      fNode.setHeight(clusterNode.height());
+      fNode.setWidth(subGraph.width());
+      fNode.setHeight(subGraph.height());
+      fNode.setContainer(cluster);
       proxyGraph.add(fNode);
+      clusterNode.put(cluster, new ClusterNode(fNode, subGraph));
     }
 
-//    for (Line line : graph.lines(container)) {
-//      graph.l
-//    }
+    for (Line line : graph.lines(container)) {
+      FNode from = attachment.get(line.tail());
+      FNode to = attachment.get(line.head());
+
+      GraphContainer fc = attachment.clusterDirectContainer(container, from);
+      GraphContainer tc = attachment.clusterDirectContainer(container, to);
+
+      if (fc == tc && fc != container) {
+        continue;
+      }
+
+      boolean hasNodeChanged = false;
+      if (fc != container) {
+        from = clusterNode.get(fc).node;
+        hasNodeChanged = true;
+      }
+      if (tc != container) {
+        to = clusterNode.get(tc).node;
+        hasNodeChanged = true;
+      }
+
+      if (hasNodeChanged && graph.adjAlreadyExists(from, to)) {
+        continue;
+      }
+
+      LineDrawProp lineDrawProp = attachment.getDrawGraph().getLineDrawProp(line);
+      Double weight = lineDrawProp.lineAttrs().getWeight();
+      FLine fLine;
+      if (weight != null) {
+        fLine = new FLine(from, to, weight, line);
+      } else {
+        fLine = new FLine(from, to, line);
+      }
+      proxyGraph.addEdge(fLine);
+    }
 
     layout(proxyGraph, graphAttrs);
+
+    for (Cluster cluster : clusters(container)) {
+      ClusterNode proxyNode = clusterNode.get(cluster);
+
+      for (FNode node : graph.nodes(cluster)) {
+
+      }
+    }
+
     return proxyGraph;
   }
 
@@ -552,5 +598,26 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     drawGraph.syncToGraphvizBorder();
+  }
+
+  private static class ClusterNode {
+    private final FNode node;
+
+    private final AreaGraph areaGraph;
+
+    ClusterNode(FNode node, AreaGraph areaGraph) {
+      this.node = node;
+      this.areaGraph = areaGraph;
+    }
+
+    double xoffset() {
+      FNode minXNode = areaGraph.getMinXNode();
+      return areaGraph.getLeftBorder() - minXNode.getLeftBorder();
+    }
+
+    double yoffset() {
+      FNode minYNode = areaGraph.getMinYNode();
+      return areaGraph.getUpBorder() - minYNode.getUpBorder();
+    }
   }
 }
