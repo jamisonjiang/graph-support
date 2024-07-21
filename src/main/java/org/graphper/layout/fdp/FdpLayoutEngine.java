@@ -16,6 +16,8 @@
 
 package org.graphper.layout.fdp;
 
+import static org.graphper.layout.LayoutGraph.clusters;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import org.graphper.api.Cluster;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -36,6 +39,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.ShifterStrategy;
+import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
 public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializable {
 
@@ -72,6 +76,14 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       fdpGraph.add(fn);
     }
 
+    if (parentContainer.isSubgraph()) {
+      parentContainer = drawGraph.getGraphviz().effectiveFather(parentContainer);
+    }
+    if (parentContainer.isCluster()) {
+      fdpAttachment.markHaveCluster();
+    }
+
+    fn.setContainer(parentContainer);
     fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
   }
 
@@ -106,53 +118,56 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     FdpGraph graph = fdpAttachment.getFdpGraph();
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
-    conComp(graph);
+    if (fdpAttachment.haveClusters()) {
+      layout(graph, graph.getGraphviz(), graphAttrs);
+    } else {
+      layout(graph.getGraph(), graphAttrs);
+    }
 
+    applyGraphInfo(drawGraph, graph);
+  }
+
+  private AreaGraph layout(FdpGraph graph, GraphContainer container, GraphAttrs graphAttrs) {
+    AreaGraph proxyGraph = new AreaGraph(graph.vertexNum());
+    for (FNode node : graph.nodes(container)) {
+      if (node.getContainer() == container) {
+        proxyGraph.add(node);
+      }
+    }
+
+    for (Cluster cluster : clusters(container)) {
+      AreaGraph clusterNode = layout(graph, cluster, graphAttrs);
+      FNode fNode = new FNode(null);
+      fNode.setWidth(clusterNode.width());
+      fNode.setHeight(clusterNode.height());
+      proxyGraph.add(fNode);
+    }
+
+//    for (Line line : graph.lines(container)) {
+//      graph.l
+//    }
+
+    layout(proxyGraph, graphAttrs);
+    return proxyGraph;
+  }
+
+  private void layout(AreaGraph graph, GraphAttrs graphAttrs) {
     int width = 200;
     int height = 200;
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
-    double k = Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
+    double k = Math.sqrt(
+        (width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
-    initPos(graph, graphAttrs, width, height);
+    initPos(graph, graphAttrs, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);
-    tryDecreaseDensity(graph);
-    applyGraphInfo(drawGraph, graph);
+    tryDecreaseDensity(graph, graphAttrs);
   }
 
-  private void conComp(FdpGraph graph) {
-    Set<FNode> visited = new HashSet<>();
-
-    FNode preComFirstNode = null;
-    for (FNode n : graph) {
-      if (visited.contains(n)) {
-        continue;
-      }
-
-      if (preComFirstNode != null) {
-        graph.addEdge(new FLine(preComFirstNode, n, 1, null));
-      }
-      preComFirstNode = n;
-      dfs(n, graph, visited);
-    }
-  }
-
-  private void dfs(FNode n, FdpGraph graph, Set<FNode> visited) {
-    visited.add(n);
-
-    for (FLine line : graph.adjacent(n)) {
-      FNode w = line.other(n);
-      if (visited.contains(w)) {
-        continue;
-      }
-
-      dfs(w, graph, visited);
-    }
-  }
-
-  private void initPos(FdpGraph graph, GraphAttrs graphAttrs, int width, int height) {
+  private void initPos(AreaGraph graph, GraphAttrs graphAttrs,
+                       int iterations, int width, int height) {
     switch (graphAttrs.getInitPos()) {
       case GRID:
         initializePositionsGrid(graph, width, height);
@@ -165,9 +180,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         initializePositions(graph, width, height);
         break;
     }
+
+    if (iterations > 0) {
+      graph.initArea();
+    }
   }
 
-  protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
+  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
                            double k, double width, double height) {
     double ksqaure = k * k;
     double gravityStrength = 0.1;
@@ -233,14 +252,17 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX()
                                             + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
-          v.setX(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature));
-          v.setY(v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature));
+          double x = v.getX() + (v.getRepulsionX() / displacement)
+              * Math.min(displacement, temperature);
+          double y = v.getY() + (v.getRepulsionY() / displacement)
+              * Math.min(displacement, temperature);
+          graph.setNodeLocation(v, x, y);
         }
       }
     }
   }
 
-  public void initializePositions(FdpGraph graph, int width, int height) {
+  public void initializePositions(AreaGraph graph, int width, int height) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -266,8 +288,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       FNode v = queue.poll();
       double angle = currentLayerSize * angleStep;
       int radius = layer * radiusStep;
-      v.setLocation((double) width / 2 + radius * Math.cos(angle),
-                    (double) height / 2 + radius * Math.sin(angle));
+      graph.setNodeLocation(v, (double) width / 2 + radius * Math.cos(angle),
+                            (double) height / 2 + radius * Math.sin(angle));
       currentLayerSize++;
       if (currentLayerSize >= layerSize) {
         layer++;
@@ -286,7 +308,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private void initializePositionsGrid(FdpGraph graph, int width, int height) {
+  private void initializePositionsGrid(AreaGraph graph, int width, int height) {
     int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
     double cellWidth = width / (double) gridSize;
     double cellHeight = height / (double) gridSize;
@@ -295,13 +317,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (FNode v : graph) {
       int row = i / gridSize;
       int col = i % gridSize;
-      v.setLocation(col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
+      graph.setNodeLocation(v, col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
       i++;
     }
   }
 
-  // Initialize positions using a circular layout
-  private static void initializeCircularLayout(FdpGraph graph, int width, int height) {
+  private static void initializeCircularLayout(AreaGraph graph, int width, int height) {
     double angleIncrement = 2 * Math.PI / graph.vertexNum();
     int centerX = width / 2;
     int centerY = height / 2;
@@ -312,14 +333,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double angle = i * angleIncrement;
       int x = (int) (centerX + radius * Math.cos(angle));
       int y = (int) (centerY + radius * Math.sin(angle));
-      node.setX(x);
-      node.setY(y);
+      graph.setNodeLocation(node, x, y);
       i++;
     }
   }
 
-  void tryDecreaseDensity(FdpGraph graph) {
-    GraphAttrs graphAttrs = graph.getGraphviz().graphAttrs();
+  void tryDecreaseDensity(AreaGraph graph, GraphAttrs graphAttrs) {
     if (graphAttrs.isOverlap()) {
       return;
     }
@@ -359,7 +378,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     resolveOverlaps(graph);
   }
 
-  private int adjust(FdpGraph graph, double k, double temp, double xOv, double xNonov) {
+  private int adjust(AreaGraph graph, double k, double temp, double xOv, double xNonov) {
     for (FNode node : graph) {
       node.setRepulsionX(0);
       node.setRepulsionY(0);
@@ -391,12 +410,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double len2 = dispX * dispX + dispY * dispY;
 
       if (len2 < temp2) {
-        node.setX(node.getX() + dispX);
-        node.setY(node.getY() + dispY);
+        graph.setNodeLocation(node, node.getX() + dispX, node.getY() + dispY);
       } else {
         double len = Math.sqrt(len2);
-        node.setX(node.getX() + dispX * temp / len);
-        node.setY(node.getY() + dispY * temp / len);
+        graph.setNodeLocation(node, node.getX() + dispX * temp / len,
+                              node.getY() + dispY * temp / len);
       }
     }
 
@@ -452,7 +470,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     return Math.hypot(node.getWidth(), node.getHeight());
   }
 
-  private void resolveOverlaps(FdpGraph graph) {
+  private void resolveOverlaps(AreaGraph graph) {
     boolean overlapResolved;
     for (int iteration = 0; iteration < 100; iteration++) {
       overlapResolved = true;
@@ -470,8 +488,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double dx = (deltaX / distance) * overlap / 2.0;
           double dy = (deltaY / distance) * overlap / 2.0;
 
-          v.setLocation(v.getX() + dx, v.getY() + dy);
-          u.setLocation(u.getX() - dx, u.getY() - dy);
+          graph.setNodeLocation(v, v.getX() + dx, v.getY() + dy);
+          graph.setNodeLocation(u, u.getX() - dx, u.getY() - dy);
 
           if (v.isOverlap(u)) {
             overlapResolved = false;
@@ -485,7 +503,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private int overlapNum(FdpGraph graph) {
+  private int overlapNum(AreaGraph graph) {
     int overlap = 0;
 
     for (FNode n = graph.start(); n != null; n = graph.next(n)) {

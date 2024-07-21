@@ -24,7 +24,7 @@ import org.graphper.util.Asserts;
 
 public class FdpAttachment extends LayoutAttach {
 
-  private FdpGraph fdpGraph;
+  private final FdpGraph fdpGraph;
 
   private final DrawGraph drawGraph;
 

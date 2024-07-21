@@ -142,7 +142,6 @@ class MinCross {
 
         for (DLine e : digraph.adjacent(from)) {
           DNode to = e.to();
-
           DLine edge = lineMap.get(to);
 
           if (edge != null) {

@@ -23,8 +23,10 @@ import java.util.Objects;
 import java.util.Set;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.Rectangle;
 import org.graphper.layout.LayoutGraph;
 
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
@@ -33,7 +35,17 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
   public FdpGraph(int capacity, Graphviz graphviz,
                   Map<Node, FNode> nodeMap) {
-    super(capacity, graphviz, nodeMap, true);
+    super(capacity, graphviz, nodeMap);
+  }
+
+  @Override
+  protected AreaGraph newGraph(int capacity) {
+    return new AreaGraph(capacity);
+  }
+
+  @Override
+  public AreaGraph getGraph() {
+    return (AreaGraph) super.getGraph();
   }
 
   @Override
@@ -84,5 +96,46 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       map.put(k.nodeAttrs().getLabel(), new FlatPoint(v.getX(), v.getY()));
     });
     return map.toString();
+  }
+
+
+  public static class AreaGraph extends DedirectedEdgeGraph<FNode, FLine> {
+
+    private static final long serialVersionUID = -8984880695666572968L;
+
+    private final Rectangle area;
+
+    public AreaGraph(int capacity) {
+      super(capacity);
+      this.area = new Rectangle();
+    }
+
+    public void updateXAxisRange(double x) {
+      area.updateXAxisRange(x);
+    }
+
+    public void updateYAxisRange(double y) {
+      area.updateYAxisRange(y);
+    }
+
+    public void setNodeLocation(FNode node, double x, double y) {
+      node.setLocation(x, y);
+      area.updateXAxisRange(node.getLeftBorder());
+      area.updateXAxisRange(node.getRightBorder());
+      area.updateYAxisRange(node.getUpBorder());
+      area.updateYAxisRange(node.getDownBorder());
+    }
+
+    public void initArea() {
+      area.init();
+    }
+
+    public double width() {
+      return area.getWidth();
+    }
+
+    public double height() {
+      return area.getHeight();
+    }
   }
 }

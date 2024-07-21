@@ -30,13 +30,12 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.def.BiConcatIterable;
 import org.graphper.def.ConcatIterable;
-import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.Digraph.EdgeDigraph;
-import org.graphper.def.DirectedEdgeGraph;
 import org.graphper.def.EdgeOpGraph;
 import org.graphper.util.CollectionUtils;
 
-public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements EdgeOpGraph<N, E> {
+public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements
+    EdgeOpGraph<N, E> {
 
   protected final Graphviz graphviz;
 
@@ -47,13 +46,19 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
   protected Map<GraphContainer, GraphGroup> containerMap;
 
   public LayoutGraph(int capacity) {
-    this(capacity, null, null, false);
+    this(capacity, null, null);
   }
 
-  public LayoutGraph(int capacity, Graphviz graphviz, Map<Node, N> nodeMap, boolean isDedigraph) {
+  public LayoutGraph(int capacity, Graphviz graphviz, Map<Node, N> nodeMap) {
     this.graphviz = graphviz;
     this.nodeMap = nodeMap;
-    graph = isDedigraph ? new DedirectedEdgeGraph<>(capacity) : new DirectedEdgeGraph<>(capacity);
+    graph = newGraph(capacity);
+  }
+
+  protected abstract EdgeDigraph<N, E> newGraph(int capacity);
+
+  public EdgeDigraph<N, E> getGraph() {
+    return graph;
   }
 
   @Override
@@ -101,9 +106,9 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
     N to = edge.to();
     GraphContainer container;
 
-    if (!notContains(graphviz, from.getContainer(), to.getContainer())) {
+    if (containsContainer(graphviz, from.getContainer(), to.getContainer())) {
       container = from.getContainer();
-    } else if (!notContains(graphviz, to.getContainer(), from.getContainer())) {
+    } else if (containsContainer(graphviz, to.getContainer(), from.getContainer())) {
       container = to.getContainer();
     } else {
       container = commonParent(graphviz, edge.from(), edge.to());
@@ -248,18 +253,18 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
     return new BiConcatIterable<>(iterables);
   }
 
-  public static <N extends ANode, E extends ALine<N, E>> boolean notContains(Graphviz graphviz,
-                                                                             GraphContainer father,
-                                                                             GraphContainer container) {
+  public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(Graphviz graphviz,
+                                                                                   GraphContainer father,
+                                                                                   GraphContainer container) {
     if (father == null || container == null) {
-      return true;
+      return false;
     }
 
     GraphContainer p = container;
     while (p != father && p != null) {
       p = graphviz.father(p);
     }
-    return p == null;
+    return p != null;
   }
 
   /**
@@ -403,7 +408,7 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
 
     private boolean nodeFilter(N node) {
       GraphContainer c = node.getContainer();
-      return !notContains(graphviz, container, c);
+      return containsContainer(graphviz, container, c);
     }
 
     private boolean lineFilter(Line line) {
@@ -411,7 +416,7 @@ public class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements Edge
       N to = nodeMap.get(line.head());
 
       GraphContainer c = commonParent(graphviz, from, to);
-      return !notContains(graphviz, container, c);
+      return containsContainer(graphviz, container, c);
     }
   }
 }

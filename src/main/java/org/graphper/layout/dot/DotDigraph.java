@@ -19,6 +19,8 @@ package org.graphper.layout.dot;
 import java.util.Map;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.def.Digraph.EdgeDigraph;
+import org.graphper.def.DirectedEdgeGraph;
 import org.graphper.layout.LayoutGraph;
 
 class DotDigraph extends LayoutGraph<DNode, DLine> {
@@ -29,6 +31,11 @@ class DotDigraph extends LayoutGraph<DNode, DLine> {
 
   public DotDigraph(int capacity, Graphviz graphviz,
                     Map<Node, DNode> nodeMap) {
-    super(capacity, graphviz, nodeMap, false);
+    super(capacity, graphviz, nodeMap);
+  }
+
+  @Override
+  protected EdgeDigraph<DNode, DLine> newGraph(int capacity) {
+    return new DirectedEdgeGraph<>(capacity);
   }
 }

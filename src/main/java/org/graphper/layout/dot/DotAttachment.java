@@ -50,8 +50,6 @@ class DotAttachment extends LayoutAttach {
 
   private final DrawGraph drawGraph;
 
-  private boolean haveClusters;
-
   private boolean haveSubgraphs;
 
   private List<DLine> labelLines;
@@ -153,16 +151,8 @@ class DotAttachment extends LayoutAttach {
     nodeRecord.put(node, dNode);
   }
 
-  void markHaveCluster() {
-    this.haveClusters = true;
-  }
-
   void markHaveSubgraph() {
     this.haveSubgraphs = true;
-  }
-
-  boolean haveClusters() {
-    return haveClusters;
   }
 
   boolean haveSubgraphs() {

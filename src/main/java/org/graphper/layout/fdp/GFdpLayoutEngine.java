@@ -18,13 +18,14 @@ package org.graphper.layout.fdp;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
 public class GFdpLayoutEngine extends FdpLayoutEngine {
 
   private static final long serialVersionUID = 5753649446512849866L;
 
   @Override
-  protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
+  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
                            double k, double width, double height) {
     int gridSize = graph.vertexNum() * 10;
     int gridWidth = (int) width;
@@ -103,10 +104,11 @@ public class GFdpLayoutEngine extends FdpLayoutEngine {
         double displacement = Math.sqrt(
             v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
-          v.setLocation(v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement,
-                                                                                 temperature),
-                        v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement,
-                                                                                 temperature));
+          double x = v.getX() + (v.getRepulsionX() / displacement)
+              * Math.min(displacement, temperature);
+          double y = v.getY() + (v.getRepulsionY() / displacement)
+              * Math.min(displacement, temperature);
+          graph.setNodeLocation(v, x, y);
         }
       }
     }

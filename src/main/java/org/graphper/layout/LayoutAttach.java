@@ -17,4 +17,13 @@
 package org.graphper.layout;
 
 public class LayoutAttach {
+  private boolean haveClusters;
+
+  public void markHaveCluster() {
+    this.haveClusters = true;
+  }
+
+  public boolean haveClusters() {
+    return haveClusters;
+  }
 }

@@ -45,8 +45,8 @@ public class Rectangle extends DefaultBox {
     rightBorder = Math.max(x, rightBorder);
   }
 
-  public void updateYAxisRange(double x) {
-    upBorder = Math.min(x, upBorder);
-    downBorder = Math.max(x, downBorder);
+  public void updateYAxisRange(double y) {
+    upBorder = Math.min(y, upBorder);
+    downBorder = Math.max(y, downBorder);
   }
 }

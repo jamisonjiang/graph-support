@@ -87,8 +87,6 @@ public class FNode extends ANode {
   }
 
   public void setLocation(double x, double y) {
-//    this.x = (int) Math.floor(x + 0.5);
-//    this.y = (int) Math.floor(y + 0.5);
     this.x = x;
     this.y = y;
   }

@@ -16,12 +16,14 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.layout.fdp.FdpGraph.AreaGraph;
+
 public class JFdpLayoutEngine extends FdpLayoutEngine {
 
   private static final long serialVersionUID = -5998157771161759195L;
 
   @Override
-  protected void fdpLayout(FdpGraph graph, int iterations, double temperature,
+  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
                            double k, double width, double height) {
     width = Math.max(800, graph.edgeNum() + graph.vertexNum());
     height = width;
@@ -100,18 +102,18 @@ public class JFdpLayoutEngine extends FdpLayoutEngine {
 
         // keeps nodes from moving any faster than 5 per time unit
         double advance = 10;
-        v.setLocation(v.getX() + Math.max(-advance, Math.min(advance, v.getDx())),
-                      v.getY() + Math.max(-advance, Math.min(advance, v.getDy())));
+        graph.setNodeLocation(v, v.getX() + Math.max(-advance, Math.min(advance, v.getDx())),
+                              v.getY() + Math.max(-advance, Math.min(advance, v.getDy())));
 
         if (v.getX() < 0) {
-          v.setLocation(0, v.getY());
+          graph.setNodeLocation(v, 0, v.getY());
         } else if (v.getX() > width) {
-          v.setLocation(width, v.getY());
+          graph.setNodeLocation(v, width, v.getY());
         }
         if (v.getY() < 0) {
-          v.setLocation(v.getX(), 0);
+          graph.setNodeLocation(v, v.getX(), 0);
         } else if (v.getY() > height) {
-          v.setLocation(v.getX(), height);
+          graph.setNodeLocation(v, v.getX(), height);
         }
       }
     }

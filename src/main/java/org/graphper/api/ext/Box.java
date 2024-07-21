@@ -145,16 +145,9 @@ public interface Box {
       return false;
     }
 
-    double deltaX = Math.abs(getX() - box.getX());
-    double deltaY= Math.abs(getY() - box.getY());
-    return deltaX <= wd2(this) + wd2(box) && deltaY <= ht2(this) + ht2(box);
-  }
-
-  static double wd2(Box box) {
-    return box.getWidth() / 2 + 4;
-  }
-
-  static double ht2(Box box) {
-    return box.getHeight() / 2 + 4;
+    return in(box.getLeftBorder(), box.getUpBorder())
+        || in(box.getLeftBorder(), box.getDownBorder())
+        || in(box.getRightBorder(), box.getUpBorder())
+        || in(box.getRightBorder(), box.getDownBorder());
   }
 }
