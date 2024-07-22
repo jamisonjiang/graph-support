@@ -35,11 +35,11 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
 
   protected double y;
 
-  private double width;
+  protected double width;
 
-  private double height;
+  protected double height;
 
-  private NodeAttrs nodeAttrs;
+  protected NodeAttrs nodeAttrs;
 
   // The parent container, if it is null, it means the root container
   protected GraphContainer container;

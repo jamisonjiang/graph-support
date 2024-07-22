@@ -33,6 +33,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -83,8 +84,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       fdpAttachment.markHaveCluster();
     }
 
-    fn.setContainer(parentContainer);
     fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
+    if (fn.getContainer() == null) {
+      fn.setContainer(parentContainer);
+    }
   }
 
   @Override
@@ -119,7 +122,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
     if (fdpAttachment.haveClusters()) {
-      layout(fdpAttachment, graph.getGraphviz(), graphAttrs);
+      Map<Cluster, ClusterNode> clusterNode = new HashMap<>();
+      layout(fdpAttachment, graph.getGraphviz(),
+             graphAttrs.getMargin(), clusterNode, graphAttrs);
     } else {
       layout(graph.getGraph(), graphAttrs);
     }
@@ -127,23 +132,23 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     applyGraphInfo(drawGraph, graph);
   }
 
-  private AreaGraph layout(FdpAttachment attachment, GraphContainer container,
-                           GraphAttrs graphAttrs) {
+  private AreaGraph layout(FdpAttachment attachment, GraphContainer container, FlatPoint margin,
+                           Map<Cluster, ClusterNode> clusterNode, GraphAttrs graphAttrs) {
     FdpGraph graph = attachment.getFdpGraph();
-    AreaGraph proxyGraph = new AreaGraph(graph.vertexNum());
+    AreaGraph proxyGraph = new AreaGraph(graph.vertexNum(), margin);
     for (FNode node : graph.nodes(container)) {
       if (node.getContainer() == container) {
         proxyGraph.add(node);
       }
     }
 
-    Map<GraphContainer, ClusterNode> clusterNode = new HashMap<>();
     for (Cluster cluster : clusters(container)) {
-      AreaGraph subGraph = layout(attachment, cluster, graphAttrs);
+      AreaGraph subGraph = layout(attachment, cluster, cluster.clusterAttrs().getMargin(),
+                                  clusterNode, graphAttrs);
       FNode fNode = new FNode(null);
       fNode.setWidth(subGraph.width());
       fNode.setHeight(subGraph.height());
-      fNode.setContainer(cluster);
+      fNode.setContainer(container);
       proxyGraph.add(fNode);
       clusterNode.put(cluster, new ClusterNode(fNode, subGraph));
     }
@@ -155,16 +160,16 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       GraphContainer fc = attachment.clusterDirectContainer(container, from);
       GraphContainer tc = attachment.clusterDirectContainer(container, to);
 
-      if (fc == tc && fc != container) {
+      if (fc == tc && fc != null && fc != container) {
         continue;
       }
 
       boolean hasNodeChanged = false;
-      if (fc != container) {
+      if (fc != container && fc != null) {
         from = clusterNode.get(fc).node;
         hasNodeChanged = true;
       }
-      if (tc != container) {
+      if (tc != container && tc != null) {
         to = clusterNode.get(tc).node;
         hasNodeChanged = true;
       }
@@ -182,19 +187,46 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         fLine = new FLine(from, to, line);
       }
       proxyGraph.addEdge(fLine);
+      graph.recordAdj(from, to);
     }
 
     layout(proxyGraph, graphAttrs);
 
     for (Cluster cluster : clusters(container)) {
       ClusterNode proxyNode = clusterNode.get(cluster);
+      double xoffset = proxyNode.xoffset();
+      double yoffset = proxyNode.yoffset();
 
       for (FNode node : graph.nodes(cluster)) {
-
+        node.setX(node.getX() - xoffset);
+        node.setY(node.getY() - yoffset);
       }
+
+      alignChildClusters(attachment.getDrawGraph(), cluster, clusterNode, xoffset, yoffset);
     }
 
     return proxyGraph;
+  }
+
+  private void alignChildClusters(DrawGraph drawGraph, Cluster cluster,
+                                  Map<Cluster, ClusterNode> clusterNode,
+                                  double xoffset, double yoffset) {
+    ClusterNode proxyNode = clusterNode.get(cluster);
+    ClusterDrawProp clusterDrawProp = drawGraph.getClusterDrawProp(cluster);
+    clusterDrawProp.init();
+    clusterDrawProp.updateXAxisRange(proxyNode.areaGraph.getLeftBorder() - xoffset);
+    clusterDrawProp.updateXAxisRange(proxyNode.areaGraph.getRightBorder() - xoffset);
+    clusterDrawProp.updateYAxisRange(proxyNode.areaGraph.getUpBorder() - yoffset);
+    clusterDrawProp.updateYAxisRange(proxyNode.areaGraph.getDownBorder() - yoffset);
+    proxyNode.areaGraph.initArea();
+    proxyNode.areaGraph.updateXAxisRange(clusterDrawProp.getLeftBorder());
+    proxyNode.areaGraph.updateXAxisRange(clusterDrawProp.getRightBorder());
+    proxyNode.areaGraph.updateYAxisRange(clusterDrawProp.getUpBorder());
+    proxyNode.areaGraph.updateYAxisRange(clusterDrawProp.getDownBorder());
+
+    for (Cluster child : clusters(cluster)) {
+      alignChildClusters(drawGraph, child, clusterNode, xoffset, yoffset);
+    }
   }
 
   private void layout(AreaGraph graph, GraphAttrs graphAttrs) {
@@ -210,6 +242,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     initPos(graph, graphAttrs, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);
     tryDecreaseDensity(graph, graphAttrs);
+    refreshGraph(graph);
   }
 
   private void initPos(AreaGraph graph, GraphAttrs graphAttrs,
@@ -563,7 +596,18 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     return overlap;
   }
 
+  private static void refreshGraph(AreaGraph graph) {
+    if (!graph.isInitStatus()) {
+      return;
+    }
+
+    for (FNode node : graph) {
+      graph.setNodeLocation(node, node.getX(), node.getY());
+    }
+  }
+
   private static void applyGraphInfo(DrawGraph drawGraph, FdpGraph graph) {
+    FlatPoint margin = drawGraph.getGraphviz().graphAttrs().getMargin();
     for (FNode node : graph) {
       if (node.empty()) {
         continue;
@@ -576,10 +620,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       nodeDrawProp.setDownBorder(node.getDownBorder());
       nodeLabelSet(nodeDrawProp, drawGraph, true);
 
-      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder());
-      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder());
-      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder());
+      drawGraph.updateXAxisRange(nodeDrawProp.getLeftBorder() - margin.getWidth());
+      drawGraph.updateXAxisRange(nodeDrawProp.getRightBorder() + margin.getWidth());
+      drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder() - margin.getHeight());
+      drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder() + margin.getHeight());
     }
 
     for (FNode n : graph) {
@@ -597,10 +641,23 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
     }
 
+    for (Cluster cluster : clusters(drawGraph.getGraphviz())) {
+      refreshByClusters(cluster, drawGraph, margin);
+    }
+
     drawGraph.syncToGraphvizBorder();
   }
 
+  private static void refreshByClusters(Cluster cluster, DrawGraph drawGraph, FlatPoint margin) {
+    ClusterDrawProp clusterDrawProp = drawGraph.getClusterDrawProp(cluster);
+    drawGraph.updateXAxisRange(clusterDrawProp.getLeftBorder() - margin.getWidth());
+    drawGraph.updateXAxisRange(clusterDrawProp.getRightBorder() + margin.getWidth());
+    drawGraph.updateYAxisRange(clusterDrawProp.getUpBorder() - margin.getHeight());
+    drawGraph.updateYAxisRange(clusterDrawProp.getDownBorder() + margin.getHeight());
+  }
+
   private static class ClusterNode {
+
     private final FNode node;
 
     private final AreaGraph areaGraph;
@@ -611,13 +668,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     double xoffset() {
-      FNode minXNode = areaGraph.getMinXNode();
-      return areaGraph.getLeftBorder() - minXNode.getLeftBorder();
+      return areaGraph.getX() - node.getX();
     }
 
     double yoffset() {
-      FNode minYNode = areaGraph.getMinYNode();
-      return areaGraph.getUpBorder() - minYNode.getUpBorder();
+      return areaGraph.getY() - node.getY();
     }
   }
 }

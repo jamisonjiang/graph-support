@@ -41,7 +41,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
   @Override
   protected AreaGraph newGraph(int capacity) {
-    return new AreaGraph(capacity);
+    return new AreaGraph(capacity, graphviz.graphAttrs().getMargin());
   }
 
   @Override
@@ -104,15 +104,17 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
     private static final long serialVersionUID = -8984880695666572968L;
 
+    private boolean initStatus;
+
     private final Rectangle area;
 
-    private FNode minXNode;
+    private final FlatPoint margin;
 
-    private FNode minYNode;
-
-    public AreaGraph(int capacity) {
+    public AreaGraph(int capacity, FlatPoint margin) {
       super(capacity);
+      Objects.requireNonNull(margin);
       this.area = new Rectangle();
+      this.margin = margin;
     }
 
     public void updateXAxisRange(double x) {
@@ -124,22 +126,17 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     }
 
     public void setNodeLocation(FNode node, double x, double y) {
+      initStatus = false;
       node.setLocation(x, y);
-      area.updateXAxisRange(node.getLeftBorder());
-      area.updateXAxisRange(node.getRightBorder());
-      area.updateYAxisRange(node.getUpBorder());
-      area.updateYAxisRange(node.getDownBorder());
-
-      if (minXNode == null || minXNode.getLeftBorder() > node.getLeftBorder()) {
-        minXNode = node;
-      }
-      if (minYNode == null || minYNode.getUpBorder() > node.getUpBorder()) {
-        minYNode = node;
-      }
+      area.updateXAxisRange(node.getLeftBorder() - margin.getWidth());
+      area.updateXAxisRange(node.getRightBorder() + margin.getWidth());
+      area.updateYAxisRange(node.getUpBorder() - margin.getHeight());
+      area.updateYAxisRange(node.getDownBorder() + margin.getHeight());
     }
 
     public void initArea() {
       area.init();
+      initStatus = true;
     }
 
     public double width() {
@@ -170,12 +167,8 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       return area.getDownBorder();
     }
 
-    public FNode getMinXNode() {
-      return minXNode;
-    }
-
-    public FNode getMinYNode() {
-      return minYNode;
+    public boolean isInitStatus() {
+      return initStatus;
     }
   }
 }

@@ -23,7 +23,6 @@ import java.util.List;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
-import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
@@ -75,8 +74,6 @@ class DNode extends ANode implements Box, ShapePosition {
 
   // Self lines
   private List<DLine> selfLines;
-
-  private NodeAttrs nodeAttrs;
 
   private Line labelLine;
 

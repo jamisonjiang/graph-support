@@ -95,4 +95,17 @@ public class FNode extends ANode {
     this.repulsionX = (int) Math.floor(x + 0.5);
     this.repulsionY = (int) Math.floor(y + 0.5);
   }
+
+  String name() {
+    if (empty() || nodeAttrs == null) {
+      return String.valueOf(hashCode());
+    } else {
+      return nodeAttrs.getLabel() != null ? nodeAttrs.getLabel() : "none";
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "{name=" + name() + "}";
+  }
 }
