@@ -19,9 +19,11 @@ package org.graphper.layout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -59,6 +61,28 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
   public EdgeDigraph<N, E> getGraph() {
     return graph;
+  }
+
+  public GraphContainer add(N node, GraphContainer container) {
+    if (container.isSubgraph()) {
+      container = getGraphviz().effectiveFather(container);
+    }
+
+    // Set node parent container
+    boolean nodeInMultiContains = false;
+    if (node.getContainer() == null || node.getContainer().isGraphviz()) {
+      node.setContainer(container);
+    } else if (node.getContainer().containsContainer(container)) {
+      nodeInMultiContains = true;
+      node.setContainer(container);
+    }
+
+    add(node);
+    GraphGroup graphGroup = containerMap().get(container);
+    if (graphGroup != null && nodeInMultiContains) {
+      graphGroup.addFilterNode(node.getNode());
+    }
+    return container;
   }
 
   @Override
@@ -363,6 +387,8 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
     private final GraphContainer container;
 
+    private Set<Node> filterNodes;
+
     private List<Line> patchLines;
 
     private GraphGroup(GraphContainer container) {
@@ -406,7 +432,20 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
       return new BiConcatIterable<>(this::lineFilter, iterables);
     }
 
+    private void addFilterNode(Node node) {
+      if (node == null) {
+        return;
+      }
+      if (filterNodes == null) {
+        filterNodes = new HashSet<>();
+      }
+      filterNodes.add(node);
+    }
+
     private boolean nodeFilter(N node) {
+      if (filterNodes != null && filterNodes.contains(node)) {
+        return false;
+      }
       GraphContainer c = node.getContainer();
       return containsContainer(graphviz, container, c);
     }

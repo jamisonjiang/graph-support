@@ -20,21 +20,15 @@ import helper.DocumentUtils;
 import helper.SerialHelper;
 import java.io.IOException;
 import java.util.concurrent.Phaser;
-import org.graphper.api.Cluster;
-import org.graphper.api.GraphAttrs;
-import org.graphper.api.Graphviz;
-import org.graphper.api.Line;
-import org.graphper.api.Node;
-import org.graphper.api.Subgraph;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.graphper.def.CycleDependencyException;
 import org.graphper.api.GraphContainer.GraphContainerBuilder;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Subgraph.IntegrationSubgraphBuilder;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.def.CycleDependencyException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class GraphvizTest {
 
@@ -45,6 +39,9 @@ public class GraphvizTest {
     Subgraph s3 = Subgraph.builder().build();
     Subgraph s4 = Subgraph.builder().addNode(Node.builder().build()).build();
     s1.addSubgraph(s2);
+    Cluster c1 = Cluster.builder().addNode(Node.builder().build()).build();
+    Cluster c2 = Cluster.builder().cluster(c1).build();
+    Cluster c3 = Cluster.builder().cluster(c2).cluster(c1).build();
 
     // Exist cycle dependency
     Assertions.assertThrows(CycleDependencyException.class,
@@ -55,6 +52,8 @@ public class GraphvizTest {
     // Adding the same Subgraph multiple times
     Assertions.assertThrows(IllegalArgumentException.class,
                         () -> Graphviz.graph().subgraph(s4).subgraph(s4).build());
+    Assertions.assertThrows(IllegalArgumentException.class,
+                            () -> Graphviz.graph().cluster(c3).build());
   }
 
   @Test

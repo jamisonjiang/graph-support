@@ -64,8 +64,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
                               GraphContainer parentContainer) {
     FdpAttachment fdpAttachment = (FdpAttachment) attachment;
-    FdpGraph fdpGraph = fdpAttachment.getFdpGraph();
+    if (parentContainer.isCluster()) {
+      fdpAttachment.markHaveCluster();
+    }
 
+    FdpGraph fdpGraph = fdpAttachment.getFdpGraph();
     FNode fn = fdpGraph.getNode(node);
     if (fn == null) {
       fn = new FNode(node);
@@ -74,20 +77,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double height = drawGraph.height(node);
       fn.setWidth(width);
       fn.setHeight(height);
-      fdpGraph.add(fn);
+      fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
     }
 
-    if (parentContainer.isSubgraph()) {
-      parentContainer = drawGraph.getGraphviz().effectiveFather(parentContainer);
-    }
-    if (parentContainer.isCluster()) {
-      fdpAttachment.markHaveCluster();
-    }
-
-    fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
-    if (fn.getContainer() == null) {
-      fn.setContainer(parentContainer);
-    }
+    fdpGraph.add(fn, parentContainer);
   }
 
   @Override
@@ -197,6 +190,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double xoffset = proxyNode.xoffset();
       double yoffset = proxyNode.yoffset();
 
+      // Nodes repeat access
       for (FNode node : graph.nodes(cluster)) {
         node.setX(node.getX() - xoffset);
         node.setY(node.getY() - yoffset);
@@ -606,7 +600,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private static void applyGraphInfo(DrawGraph drawGraph, FdpGraph graph) {
+  private void applyGraphInfo(DrawGraph drawGraph, FdpGraph graph) {
     FlatPoint margin = drawGraph.getGraphviz().graphAttrs().getMargin();
     for (FNode node : graph) {
       if (node.empty()) {
@@ -646,6 +640,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     drawGraph.syncToGraphvizBorder();
+    containerLabelPos(drawGraph);
   }
 
   private static void refreshByClusters(Cluster cluster, DrawGraph drawGraph, FlatPoint margin) {

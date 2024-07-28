@@ -33,13 +33,13 @@ public class FdpTest extends GraphvizVisual {
     Node e = Node.builder().label("e").build();
     Node f = Node.builder().label("f").build();
     Node g = Node.builder().label("g").build();
+    Node h = Node.builder().label("h").build();
+    Node i = Node.builder().label("i").build();
 
     Graphviz graphviz = Graphviz.digraph()
         .layout(Layout.FDP)
         .startClus()
-        .margin(1, 1)
         .startClus()
-        .margin(2, 2)
         .addLine(a, b)
         .addLine(a, c)
         .addLine(a, d)
@@ -52,8 +52,15 @@ public class FdpTest extends GraphvizVisual {
         .addLine(d, e)
         .endClus()
         .endClus()
-//        .addLine(f, a)
+        .startClus()
+        .startClus()
         .addLine(f, b)
+        .addLine(g, a)
+        .addLine(h, c)
+        .endClus()
+        .endClus()
+        .addLine(i, g)
+        .addLine(i, f)
         .build();
 
     visual(graphviz);
