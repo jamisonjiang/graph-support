@@ -19,8 +19,8 @@ package org.graphper.layout;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,23 +64,24 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
   }
 
   public GraphContainer add(N node, GraphContainer container) {
+    GraphContainer originalContainer = container;
     if (container.isSubgraph()) {
       container = getGraphviz().effectiveFather(container);
     }
 
     // Set node parent container
-    boolean nodeInMultiContains = false;
     if (node.getContainer() == null || node.getContainer().isGraphviz()) {
       node.setContainer(container);
     } else if (node.getContainer().containsContainer(container)) {
-      nodeInMultiContains = true;
       node.setContainer(container);
     }
 
     add(node);
-    GraphGroup graphGroup = containerMap().get(container);
-    if (graphGroup != null && nodeInMultiContains) {
-      graphGroup.addFilterNode(node.getNode());
+    if (originalContainer != node.getContainer()
+        && originalContainer.containsContainer(node.getContainer())) {
+      addContainerGroupForRepeatNodes(container);
+      GraphGroup graphGroup = containerMap().get(originalContainer);
+      graphGroup.addRepeatNode(node.getNode());
     }
     return container;
   }
@@ -277,9 +278,10 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return new BiConcatIterable<>(iterables);
   }
 
-  public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(Graphviz graphviz,
-                                                                                   GraphContainer father,
-                                                                                   GraphContainer container) {
+  public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(
+      Graphviz graphviz,
+      GraphContainer father,
+      GraphContainer container) {
     if (father == null || container == null) {
       return false;
     }
@@ -369,6 +371,13 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     } while (!container.isGraphviz());
   }
 
+  private void addContainerGroupForRepeatNodes(GraphContainer container) {
+    do {
+      containerMap().computeIfAbsent(container, GraphGroup::new);
+      container = graphviz.effectiveFather(container);
+    } while (container != null);
+  }
+
   private boolean notAddChildContainer(N node) {
     return graphviz == null || node.getContainer() == graphviz || node.empty();
   }
@@ -387,12 +396,15 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
     private final GraphContainer container;
 
-    private Set<Node> filterNodes;
+    private Set<Node> repeatNodes;
 
     private List<Line> patchLines;
+    private BiConcatIterable<Node> containerNodes;
 
     private GraphGroup(GraphContainer container) {
       this.container = container;
+      this.containerNodes = new BiConcatIterable<>(
+          node -> repeatNodes == null || !repeatNodes.contains(node), container.nodes());
     }
 
     private boolean contains(E line) {
@@ -408,7 +420,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     }
 
     private ConcatIterable<Node, N> nodes() {
-      return new ConcatIterable<>(this::nodeFilter, nodeMap::get, container.nodes());
+      return new ConcatIterable<>(this::nodeFilter, nodeMap::get, repeatNodes, containerNodes);
     }
 
     private BiConcatIterable<Line> lines() {
@@ -432,20 +444,17 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
       return new BiConcatIterable<>(this::lineFilter, iterables);
     }
 
-    private void addFilterNode(Node node) {
+    private void addRepeatNode(Node node) {
       if (node == null) {
         return;
       }
-      if (filterNodes == null) {
-        filterNodes = new HashSet<>();
+      if (repeatNodes == null) {
+        repeatNodes = new LinkedHashSet<>();
       }
-      filterNodes.add(node);
+      repeatNodes.add(node);
     }
 
     private boolean nodeFilter(N node) {
-      if (filterNodes != null && filterNodes.contains(node)) {
-        return false;
-      }
       GraphContainer c = node.getContainer();
       return containsContainer(graphviz, container, c);
     }
