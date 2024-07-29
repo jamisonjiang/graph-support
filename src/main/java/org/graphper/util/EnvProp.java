@@ -47,4 +47,8 @@ public final class EnvProp {
     return Boolean.TRUE.toString()
         .equalsIgnoreCase(System.getProperty("parallel.lines.case.distinction"));
   }
+
+  public static boolean ignoreBoxCheck() {
+    return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("box.border.check.ignore"));
+  }
 }

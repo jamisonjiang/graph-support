@@ -19,7 +19,7 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,9 +28,9 @@ import java.util.Queue;
 import java.util.Set;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
-import org.graphper.util.CollectionUtils;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.SameRankAdjacentRecord.SameRankAdjacentInfo;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Handle all kinds of line labels, insert the label as a node into the {@link RankContent}, and
@@ -81,7 +81,7 @@ class LabelSupplement {
       DNode minRankNode = labelLine.to();
       minRankNode = minRankNode.getRank() > from.getRank() ? from : minRankNode;
       if (needInsertLabelRankIdxs == null) {
-        needInsertLabelRankIdxs = new HashSet<>();
+        needInsertLabelRankIdxs = new LinkedHashSet<>();
       }
       needInsertLabelRankIdxs.add(minRankNode.getRank());
     }
@@ -215,6 +215,14 @@ class LabelSupplement {
     if (leftPreNode == null || leftNextNode == null
         || rightPreNode == null || rightNextNode == null) {
       return 0;
+    }
+
+    if (leftPreNode.getContainer() != rightPreNode.getContainer()) {
+      return Double.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
+    }
+
+    if (leftNextNode.getContainer() != rightNextNode.getContainer()) {
+      return Double.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
     }
 
     int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),

@@ -18,6 +18,7 @@ package org.graphper.api.ext;
 
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
+import org.graphper.util.EnvProp;
 
 /**
  * Public interface with Box traits.
@@ -123,6 +124,10 @@ public interface Box {
    *                                  </ul>
    */
   default void check() {
+    if (EnvProp.ignoreBoxCheck()) {
+      return;
+    }
+
     Asserts.illegalArgument(getLeftBorder() > getRightBorder(), HORIZONTAL_ERROR);
     Asserts.illegalArgument(getUpBorder() > getDownBorder(), VERTICAL_ERROR);
   }

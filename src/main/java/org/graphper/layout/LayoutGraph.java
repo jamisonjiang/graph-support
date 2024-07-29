@@ -77,10 +77,18 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     }
 
     add(node);
-    if (originalContainer != node.getContainer()
-        && originalContainer.containsContainer(node.getContainer())) {
-      addContainerGroupForRepeatNodes(container);
-      GraphGroup graphGroup = containerMap().get(originalContainer);
+    if (originalContainer != node.getContainer()) {
+      GraphContainer repeatContainer = null;
+      if (originalContainer.containsContainer(node.getContainer())) {
+        repeatContainer = originalContainer;
+      } else if (node.getContainer().containsContainer(originalContainer)) {
+        repeatContainer = node.getContainer();
+      } else {
+        return container;
+      }
+
+      addContainerGroupForRepeatNodes(repeatContainer);
+      GraphGroup graphGroup = containerMap().get(repeatContainer);
       graphGroup.addRepeatNode(node.getNode());
     }
     return container;
@@ -420,7 +428,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     }
 
     private ConcatIterable<Node, N> nodes() {
-      return new ConcatIterable<>(this::nodeFilter, nodeMap::get, repeatNodes, containerNodes);
+      return new ConcatIterable<>(this::nodeFilter, nodeMap::get, containerNodes, repeatNodes);
     }
 
     private BiConcatIterable<Line> lines() {
