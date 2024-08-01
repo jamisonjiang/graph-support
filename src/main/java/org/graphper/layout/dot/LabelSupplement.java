@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.dot.RankContent.RankNode;
@@ -217,42 +218,65 @@ class LabelSupplement {
       return 0;
     }
 
-    if (leftPreNode.getContainer() != rightPreNode.getContainer()) {
-      return Double.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
-    }
-
-    if (leftNextNode.getContainer() != rightNextNode.getContainer()) {
-      return Double.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
-    }
-
-    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
-                           rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
-
-    if (r != 0) {
-      return r;
-    }
-
+    // Parallel line with same endpoints
     if (leftPreNode == rightPreNode && leftNextNode == rightNextNode) {
-      double leftPrePoint = getPortPoint(leftLine, leftPreNode);
-      double leftNextPoint = getPortPoint(leftLine, leftNextNode);
-      double rightPrePoint = getPortPoint(rightLine, rightPreNode);
-      double rightNextPoint = getPortPoint(rightLine, rightNextNode);
-      r = Double.compare(leftPrePoint + leftNextPoint, rightPrePoint + rightNextPoint);
-      if (r != 0) {
-        return r;
-      }
+      return compare_by_port();
     }
 
-    if (left.name() == null && right.name() == null) {
-      return 0;
+    // Parallel line with different endpoints
+    if (noCross(leftPreNode, leftNextNode, rightPreNode, rightNextNode)) {
+      return compare_by_endpoint_rank_index();
     }
-    if (left.name() == null && right.name() != null) {
-      return -1;
+
+    // Same container
+    if (leftContainer_same_as_rightContainer) {
+      return compare_by_endpoint_rank_index();
     }
-    if (left.name() != null && right.name() == null) {
-      return 1;
+
+    // If two nodes not include each other, compare by cluster topological sort
+    if (left_right_container_not_contains_each_other) {
+      return compare_by_cluster_topological_sort(left.getContainer(), right.getContainer());
     }
-    return left.name().compareTo(right.name());
+
+    DNode largerContainerNodeBetweenLeftRight = get_larger_container_node(left, right);
+    DNode lessContainerNodeBetweenLeftRight = another(left, right, largerContainerNodeBetweenLeftRight);
+
+    GraphContainer directContainerInLargerContainer = dotAttachment.clusterDirectContainer(
+        largerContainerNodeBetweenLeftRight.getContainer(), lessContainerNodeBetweenLeftRight);
+
+    // Larger endpoint node of largerContainerNodeBetweenLeftRight must have a specific order
+    GraphContainer containerOfLargerEndpoint = larger_endpoint_container(largerContainerNodeBetweenLeftRight);
+    int r = compare_by_cluster_topological_sort(directContainerInLargerContainer, containerOfLargerEndpoint);
+    return lessContainerNodeBetweenLeftRight == left ? r : -r;
+
+//    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
+//                           rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
+//
+//    if (r != 0) {
+//      return r;
+//    }
+//
+//    if (leftPreNode == rightPreNode && leftNextNode == rightNextNode) {
+//      double leftPrePoint = getPortPoint(leftLine, leftPreNode);
+//      double leftNextPoint = getPortPoint(leftLine, leftNextNode);
+//      double rightPrePoint = getPortPoint(rightLine, rightPreNode);
+//      double rightNextPoint = getPortPoint(rightLine, rightNextNode);
+//      r = Double.compare(leftPrePoint + leftNextPoint, rightPrePoint + rightNextPoint);
+//      if (r != 0) {
+//        return r;
+//      }
+//    }
+//
+//    if (left.name() == null && right.name() == null) {
+//      return 0;
+//    }
+//    if (left.name() == null && right.name() != null) {
+//      return -1;
+//    }
+//    if (left.name() != null && right.name() == null) {
+//      return 1;
+//    }
+//    return left.name().compareTo(right.name());
   }
 
   private void flatParallelEdge() {
