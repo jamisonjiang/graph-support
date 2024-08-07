@@ -56,18 +56,69 @@ class LabelSupplement {
     this.digraphProxy = digraphProxy;
 
     // If graph have any label line, may be need create some relay rank.
-    insertLabelNodeRank();
+    boolean changed = insertLabelNodeRank();
 
     // Flat parallel edge handle
-    flatParallelEdge();
+    changed |= flatParallelEdge();
+
+    if (changed && dotAttachment.haveClusters()) {
+      checkNodeNotBrokeCluster();
+    }
+  }
+
+  private void checkNodeNotBrokeCluster() {
+    Map<GraphContainer, Integer> preIdxRecord = new HashMap<>();
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+
+      boolean notEnded = true;
+      while (notEnded) {
+        preIdxRecord.clear();
+        notEnded = checkAndFixWrongNodeContainer(preIdxRecord, rankNode);
+      }
+    }
+  }
+
+  private boolean checkAndFixWrongNodeContainer(Map<GraphContainer, Integer> preIdxRecord, RankNode rankNode) {
+    for (int j = 0; j < rankNode.size(); j++) {
+      DNode node = rankNode.get(j);
+
+      GraphContainer container = node.getContainer();
+      while (container != null) {
+        Integer preIdx = preIdxRecord.get(container);
+        if (preIdx != null && preIdx != j - 1) {
+          DNode brokeClusterNode = rankNode.get(preIdx + 1);
+          if (!brokeClusterNode.isVirtual()) {
+            throw new IllegalStateException("No virtual node broke cluster");
+          }
+
+          brokeClusterNode.setContainer(container);
+          return true;
+        }
+        container = dotAttachment.getGraphviz().effectiveFather(container);
+      }
+
+      preIdxRecord.put(node.getContainer(), j);
+      updateContainerIdx(preIdxRecord, j, node.getContainer());
+    }
+
+    return false;
+  }
+
+  private void updateContainerIdx(Map<GraphContainer, Integer> preIdxRecord, int j,
+                                  GraphContainer container) {
+    while (container != null) {
+      preIdxRecord.put(container, j);
+      container = dotAttachment.getGraphviz().effectiveFather(container);
+    }
   }
 
   /*
    * Insert the internal rank where the label node is located.
    */
-  private void insertLabelNodeRank() {
+  private boolean insertLabelNodeRank() {
     if (CollectionUtils.isEmpty(dotAttachment.getLabelLines())) {
-      return;
+      return false;
     }
 
     Set<Integer> needInsertLabelRankIdxs = null;
@@ -89,7 +140,7 @@ class LabelSupplement {
 
     dotAttachment.releaseLabelLines();
     if (CollectionUtils.isEmpty(needInsertLabelRankIdxs)) {
-      return;
+      return false;
     }
 
     List<DLine> addLines = null;
@@ -120,7 +171,7 @@ class LabelSupplement {
     }
 
     if (CollectionUtils.isEmpty(removeLines)) {
-      return;
+      return false;
     }
 
     for (DLine removeLine : removeLines) {
@@ -147,6 +198,7 @@ class LabelSupplement {
 
       current = current.next();
     }
+    return true;
   }
 
   private void recordNewRemoveLines(DLine line, RankNode rankNode,
@@ -218,71 +270,48 @@ class LabelSupplement {
       return 0;
     }
 
-    // Parallel line with same endpoints
+    if (leftPreNode.getContainer() != rightPreNode.getContainer()) {
+      return Double.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
+    }
+
+    if (leftNextNode.getContainer() != rightNextNode.getContainer()) {
+      return Double.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
+    }
+
+    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
+                           rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
+
+    if (r != 0) {
+      return r;
+    }
+
     if (leftPreNode == rightPreNode && leftNextNode == rightNextNode) {
-      return compare_by_port();
+      double leftPrePoint = getPortPoint(leftLine, leftPreNode);
+      double leftNextPoint = getPortPoint(leftLine, leftNextNode);
+      double rightPrePoint = getPortPoint(rightLine, rightPreNode);
+      double rightNextPoint = getPortPoint(rightLine, rightNextNode);
+      r = Double.compare(leftPrePoint + leftNextPoint, rightPrePoint + rightNextPoint);
+      if (r != 0) {
+        return r;
+      }
     }
 
-    // Parallel line with different endpoints
-    if (noCross(leftPreNode, leftNextNode, rightPreNode, rightNextNode)) {
-      return compare_by_endpoint_rank_index();
+    if (left.name() == null && right.name() == null) {
+      return 0;
     }
-
-    // Same container
-    if (leftContainer_same_as_rightContainer) {
-      return compare_by_endpoint_rank_index();
+    if (left.name() == null && right.name() != null) {
+      return -1;
     }
-
-    // If two nodes not include each other, compare by cluster topological sort
-    if (left_right_container_not_contains_each_other) {
-      return compare_by_cluster_topological_sort(left.getContainer(), right.getContainer());
+    if (left.name() != null && right.name() == null) {
+      return 1;
     }
-
-    DNode largerContainerNodeBetweenLeftRight = get_larger_container_node(left, right);
-    DNode lessContainerNodeBetweenLeftRight = another(left, right, largerContainerNodeBetweenLeftRight);
-
-    GraphContainer directContainerInLargerContainer = dotAttachment.clusterDirectContainer(
-        largerContainerNodeBetweenLeftRight.getContainer(), lessContainerNodeBetweenLeftRight);
-
-    // Larger endpoint node of largerContainerNodeBetweenLeftRight must have a specific order
-    GraphContainer containerOfLargerEndpoint = larger_endpoint_container(largerContainerNodeBetweenLeftRight);
-    int r = compare_by_cluster_topological_sort(directContainerInLargerContainer, containerOfLargerEndpoint);
-    return lessContainerNodeBetweenLeftRight == left ? r : -r;
-
-//    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
-//                           rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
-//
-//    if (r != 0) {
-//      return r;
-//    }
-//
-//    if (leftPreNode == rightPreNode && leftNextNode == rightNextNode) {
-//      double leftPrePoint = getPortPoint(leftLine, leftPreNode);
-//      double leftNextPoint = getPortPoint(leftLine, leftNextNode);
-//      double rightPrePoint = getPortPoint(rightLine, rightPreNode);
-//      double rightNextPoint = getPortPoint(rightLine, rightNextNode);
-//      r = Double.compare(leftPrePoint + leftNextPoint, rightPrePoint + rightNextPoint);
-//      if (r != 0) {
-//        return r;
-//      }
-//    }
-//
-//    if (left.name() == null && right.name() == null) {
-//      return 0;
-//    }
-//    if (left.name() == null && right.name() != null) {
-//      return -1;
-//    }
-//    if (left.name() != null && right.name() == null) {
-//      return 1;
-//    }
-//    return left.name().compareTo(right.name());
+    return left.name().compareTo(right.name());
   }
 
-  private void flatParallelEdge() {
+  private boolean flatParallelEdge() {
     if (dotAttachment.getSameRankAdjacentRecord() == null
         || !dotAttachment.getSameRankAdjacentRecord().haveSameRank()) {
-      return;
+      return false;
     }
 
     SameRankAdjacentRecord sameRankAdjacentRecord = dotAttachment.getSameRankAdjacentRecord();
@@ -349,7 +378,7 @@ class LabelSupplement {
     }
 
     if (parallelEdgeRecord == null) {
-      return;
+      return false;
     }
 
     for (Map<DNode, DLine> value : parallelEdgeRecord.values()) {
@@ -380,12 +409,12 @@ class LabelSupplement {
       }
     }
 
-    insertFlatLabelNode(flatLabelNodeRecord);
+    return insertFlatLabelNode(flatLabelNodeRecord);
   }
 
-  private void insertFlatLabelNode(Map<DLine, DNode> flatLabelNodeRecord) {
+  private boolean insertFlatLabelNode(Map<DLine, DNode> flatLabelNodeRecord) {
     if (flatLabelNodeRecord == null) {
-      return;
+      return false;
     }
 
     // The rank at which a new virtual node needs to be inserted at the next rank.
@@ -472,6 +501,7 @@ class LabelSupplement {
 
     // Synchronize rank and rankIndex of nodes in rank.
     syncNodeProp(minRankNode, rankLabelNodeQueue);
+    return true;
   }
 
   private void newRankAddVirtualNode(List<RankNode> needInsertVirtualRank) {

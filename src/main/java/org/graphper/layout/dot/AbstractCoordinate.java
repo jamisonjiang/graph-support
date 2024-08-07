@@ -161,7 +161,9 @@ abstract class AbstractCoordinate {
         DNode preNode = rankContent.rankPreNode(flatNode);
         DNode nextNode = rankContent.rankNextNode(flatNode);
 
-        if (preNode != null && nextNode != null) {
+     if (preNode != null && nextNode != null
+         && preNode.getContainer() == nextNode.getContainer()
+         && preNode.getContainer() == flatNode.getContainer()) {
           flatNode.setX(
               (preNode.getX() + preNode.rightWidth() + nextNode.getX() - nextNode.leftWidth()) / 2);
         }
