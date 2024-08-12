@@ -72,7 +72,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     FNode fn = fdpGraph.getNode(node);
     if (fn == null) {
       fn = new FNode(node);
-      fn.setContainer(parentContainer);
       double width = drawGraph.width(node);
       double height = drawGraph.height(node);
       fn.setWidth(width);
@@ -425,7 +424,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     int nodeNum = graph.vertexNum();
     int edgeNum = graph.edgeNum();
     double temperature = Graphviz.PIXEL;
-    int maxLoopNum = graphAttrs.getMaxiter() / 2;
+    int maxLoopNum = Math.max(graphAttrs.getMaxiter() / 2, 1);
     double expand = graphAttrs.getK() * ((double) edgeNum / nodeNum);
     for (int i = 0; i < 9; i++) {
       double k2 = k * k;
