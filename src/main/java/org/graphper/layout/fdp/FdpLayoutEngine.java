@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import org.graphper.api.Cluster;
@@ -189,7 +190,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double xoffset = proxyNode.xoffset();
       double yoffset = proxyNode.yoffset();
 
-      // Nodes repeat access
       for (FNode node : graph.nodes(cluster)) {
         node.setX(node.getX() - xoffset);
         node.setY(node.getY() - yoffset);
@@ -199,6 +199,23 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     return proxyGraph;
+  }
+
+  private void dfs(AreaGraph subAreaGraph, AreaGraph areaGraph, FNode v, Set<FNode> mark) {
+    if (mark.contains(v)) {
+      return;
+    }
+
+    mark.add(v);
+    subAreaGraph.add(v);
+    for (FLine line : areaGraph.adjacent(v)) {
+      FNode w = line.other(v);
+      if (mark.contains(w)) {
+        continue;
+      }
+
+      dfs(subAreaGraph, areaGraph, w, mark);
+    }
   }
 
   private void alignChildClusters(DrawGraph drawGraph, Cluster cluster,
@@ -223,6 +240,46 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private void layout(AreaGraph graph, GraphAttrs graphAttrs) {
+    Set<FNode> mark = new HashSet<>();
+    Map<FNode, AreaGraph> areaGraphMap = new HashMap<>();
+    AreaGraph connectGraph = new AreaGraph(2, graphAttrs.getMargin());
+    for (FNode node : graph) {
+      if (mark.contains(node)) {
+        continue;
+      }
+
+      AreaGraph layoutGraph = new AreaGraph(2, graphAttrs.getMargin());
+      dfs(layoutGraph, graph, node, mark);
+
+      for (FNode n : layoutGraph) {
+        for (FLine line : graph.adjacent(n)) {
+          layoutGraph.addEdge(new FLine(line.from(), line.to(), line.getLine()));
+        }
+      }
+
+      layout0(layoutGraph, graphAttrs);
+      FNode connectComponent = new FNode(null);
+      connectComponent.setWidth(layoutGraph.width());
+      connectComponent.setHeight(layoutGraph.getHeight());
+      areaGraphMap.put(connectComponent, layoutGraph);
+      connectGraph.add(connectComponent);
+    }
+
+    tryDecreaseDensity(connectGraph, graphAttrs);
+
+    for (Entry<FNode, AreaGraph> entry : areaGraphMap.entrySet()) {
+      FNode node = entry.getKey();
+      AreaGraph componentGraph = entry.getValue();
+      double xOffset = componentGraph.getX() - node.getX();
+      double yOffset = componentGraph.getY() - node.getY();
+
+      for (FNode n : componentGraph) {
+        graph.setNodeLocation(n, n.getX() - xOffset, n.getY() - yOffset);
+      }
+    }
+  }
+
+  private void layout0(AreaGraph graph, GraphAttrs graphAttrs) {
     int width = 200;
     int height = 200;
     int vertexCount = graph.vertexNum();
@@ -232,37 +289,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double k = Math.sqrt(
         (width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
-    int connectNo = 0;
-    Set<FNode> mark = new HashSet<>();
-    for (FNode node : graph) {
-      if (mark.contains(node)) {
-        continue;
-      }
-
-      dfs(graph, node, mark, ++connectNo);
-    }
 
     initPos(graph, graphAttrs, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);
     tryDecreaseDensity(graph, graphAttrs);
     refreshGraph(graph);
-  }
-
-  private void dfs(AreaGraph areaGraph, FNode v, Set<FNode> mark, int connectNo) {
-    if (mark.contains(v)) {
-      return;
-    }
-
-    mark.add(v);
-    v.setConnectNo(connectNo);
-    for (FLine line : areaGraph.adjacent(v)) {
-      FNode w = line.other(v);
-      if (mark.contains(w)) {
-        continue;
-      }
-
-      dfs(areaGraph, w, mark, connectNo);
-    }
   }
 
   private void initPos(AreaGraph graph, GraphAttrs graphAttrs,
@@ -297,7 +328,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         n.setRepulsionX(0);
         n.setRepulsionY(0);
         for (FNode t : graph) {
-          if (n == t || n.getConnectNo() != t.getConnectNo()) {
+          if (n == t) {
             continue;
           }
 
@@ -537,10 +568,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       force = xOv / dist2;
     } else {
       force = xNonov / dist2;
-    }
-
-    if (p.getConnectNo() != q.getConnectNo()) {
-      force /= 10;
     }
 
     q.setRepulsionX(q.getRepulsionX() + deltaX * force);
