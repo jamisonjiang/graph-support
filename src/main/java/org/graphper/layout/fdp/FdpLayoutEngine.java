@@ -32,6 +32,8 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
+import org.graphper.def.DirectedEdgeGraph;
+import org.graphper.def.EdgeOpGraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
@@ -240,22 +242,61 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   private void initPos(AreaGraph graph, GraphAttrs graphAttrs,
                        int iterations, int width, int height) {
-    switch (graphAttrs.getInitPos()) {
-      case GRID:
-        initializePositionsGrid(graph, width, height);
-        break;
-      case CIRCLE:
-        initializeCircularLayout(graph, width, height);
-        break;
-      case SECTOR:
-      default:
-        initializePositions(graph, width, height);
-        break;
+
+    Set<FNode> mark = new HashSet<>();
+    for (FNode node : graph) {
+      if (mark.contains(node)) {
+        continue;
+      }
+
+      EdgeOpGraph<FNode, FLine> layoutGraph = new DirectedEdgeGraph<>();
+      dfs(layoutGraph, graph, node, mark);
+
+      for (FNode n : layoutGraph) {
+        for (FLine line : graph.adjacent(n)) {
+          layoutGraph.addEdge(new FLine(line.from(), line.to(), line.getLine()));
+        }
+      }
+      initPos(layoutGraph, graph, graphAttrs, width, height);
     }
 
     if (iterations > 0) {
       graph.initArea();
     }
+  }
+
+  private void dfs(EdgeOpGraph<FNode, FLine> graph, AreaGraph areaGraph, FNode v, Set<FNode> mark) {
+    if (mark.contains(v)) {
+      return;
+    }
+
+    mark.add(v);
+    graph.add(v);
+    for (FLine line : areaGraph.adjacent(v)) {
+      FNode w = line.other(v);
+      if (mark.contains(w)) {
+        continue;
+      }
+
+      dfs(graph, areaGraph, w, mark);
+    }
+  }
+
+  private void initPos(EdgeOpGraph<FNode, FLine> graph, AreaGraph areaGraph,
+                       GraphAttrs graphAttrs, int width, int height) {
+    switch (graphAttrs.getInitPos()) {
+      case GRID:
+        initializePositionsGrid(graph, areaGraph, width, height);
+        break;
+      case CIRCLE:
+        initializeCircularLayout(graph, areaGraph, width, height);
+        break;
+      case SECTOR:
+      default:
+        initializePositions(graph, areaGraph, width, height);
+        break;
+    }
+
   }
 
   protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
@@ -334,7 +375,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  public void initializePositions(AreaGraph graph, int width, int height) {
+  public void initializePositions(EdgeOpGraph<FNode, FLine> graph,
+                                  AreaGraph areaGraph, int width, int height) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -360,8 +402,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       FNode v = queue.poll();
       double angle = currentLayerSize * angleStep;
       int radius = layer * radiusStep;
-      graph.setNodeLocation(v, (double) width / 2 + radius * Math.cos(angle),
-                            (double) height / 2 + radius * Math.sin(angle));
+      areaGraph.setNodeLocation(v, (double) width / 2 + radius * Math.cos(angle),
+                                (double) height / 2 + radius * Math.sin(angle));
       currentLayerSize++;
       if (currentLayerSize >= layerSize) {
         layer++;
@@ -380,7 +422,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private void initializePositionsGrid(AreaGraph graph, int width, int height) {
+  private void initializePositionsGrid(EdgeOpGraph<FNode, FLine> graph,
+                                       AreaGraph areaGraph, int width, int height) {
     int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
     double cellWidth = width / (double) gridSize;
     double cellHeight = height / (double) gridSize;
@@ -389,12 +432,14 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (FNode v : graph) {
       int row = i / gridSize;
       int col = i % gridSize;
-      graph.setNodeLocation(v, col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
+      areaGraph.setNodeLocation(v, col * cellWidth + cellWidth / 2,
+                                row * cellHeight + cellHeight / 2);
       i++;
     }
   }
 
-  private static void initializeCircularLayout(AreaGraph graph, int width, int height) {
+  private static void initializeCircularLayout(EdgeOpGraph<FNode, FLine> graph,
+                                               AreaGraph areaGraph, int width, int height) {
     double angleIncrement = 2 * Math.PI / graph.vertexNum();
     int centerX = width / 2;
     int centerY = height / 2;
@@ -405,7 +450,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       double angle = i * angleIncrement;
       int x = (int) (centerX + radius * Math.cos(angle));
       int y = (int) (centerY + radius * Math.sin(angle));
-      graph.setNodeLocation(node, x, y);
+      areaGraph.setNodeLocation(node, x, y);
       i++;
     }
   }
