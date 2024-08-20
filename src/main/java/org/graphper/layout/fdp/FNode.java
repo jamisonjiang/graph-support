@@ -34,8 +34,18 @@ public class FNode extends ANode {
 
   private double dy;
 
+  private int connectNo;
+
   public FNode(Node node) {
     super(node);
+  }
+
+  public int getConnectNo() {
+    return connectNo;
+  }
+
+  public void setConnectNo(int connectNo) {
+    this.connectNo = connectNo;
   }
 
   public double getRepulsionX() {
