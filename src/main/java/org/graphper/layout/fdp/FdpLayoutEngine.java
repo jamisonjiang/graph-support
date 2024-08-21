@@ -21,11 +21,10 @@ import static org.graphper.layout.LayoutGraph.clusters;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import org.graphper.api.Cluster;
@@ -202,23 +201,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     return proxyGraph;
   }
 
-  private void dfs(AreaGraph subAreaGraph, AreaGraph areaGraph, FNode v, Set<FNode> mark) {
-    if (mark.contains(v)) {
-      return;
-    }
-
-    mark.add(v);
-    subAreaGraph.add(v);
-    for (FLine line : areaGraph.adjacent(v)) {
-      FNode w = line.other(v);
-      if (mark.contains(w)) {
-        continue;
-      }
-
-      dfs(subAreaGraph, areaGraph, w, mark);
-    }
-  }
-
   private void alignChildClusters(DrawGraph drawGraph, Cluster cluster,
                                   Map<Cluster, ClusterNode> clusterNode,
                                   double xoffset, double yoffset) {
@@ -241,47 +223,78 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private void layout(AreaGraph graph, GraphAttrs graphAttrs) {
-    Set<FNode> mark = new HashSet<>();
-    Map<FNode, AreaGraph> areaGraphMap = new LinkedHashMap<>();
-    AreaGraph connectGraph = new AreaGraph(2, graphAttrs.getMargin());
+    int connectNo = 0;
+    Map<FNode, Integer> mark = new HashMap<>();
+
     for (FNode node : graph) {
-      if (mark.contains(node)) {
+      if (mark.get(node) != null) {
         continue;
       }
 
-      AreaGraph layoutGraph = new AreaGraph(2, graphAttrs.getMargin());
-      dfs(layoutGraph, graph, node, mark);
+      dfs(graph, node, mark, ++connectNo);
+    }
 
-      for (FNode n : layoutGraph) {
-        for (FLine line : graph.adjacent(n)) {
-          layoutGraph.addEdge(new FLine(line.from(), line.to(), line.getLine()));
+    if (connectNo == 1) {
+      layout0(graph, graphAttrs);
+      return;
+    }
+
+    AreaGraph[] areaGraphs = new AreaGraph[connectNo];
+    AreaGraph connectGraph = new AreaGraph(connectNo, graphAttrs.getMargin());
+
+    for (FNode node : graph) {
+      Integer cn = mark.get(node);
+      Objects.requireNonNull(cn);
+
+      int n = cn - 1;
+      if (areaGraphs[n] == null) {
+        areaGraphs[n] = new AreaGraph(2, graphAttrs.getMargin());
+      }
+      areaGraphs[n].add(node);
+    }
+
+    for (AreaGraph areaGraph : areaGraphs) {
+      for (FNode node : areaGraph) {
+        for (FLine line : graph.outAdjacent(node)) {
+          areaGraph.addEdge(new FLine(line.from(), line.to(), line.getLine()));
         }
       }
 
-      layout0(layoutGraph, graphAttrs);
+      layout0(areaGraph, graphAttrs);
       FNode connectComponent = new FNode(null);
-      connectComponent.setWidth(layoutGraph.width());
-      connectComponent.setHeight(layoutGraph.getHeight());
-      areaGraphMap.put(connectComponent, layoutGraph);
+      connectComponent.setWidth(areaGraph.width());
+      connectComponent.setHeight(areaGraph.getHeight());
       connectGraph.add(connectComponent);
-    }
-
-    if (areaGraphMap.size() == 1) {
-      return;
     }
 
     initializePositionsGrid(connectGraph, graph.vertexNum(), graph.vertexNum());
     tryDecreaseDensity(connectGraph, graphAttrs);
 
-    for (Entry<FNode, AreaGraph> entry : areaGraphMap.entrySet()) {
-      FNode node = entry.getKey();
-      AreaGraph componentGraph = entry.getValue();
+    int i = 0;
+    for (FNode node : connectGraph) {
+      AreaGraph componentGraph = areaGraphs[i++];
       double xOffset = componentGraph.getX() - node.getX();
       double yOffset = componentGraph.getY() - node.getY();
 
       for (FNode n : componentGraph) {
         graph.setNodeLocation(n, n.getX() - xOffset, n.getY() - yOffset);
       }
+    }
+  }
+
+  private void dfs(AreaGraph areaGraph, FNode v, Map<FNode, Integer> mark, int connectNo) {
+    if (mark.get(v) != null) {
+      return;
+    }
+
+    mark.put(v, connectNo);
+    for (FLine line : areaGraph.adjacent(v)) {
+      FNode w = line.other(v);
+      if (mark.get(w) != null) {
+        continue;
+      }
+
+      dfs(areaGraph, w, mark, connectNo);
     }
   }
 
