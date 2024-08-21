@@ -21,6 +21,7 @@ import static org.graphper.layout.LayoutGraph.clusters;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +242,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   private void layout(AreaGraph graph, GraphAttrs graphAttrs) {
     Set<FNode> mark = new HashSet<>();
-    Map<FNode, AreaGraph> areaGraphMap = new HashMap<>();
+    Map<FNode, AreaGraph> areaGraphMap = new LinkedHashMap<>();
     AreaGraph connectGraph = new AreaGraph(2, graphAttrs.getMargin());
     for (FNode node : graph) {
       if (mark.contains(node)) {
@@ -265,6 +266,11 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       connectGraph.add(connectComponent);
     }
 
+    if (areaGraphMap.size() == 1) {
+      return;
+    }
+
+    initializePositionsGrid(connectGraph, graph.vertexNum(), graph.vertexNum());
     tryDecreaseDensity(connectGraph, graphAttrs);
 
     for (Entry<FNode, AreaGraph> entry : areaGraphMap.entrySet()) {
@@ -556,10 +562,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double deltaY = q.getY() - p.getY();
     double dist2 = deltaX * deltaX + deltaY * deltaY;
 
-    while (dist2 == 0) {
-      deltaX = 5 - Math.random() * 10;
-      deltaY = 5 - Math.random() * 10;
-      dist2 = deltaX * deltaX + deltaY * deltaY;
+    if (dist2 == 0) {
+      dist2 = 50;
     }
 
     double force;
