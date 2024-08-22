@@ -311,46 +311,31 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private void applyMargin(AreaGraph areaGraph, ContainerDrawProp containerDrawProp) {
-    double horMargin = containerDrawProp.getHorMargin();
-    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - horMargin);
-    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + horMargin);
-    areaGraph.updateYAxisRange(areaGraph.getUpBorder() - containerDrawProp.topLowestHeight());
-    areaGraph.updateYAxisRange(areaGraph.getDownBorder() + containerDrawProp.bottomLowestHeight());
+    double leftMax = containerDrawProp.getHorMargin();
+    double rightMax = containerDrawProp.getHorMargin();
+    double topMax = containerDrawProp.topLowestHeight();
+    double bottomMax = containerDrawProp.bottomLowestHeight();
 
     FlatPoint labelSize = containerDrawProp.getLabelSize();
-    if (labelSize == null) {
-      applyMargin(areaGraph, containerDrawProp.shapeProp());
-      return;
+    if (labelSize != null) {
+      double widthIncr = (labelSize.getWidth() - areaGraph.width()) / 2;
+      leftMax = Math.max(widthIncr, leftMax);
+      rightMax = Math.max(widthIncr, rightMax);
     }
 
-    double widthIncr = (labelSize.getWidth() - areaGraph.width()) / 2;
-    if (widthIncr <= 0) {
-      applyMargin(areaGraph, containerDrawProp.shapeProp());
-      return;
-    }
-
-    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - widthIncr);
-    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + widthIncr);
-    applyMargin(areaGraph, containerDrawProp.shapeProp());
-  }
-
-  private void applyMargin(AreaGraph areaGraph, ShapePropCalc shapePropCalc) {
-    if (shapePropCalc == null) {
-      return;
-    }
-
+    ShapePropCalc shapePropCalc = containerDrawProp.shapeProp();
     FlatPoint newSize = shapePropCalc.minContainerSize(areaGraph.height(), areaGraph.width());
     double widthIncr = (newSize.getWidth() - areaGraph.width()) / 2;
     double heightIncr = (newSize.getHeight() - areaGraph.getHeight()) / 2;
-    if (widthIncr > 0) {
-      areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - widthIncr);
-      areaGraph.updateXAxisRange(areaGraph.getRightBorder() + widthIncr);
-    }
+    leftMax = Math.max(leftMax, widthIncr);
+    rightMax = Math.max(rightMax, widthIncr);
+    topMax = Math.max(topMax, heightIncr);
+    bottomMax = Math.max(bottomMax, heightIncr);
 
-    if (heightIncr > 0) {
-      areaGraph.updateYAxisRange(areaGraph.getUpBorder() - heightIncr);
-      areaGraph.updateYAxisRange(areaGraph.getDownBorder() + heightIncr);
-    }
+    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - leftMax);
+    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + rightMax);
+    areaGraph.updateYAxisRange(areaGraph.getUpBorder() - topMax);
+    areaGraph.updateYAxisRange(areaGraph.getDownBorder() + bottomMax);
   }
 
   private void layout0(AreaGraph graph, GraphAttrs graphAttrs) {
