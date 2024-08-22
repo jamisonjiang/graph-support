@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.graphper.api.Assemble;
 import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Rankdir;
@@ -97,6 +98,11 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   protected Labelloc labelloc() {
     return nodeAttrs.getLabelloc();
+  }
+
+  @Override
+  protected Labeljust labeljust() {
+    return Labeljust.CENTER;
   }
 
   @Override

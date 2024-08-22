@@ -21,6 +21,7 @@ import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterStyle;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
@@ -90,6 +91,11 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   protected Labelloc labelloc() {
     return cluster.clusterAttrs().getLabelloc();
+  }
+
+  @Override
+  protected Labeljust labeljust() {
+    return cluster.clusterAttrs().getLabeljust();
   }
 
   @Override

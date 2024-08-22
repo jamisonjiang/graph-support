@@ -19,6 +19,7 @@ package org.graphper.draw;
 import java.io.Serializable;
 import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
@@ -64,6 +65,28 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     }
 
     return Math.max(getVerMargin(), labelSize.getHeight());
+  }
+
+  public double leftLowestWidth() {
+    Asserts.nullArgument(margin(), "margin");
+    Asserts.nullArgument(labeljust(), "labeljust");
+
+    if (labelSize == null || labeljust() != Labeljust.LEFT) {
+      return getVerMargin();
+    }
+
+    return Math.max(getVerMargin(), labelSize.getWidth());
+  }
+
+  public double rightLowestWidth() {
+    Asserts.nullArgument(margin(), "margin");
+    Asserts.nullArgument(labeljust(), "labeljust");
+
+    if (labelSize == null || labeljust() != Labeljust.RIGHT) {
+      return getVerMargin();
+    }
+
+    return Math.max(getVerMargin(), labelSize.getWidth());
   }
 
   public double getHorMargin() {
@@ -160,6 +183,8 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
   }
 
   protected abstract Labelloc labelloc();
+
+  protected abstract Labeljust labeljust();
 
   protected abstract FlatPoint margin();
 

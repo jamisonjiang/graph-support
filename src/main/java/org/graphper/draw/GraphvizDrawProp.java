@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.Assemble;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.OrthoVisGraph.Segment;
@@ -62,6 +63,11 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   @Override
   protected Labelloc labelloc() {
     return graphviz.graphAttrs().getLabelloc();
+  }
+
+  @Override
+  protected Labeljust labeljust() {
+    return graphviz.graphAttrs().getLabeljust();
   }
 
   @Override

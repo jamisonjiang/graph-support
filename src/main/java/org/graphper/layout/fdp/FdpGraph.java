@@ -41,7 +41,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
   @Override
   protected AreaGraph newGraph(int capacity) {
-    return new AreaGraph(capacity, graphviz.graphAttrs().getMargin());
+    return new AreaGraph(capacity);
   }
 
   @Override
@@ -108,13 +108,9 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
     private final Rectangle area;
 
-    private final FlatPoint margin;
-
-    public AreaGraph(int capacity, FlatPoint margin) {
+    public AreaGraph(int capacity) {
       super(capacity);
-      Objects.requireNonNull(margin);
       this.area = new Rectangle();
-      this.margin = margin;
     }
 
     public void updateXAxisRange(double x) {
@@ -128,10 +124,10 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     public void setNodeLocation(FNode node, double x, double y) {
       initStatus = false;
       node.setLocation(x, y);
-      area.updateXAxisRange(node.getLeftBorder() - margin.getWidth());
-      area.updateXAxisRange(node.getRightBorder() + margin.getWidth());
-      area.updateYAxisRange(node.getUpBorder() - margin.getHeight());
-      area.updateYAxisRange(node.getDownBorder() + margin.getHeight());
+      area.updateXAxisRange(node.getLeftBorder());
+      area.updateXAxisRange(node.getRightBorder());
+      area.updateYAxisRange(node.getUpBorder());
+      area.updateYAxisRange(node.getDownBorder());
     }
 
     public void initArea() {
