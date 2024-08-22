@@ -61,27 +61,27 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   }
 
   @Override
-  protected Labelloc labelloc() {
+  public Labelloc labelloc() {
     return graphviz.graphAttrs().getLabelloc();
   }
 
   @Override
-  protected Labeljust labeljust() {
+  public Labeljust labeljust() {
     return graphviz.graphAttrs().getLabeljust();
   }
 
   @Override
-  protected FlatPoint margin() {
+  public FlatPoint margin() {
     return graphviz.graphAttrs().getMargin();
   }
 
   @Override
-  protected String containerId() {
+  public String containerId() {
     return graphviz.id();
   }
 
   @Override
-  protected Assemble assemble() {
+  public Assemble assemble() {
     return graphviz.graphAttrs().getAssemble();
   }
 

@@ -89,17 +89,17 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   @Override
-  protected Labelloc labelloc() {
+  public Labelloc labelloc() {
     return cluster.clusterAttrs().getLabelloc();
   }
 
   @Override
-  protected Labeljust labeljust() {
+  public Labeljust labeljust() {
     return cluster.clusterAttrs().getLabeljust();
   }
 
   @Override
-  protected FlatPoint margin() {
+  public FlatPoint margin() {
     if (margin != null) {
       return margin;
     }
@@ -107,12 +107,12 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   @Override
-  protected String containerId() {
+  public String containerId() {
     return cluster.id();
   }
 
   @Override
-  protected Assemble assemble() {
+  public Assemble assemble() {
     return cluster.clusterAttrs().getAssemble();
   }
 

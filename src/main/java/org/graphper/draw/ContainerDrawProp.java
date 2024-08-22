@@ -182,13 +182,13 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return false;
   }
 
-  protected abstract Labelloc labelloc();
+  public abstract Labelloc labelloc();
 
-  protected abstract Labeljust labeljust();
+  public abstract Labeljust labeljust();
 
-  protected abstract FlatPoint margin();
+  public abstract FlatPoint margin();
 
-  protected abstract String containerId();
+  public abstract String containerId();
 
-  protected abstract Assemble assemble();
+  public abstract Assemble assemble();
 }

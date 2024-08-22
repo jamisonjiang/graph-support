@@ -273,18 +273,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    */
   protected void containerLabelPos(DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
-    if (graphvizDrawProp.getLabelSize() != null) {
-      GraphAttrs graphAttrs = graphvizDrawProp.getGraphviz().graphAttrs();
-      containerLabelPos(graphvizDrawProp, graphAttrs.getLabelloc(), graphAttrs.getLabeljust());
-    }
+    containerLabelPos(graphvizDrawProp);
 
     for (ClusterDrawProp cluster : drawGraph.clusters()) {
-      if (cluster.getLabelSize() == null) {
-        continue;
-      }
-
-      ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
-      containerLabelPos(cluster, clusterAttrs.getLabelloc(), clusterAttrs.getLabeljust());
+      containerLabelPos(cluster);
     }
   }
 
@@ -329,8 +321,14 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     graphvizDrawProp.setLabelSize(labelSize);
   }
 
-  private void containerLabelPos(ContainerDrawProp containerDrawProp,
-                                 Labelloc labelloc, Labeljust labeljust) {
+  protected void containerLabelPos(ContainerDrawProp containerDrawProp) {
+    FlatPoint labelSize = containerDrawProp.getLabelSize();
+    if (labelSize == null) {
+      return;
+    }
+
+    Labelloc labelloc = containerDrawProp.labelloc();
+    Labeljust labeljust = containerDrawProp.labeljust();
     FlatPoint upperLeft = new FlatPoint(containerDrawProp.getLeftBorder(),
                                         containerDrawProp.getUpBorder());
     FlatPoint lowerRight = new FlatPoint(containerDrawProp.getRightBorder(),
@@ -338,8 +336,8 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Adjust the position by Labelloc and Labeljust
     FlatPoint labelPoint = new FlatPoint(
-        labeljust.getX(upperLeft, lowerRight, containerDrawProp.getLabelSize()),
-        labelloc.getY(upperLeft, lowerRight, containerDrawProp.getLabelSize())
+        labeljust.getX(upperLeft, lowerRight, labelSize),
+        labelloc.getY(upperLeft, lowerRight, labelSize)
     );
     containerDrawProp.setLabelCenter(labelPoint);
   }

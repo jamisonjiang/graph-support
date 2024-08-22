@@ -33,6 +33,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
+import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
@@ -310,10 +311,46 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private void applyMargin(AreaGraph areaGraph, ContainerDrawProp containerDrawProp) {
-//    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - containerDrawProp.leftLowestWidth());
-//    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + containerDrawProp.rightLowestWidth());
+    double horMargin = containerDrawProp.getHorMargin();
+    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - horMargin);
+    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + horMargin);
     areaGraph.updateYAxisRange(areaGraph.getUpBorder() - containerDrawProp.topLowestHeight());
     areaGraph.updateYAxisRange(areaGraph.getDownBorder() + containerDrawProp.bottomLowestHeight());
+
+    FlatPoint labelSize = containerDrawProp.getLabelSize();
+    if (labelSize == null) {
+      applyMargin(areaGraph, containerDrawProp.shapeProp());
+      return;
+    }
+
+    double widthIncr = (labelSize.getWidth() - areaGraph.width()) / 2;
+    if (widthIncr <= 0) {
+      applyMargin(areaGraph, containerDrawProp.shapeProp());
+      return;
+    }
+
+    areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - widthIncr);
+    areaGraph.updateXAxisRange(areaGraph.getRightBorder() + widthIncr);
+    applyMargin(areaGraph, containerDrawProp.shapeProp());
+  }
+
+  private void applyMargin(AreaGraph areaGraph, ShapePropCalc shapePropCalc) {
+    if (shapePropCalc == null) {
+      return;
+    }
+
+    FlatPoint newSize = shapePropCalc.minContainerSize(areaGraph.height(), areaGraph.width());
+    double widthIncr = (newSize.getWidth() - areaGraph.width()) / 2;
+    double heightIncr = (newSize.getHeight() - areaGraph.getHeight()) / 2;
+    if (widthIncr > 0) {
+      areaGraph.updateXAxisRange(areaGraph.getLeftBorder() - widthIncr);
+      areaGraph.updateXAxisRange(areaGraph.getRightBorder() + widthIncr);
+    }
+
+    if (heightIncr > 0) {
+      areaGraph.updateYAxisRange(areaGraph.getUpBorder() - heightIncr);
+      areaGraph.updateYAxisRange(areaGraph.getDownBorder() + heightIncr);
+    }
   }
 
   private void layout0(AreaGraph graph, GraphAttrs graphAttrs) {
@@ -325,7 +362,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     double temperature = width / (double) vertexCount;
     double k = Math.sqrt(
         (width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
-
 
     initPos(graph, graphAttrs, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);

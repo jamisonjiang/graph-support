@@ -96,27 +96,27 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   @Override
-  protected Labelloc labelloc() {
+  public Labelloc labelloc() {
     return nodeAttrs.getLabelloc();
   }
 
   @Override
-  protected Labeljust labeljust() {
+  public Labeljust labeljust() {
     return Labeljust.CENTER;
   }
 
   @Override
-  protected FlatPoint margin() {
+  public FlatPoint margin() {
     return margin;
   }
 
   @Override
-  protected String containerId() {
+  public String containerId() {
     return String.valueOf(id);
   }
 
   @Override
-  protected Assemble assemble() {
+  public Assemble assemble() {
     return nodeAttrs.getAssemble();
   }
 
