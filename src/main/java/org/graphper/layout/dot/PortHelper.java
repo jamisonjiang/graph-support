@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineDrawPropPathClip.straightLineClipShape;
+
 import java.util.Objects;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
@@ -197,8 +199,7 @@ public class PortHelper {
     FlatPoint center = new FlatPoint(rectangle.getLeftBorder() + leftWidth,
                                      rectangle.getUpBorder() + topHeight);
 
-    FlatPoint p = AbstractDotLineRouter.straightLineClipShape(rectangle, shapeProp,
-                                                              center, portPoint);
+    FlatPoint p = straightLineClipShape(rectangle, shapeProp, center, portPoint);
     FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, p);
     return new PortPoint(p.getX(), p.getY(), true, port);
   }
@@ -267,7 +268,7 @@ public class PortHelper {
     }
 
     FlatPoint point = new FlatPoint(shapePosition.getX(), shapePosition.getY());
-    return AbstractDotLineRouter.straightLineClipShape(shapePosition, point, portPoint);
+    return straightLineClipShape(shapePosition, point, portPoint);
   }
 
   public static double portCompareNo(Line line, DNode node, DrawGraph drawGraph) {

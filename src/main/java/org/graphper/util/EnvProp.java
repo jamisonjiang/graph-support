@@ -20,6 +20,9 @@ import org.graphper.api.attributes.Rankdir;
 
 public final class EnvProp {
 
+  // distance deviation tolerance
+  public static final double CLIP_DIST_ERROR = 0.1;
+
   private EnvProp() {
   }
 

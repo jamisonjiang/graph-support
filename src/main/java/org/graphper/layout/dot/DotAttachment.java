@@ -37,7 +37,11 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.Rectangle;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.CurvePathClip;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LineClip;
+import org.graphper.layout.LineDrawPropPathClip;
+import org.graphper.layout.PathClip;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
@@ -392,7 +396,7 @@ class DotAttachment extends LayoutAttach {
       drawGraph.syncGraphvizBorder();
 
       for (LineDrawProp line : drawGraph.lines()) {
-        PathClip<LineDrawProp> pathClip;
+        PathClip pathClip;
         if (line.isBesselCurve()) {
           pathClip = CurvePathClip.INSTANCE;
         } else {

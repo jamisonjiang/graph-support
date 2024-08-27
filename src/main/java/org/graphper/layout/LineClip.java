@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
 
@@ -46,11 +46,10 @@ import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
-import org.graphper.util.FontUtils;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 import org.graphper.util.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +64,7 @@ public abstract class LineClip {
 
   protected DrawGraph drawGraph;
 
-  protected DotDigraph dotDigraph;
+  protected LayoutGraph<?, ?> dotDigraph;
 
   /**
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis
@@ -104,8 +103,8 @@ public abstract class LineClip {
     }
   }
 
-  protected <P> void clipProcess(P path, PathClip<P> pathClip,
-                                 FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
+  protected void clipProcess(LineDrawProp path, PathClip pathClip,
+                             FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
     Asserts.nullArgument(pathClip, "pathClip");
     Asserts.nullArgument(lineDrawProp, "lineDrawProp");
 
@@ -125,10 +124,10 @@ public abstract class LineClip {
         || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
-        DNode dNode = dotDigraph.getNode(from);
-        Asserts.illegalArgument(dNode == null, "Can not found from node of line prop");
+        ANode node = dotDigraph.getNode(from);
+        Asserts.illegalArgument(node == null, "Can not found from node of line prop");
         clusterDrawProp = findLineEndPointCluster(
-            dNode.getContainer(),
+            node.getContainer(),
             getCompoundId(lineAttrs, !reversal)
         );
       }
@@ -145,10 +144,10 @@ public abstract class LineClip {
           || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
-          DNode dNode = dotDigraph.getNode(to);
-          Asserts.illegalArgument(dNode == null, "Can not found to node of line prop");
+          ANode node = dotDigraph.getNode(to);
+          Asserts.illegalArgument(node == null, "Can not found to node of line prop");
           clusterDrawProp = findLineEndPointCluster(
-              dNode.getContainer(),
+              node.getContainer(),
               getCompoundId(lineAttrs, reversal)
           );
         }

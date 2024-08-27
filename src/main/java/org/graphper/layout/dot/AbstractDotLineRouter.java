@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.util.EnvProp.CLIP_DIST_ERROR;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +29,6 @@ import org.graphper.api.Line;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Splines;
-import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.Curves;
@@ -39,6 +40,7 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.LineClip;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -51,9 +53,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
   private static final Logger log = LoggerFactory.getLogger(AbstractDotLineRouter.class);
 
   protected static final double LABEL_NODE_SIDE_MIN_DISTANCE = 10;
-
-  // distance deviation tolerance
-  protected static final double CLIP_DIST_ERROR = 0.1;
 
   protected RankContent rankContent;
   protected EdgeDedigraph<DNode, DLine> digraphProxy;
@@ -164,64 +163,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     return splines;
   }
 
-  /**
-   * Divide the path using the tangent vector that the path intersects at the node boundary to fit
-   * the path to the node shape.
-   *
-   * @param shapePosition shape position information
-   * @param inPoint       point inside node
-   * @param outPoint      point outside node
-   * @return border crossing point
-   */
-  public static FlatPoint straightLineClipShape(ShapePosition shapePosition,
-                                                FlatPoint inPoint, FlatPoint outPoint) {
-    Asserts.nullArgument(shapePosition, "shapePosition");
-    return straightLineClipShape(shapePosition, shapePosition.shapeProp(), inPoint, outPoint);
-  }
-
-  /**
-   * Divide the path using the tangent vector that the path intersects at the node boundary to fit
-   * the path to the node shape.
-   *
-   * @param box           node box
-   * @param shapePropCalc node shape properties function
-   * @param inPoint       point inside node
-   * @param outPoint      point outside node
-   * @return border crossing point
-   */
-  public static FlatPoint straightLineClipShape(Box box, ShapePropCalc shapePropCalc,
-                                                FlatPoint inPoint, FlatPoint outPoint) {
-    Asserts.nullArgument(inPoint, "inPoint");
-    Asserts.nullArgument(outPoint, "outPoint");
-    Asserts.nullArgument(box, "shapePosition");
-    Asserts.nullArgument(shapePropCalc, "shapePosition.nodeShape()");
-
-    Asserts.illegalArgument(
-        !shapePropCalc.in(box, inPoint),
-        "The specified internal node is not inside the node"
-    );
-    Asserts.illegalArgument(
-        shapePropCalc.in(box, outPoint),
-        "The specified external node is inside the node"
-    );
-
-    FlatPoint midPoint;
-    FlatPoint in = inPoint;
-    FlatPoint out = outPoint;
-
-    do {
-      midPoint = new FlatPoint((in.getX() + out.getX()) / 2, (in.getY() + out.getY()) / 2);
-
-      if (shapePropCalc.in(box, midPoint)) {
-        in = midPoint;
-      } else {
-        out = midPoint;
-      }
-
-    } while (FlatPoint.twoFlatPointDistance(in, out) > CLIP_DIST_ERROR);
-
-    return midPoint;
-  }
 
   /**
    * According to the shape object of the specified coordinates and size, cut the specified bessel
@@ -456,72 +397,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
                                     NodeShapeEnum.CIRCLE);
   }
 
-  public static <E extends FlatPoint> E getPoint(List<E> path, int i) {
-    if (i < 0 || i >= path.size()) {
-      return null;
-    }
-
-    return path.get(i);
-  }
-
-  public static <E extends FlatPoint> E getFirst(List<E> path) {
-    return CollectionUtils.isEmpty(path) ? null : path.get(0);
-  }
-
-  public static <E extends FlatPoint> E getLast(List<E> path) {
-    return CollectionUtils.isEmpty(path) ? null : path.get(path.size() - 1);
-  }
-
-  public static <E extends FlatPoint> InOutPointPair findInOutPair(int unit, List<E> path,
-                                                                   boolean firstStart,
-                                                                   ShapePosition shapePosition) {
-    Asserts.nullArgument(shapePosition, "shapePosition");
-    Asserts.nullArgument(shapePosition.shapeProp(), "shapePosition.nodeShape()");
-
-    Integer idx = null;
-    Integer count = null;
-
-    ShapePropCalc shapeProp = shapePosition.shapeProp();
-
-    E point = getFirst(path);
-    if (firstStart && point != null && shapeProp.in(shapePosition, point)) {
-      idx = 0;
-      count = unit;
-    } else {
-      point = getLast(path);
-      if (point != null && shapeProp.in(shapePosition, point)) {
-        idx = path.size() - 1;
-        count = -unit;
-      }
-    }
-
-    if (idx == null) {
-      return null;
-    }
-
-    E pre = null;
-    do {
-      if (pre != null) {
-        boolean preIn = shapeProp.in(shapePosition, pre);
-        boolean pointIn = shapeProp.in(shapePosition, point);
-
-        if (preIn != pointIn) {
-          return new InOutPointPair(
-              idx - count,
-              count > 0,
-              preIn ? pre : point,
-              pointIn ? pre : point
-          );
-        }
-      }
-
-      idx += count;
-      pre = point;
-      point = getPoint(path, idx);
-    } while (point != null);
-
-    return null;
-  }
 
   // ----------------------------------------------------- private method -----------------------------------------------------
   private void largeTwoSelfLineDraw(FlatPoint center, DLine selfLine) {
@@ -807,37 +682,5 @@ public abstract class AbstractDotLineRouter extends LineClip implements DotLineR
     protected abstract T newInstance();
   }
 
-  static class InOutPointPair {
 
-    private final int idx;
-
-    private final boolean deleteBefore;
-
-    private final FlatPoint in;
-
-    private final FlatPoint out;
-
-    public InOutPointPair(int idx, boolean deleteBefore, FlatPoint in, FlatPoint out) {
-      this.idx = idx;
-      this.deleteBefore = deleteBefore;
-      this.in = in;
-      this.out = out;
-    }
-
-    public int getIdx() {
-      return idx;
-    }
-
-    public boolean isDeleteBefore() {
-      return deleteBefore;
-    }
-
-    public FlatPoint getIn() {
-      return in;
-    }
-
-    public FlatPoint getOut() {
-      return out;
-    }
-  }
 }

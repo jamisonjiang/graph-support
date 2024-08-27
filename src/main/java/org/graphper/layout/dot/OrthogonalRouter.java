@@ -177,8 +177,8 @@ class OrthogonalRouter extends AbstractDotLineRouter {
 
   private void ovgRouter(EdgeSegRecord edgeSegRecord, LineDrawProp lineDrawProp,
                          TargetConstructor targetConstructor) {
-    DNode tail = dotDigraph.getNode(lineDrawProp.getLine().tail());
-    DNode head = dotDigraph.getNode(lineDrawProp.getLine().head());
+    DNode tail = (DNode) dotDigraph.getNode(lineDrawProp.getLine().tail());
+    DNode head = (DNode) dotDigraph.getNode(lineDrawProp.getLine().head());
     if (tail == null || head == null) {
       return;
     }
