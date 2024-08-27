@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
@@ -38,6 +39,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
@@ -101,6 +103,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     } else {
       fLine = new FLine(source, target, line);
     }
+
     fdpGraph.addEdge(fLine);
   }
 
@@ -108,6 +111,23 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   protected void afterRenderShifter(LayoutAttach attach) {
     FdpAttachment fdpAttachment = (FdpAttachment) attach;
     fdpAttachment.getDrawGraph().syncGraphvizBorder();
+    DrawGraph drawGraph = fdpAttachment.getDrawGraph();
+
+    for (ClusterDrawProp cluster : drawGraph.clusters()) {
+      Assemble assemble = cluster.getAssemble();
+      setCellNodeOffset(drawGraph, cluster.getLabelCenter(), assemble, true);
+    }
+
+    GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
+    Assemble assemble = graphvizDrawProp.getAssemble();
+    if (assemble != null) {
+      setCellNodeOffset(drawGraph, graphvizDrawProp.getLabelCenter(), assemble, true);
+    }
+
+    for (LineDrawProp line : drawGraph.lines()) {
+      assemble = line.getAssemble();
+      setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
+    }
   }
 
   @Override
