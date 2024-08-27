@@ -41,6 +41,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlatShifterStrategy;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.EnvProp;

@@ -29,6 +29,7 @@ import java.util.Set;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.SameRankAdjacentRecord.SameRankAdjacentInfo;
 import org.graphper.util.CollectionUtils;

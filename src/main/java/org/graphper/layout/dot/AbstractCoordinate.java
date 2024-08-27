@@ -34,6 +34,7 @@ import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.PortHelper;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.layout.dot.RankContent.RankNode;

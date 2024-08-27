@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import static org.graphper.layout.LineDrawPropPathClip.straightLineClipShape;
 
@@ -33,9 +33,7 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.Rectangle;
-import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
-import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
 
 public class PortHelper {
@@ -43,7 +41,7 @@ public class PortHelper {
   private PortHelper() {
   }
 
-  public static FlatPoint getPortPoint(DNode node, Port port) {
+  public static FlatPoint getPortPoint(ANode node, Port port) {
     if (port == null) {
       return new FlatPoint(node.getX(), node.getY());
     }
@@ -79,26 +77,26 @@ public class PortHelper {
     return null;
   }
 
-  public static PortPoint getPortPoint(Line line, DNode node,
+  public static PortPoint getPortPoint(Line line, ANode node,
                                        DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, true);
   }
 
-  public static PortPoint getPortPointWithoutClip(Line line, DNode node,
+  public static PortPoint getPortPointWithoutClip(Line line, ANode node,
                                                   DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, false);
   }
 
-  public static PortPoint getPortPoint(DNode node, String cellId, Port port, DrawGraph drawGraph) {
+  public static PortPoint getPortPoint(ANode node, String cellId, Port port, DrawGraph drawGraph) {
     return endPoint(true, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static PortPoint getPortPoint(Line line, DNode node, DrawGraph drawGraph,
+  public static PortPoint getPortPoint(Line line, ANode node, DrawGraph drawGraph,
                                        boolean portClipNode) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 
-    if (node.isVirtual() || line == null) {
+    if (node.empty() || line == null) {
       return new PortPoint(node.getX(), node.getY(), false, null);
     }
 
@@ -113,7 +111,7 @@ public class PortHelper {
     return endPoint(portClipNode, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static String getCellId(Line line, DNode node, LineDrawProp lineDrawProp) {
+  public static String getCellId(Line line, ANode node, LineDrawProp lineDrawProp) {
     String cellId = null;
     if (node.getNode() == line.tail()) {
       cellId = lineDrawProp.lineAttrs().getTailCell();
@@ -271,11 +269,11 @@ public class PortHelper {
     return straightLineClipShape(shapePosition, point, portPoint);
   }
 
-  public static double portCompareNo(Line line, DNode node, DrawGraph drawGraph) {
+  public static double portCompareNo(Line line, ANode node, DrawGraph drawGraph) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 
-    if (node.isVirtual() || line == null) {
+    if (node.empty() || line == null) {
       return 0;
     }
 

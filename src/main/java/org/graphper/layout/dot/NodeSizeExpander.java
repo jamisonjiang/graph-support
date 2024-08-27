@@ -29,6 +29,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.PortHelper;
 import org.graphper.util.Asserts;
 import org.graphper.util.ValueUtils;
 

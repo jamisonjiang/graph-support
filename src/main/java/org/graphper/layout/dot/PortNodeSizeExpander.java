@@ -29,6 +29,7 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.FlipShifterStrategy;
+import org.graphper.layout.PortHelper;
 import org.graphper.util.Asserts;
 
 public class PortNodeSizeExpander extends NodeSizeExpander {
