@@ -41,6 +41,7 @@ import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.LineClip;
+import org.graphper.layout.LineRouter;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -48,7 +49,7 @@ import org.graphper.util.EnvProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractDotLineRouter extends LineClip implements DotLineRouter {
+public abstract class AbstractDotLineRouter extends LineClip implements LineRouter {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractDotLineRouter.class);
 

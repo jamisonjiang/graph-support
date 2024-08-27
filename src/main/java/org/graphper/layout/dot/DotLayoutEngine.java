@@ -46,10 +46,10 @@ import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.Cell;
 import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotAttachment.GeneratePort;
 import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
-import org.graphper.layout.dot.DotLineRouter.DotLineRouterFactory;
 import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
@@ -420,8 +420,8 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     // spline handler hand out
     for (DotLineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
-      DotLineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
-                                                                    rankContent, digraphProxy);
+      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
+                                                                 rankContent, digraphProxy);
 
       if (dotLineRouter.needDeal(splines)) {
         dotLineRouter.route();

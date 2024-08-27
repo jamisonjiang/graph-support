@@ -25,6 +25,7 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.LineRouter;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -35,7 +36,7 @@ import org.graphper.util.CollectionUtils;
  *
  * @author Jamison Jiang
  */
-class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
+class LineHandler extends AbstractDotLineRouter implements LineRouter {
 
   @Override
   public boolean needDeal(Splines splines) {

@@ -14,29 +14,20 @@
  * limitations under the License.
  */
 
-package org.graphper.layout;
+package org.graphper.layout.dot;
 
-import org.graphper.api.attributes.Splines;
+import org.graphper.def.EdgeDedigraph;
+import org.graphper.draw.DrawGraph;
+import org.graphper.layout.LineRouter;
 
 /**
- * Line routing interface.
+ * Factory of the router.
  *
- * @author Jamison Jiang
+ * @param <T> router type
  */
-public interface LineRouter {
+interface DotLineRouterFactory<T extends LineRouter> {
 
-  /**
-   * Determine whether the current router needs to process the current {@link Splines } attribute.
-   *
-   * @param splines Splines
-   * @return <tt>true</tt> if router need handle the splines attribute
-   */
-  default boolean needDeal(Splines splines) {
-    return splines != Splines.NONE;
-  }
-
-  /**
-   * Routing the line.
-   */
-  void route();
+  T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,
+                EdgeDedigraph<DNode, DLine> digraphProxy);
 }
+
