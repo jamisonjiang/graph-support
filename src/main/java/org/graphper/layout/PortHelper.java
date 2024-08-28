@@ -16,7 +16,7 @@
 
 package org.graphper.layout;
 
-import static org.graphper.layout.LineDrawPropPathClip.straightLineClipShape;
+import static org.graphper.layout.StraightPathClip.straightLineClipShape;
 
 import java.util.Objects;
 import org.graphper.api.Line;

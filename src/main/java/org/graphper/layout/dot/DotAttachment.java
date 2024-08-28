@@ -40,7 +40,7 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.CurvePathClip;
 import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.LineClip;
-import org.graphper.layout.LineDrawPropPathClip;
+import org.graphper.layout.StraightPathClip;
 import org.graphper.layout.PathClip;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -400,7 +400,7 @@ class DotAttachment extends LayoutAttach {
         if (line.isBesselCurve()) {
           pathClip = CurvePathClip.INSTANCE;
         } else {
-          pathClip = LineDrawPropPathClip.INSTANCE;
+          pathClip = StraightPathClip.INSTANCE;
         }
 
         if (line.isSelfLoop() && CollectionUtils.isNotEmpty(line)) {

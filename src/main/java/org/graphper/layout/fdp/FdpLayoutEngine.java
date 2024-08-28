@@ -19,6 +19,7 @@ package org.graphper.layout.fdp;
 import static org.graphper.layout.LayoutGraph.clusters;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -34,6 +35,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
+import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
@@ -44,12 +46,23 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
+import org.graphper.layout.fdp.StraightLineRouter.StraightLineRouterFactory;
 
 public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializable {
 
   private static final long serialVersionUID = 4639188492816085348L;
+
+  /**
+   * Spline router factory
+   */
+  private static final List<LineRouterFactory<?>> SPLINES_HANDLERS;
+
+  static {
+    SPLINES_HANDLERS = Arrays.asList(new StraightLineRouterFactory());
+  }
 
   @Override
   protected List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
@@ -753,20 +766,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder() + margin.getHeight());
     }
 
-    for (FNode n : graph) {
-      for (FLine edge : graph.outAdjacent(n)) {
-        if (edge.empty()) {
-          continue;
-        }
 
-        FNode from = edge.from();
-        FNode to = edge.to();
-        LineDrawProp line = drawGraph.getLineDrawProp(edge.getLine());
-        line.markIsLineSegment();
-        line.add(new FlatPoint(from.getX(), from.getY()));
-        line.add(new FlatPoint(to.getX(), to.getY()));
-      }
-    }
 
     for (Cluster cluster : clusters(drawGraph.getGraphviz())) {
       refreshByClusters(cluster, drawGraph, margin);
@@ -774,6 +774,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     drawGraph.syncToGraphvizBorder();
     containerLabelPos(drawGraph);
+
+    splines(drawGraph);
   }
 
   private static void refreshByClusters(Cluster cluster, DrawGraph drawGraph, FlatPoint margin) {
@@ -782,6 +784,25 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     drawGraph.updateXAxisRange(clusterDrawProp.getRightBorder() + margin.getWidth());
     drawGraph.updateYAxisRange(clusterDrawProp.getUpBorder() - margin.getHeight());
     drawGraph.updateYAxisRange(clusterDrawProp.getDownBorder() + margin.getHeight());
+  }
+
+  private void splines(DrawGraph drawGraph) {
+    Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
+    Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
+
+    if (splines == null || splines == Splines.NONE || lineDrawPropMap == null) {
+      return;
+    }
+
+    // spline handler hand out
+    for (LineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
+      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph);
+
+      if (dotLineRouter.needDeal(splines)) {
+        dotLineRouter.route();
+        break;
+      }
+    }
   }
 
   private static class ClusterNode {

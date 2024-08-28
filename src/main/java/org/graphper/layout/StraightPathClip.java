@@ -29,9 +29,9 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.dot.AbstractDotLineRouter;
 import org.graphper.util.Asserts;
 
-public class LineDrawPropPathClip extends PathClip {
+public class StraightPathClip extends PathClip {
 
-  public static final LineDrawPropPathClip INSTANCE = new LineDrawPropPathClip();
+  public static final StraightPathClip INSTANCE = new StraightPathClip();
 
   @Override
   protected FlatPoint pathFrom(LineDrawProp path) {
