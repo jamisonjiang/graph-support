@@ -30,6 +30,7 @@ import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.def.BiConcatIterable;
+import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 
 /**
@@ -226,6 +227,15 @@ public class DrawGraph extends Rectangle implements Serializable {
     graphvizDrawProp.setRightBorder(rightBorder);
     graphvizDrawProp.setUpBorder(upBorder);
     graphvizDrawProp.setDownBorder(downBorder);
+  }
+
+  public void updateRange(FlatPoint point) {
+    if (point == null) {
+      return;
+    }
+
+    updateXAxisRange(point.getX());
+    updateYAxisRange(point.getY());
   }
 
   public void updateXAxisRange(double x) {

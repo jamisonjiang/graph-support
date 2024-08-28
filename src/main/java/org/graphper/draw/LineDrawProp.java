@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
@@ -309,6 +310,10 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
       return null;
     }
     return floatAssembles.get(floatLabel);
+  }
+
+  public boolean haveLabel() {
+    return StringUtils.isNotEmpty(lineAttrs.getLabel()) || assemble != null;
   }
 
   private void convertTables() {

@@ -216,8 +216,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     if (assemble != null) {
       setCellNodeOffset(drawGraph, graphvizDrawProp.getLabelCenter(), assemble, true);
     }
-    // Line clip
-    dotAttachment.clipAllLines();
+
+    // Lines clip
+    drawGraph.syncGraphvizBorder();
+    new LineClipProcessor(drawGraph, dotAttachment.getDotDigraph()).clipAllLines();
   }
 
   @Override
@@ -228,7 +230,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     DotDigraph dotDigraph = dotAttachment.getDotDigraph();
     Graphviz graphviz = drawGraph.getGraphviz();
     GraphAttrs graphAttrs = graphviz.graphAttrs();
-    dotAttachment.initLineClip();
 
     // Collapse subgraphs and clusters, then assign the rank for per node
     ContainerCollapse containerCollapse = new ContainerCollapse(dotAttachment, graphviz);

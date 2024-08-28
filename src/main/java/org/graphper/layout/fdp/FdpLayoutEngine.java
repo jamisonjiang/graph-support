@@ -28,12 +28,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
+import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.ShapePropCalc;
@@ -50,6 +52,7 @@ import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 import org.graphper.layout.fdp.StraightLineRouter.StraightLineRouterFactory;
+import org.graphper.util.FontUtils;
 
 public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializable {
 
@@ -140,7 +143,35 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (LineDrawProp line : drawGraph.lines()) {
       assemble = line.getAssemble();
       setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
+
+      FlatPoint labelCenter = line.getLabelCenter();
+      if (labelCenter == null) {
+        continue;
+      }
+
+      FlatPoint size;
+      if (assemble != null) {
+        size = assemble.size();
+      } else {
+        LineAttrs lineAttrs = line.lineAttrs();
+        if (StringUtils.isEmpty(lineAttrs.getLabel())) {
+          continue;
+        }
+
+        size = FontUtils.measure(lineAttrs.getLabel(), lineAttrs.getFontName(),
+                                 lineAttrs.getFontSize(), 0);
+      }
+
+      double width = size.getWidth() / 2;
+      double height = size.getHeight() / 2;
+      drawGraph.updateXAxisRange(labelCenter.getX() - width);
+      drawGraph.updateXAxisRange(labelCenter.getX() + width);
+      drawGraph.updateYAxisRange(labelCenter.getY() - height);
+      drawGraph.updateYAxisRange(labelCenter.getY() + height);
     }
+
+    // Lines clip
+    new LineClipProcessor(drawGraph, fdpAttachment.getFdpGraph()).clipAllLines();
   }
 
   @Override
@@ -765,8 +796,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(nodeDrawProp.getUpBorder() - margin.getHeight());
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder() + margin.getHeight());
     }
-
-
 
     for (Cluster cluster : clusters(drawGraph.getGraphviz())) {
       refreshByClusters(cluster, drawGraph, margin);

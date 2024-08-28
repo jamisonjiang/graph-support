@@ -840,4 +840,42 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   private boolean isRecordShape(NodeShape nodeShape) {
     return nodeShape == NodeShapeEnum.RECORD || nodeShape == NodeShapeEnum.M_RECORD;
   }
+
+  public static class LineClipProcessor extends LineClip {
+
+    public LineClipProcessor(DrawGraph drawGraph, LayoutGraph<?, ?> layoutGraph) {
+      Objects.requireNonNull(drawGraph);
+      Objects.requireNonNull(layoutGraph);
+      this.drawGraph = drawGraph;
+      this.layoutGraph = layoutGraph;
+    }
+
+    public void clipAllLines() {
+      for (LineDrawProp line : drawGraph.lines()) {
+        PathClip pathClip;
+        if (line.isBesselCurve()) {
+          pathClip = CurvePathClip.INSTANCE;
+        } else {
+          pathClip = StraightPathClip.INSTANCE;
+        }
+
+        if (line.isSelfLoop() && CollectionUtils.isNotEmpty(line)) {
+          FlatPoint noPathDirection = line.get(line.size() / 2);
+          clipProcess(line, pathClip, noPathDirection, line);
+        } else {
+          clipProcess(line, pathClip, null, line);
+        }
+
+        if (CollectionUtils.isEmpty(line)) {
+          continue;
+        }
+
+        line.setStart(line.get(0));
+        line.setEnd(line.get(line.size() - 1));
+        setFloatLabel(line);
+      }
+
+      drawGraph.syncToGraphvizBorder();
+    }
+  }
 }

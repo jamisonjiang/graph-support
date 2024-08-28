@@ -675,7 +675,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
       T t = newInstance();
       Asserts.nullArgument(t, "DotLineRouter");
       t.drawGraph = drawGraph;
-      t.dotDigraph = dotDigraph;
+      t.layoutGraph = dotDigraph;
       t.rankContent = rankContent;
       t.digraphProxy = digraphProxy;
       return t;

@@ -64,7 +64,7 @@ public abstract class LineClip {
 
   protected DrawGraph drawGraph;
 
-  protected LayoutGraph<?, ?> dotDigraph;
+  protected LayoutGraph<?, ?> layoutGraph;
 
   /**
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis
@@ -124,7 +124,7 @@ public abstract class LineClip {
         || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
-        ANode node = dotDigraph.getNode(from);
+        ANode node = layoutGraph.getNode(from);
         Asserts.illegalArgument(node == null, "Can not found from node of line prop");
         clusterDrawProp = findLineEndPointCluster(
             node.getContainer(),
@@ -144,7 +144,7 @@ public abstract class LineClip {
           || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
-          ANode node = dotDigraph.getNode(to);
+          ANode node = layoutGraph.getNode(to);
           Asserts.illegalArgument(node == null, "Can not found to node of line prop");
           clusterDrawProp = findLineEndPointCluster(
               node.getContainer(),

@@ -41,6 +41,11 @@ public class StraightLineRouter implements LineRouter {
       lineDrawProp.markIsLineSegment();
       lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
       lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
+
+      if (lineDrawProp.haveLabel()) {
+        lineDrawProp.setLabelCenter(
+            new FlatPoint((tail.getX() + head.getX()) / 2, (tail.getY() + head.getY()) / 2));
+      }
     }
   }
 
