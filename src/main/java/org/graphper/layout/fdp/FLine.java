@@ -21,6 +21,8 @@ import org.graphper.layout.ALine;
 
 public class FLine extends ALine<FNode, FLine> {
 
+  private static final long serialVersionUID = -2526416728355227232L;
+
   public FLine(FNode from, FNode to) {
     super(from, to, null);
   }

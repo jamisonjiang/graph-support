@@ -27,16 +27,14 @@ public class FontUtils {
   private FontUtils() {
   }
 
-  public static final String DEFAULT_FONT;
+  private static final MeasureText MEASURE_TEXT = selectMeasureText();
+  private static final FontSelector FONT_SELECTOR = selectFontSelector();
 
-  private static final MeasureText MEASURE_TEXT;
-  private static final FontSelector FONT_SELECTOR;
+  public static final String DEFAULT_FONT = defaultFont();
 
-  static {
-    MEASURE_TEXT = selectMeasureText();
-    FONT_SELECTOR = selectFontSelector();
-    String defaultFont = FONT_SELECTOR != null ? FONT_SELECTOR.defaultFont() : null;
-    DEFAULT_FONT = StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
+  private static String defaultFont() {
+    String defaultFont = FONT_SELECTOR.defaultFont();
+    return StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
   }
 
   private static MeasureText selectMeasureText() {

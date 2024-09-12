@@ -140,13 +140,22 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       setCellNodeOffset(drawGraph, graphvizDrawProp.getLabelCenter(), assemble, true);
     }
 
+    // Lines clip
+    new LineClipProcessor(drawGraph, fdpAttachment.getFdpGraph()).clipAllLines();
+
     for (LineDrawProp line : drawGraph.lines()) {
       assemble = line.getAssemble();
       setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
 
-      FlatPoint labelCenter = line.getLabelCenter();
-      if (labelCenter == null) {
+      FlatPoint labelCenter;
+      if (line.isEmpty() || line.isBesselCurve()) {
         continue;
+      } else {
+        FlatPoint first = line.get(0);
+        FlatPoint last = line.get(line.size() - 1);
+        labelCenter = new FlatPoint((first.getX() + last.getX()) / 2,
+                                    (first.getY() + last.getY()) / 2);
+        line.setLabelCenter(labelCenter);
       }
 
       FlatPoint size;
@@ -169,9 +178,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       drawGraph.updateYAxisRange(labelCenter.getY() - height);
       drawGraph.updateYAxisRange(labelCenter.getY() + height);
     }
-
-    // Lines clip
-    new LineClipProcessor(drawGraph, fdpAttachment.getFdpGraph()).clipAllLines();
   }
 
   @Override
