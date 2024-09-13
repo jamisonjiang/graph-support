@@ -17,6 +17,7 @@
 package org.graphper.layout;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -83,7 +84,20 @@ public abstract class AbstractFontSelector implements FontSelector {
       "Courier Prime"
   };
 
+  private String defaultFont;
+
   private Set<String> allAvailableFonts;
+
+  protected AbstractFontSelector() {
+    initDefaultFont();
+  }
+
+  /**
+   * Return all system available fonts.
+   *
+   * @return all system available fonts
+   */
+  protected abstract String[] listAllSystemFonts();
 
   /**
    * Returns default font name when not set fontName attribute.
@@ -92,21 +106,7 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   @Override
   public String defaultFont() {
-    String[] fonts = listAllSystemFonts();
-    if (fonts == null || fonts.length == 0) {
-      return TOP_POPULAR_FONTS[0];
-    }
-
-    allAvailableFonts = new HashSet<>(fonts.length);
-    allAvailableFonts.addAll(Arrays.asList(fonts));
-
-    for (String font : TOP_POPULAR_FONTS) {
-      if (allAvailableFonts.contains(font)) {
-        return font;
-      }
-    }
-
-    return fonts[0];
+   return defaultFont;
   }
 
   /**
@@ -121,17 +121,25 @@ public abstract class AbstractFontSelector implements FontSelector {
       return false;
     }
 
-    if (allAvailableFonts == null) {
-      return true;
-    }
-
     return allAvailableFonts.contains(fontName);
   }
 
-  /**
-   * Return all system available fonts.
-   *
-   * @return all system available fonts
-   */
-  protected abstract String[] listAllSystemFonts();
+  private void initDefaultFont() {
+    String[] fonts = listAllSystemFonts();
+    if (fonts == null || fonts.length == 0) {
+      defaultFont = TOP_POPULAR_FONTS[0];
+      allAvailableFonts = Collections.emptySet();
+      return;
+    }
+
+    allAvailableFonts = new HashSet<>(fonts.length);
+    allAvailableFonts.addAll(Arrays.asList(fonts));
+
+    for (String font : TOP_POPULAR_FONTS) {
+      if (allAvailableFonts.contains(font)) {
+        defaultFont = font;
+        return;
+      }
+    }
+  }
 }

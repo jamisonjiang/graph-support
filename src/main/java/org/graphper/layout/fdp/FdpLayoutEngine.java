@@ -144,9 +144,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     new LineClipProcessor(drawGraph, fdpAttachment.getFdpGraph()).clipAllLines();
 
     for (LineDrawProp line : drawGraph.lines()) {
-      assemble = line.getAssemble();
-      setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
-
       FlatPoint labelCenter;
       if (line.isEmpty() || line.isBesselCurve()) {
         continue;
@@ -157,6 +154,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
                                     (first.getY() + last.getY()) / 2);
         line.setLabelCenter(labelCenter);
       }
+
+      assemble = line.getAssemble();
+      setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
 
       FlatPoint size;
       if (assemble != null) {
@@ -375,6 +375,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   private void applyMargin(AreaGraph areaGraph, DrawGraph drawGraph, GraphContainer container) {
     if (container.isGraphviz()) {
       applyMargin(areaGraph, drawGraph.getGraphvizDrawProp());
+      drawGraph.setLeftBorder(areaGraph.getLeftBorder());
+      drawGraph.setRightBorder(areaGraph.getRightBorder());
+      drawGraph.setUpBorder(areaGraph.getUpBorder());
+      drawGraph.setDownBorder(areaGraph.getDownBorder());
     } else if (container.isCluster()) {
       applyMargin(areaGraph, drawGraph.getClusterDrawProp((Cluster) container));
     }

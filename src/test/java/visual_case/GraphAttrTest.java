@@ -18,6 +18,7 @@ package visual_case;
 
 import helper.GraphvizVisual;
 import java.util.stream.Stream;
+import org.graphper.api.Html;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -558,7 +559,7 @@ public class GraphAttrTest extends GraphvizVisual {
     Node b = Node.builder().label("b").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .label("href_test")
+        .table(Html.table().tr(Html.td().text("href_test")))
         .href("https://github.com/")
         .addLine(a, b)
         .build();

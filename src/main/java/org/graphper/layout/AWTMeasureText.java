@@ -33,6 +33,9 @@ import org.graphper.def.FlatPoint;
  */
 public class AWTMeasureText extends AbstractFontSelector implements MeasureText, FontSelector {
 
+  public AWTMeasureText() {
+    super();
+  }
 
   @Override
   public int order() {

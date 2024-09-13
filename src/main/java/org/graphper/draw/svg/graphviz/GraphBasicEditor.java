@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg.graphviz;
 
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.draw.svg.Element;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.attributes.Color;
@@ -66,7 +67,9 @@ public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush>
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, graphAttrs.getLabel());
+    if (StringUtils.isNotEmpty(graphAttrs.getLabel())) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, graphAttrs.getLabel());
+    }
   }
 
   private void setBgColor(GraphAttrs graphAttrs, Element background) {

@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg.cluster;
 
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.draw.svg.Element;
 import org.graphper.api.ClusterAttrs;
@@ -42,7 +43,9 @@ public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBru
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, clusterAttrs.getLabel());
+    if (StringUtils.isNotEmpty(clusterAttrs.getLabel())) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, clusterAttrs.getLabel());
+    }
     return true;
   }
 }

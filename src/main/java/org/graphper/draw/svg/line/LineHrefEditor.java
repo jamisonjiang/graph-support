@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg.line;
 
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.draw.LineDrawProp;
@@ -42,7 +43,9 @@ public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, lineAttrs.getLabel());
+    if (StringUtils.isNotEmpty(lineAttrs.getLabel())) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, lineAttrs.getLabel());
+    }
     return true;
   }
 }
