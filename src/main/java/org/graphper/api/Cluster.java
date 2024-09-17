@@ -262,6 +262,11 @@ public class Cluster extends GraphContainer implements Serializable {
       return self();
     }
 
+    public B tooltip(String tooltip) {
+      clusterAttrs.tooltip = tooltip;
+      return self();
+    }
+
     /**
      * Set the border width of the cluster.
      *

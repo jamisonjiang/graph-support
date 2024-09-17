@@ -520,6 +520,11 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    public GraphvizBuilder tooltip(String tooltip) {
+      graphAttrs.tooltip = tooltip;
+      return self();
+    }
+
     /**
      * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
      * generated {@link Table} will be in the position of the label.

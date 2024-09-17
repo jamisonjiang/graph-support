@@ -63,12 +63,14 @@ public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush>
 
     String href = graphAttrs.getHref();
     String id = SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0";
+    String tooltip = StringUtils.isNotEmpty(graphAttrs.getTooltip())
+        ? graphAttrs.getTooltip() : graphAttrs.getLabel();
+
     Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
-
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    if (StringUtils.isNotEmpty(graphAttrs.getLabel())) {
-      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, graphAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
     }
   }
 

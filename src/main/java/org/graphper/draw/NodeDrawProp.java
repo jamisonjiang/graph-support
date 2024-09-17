@@ -122,7 +122,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
 
   @Override
   public ShapePropCalc shapeProp() {
-    return nodeAttrs.getNodeShape();
+    return nodeAttrs.getShape();
   }
 
   public double getLabelHorOffset() {

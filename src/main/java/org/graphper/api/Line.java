@@ -642,6 +642,11 @@ public class Line implements Comparable<Line>, Serializable {
       return this;
     }
 
+    public LineBuilder tooltip(String tooltip) {
+      lineAttrs.tooltip = tooltip;
+      return this;
+    }
+
     /**
      * Set the border width of the line.
      *

@@ -35,7 +35,7 @@ public class NodeColorEditor extends AbstractNodeShapeEditor {
 
       Color fillColor = nodeAttrs.getFillColor();
       if (fillColor == null) {
-        fillColor = nodeAttrs.getNodeShape().defaultFillColor();
+        fillColor = nodeAttrs.getShape().defaultFillColor();
       }
       if (fillColor == null) {
         continue;

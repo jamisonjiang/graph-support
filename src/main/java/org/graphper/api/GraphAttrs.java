@@ -80,6 +80,8 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   String href;
 
+  String tooltip;
+
   Table table;
 
   Assemble assemble;
@@ -172,6 +174,10 @@ public class GraphAttrs implements Serializable, Cloneable {
     return href;
   }
 
+  public String getTooltip() {
+    return tooltip;
+  }
+
   public Table getTable() {
     return table;
   }
@@ -225,17 +231,16 @@ public class GraphAttrs implements Serializable, Cloneable {
         && Objects.equals(fontName, that.fontName) && labelloc == that.labelloc
         && labeljust == that.labeljust && Objects.equals(scale, that.scale)
         && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
-        && Objects.equals(table, that.table) && Objects.equals(assemble,
-                                                               that.assemble)
-        && initPos == that.initPos;
+        && Objects.equals(tooltip, that.tooltip) && Objects.equals(table, that.table)
+        && Objects.equals(assemble, that.assemble) && initPos == that.initPos;
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName,
                         labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit,
-                        fontSize, compound, showGrid, href, table, assemble, maxiter, k, overlap,
-                        initPos);
+                        fontSize, compound, showGrid, href, tooltip, table, assemble, maxiter, k,
+                        overlap, initPos);
   }
 
   @Override
@@ -261,6 +266,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", compound=" + compound +
         ", showGrid=" + showGrid +
         ", href='" + href + '\'' +
+        ", tooltips='" + tooltip + '\'' +
         ", table=" + table +
         ", assemble=" + assemble +
         ", maxiter=" + maxiter +

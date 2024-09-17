@@ -81,6 +81,8 @@ public class Html {
 
     private String href;
 
+    private String tooltip;
+
     private Collection<NodeStyle> styles;
 
     protected abstract T self();
@@ -200,6 +202,11 @@ public class Html {
       return self();
     }
 
+    public T tooltip(String tooltip) {
+      this.tooltip = tooltip;
+      return self();
+    }
+
     /**
      * Set the style of the element.
      *
@@ -246,6 +253,10 @@ public class Html {
 
     public String getHref() {
       return href;
+    }
+
+    public String getTooltip() {
+      return tooltip;
     }
 
     public Collection<NodeStyle> getStyles() {
@@ -586,6 +597,20 @@ public class Html {
 
     public NodeShape getShape() {
       return shape;
+    }
+
+    public String getHref(Table table) {
+      if (super.getHref() != null) {
+        return super.getHref();
+      }
+      return table.getHref();
+    }
+
+    public String getTooltip(Table table) {
+      if (super.getTooltip() != null) {
+        return super.getTooltip();
+      }
+      return table.getTooltip();
     }
 
     public Labeljust getAlign(Table table) {

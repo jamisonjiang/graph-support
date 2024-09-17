@@ -39,12 +39,15 @@ public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
 
     String href = lineAttrs.getHref();
     String id = brush.lineId(line);
+    String tooltip = StringUtils.isNotEmpty(lineAttrs.getTooltip())
+        ? lineAttrs.getTooltip() : lineAttrs.getLabel();
+
     Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    if (StringUtils.isNotEmpty(lineAttrs.getLabel())) {
-      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, lineAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
     }
     return true;
   }

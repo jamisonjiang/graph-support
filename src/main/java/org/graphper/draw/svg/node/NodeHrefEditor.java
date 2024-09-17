@@ -17,11 +17,11 @@
 package org.graphper.draw.svg.node;
 
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.attributes.NodeStyle;
-import org.graphper.draw.svg.Element;
 import org.graphper.api.NodeAttrs;
+import org.graphper.api.attributes.NodeStyle;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
@@ -43,8 +43,11 @@ public class NodeHrefEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    if (StringUtils.isNotEmpty(nodeAttrs.getLabel())) {
-      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, nodeAttrs.getLabel());
+    String tooltip = StringUtils.isNotEmpty(nodeAttrs.getTooltip())
+        ? nodeAttrs.getTooltip() : nodeAttrs.getLabel();
+
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
     }
     return true;
   }

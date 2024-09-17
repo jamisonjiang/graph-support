@@ -126,7 +126,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
       return NodeShapeEnum.ELLIPSE;
     }
 
-    return nodeAttrs.getNodeShape();
+    return nodeAttrs.getShape();
   }
 
   public void setWidth(double width) {

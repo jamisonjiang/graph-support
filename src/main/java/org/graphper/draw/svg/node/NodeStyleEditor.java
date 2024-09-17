@@ -68,7 +68,7 @@ public class NodeStyleEditor extends AbstractNodeShapeEditor {
   }
 
   private void pointAddFillStyle(NodeAttrs nodeAttrs, Element shapeElement) {
-    if (nodeAttrs.getNodeShape() == NodeShapeEnum.POINT) {
+    if (nodeAttrs.getShape() == NodeShapeEnum.POINT) {
       drawStyle(shapeElement, NodeStyle.SOLID);
     }
   }

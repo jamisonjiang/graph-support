@@ -37,6 +37,6 @@ public interface NodeShapePost {
    */
   default NodeShape post(NodeAttrs nodeAttrs) {
     Asserts.nullArgument(nodeAttrs, "nodeAttrs");
-    return nodeAttrs.getNodeShape();
+    return nodeAttrs.getShape();
   }
 }

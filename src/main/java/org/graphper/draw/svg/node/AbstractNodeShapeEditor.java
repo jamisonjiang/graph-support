@@ -27,7 +27,7 @@ import org.graphper.draw.svg.SvgEditor;
 public abstract class AbstractNodeShapeEditor extends SvgEditor implements NodeEditor<SvgBrush> {
 
   protected String getShapeElement(NodeDrawProp nodeDrawProp) {
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
 
     if (nodeShape == NodeShapeEnum.CIRCLE
         || nodeShape == NodeShapeEnum.ELLIPSE

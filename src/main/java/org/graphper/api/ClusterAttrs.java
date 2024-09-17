@@ -67,6 +67,8 @@ public class ClusterAttrs implements Serializable, Cloneable {
 
   String href;
 
+  String tooltip;
+
   double penWidth = 1;
 
   Table table;
@@ -128,6 +130,10 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return href;
   }
 
+  public String getTooltip() {
+    return tooltip;
+  }
+
   public double getPenWidth() {
     return penWidth;
   }
@@ -159,26 +165,20 @@ public class ClusterAttrs implements Serializable, Cloneable {
     }
     ClusterAttrs that = (ClusterAttrs) o;
     return Double.compare(that.fontSize, fontSize) == 0
-        && Double.compare(that.penWidth, penWidth) == 0
-        && Objects.equals(id, that.id)
-        && Objects.equals(label, that.label)
-        && labelloc == that.labelloc
-        && labeljust == that.labeljust
-        && Objects.equals(shape, that.shape)
-        && Objects.equals(styles, that.styles)
-        && Objects.equals(bgColor, that.bgColor)
-        && Objects.equals(color, that.color)
-        && Objects.equals(fontColor, that.fontColor)
-        && Objects.equals(fontName, that.fontName)
-        && Objects.equals(margin, that.margin)
-        && Objects.equals(href, that.href) && Objects.equals(table, that.table)
-        && Objects.equals(assemble, that.assemble);
+        && Double.compare(that.penWidth, penWidth) == 0 && Objects.equals(id, that.id)
+        && Objects.equals(label, that.label) && labelloc == that.labelloc
+        && labeljust == that.labeljust && Objects.equals(shape, that.shape)
+        && Objects.equals(styles, that.styles) && Objects.equals(bgColor, that.bgColor)
+        && Objects.equals(color, that.color) && Objects.equals(fontColor, that.fontColor)
+        && Objects.equals(fontName, that.fontName) && Objects.equals(margin, that.margin)
+        && Objects.equals(href, that.href) && Objects.equals(tooltip, that.tooltip)
+        && Objects.equals(table, that.table) && Objects.equals(assemble, that.assemble);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, label, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
-                        fontName, margin, fontSize, href, penWidth, table, assemble);
+                        fontName, margin, fontSize, href, tooltip, penWidth, table, assemble);
   }
 
   @Override
@@ -197,6 +197,7 @@ public class ClusterAttrs implements Serializable, Cloneable {
         ", margin=" + margin +
         ", fontSize=" + fontSize +
         ", href='" + href + '\'' +
+        ", tooltip='" + tooltip + '\'' +
         ", penWidth=" + penWidth +
         ", table=" + table +
         ", assemble=" + assemble +

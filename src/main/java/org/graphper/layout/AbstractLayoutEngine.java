@@ -97,7 +97,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       return;
     }
 
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
     FlatPoint labelCenter;
     if (Boolean.TRUE.equals(nodeDrawProp.nodeAttrs().getFixedSize())) {
       labelCenter = new FlatPoint(nodeDrawProp.getX(), nodeDrawProp.getY());
@@ -448,7 +448,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         }
 
         if (cell != null) {
-          cell.setShape(nodeAttrs.getNodeShape());
+          cell.setShape(nodeAttrs.getShape());
           cell.setWidth(nodeDrawProp.getWidth());
           cell.setHeight(nodeDrawProp.getHeight());
           cell.setOffset(offset);
@@ -607,7 +607,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   }
 
   private void nodeContainerSet(NodeDrawProp nodeDrawProp, NodeAttrs nodeAttrs, boolean needFlip) {
-    NodeShape nodeShape = nodeAttrs.getNodeShape();
+    NodeShape nodeShape = nodeAttrs.getShape();
 
     // Set node box size
     double height = nodeAttrs.getHeight() == null

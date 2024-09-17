@@ -37,7 +37,7 @@ public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     if (StringUtils.isEmpty(label)
         || nodeDrawProp.getCell() != null
         || nodeDrawProp.getLabelCenter() == null
-        || nodeAttrs.getNodeShape().ignoreLabel()) {
+        || nodeAttrs.getShape().ignoreLabel()) {
       return true;
     }
 
@@ -57,6 +57,6 @@ public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
 
     text(new TextAttribute(nodeDrawProp.getLabelCenter(), fontSize, label,
                            nodeAttrs.getFontColor(), nodeAttrs.getFontName(), lineConsumer));
-    return nodeDrawProp.nodeAttrs().getNodeShape() != NodeShapeEnum.PLAIN_TEXT;
+    return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAIN_TEXT;
   }
 }

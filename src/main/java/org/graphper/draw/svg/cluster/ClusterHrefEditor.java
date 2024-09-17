@@ -39,12 +39,15 @@ public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBru
 
     String href = clusterAttrs.getHref();
     String id = brush.drawBoard().clusterId(cluster.getCluster());
+    String tooltip = StringUtils.isNotEmpty(clusterAttrs.getTooltip())
+        ? clusterAttrs.getTooltip() : clusterAttrs.getLabel();
+
     Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    if (StringUtils.isNotEmpty(clusterAttrs.getLabel())) {
-      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, clusterAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
     }
     return true;
   }

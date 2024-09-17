@@ -42,7 +42,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
   @Override
   public boolean edit(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
 
     CustomizeShapeRender customizeShapeRender = CustomizeShapeRender
         .getCustomizeShapeRender(nodeShape.getName());

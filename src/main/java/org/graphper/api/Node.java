@@ -408,6 +408,11 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
       return this;
     }
 
+    public NodeBuilder tooltip(String tooltip) {
+      nodeAttrs.tooltip = tooltip;
+      return this;
+    }
+
     /**
      * Set an image url to the node. In the output of svg, the link will be directly embedded, and
      * the validity will not be checked. For other types of output, the link must be guaranteed to
