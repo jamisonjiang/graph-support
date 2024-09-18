@@ -79,7 +79,7 @@ class ContainerCollapse {
     }
 
     // Make digraph acyclic
-    new Acyclic(digraph);
+    new Acyclic(digraph, dotAttachment.getDrawGraph());
 
     GraphAttrs graphAttrs = dotAttachment.getDrawGraph().getGraphviz().graphAttrs();
     // Hierarchy the nodes using the network simplex method.

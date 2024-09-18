@@ -33,6 +33,7 @@ import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.PortHelper;
 import org.graphper.util.Asserts;
@@ -131,7 +132,7 @@ abstract class AbstractCoordinate {
             rankMaxHeight);
 
         if (node.haveSelfLine()) {
-          for (DLine selfLine : node.getSelfLines()) {
+          for (LineDrawProp selfLine : node.getSelfLines()) {
             if (!selfLine.haveLabel()) {
               continue;
             }
@@ -549,7 +550,7 @@ abstract class AbstractCoordinate {
     double bottom = node.getY() + node.bottomHeight();
 
     if (node.haveSelfLine()) {
-      for (DLine selfLine : node.getSelfLines()) {
+      for (LineDrawProp selfLine : node.getSelfLines()) {
         if (!selfLine.haveLabel()) {
           continue;
         }
@@ -595,7 +596,6 @@ abstract class AbstractCoordinate {
 
     DotLayoutEngine.nodeLabelSet(nodeDrawProp, dotAttachment.getDrawGraph(), false);
   }
-
 
   private void refreshGraphBorder(DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();

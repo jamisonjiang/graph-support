@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,6 @@ import org.graphper.api.attributes.Rankdir;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
@@ -38,9 +37,9 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
   private static final int DOWN = 3;
 
-  public PortNodeSizeExpanderV2(DrawGraph drawGraph, DNode node) {
+  public PortNodeSizeExpanderV2(DrawGraph drawGraph, ANode node) {
     Asserts.nullArgument(node, "node");
-    Asserts.illegalArgument(node.isVirtual(), "Node is virtual node");
+    Asserts.illegalArgument(node.empty(), "Node is virtual node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node do not have self lines");
     this.node = node;
 
@@ -54,18 +53,18 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
       double nextInterval = interval;
 
       for (GroupEntry groupEntry : groupEntries) {
-        DLine dLine = groupEntry.line;
+        LineDrawProp dLine = groupEntry.line;
         GroupKey groupKey = groupEntry.groupKey;
         LineDrawProp line = drawGraph.getLineDrawProp(dLine.getLine());
 
         nextInterval += setSamePointLine(groupKey, drawGraph.rankdir(),
-                                         nextInterval, line, dLine);
+                                         nextInterval, line);
 
         nextInterval += setUpDownLine(groupKey, drawGraph.rankdir(),
-                                      nextInterval, line, dLine);
+                                      nextInterval, line);
 
         nextInterval += setLeftRightLine(groupKey, drawGraph.rankdir(),
-                                         nextInterval, line, dLine);
+                                         nextInterval, line);
 
         nextInterval += interval;
       }
@@ -73,7 +72,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
   }
 
   private double setSamePointLine(GroupKey groupKey, Rankdir rankdir,
-                                  double interval, LineDrawProp line, DLine dLine) {
+                                  double interval, LineDrawProp line) {
     if (!groupKey.samePoint()) {
       return 0;
     }
@@ -86,30 +85,30 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     if (direction == LEFT) {
       double leftBorder = node.getLeftBorder();
       addPoint(line, new FlatPoint(leftBorder - interval, point.getY()));
-      return addLabelByLastPoint(true, false, dLine, line);
+      return addLabelByLastPoint(true, false, line);
     }
 
     if (direction == RIGHT) {
       double rightBorder = node.getRightBorder();
       addPoint(line, new FlatPoint(rightBorder + interval, point.getY()));
-      return addLabelByLastPoint(true, true, dLine, line);
+      return addLabelByLastPoint(true, true, line);
     }
 
     if (direction == UP) {
       double upBorder = node.getUpBorder();
       addPoint(line, new FlatPoint(point.getX(), upBorder - interval));
-      return addLabelByLastPoint(false, false, dLine, line);
+      return addLabelByLastPoint(false, false, line);
     }
 
     if (direction == DOWN) {
       double downBorder = node.getDownBorder();
       addPoint(line, new FlatPoint(point.getX(), downBorder + interval));
     }
-    return addLabelByLastPoint(false, true, dLine, line);
+    return addLabelByLastPoint(false, true, line);
   }
 
   private double setUpDownLine(GroupKey groupKey, Rankdir rankdir,
-                               double interval, LineDrawProp line, DLine dLine) {
+                               double interval, LineDrawProp line) {
     if (!groupKey.isOnlySameHor()) {
       return 0;
     }
@@ -123,13 +122,13 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     if (direction == UP) {
       double upBorder = node.getUpBorder();
       addPoint(line, new FlatPoint(x, upBorder - interval));
-      interval = addLabelByLastPoint(false, false, dLine, line);
+      interval = addLabelByLastPoint(false, false, line);
     }
 
     if (direction == DOWN) {
       double downBorder = node.getDownBorder();
       addPoint(line, new FlatPoint(x, downBorder + interval));
-      interval = addLabelByLastPoint(false, true, dLine, line);
+      interval = addLabelByLastPoint(false, true, line);
     }
 
     addPoint(line, headPoint);
@@ -137,7 +136,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
   }
 
   private double setLeftRightLine(GroupKey groupKey, Rankdir rankdir,
-                                  double interval, LineDrawProp line, DLine dLine) {
+                                  double interval, LineDrawProp line) {
     if (groupKey.samePoint() || groupKey.isOnlySameHor()) {
       return 0;
     }
@@ -159,13 +158,13 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     if (direction == LEFT) {
       double leftBorder = node.getLeftBorder();
       addPoint(line, new FlatPoint(leftBorder - interval, y));
-      interval = addLabelByLastPoint(true, false, dLine, line);
+      interval = addLabelByLastPoint(true, false, line);
     }
 
     if (direction == RIGHT) {
       double rightBorder = node.getRightBorder();
       addPoint(line, new FlatPoint(rightBorder + interval, y));
-      interval = addLabelByLastPoint(true, true, dLine, line);
+      interval = addLabelByLastPoint(true, true, line);
     }
 
     addPoint(line, headPoint);
@@ -173,13 +172,13 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
   }
 
   private double addLabelByLastPoint(boolean isHor, boolean isAdd,
-                                     DLine dLine, LineDrawProp line) {
-    if (dLine.getLabelSize() == null || CollectionUtils.isEmpty(line)) {
+                                     LineDrawProp line) {
+    if (line.getLabelSize() == null || CollectionUtils.isEmpty(line)) {
       return 0;
     }
 
     FlatPoint lastPoint = line.get(line.size() - 1);
-    FlatPoint labelSize = dLine.getLabelSize();
+    FlatPoint labelSize = line.getLabelCenter();
 
     return addLabel(isHor, isAdd, line, lastPoint, labelSize);
   }

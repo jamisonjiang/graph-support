@@ -237,8 +237,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
 
     boolean portAxisSelfLineMode = EnvProp.usePortAxisExpander();
     FlatPoint center = new FlatPoint(node.getX(), node.getY());
-    for (DLine selfLine : node.getSelfLines()) {
-      LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
+    for (LineDrawProp lineDrawProp : node.getSelfLines()) {
       if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() < 2) {
         continue;
       }
@@ -255,12 +254,12 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
 
       if (portAxisSelfLineMode) {
         if (lineDrawProp.size() == 2) {
-          twoSelfLineDraw(selfLine);
+          twoSelfLineDraw(lineDrawProp);
         } else {
-          largeTwoSelfLineDraw(center, selfLine);
+          largeTwoSelfLineDraw(center, lineDrawProp);
         }
       } else {
-        newSelfLineDrawMode(selfLine);
+        newSelfLineDrawMode(lineDrawProp);
       }
 
       if (CollectionUtils.isNotEmpty(lineDrawProp)) {
@@ -401,11 +400,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
 
 
   // ----------------------------------------------------- private method -----------------------------------------------------
-  private void largeTwoSelfLineDraw(FlatPoint center, DLine selfLine) {
-    Asserts.illegalArgument(selfLine == null || selfLine.isVirtual(), "error self loop no");
-
-    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
-
+  private void largeTwoSelfLineDraw(FlatPoint center, LineDrawProp lineDrawProp) {
     FlatPoint mid = lineDrawProp.get(lineDrawProp.size() / 2);
     FlatPoint start = lineDrawProp.get(0);
     FlatPoint end = lineDrawProp.get(lineDrawProp.size() - 1);
@@ -425,10 +420,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
     lineDrawProp.addAll(multiBezierCurveToPoints(curves));
   }
 
-  private void twoSelfLineDraw(DLine selfLine) {
-    Asserts.illegalArgument(selfLine == null || selfLine.isVirtual(), "error self loop no");
-
-    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
+  private void twoSelfLineDraw(LineDrawProp lineDrawProp) {
     if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() != 2) {
       return;
     }
@@ -452,10 +444,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
     lineDrawProp.markIsBesselCurve();
   }
 
-  private void newSelfLineDrawMode(DLine selfLine) {
-    Asserts.illegalArgument(selfLine == null || selfLine.isVirtual(), "error self loop no");
-
-    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
+  private void newSelfLineDrawMode(LineDrawProp lineDrawProp) {
     if (CollectionUtils.isEmpty(lineDrawProp)
         || (lineDrawProp.size() != 2 && lineDrawProp.size() != 3)) {
       return;

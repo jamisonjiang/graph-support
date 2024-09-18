@@ -171,6 +171,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       labelSize = lineLabelSizeInit(lineAttrs);
     }
 
+    lineDrawProp.setLabelSize(labelSize);
     if (labelSize != null && drawGraph.needFlip()) {
       labelSize.flip();
     }
@@ -241,7 +242,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
        * 2. If there is an edge where the rank of from is greater
        * than the rank of to, it needs to be flipped.
        * */
-      handleLegalLine(dotDigraph);
+      handleLegalLine(dotDigraph, dotAttachment.getDrawGraph());
       // Primitive graph RankContent
       rankContent = new RankContent(dotDigraph, graphAttrs.getRankSep(), true, null);
     }
@@ -271,7 +272,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   // --------------------------------------------- private method ---------------------------------------------
 
-  private void handleLegalLine(DotDigraph dotDigraph) {
+  private void handleLegalLine(DotDigraph dotDigraph, DrawGraph drawGraph) {
     List<DLine> reverseLines = null;
     List<DLine> selfLoopLines = null;
     for (DNode node : dotDigraph) {
@@ -303,7 +304,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     if (CollectionUtils.isNotEmpty(selfLoopLines)) {
       for (DLine selfLoopLine : selfLoopLines) {
         if (dotDigraph.removeEdge(selfLoopLine)) {
-          selfLoopLine.from().addSelfLine(selfLoopLine);
+          selfLoopLine.from().addSelfLine(drawGraph.getLineDrawProp(selfLoopLine.getLine()));
         }
       }
     }

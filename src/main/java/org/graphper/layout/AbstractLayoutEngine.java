@@ -834,7 +834,18 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     shifter.graph(drawGraph.getGraphvizDrawProp());
     drawGraph.clusters().forEach(shifter::cluster);
     drawGraph.nodes().forEach(shifter::node);
-    drawGraph.lines().forEach(shifter::line);
+    drawGraph.lines().forEach(line -> {
+      shifter.line(line);
+      if (!drawGraph.needFlip()) {
+        return;
+      }
+      FlatPoint labelSize = line.getLabelSize();
+      if (labelSize == null || shifter.isMark(labelSize)) {
+        return;
+      }
+      labelSize.flip();
+      shifter.markFlatPoint(labelSize);
+    });
   }
 
   private boolean isRecordShape(NodeShape nodeShape) {

@@ -57,6 +57,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private FlatPoint end;
 
+  private FlatPoint labelSize;
+
   // label container center
   private FlatPoint labelCenter;
 
@@ -233,6 +235,14 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   public FlatPoint getLabelCenter() {
     return labelCenter;
+  }
+
+  public FlatPoint getLabelSize() {
+    return labelSize;
+  }
+
+  public void setLabelSize(FlatPoint labelSize) {
+    this.labelSize = labelSize;
   }
 
   public void setLabelCenter(FlatPoint labelCenter) {

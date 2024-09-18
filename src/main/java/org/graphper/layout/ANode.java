@@ -16,6 +16,10 @@
 
 package org.graphper.layout;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
@@ -24,6 +28,9 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.VertexIndex;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
+import org.graphper.util.CollectionUtils;
 
 public class ANode extends VertexIndex implements Box, ShapePosition {
 
@@ -39,10 +46,18 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
 
   protected double height;
 
+  // Distance between nodes
+  protected double nodeSep;
+
   protected NodeAttrs nodeAttrs;
 
   // The parent container, if it is null, it means the root container
   protected GraphContainer container;
+
+  // Self lines
+  protected List<LineDrawProp> selfLines;
+
+  protected NodeSizeExpander nodeSizeExpander;
 
   public ANode(Node node) {
     this.node = node;
@@ -120,6 +135,38 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     this.y = y;
   }
 
+  public double leftWidth() {
+    double lw = shapeProp().leftWidth(width);
+    if (nodeSizeExpander != null) {
+      lw += nodeSizeExpander.getLeftWidthOffset();
+    }
+    return lw;
+  }
+
+  public double rightWidth() {
+    double rw = shapeProp().rightWidth(width);
+    if (nodeSizeExpander != null) {
+      rw += nodeSizeExpander.getRightWidthOffset();
+    }
+    return rw;
+  }
+
+  public double topHeight() {
+    double th = shapeProp().topHeight(height);
+    if (nodeSizeExpander != null) {
+      th += nodeSizeExpander.getTopHeightOffset();
+    }
+    return th;
+  }
+
+  public double bottomHeight() {
+    double bh = shapeProp().bottomHeight(height);
+    if (nodeSizeExpander != null) {
+      bh += nodeSizeExpander.getBottomHeightOffset();
+    }
+    return bh;
+  }
+
   @Override
   public NodeShape shapeProp() {
     if (empty() || nodeAttrs == null) {
@@ -137,11 +184,87 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     this.height = height;
   }
 
+  public double realLeftWidth() {
+    return shapeProp().leftWidth(width);
+  }
+
+  public double realRightWidth() {
+    return shapeProp().rightWidth(width);
+  }
+
+  public double realTopHeight() {
+    return shapeProp().topHeight(height);
+  }
+
+  public double realBottomHeight() {
+    return shapeProp().bottomHeight(height);
+  }
+
   public NodeAttrs getNodeAttrs() {
     return nodeAttrs;
   }
 
   public void setNodeAttrs(NodeAttrs nodeAttrs) {
     this.nodeAttrs = nodeAttrs;
+  }
+
+  public double getNodeSep() {
+    return nodeSep;
+  }
+
+  public int getSelfLoopCount() {
+    return selfLines == null ? 0 : selfLines.size();
+  }
+
+  public void addSelfLine(LineDrawProp line) {
+    if (line == null) {
+      return;
+    }
+
+    if (selfLines == null) {
+      selfLines = new ArrayList<>(2);
+    }
+    selfLines.add(line);
+  }
+
+  public void sortSelfLine(Comparator<LineDrawProp> lineComparator) {
+    if (lineComparator == null || CollectionUtils.isEmpty(selfLines)) {
+      return;
+    }
+
+    selfLines.sort(lineComparator);
+  }
+
+  public LineDrawProp selfLine(int index) {
+    return CollectionUtils.isEmpty(selfLines) ? null : selfLines.get(index);
+  }
+
+  public boolean haveSelfLine() {
+    return CollectionUtils.isNotEmpty(selfLines);
+  }
+
+  public List<LineDrawProp> getSelfLines() {
+    return selfLines == null ? Collections.emptyList() : selfLines;
+  }
+
+  public void initNodeSizeExpander(DrawGraph drawGraph) {
+    if (empty() || !haveSelfLine() || nodeSizeExpander != null) {
+      return;
+    }
+
+    nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
+//
+//    Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
+//    if (splines == Splines.ORTHO) {
+//      nodeSizeExpander = new OrthoNodeSizeExpander(this);
+//    } else if (EnvProp.usePortAxisExpander()) {
+//      nodeSizeExpander = new PortNodeSizeExpander(drawGraph, this);
+//    } else {
+//      nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
+//    }
+  }
+
+  public NodeSizeExpander getNodeSizeExpander() {
+    return nodeSizeExpander;
   }
 }
