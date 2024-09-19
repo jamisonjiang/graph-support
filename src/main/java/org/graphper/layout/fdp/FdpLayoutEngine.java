@@ -812,6 +812,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         continue;
       }
 
+      node.alignCenter();
       NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
       nodeDrawProp.setLeftBorder(node.getLeftBorder());
       nodeDrawProp.setRightBorder(node.getRightBorder());

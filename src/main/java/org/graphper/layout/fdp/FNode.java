@@ -55,6 +55,11 @@ public class FNode extends ANode {
     return topHeight() + bottomHeight();
   }
 
+  public void alignCenter() {
+    setX(getX() - getWidth() / 2 + leftWidth());
+    setY(getY() - getHeight() / 2 + topHeight());
+  }
+
   public double getRepulsionX() {
     return repulsionX;
   }
