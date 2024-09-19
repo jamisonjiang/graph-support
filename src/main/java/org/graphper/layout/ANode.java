@@ -84,7 +84,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return width;
   }
 
-  void setWidth(int width) {
+  public void setWidth(int width) {
     this.width = width;
   }
 
@@ -113,7 +113,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return height;
   }
 
-  void setHeight(int height) {
+  public void setHeight(int height) {
     this.height = height;
   }
 
@@ -212,12 +212,15 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return nodeSep;
   }
 
+  public void setNodeSep(double nodeSep) {
+    this.nodeSep = nodeSep;
+  }
+
   public int getSelfLoopCount() {
     return selfLines == null ? 0 : selfLines.size();
   }
 
-  public void addSelfLine(LineDrawProp line) {
-    if (line == null) {
+  public void addSelfLine(LineDrawProp line) {if (line == null) {
       return;
     }
 

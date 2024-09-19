@@ -18,6 +18,7 @@ package org.graphper.layout.fdp;
 
 import org.graphper.api.Node;
 import org.graphper.layout.ANode;
+import org.graphper.util.CollectionUtils;
 
 public class FNode extends ANode {
 
@@ -36,6 +37,22 @@ public class FNode extends ANode {
 
   public FNode(Node node) {
     super(node);
+  }
+
+  @Override
+  public double getWidth() {
+    if (CollectionUtils.isEmpty(selfLines)) {
+      return super.getWidth();
+    }
+    return leftWidth() + rightWidth();
+  }
+
+  @Override
+  public double getHeight() {
+    if (CollectionUtils.isEmpty(selfLines)) {
+      return super.getHeight();
+    }
+    return topHeight() + bottomHeight();
   }
 
   public double getRepulsionX() {

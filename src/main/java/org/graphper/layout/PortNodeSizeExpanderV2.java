@@ -178,7 +178,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     }
 
     FlatPoint lastPoint = line.get(line.size() - 1);
-    FlatPoint labelSize = line.getLabelCenter();
+    FlatPoint labelSize = line.getLabelSize();
 
     return addLabel(isHor, isAdd, line, lastPoint, labelSize);
   }

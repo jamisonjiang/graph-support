@@ -193,24 +193,6 @@ class DNode extends ANode implements Box, ShapePosition {
     return y;
   }
 
-  @Override
-  public double getWidth() {
-    return width;
-  }
-
-  void setWidth(int width) {
-    this.width = width;
-  }
-
-  @Override
-  public double getHeight() {
-    return height;
-  }
-
-  void setHeight(int height) {
-    this.height = height;
-  }
-
   boolean isNormalModel() {
     return (status << RANK_MODEL_BIT >>> RANK_MODEL_BIT) == 0;
   }

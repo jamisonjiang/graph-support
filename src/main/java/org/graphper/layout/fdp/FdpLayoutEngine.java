@@ -98,6 +98,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       fn.setWidth(width);
       fn.setHeight(height);
       fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
+      fn.setNodeSep(drawGraph.getGraphviz().graphAttrs().getNodeSep());
     }
 
     fdpGraph.add(fn, parentContainer);
@@ -113,6 +114,21 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line);
     Double weight = lineDrawProp.lineAttrs().getWeight();
+
+    FlatPoint size = null;
+    Assemble assemble = lineDrawProp.getAssemble();
+    if (assemble != null) {
+      size = assemble.size();
+    } else {
+      LineAttrs lineAttrs = lineDrawProp.lineAttrs();
+      if (StringUtils.isNotEmpty(lineAttrs.getLabel())) {
+        Double fontSize = lineAttrs.getFontSize();
+        size = FontUtils.measure(lineAttrs.getLabel(), lineAttrs.getFontName(),
+                                 fontSize != null ? fontSize : 0, 0);
+      }
+    }
+    lineDrawProp.setLabelSize(size);
+
     FLine fLine;
     if (weight != null) {
       fLine = new FLine(source, target, weight, line);
@@ -120,6 +136,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       fLine = new FLine(source, target, line);
     }
 
+    if (fLine.isSelf()) {
+      source.addSelfLine(lineDrawProp);
+    }
     fdpGraph.addEdge(fLine);
   }
 
@@ -158,17 +177,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       assemble = line.getAssemble();
       setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
 
-      FlatPoint size;
-      if (assemble != null) {
-        size = assemble.size();
-      } else {
-        LineAttrs lineAttrs = line.lineAttrs();
-        if (StringUtils.isEmpty(lineAttrs.getLabel())) {
-          continue;
-        }
-
-        size = FontUtils.measure(lineAttrs.getLabel(), lineAttrs.getFontName(),
-                                 lineAttrs.getFontSize(), 0);
+      FlatPoint size = line.getLabelSize();
+      if (size == null) {
+        continue;
       }
 
       double width = size.getWidth() / 2;
@@ -184,11 +195,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   protected void layout(DrawGraph drawGraph, LayoutAttach attach) {
     FdpAttachment fdpAttachment = (FdpAttachment) attach;
     FdpGraph graph = fdpAttachment.getFdpGraph();
-    GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
 
     if (fdpAttachment.haveClusters()) {
       Map<Cluster, ClusterNode> clusterNode = new HashMap<>();
-      layout(fdpAttachment, graph.getGraphviz(), clusterNode, graphAttrs);
+      layout(fdpAttachment, graph.getGraphviz(), clusterNode);
     } else {
       layout(fdpAttachment.getDrawGraph(), graph.getGraph(), graph.getGraphviz());
     }
@@ -197,7 +207,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private AreaGraph layout(FdpAttachment attachment, GraphContainer container,
-                           Map<Cluster, ClusterNode> clusterNode, GraphAttrs graphAttrs) {
+                           Map<Cluster, ClusterNode> clusterNode) {
     FdpGraph graph = attachment.getFdpGraph();
     AreaGraph proxyGraph = new AreaGraph(graph.vertexNum());
     for (FNode node : graph.nodes(container)) {
@@ -207,7 +217,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     for (Cluster cluster : clusters(container)) {
-      AreaGraph subGraph = layout(attachment, cluster, clusterNode, graphAttrs);
+      AreaGraph subGraph = layout(attachment, cluster, clusterNode);
       FNode fNode = new FNode(null);
       fNode.setWidth(subGraph.width());
       fNode.setHeight(subGraph.height());
@@ -306,7 +316,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     if (connectNo == 1) {
-      layout0(graph, graphAttrs);
+      layout0(graph, drawGraph);
       applyMargin(graph, drawGraph, container);
       return;
     }
@@ -332,14 +342,14 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         }
       }
 
-      layout0(areaGraph, graphAttrs);
+      layout0(areaGraph, drawGraph);
       FNode connectComponent = new FNode(null);
       connectComponent.setWidth(areaGraph.width());
       connectComponent.setHeight(areaGraph.getHeight());
       connectGraph.add(connectComponent);
     }
 
-    initializePositionsGrid(connectGraph, graph.vertexNum(), graph.vertexNum());
+    initializePositionsGrid(drawGraph, connectGraph, graph.vertexNum(), graph.vertexNum());
     tryDecreaseDensity(connectGraph, graphAttrs);
 
     int i = 0;
@@ -412,34 +422,36 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     areaGraph.updateYAxisRange(areaGraph.getDownBorder() + bottomMax);
   }
 
-  private void layout0(AreaGraph graph, GraphAttrs graphAttrs) {
+  private void layout0(AreaGraph graph, DrawGraph drawGraph) {
     int width = 200;
     int height = 200;
     int vertexCount = graph.vertexNum();
     int edgeCount = Math.max(1, graph.edgeNum());
+    GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
     double k = Math.sqrt(
         (width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
-    initPos(graph, graphAttrs, iterations, width, height);
+    initPos(graph, drawGraph, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);
     tryDecreaseDensity(graph, graphAttrs);
     refreshGraph(graph);
   }
 
-  private void initPos(AreaGraph graph, GraphAttrs graphAttrs,
+  private void initPos(AreaGraph graph, DrawGraph drawGraph,
                        int iterations, int width, int height) {
+    GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
     switch (graphAttrs.getInitPos()) {
       case GRID:
-        initializePositionsGrid(graph, width, height);
+        initializePositionsGrid(drawGraph, graph, width, height);
         break;
       case CIRCLE:
-        initializeCircularLayout(graph, width, height);
+        initializeCircularLayout(drawGraph, graph, width, height);
         break;
       case SECTOR:
       default:
-        initializePositions(graph, width, height);
+        initializePositions(drawGraph, graph, width, height);
         break;
     }
 
@@ -524,7 +536,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  public void initializePositions(AreaGraph graph, int width, int height) {
+  public void initializePositions(DrawGraph drawGraph, AreaGraph graph,
+                                  int width, int height) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -548,6 +561,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     while (!queue.isEmpty()) {
       FNode v = queue.poll();
+      v.initNodeSizeExpander(drawGraph);
       double angle = currentLayerSize * angleStep;
       int radius = layer * radiusStep;
       graph.setNodeLocation(v, (double) width / 2 + radius * Math.cos(angle),
@@ -570,7 +584,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private void initializePositionsGrid(AreaGraph graph, int width, int height) {
+  private void initializePositionsGrid(DrawGraph drawGraph, AreaGraph graph,
+                                       int width, int height) {
     int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
     double cellWidth = width / (double) gridSize;
     double cellHeight = height / (double) gridSize;
@@ -580,11 +595,13 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       int row = i / gridSize;
       int col = i % gridSize;
       graph.setNodeLocation(v, col * cellWidth + cellWidth / 2, row * cellHeight + cellHeight / 2);
+      v.initNodeSizeExpander(drawGraph);
       i++;
     }
   }
 
-  private static void initializeCircularLayout(AreaGraph graph, int width, int height) {
+  private static void initializeCircularLayout(DrawGraph drawGraph, AreaGraph graph,
+                                               int width, int height) {
     double angleIncrement = 2 * Math.PI / graph.vertexNum();
     int centerX = width / 2;
     int centerY = height / 2;
@@ -596,6 +613,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       int x = (int) (centerX + radius * Math.cos(angle));
       int y = (int) (centerY + radius * Math.sin(angle));
       graph.setNodeLocation(node, x, y);
+      node.initNodeSizeExpander(drawGraph);
       i++;
     }
   }
