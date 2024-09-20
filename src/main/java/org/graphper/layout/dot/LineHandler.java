@@ -25,6 +25,7 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
@@ -96,7 +97,7 @@ class LineHandler extends AbstractDotLineRouter implements LineRouter {
           parallelLineRecord.addLine(node, to[0], line.getLine());
         }
         // Draw self loop
-        selfLoopHandle(node);
+        LineHelper.selfLoopHandle(node);
       }
     }
 

@@ -19,7 +19,6 @@ package org.graphper.layout.dot;
 import static org.graphper.util.EnvProp.CLIP_DIST_ERROR;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,12 +40,12 @@ import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.LineClip;
+import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.util.EnvProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +87,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
         }
 
         // Draw self loop
-        selfLoopHandle(node);
+        LineHelper.selfLoopHandle(node);
       }
     }
   }
@@ -134,19 +133,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
    * @return cubic Bessel control points
    */
   protected List<FlatPoint> multiBezierCurveToPoints(MultiBezierCurve curves) {
-    List<FlatPoint> splines = new ArrayList<>(curves.size() * 3 + 1);
-
-    for (int i = 0; i < curves.size(); i++) {
-      ThirdOrderBezierCurve curve = curves.get(i);
-      if (i == 0) {
-        splines.add(curve.getV1());
-      }
-      splines.add(curve.getV2());
-      splines.add(curve.getV3());
-      splines.add(curve.getV4());
-    }
-
-    return splines;
+    return LineHelper.multiBezierCurveToPoints(curves);
   }
 
   /**
@@ -220,53 +207,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
         > CLIP_DIST_ERROR);
 
     return Curves.divideThirdBesselCurve(in, v4In, bezierCurve);
-  }
-
-  /**
-   * If the node has a self-loop edge, generate a simulated path of the self-loop edge.
-   *
-   * @param node node to be detected
-   */
-  protected void selfLoopHandle(DNode node) {
-    if (node == null
-        || node.isVirtual()
-        || CollectionUtils.isEmpty(node.getSelfLines())
-        || isSplineNone()) {
-      return;
-    }
-
-    boolean portAxisSelfLineMode = EnvProp.usePortAxisExpander();
-    FlatPoint center = new FlatPoint(node.getX(), node.getY());
-    for (LineDrawProp lineDrawProp : node.getSelfLines()) {
-      if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() < 2) {
-        continue;
-      }
-
-      for (FlatPoint point : lineDrawProp) {
-        point.setX(node.getX() + point.getX());
-        point.setY(node.getY() + point.getY());
-      }
-      if (lineDrawProp.getLabelCenter() != null) {
-        FlatPoint labelCenter = lineDrawProp.getLabelCenter();
-        labelCenter.setX(node.getX() + labelCenter.getX());
-        labelCenter.setY(node.getY() + labelCenter.getY());
-      }
-
-      if (portAxisSelfLineMode) {
-        if (lineDrawProp.size() == 2) {
-          twoSelfLineDraw(lineDrawProp);
-        } else {
-          largeTwoSelfLineDraw(center, lineDrawProp);
-        }
-      } else {
-        newSelfLineDrawMode(lineDrawProp);
-      }
-
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        lineDrawProp.setStart(lineDrawProp.get(0));
-        lineDrawProp.setEnd(lineDrawProp.get(lineDrawProp.size() - 1));
-      }
-    }
   }
 
   /**
@@ -399,156 +339,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
   }
 
 
-  // ----------------------------------------------------- private method -----------------------------------------------------
-  private void largeTwoSelfLineDraw(FlatPoint center, LineDrawProp lineDrawProp) {
-    FlatPoint mid = lineDrawProp.get(lineDrawProp.size() / 2);
-    FlatPoint start = lineDrawProp.get(0);
-    FlatPoint end = lineDrawProp.get(lineDrawProp.size() - 1);
-
-    MultiBezierCurve curves = Curves.fitCurves(Arrays.asList(start, mid, end),
-                                               Vectors.add(
-                                                   Vectors.sub(start, center),
-                                                   Vectors.sub(mid, center)
-                                               ),
-                                               Vectors.add(
-                                                   Vectors.sub(end, center),
-                                                   Vectors.sub(mid, center)
-                                               ), 0);
-
-    lineDrawProp.clear();
-    lineDrawProp.markIsBesselCurve();
-    lineDrawProp.addAll(multiBezierCurveToPoints(curves));
-  }
-
-  private void twoSelfLineDraw(LineDrawProp lineDrawProp) {
-    if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() != 2) {
-      return;
-    }
-
-    FlatPoint start = lineDrawProp.get(0);
-    FlatPoint end = lineDrawProp.get(lineDrawProp.size() - 1);
-    FlatPoint axis = Vectors.sub(end, start);
-    FlatPoint vertical = new FlatPoint(axis.getY(), -axis.getX());
-    FlatPoint verticalOpposite = vertical.reserve();
-    lineDrawProp.clear();
-
-    double dist = axis.dist() / 4;
-    lineDrawProp.add(start);
-    lineDrawProp.add(Vectors.add(start, Vectors.scale(vertical, dist)));
-    lineDrawProp.add(Vectors.add(end, Vectors.scale(vertical, dist)));
-    lineDrawProp.add(end);
-    lineDrawProp.add(Vectors.add(end, Vectors.scale(verticalOpposite, dist)));
-    lineDrawProp.add(Vectors.add(start, Vectors.scale(verticalOpposite, dist)));
-    lineDrawProp.add(start);
-
-    lineDrawProp.markIsBesselCurve();
-  }
-
-  private void newSelfLineDrawMode(LineDrawProp lineDrawProp) {
-    if (CollectionUtils.isEmpty(lineDrawProp)
-        || (lineDrawProp.size() != 2 && lineDrawProp.size() != 3)) {
-      return;
-    }
-
-    FlatPoint start = lineDrawProp.get(0);
-    FlatPoint mid = lineDrawProp.get(1);
-    FlatPoint end;
-    if (lineDrawProp.size() == 2) {
-      end = start.clone();
-    } else {
-      end = lineDrawProp.get(2);
-    }
-    double minX = Math.min(start.getX(), end.getX());
-    double maxX = Math.max(start.getX(), end.getX());
-    double minY = Math.min(start.getY(), end.getY());
-    double maxY = Math.max(start.getY(), end.getY());
-
-    lineDrawProp.clear();
-    if (mid.getX() >= minX && mid.getX() <= maxX && mid.getY() >= minY && mid.getY() <= maxY) {
-      log.warn("Can not draw self line: mid point in Endpoint box");
-      return;
-    }
-
-    lineDrawProp.add(start);
-    if (mid.getX() < minX) {
-      // Left
-      double startDist = (start.getX() - mid.getX()) / 4;
-      double endDist = (end.getX() - mid.getX()) / 4;
-      if (start.getY() < end.getY()) {
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, start.getY() - startDist));
-        lineDrawProp.add(new FlatPoint(mid.getX(), start.getY() - startDist));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(mid.getX(), end.getY() + endDist));
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, end.getY() + endDist));
-      } else {
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, start.getY() + startDist));
-        lineDrawProp.add(new FlatPoint(mid.getX(), start.getY() + startDist));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(mid.getX(), end.getY() - endDist));
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, end.getY() - endDist));
-      }
-    } else if (mid.getX() > maxX) {
-      // Right
-      double startDist = (mid.getX() - start.getX()) / 4;
-      double endDist = (mid.getX() - end.getX()) / 4;
-      if (start.getY() < end.getY()) {
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, start.getY() - startDist));
-        lineDrawProp.add(new FlatPoint(mid.getX(), start.getY() - startDist));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(mid.getX(), end.getY() + endDist));
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, end.getY() + endDist));
-      } else {
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, start.getY() + startDist));
-        lineDrawProp.add(new FlatPoint(mid.getX(), start.getY() + startDist));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(mid.getX(), end.getY() - endDist));
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, end.getY() - endDist));
-      }
-    } else if (mid.getY() < maxY) {
-      // Up
-      double startDist = (start.getY() - mid.getY()) / 4;
-      double endDist = (end.getY() - mid.getY()) / 4;
-      if (start.getX() < end.getX()) {
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, start.getY() - startDist));
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, mid.getY()));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, mid.getY()));
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, end.getY() - endDist));
-      } else {
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, start.getY() - startDist));
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, mid.getY()));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, mid.getY()));
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, end.getY() - endDist));
-      }
-    } else {
-      // Down
-      double startDist = (mid.getY() - start.getY()) / 4;
-      double endDist = (mid.getY() - end.getY()) / 4;
-      if (start.getX() < end.getX()) {
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, start.getY() + startDist));
-        lineDrawProp.add(new FlatPoint(start.getX() - startDist, mid.getY()));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, mid.getY()));
-        lineDrawProp.add(new FlatPoint(end.getX() + endDist, end.getY() + endDist));
-      } else {
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, start.getY() + startDist));
-        lineDrawProp.add(new FlatPoint(start.getX() + startDist, mid.getY()));
-        lineDrawProp.add(mid);
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, mid.getY()));
-        lineDrawProp.add(new FlatPoint(end.getX() - endDist, end.getY() + endDist));
-      }
-    }
-
-    lineDrawProp.add(end);
-
-    if (lineDrawProp.size() == 2) {
-      lineDrawProp.clear();
-      return;
-    }
-
-    lineDrawProp.markIsBesselCurve();
-  }
+  // ----------------------------------------------------- private method -----------------------------------------------------/
 
   private void parallelEdges(DLine parallelLine, int size,
                              double distUnit, int no) {

@@ -104,8 +104,7 @@ class OrthogonalRouter extends AbstractDotLineRouter {
     generateEdge();
   }
 
-  @Override
-  protected void selfLoopHandle(DNode node) {
+  private void selfLoopHandle(DNode node) {
     if (node == null || node.getSelfLoopCount() < 1) {
       return;
     }

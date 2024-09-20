@@ -48,6 +48,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
@@ -165,7 +166,8 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (LineDrawProp line : drawGraph.lines()) {
       FlatPoint labelCenter;
       if (line.isEmpty() || line.isBesselCurve()) {
-        continue;
+        labelCenter = line.getLabelCenter();
+        Objects.requireNonNull(labelCenter);
       } else {
         FlatPoint first = line.get(0);
         FlatPoint last = line.get(line.size() - 1);
@@ -813,6 +815,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
 
       node.alignCenter();
+      LineHelper.selfLoopHandle(node);
       NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
       nodeDrawProp.setLeftBorder(node.getLeftBorder());
       nodeDrawProp.setRightBorder(node.getRightBorder());

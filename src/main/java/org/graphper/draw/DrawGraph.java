@@ -239,11 +239,13 @@ public class DrawGraph extends Rectangle implements Serializable {
   }
 
   public void updateXAxisRange(double x) {
-    super.updateXAxisRange(x);
+    super.updateXAxisRange(x - 10);
+    super.updateXAxisRange(x + 10);
   }
 
   public void updateYAxisRange(double y) {
-    super.updateYAxisRange(y);
+    super.updateYAxisRange(y - 10);
+    super.updateYAxisRange(y + 10);
   }
 
   public double getMinX() {

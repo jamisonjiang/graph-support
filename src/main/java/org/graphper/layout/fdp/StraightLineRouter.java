@@ -22,6 +22,7 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.LineRouter;
+import org.graphper.util.CollectionUtils;
 
 public class StraightLineRouter implements LineRouter {
 
@@ -34,6 +35,10 @@ public class StraightLineRouter implements LineRouter {
   @Override
   public void route() {
     for (LineDrawProp lineDrawProp : drawGraph.lines()) {
+      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
+        continue;
+      }
+
       Line line = lineDrawProp.getLine();
       NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
       NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
