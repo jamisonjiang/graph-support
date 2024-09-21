@@ -96,7 +96,7 @@ public class PortHelper {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 
-    if (node.empty() || line == null) {
+    if (node.isVirtual() || line == null) {
       return new PortPoint(node.getX(), node.getY(), false, null);
     }
 
@@ -273,7 +273,7 @@ public class PortHelper {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 
-    if (node.empty() || line == null) {
+    if (node.isVirtual() || line == null) {
       return 0;
     }
 

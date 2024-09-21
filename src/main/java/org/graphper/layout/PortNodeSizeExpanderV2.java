@@ -39,7 +39,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
   public PortNodeSizeExpanderV2(DrawGraph drawGraph, ANode node) {
     Asserts.nullArgument(node, "node");
-    Asserts.illegalArgument(node.empty(), "Node is virtual node");
+    Asserts.illegalArgument(node.isVirtual(), "Node is virtual node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node do not have self lines");
     this.node = node;
 

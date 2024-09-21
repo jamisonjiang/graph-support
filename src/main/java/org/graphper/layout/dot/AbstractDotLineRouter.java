@@ -30,6 +30,7 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.DrawGraph;
+import org.graphper.layout.LayoutGraph;
 import org.graphper.layout.LineClip;
 import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
@@ -41,6 +42,9 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
   protected static final double LABEL_NODE_SIDE_MIN_DISTANCE = 10;
 
   protected RankContent rankContent;
+
+  protected LayoutGraph<?, ?> layoutGraph;
+
   protected EdgeDedigraph<DNode, DLine> digraphProxy;
 
   @Override
@@ -225,11 +229,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
                                     arrowSize * 2, arrowSize * 2,
                                     NodeShapeEnum.CIRCLE);
   }
-
-
-  // ----------------------------------------------------- private method -----------------------------------------------------/
-
-
 
   // --------------------------------------------- Abstract DotLinesHandlerFactory ---------------------------------------------
 

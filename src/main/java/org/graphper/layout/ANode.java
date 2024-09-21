@@ -75,7 +75,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return node;
   }
 
-  public boolean empty() {
+  public boolean isVirtual() {
     return node == null;
   }
 
@@ -169,7 +169,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
 
   @Override
   public NodeShape shapeProp() {
-    if (empty() || nodeAttrs == null) {
+    if (isVirtual() || nodeAttrs == null) {
       return NodeShapeEnum.ELLIPSE;
     }
 
@@ -251,7 +251,7 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
   }
 
   public void initNodeSizeExpander(DrawGraph drawGraph) {
-    if (empty() || !haveSelfLine() || nodeSizeExpander != null) {
+    if (isVirtual() || !haveSelfLine() || nodeSizeExpander != null) {
       return;
     }
 

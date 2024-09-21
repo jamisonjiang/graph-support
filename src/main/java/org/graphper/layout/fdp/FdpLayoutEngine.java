@@ -167,7 +167,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       FlatPoint labelCenter;
       if (line.isEmpty() || line.isBesselCurve()) {
         labelCenter = line.getLabelCenter();
-        Objects.requireNonNull(labelCenter);
       } else {
         FlatPoint first = line.get(0);
         FlatPoint last = line.get(line.size() - 1);
@@ -262,7 +261,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
         fLine = new FLine(from, to, line);
       }
       proxyGraph.addEdge(fLine);
-      graph.recordAdj(from, to);
+      graph.recordAdj(fLine);
     }
 
     layout(attachment.getDrawGraph(), proxyGraph, container);
@@ -811,7 +810,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     FlatPoint margin = drawGraph.getGraphviz().graphAttrs().getMargin();
     FdpGraph graph = attachment.getFdpGraph();
     for (FNode node : graph) {
-      if (node.empty()) {
+      if (node.isVirtual()) {
         continue;
       }
 
@@ -856,9 +855,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       return;
     }
 
+    FdpGraph fdpGraph = attachment.getFdpGraph();
     // spline handler hand out
     for (LineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
-      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, attachment);
+      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, fdpGraph);
 
       if (dotLineRouter.needDeal(splines)) {
         dotLineRouter.route();

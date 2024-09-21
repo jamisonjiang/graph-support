@@ -111,10 +111,6 @@ class DNode extends ANode implements Box, ShapePosition {
     return node;
   }
 
-  boolean isVirtual() {
-    return empty();
-  }
-
   boolean isLabelNode() {
     return labelLine != null;
   }

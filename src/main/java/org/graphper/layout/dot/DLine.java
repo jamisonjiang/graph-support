@@ -147,10 +147,6 @@ class DLine extends ALine<DNode, DLine> {
     return isSameRank() && Math.abs(from().getRankIndex() - to().getRankIndex()) == 1;
   }
 
-  boolean isVirtual() {
-    return line == null;
-  }
-
   FlatPoint getLabelSize() {
     return labelSize;
   }

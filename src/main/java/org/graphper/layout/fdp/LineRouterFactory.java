@@ -21,5 +21,5 @@ import org.graphper.layout.LineRouter;
 
 public interface LineRouterFactory<T extends LineRouter> {
 
-  T newInstance(DrawGraph drawGraph, FdpAttachment fdpAttachment);
+  T newInstance(DrawGraph drawGraph, FdpGraph fdpGraph);
 }

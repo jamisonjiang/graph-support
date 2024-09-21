@@ -54,7 +54,7 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     return line;
   }
 
-  public boolean empty() {
+  public boolean isVirtual() {
     return line == null;
   }
 

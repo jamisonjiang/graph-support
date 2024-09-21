@@ -25,32 +25,31 @@ import org.graphper.util.CollectionUtils;
 
 public class StraightLineRouter extends AbstractFdpLineRouter {
 
-  public StraightLineRouter(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
-    super(drawGraph, fdpAttachment);
+  public StraightLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
+    super(drawGraph, fdpGraph);
   }
 
   @Override
-  public void route() {
-    for (LineDrawProp lineDrawProp : drawGraph.lines()) {
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        continue;
-      }
-
-      Line line = lineDrawProp.getLine();
-      NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
-      NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
-
-      lineDrawProp.markIsLineSegment();
-      lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
-      lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
+  protected void handle(FLine fline) {
+    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(fline.getLine());
+    if (CollectionUtils.isNotEmpty(lineDrawProp)) {
+      return;
     }
+
+    Line line = lineDrawProp.getLine();
+    NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
+    NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
+
+    lineDrawProp.markIsLineSegment();
+    lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
+    lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
   }
 
   public static class StraightLineRouterFactory implements LineRouterFactory<StraightLineRouter> {
 
     @Override
-    public StraightLineRouter newInstance(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
-      return new StraightLineRouter(drawGraph, fdpAttachment);
+    public StraightLineRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {
+      return new StraightLineRouter(drawGraph, fdpGraph);
     }
   }
 }

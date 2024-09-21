@@ -17,15 +17,34 @@
 package org.graphper.layout.fdp;
 
 import org.graphper.draw.DrawGraph;
+import org.graphper.layout.LineHandler;
 import org.graphper.layout.LineRouter;
 
-public abstract class AbstractFdpLineRouter implements LineRouter {
-  protected final DrawGraph drawGraph;
+public abstract class AbstractFdpLineRouter extends LineHandler implements LineRouter {
 
-  protected final FdpAttachment fdpAttachment;
-
-  public AbstractFdpLineRouter(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
+  public AbstractFdpLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     this.drawGraph = drawGraph;
-    this.fdpAttachment = fdpAttachment;
+    this.layoutGraph = fdpGraph;
   }
+
+  @Override
+  public void route() {
+    FdpGraph fdpGraph = (FdpGraph) layoutGraph;
+    for (FNode node : fdpGraph) {
+      for (FLine line : fdpGraph.outAdjacent(node)) {
+        if (line.isVirtual() || line.isSelf()) {
+          continue;
+        }
+
+        if (line.isParallelMerge() && !line.isVirtual()) {
+          parallelLineHandle(line);
+          continue;
+        }
+
+        handle(line);
+      }
+    }
+  }
+
+  protected abstract void handle(FLine line);
 }

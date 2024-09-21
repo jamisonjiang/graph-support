@@ -42,7 +42,6 @@ public class LineHandler {
     return drawGraph.getGraphviz().graphAttrs().getSplines() == Splines.NONE;
   }
 
-
   /**
    * Logic for drawing parallel edges with the same endpoints.
    *
@@ -115,7 +114,7 @@ public class LineHandler {
   protected Map<Integer, List<ALine>> groupParallelLineByEndpoint(ALine line) {
     Map<Integer, List<ALine>> parallelLineRecordMap = new HashMap<>(0);
 
-    for (int i = -1; i < line.getParallelNums(); i++) {
+    for (int i = 0; i < line.getParallelNums(); i++) {
       ALine<? extends ANode, ? extends ALine> edge = line.parallelLine(i);
       LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(edge.getLine());
       ANode from = edge.from();

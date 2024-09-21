@@ -119,7 +119,7 @@ public class FNode extends ANode {
   }
 
   String name() {
-    if (empty() || nodeAttrs == null) {
+    if (isVirtual() || nodeAttrs == null) {
       return String.valueOf(hashCode());
     } else {
       return nodeAttrs.getLabel() != null ? nodeAttrs.getLabel() : "none";

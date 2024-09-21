@@ -387,7 +387,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
   }
 
   private boolean notAddChildContainer(N node) {
-    return graphviz == null || node.getContainer() == graphviz || node.empty();
+    return graphviz == null || node.getContainer() == graphviz || node.isVirtual();
   }
 
   private Map<GraphContainer, GraphGroup> containerMap() {

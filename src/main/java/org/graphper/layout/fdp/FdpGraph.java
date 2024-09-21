@@ -17,10 +17,8 @@
 package org.graphper.layout.fdp;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.ext.Box;
@@ -32,7 +30,7 @@ import org.graphper.layout.LayoutGraph;
 
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
-  private Map<FNode, Set<FNode>> adjRecord;
+  private Map<FNode, Map<FNode, FLine>> adjRecord;
 
   public FdpGraph(int capacity, Graphviz graphviz,
                   Map<Node, FNode> nodeMap) {
@@ -58,36 +56,46 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     FNode from = edge.from();
     FNode to = edge.to();
 
-    if (adjAlreadyExists(from, to) || adjAlreadyExists(to, from)) {
+    FLine line = lineBetweenTwoNodes(from, to);
+    if (line != null) {
+      line = lineBetweenTwoNodes(to, from);
+    }
+
+    if (line != null) {
+      line.addParallelEdge(edge);
       return;
     }
 
     super.addEdge(edge);
-    recordAdj(from, to);
+    recordAdj(edge);
   }
 
-  public boolean adjAlreadyExists(FNode from, FNode to) {
-    Set<FNode> adj = adjRecord().get(from);
-    if (adj == null) {
-      return false;
-    }
-    return adj.contains(to);
+  public boolean adjAlreadyExists(FNode n, FNode w) {
+    return lineBetweenTwoNodes(n, w) != null;
   }
 
-  public void recordAdj(FNode from, FNode to) {
-    adjRecord().computeIfAbsent(from, k -> new HashSet<>()).add(to);
-    adjRecord().computeIfAbsent(to, k -> new HashSet<>()).add(from);
+  public void recordAdj(FLine fLine) {
+    adjRecord().computeIfAbsent(fLine.from(), k -> new HashMap<>()).put(fLine.to(), fLine);
+    adjRecord().computeIfAbsent(fLine.to(), k -> new HashMap<>()).put(fLine.from(), fLine);
   }
 
-  private Map<FNode, Set<FNode>> adjRecord() {
+  public Iterable<FLine> outAdjacent(Object n) {
+    return ((EdgeDedigraph<FNode, FLine>) graph).outAdjacent(n);
+  }
+
+  private Map<FNode, Map<FNode, FLine>> adjRecord() {
     if (adjRecord == null) {
       adjRecord = new HashMap<>();
     }
     return adjRecord;
   }
 
-  public Iterable<FLine> outAdjacent(Object n) {
-    return ((EdgeDedigraph<FNode, FLine>) graph).outAdjacent(n);
+  private FLine lineBetweenTwoNodes(FNode n, FNode w) {
+    Map<FNode, FLine> adj = adjRecord().get(n);
+    if (adj == null) {
+      return null;
+    }
+    return adj.get(w);
   }
 
   @Override
