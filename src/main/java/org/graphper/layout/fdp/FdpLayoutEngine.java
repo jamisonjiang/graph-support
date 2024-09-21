@@ -205,7 +205,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       layout(fdpAttachment.getDrawGraph(), graph.getGraph(), graph.getGraphviz());
     }
 
-    applyGraphInfo(drawGraph, graph);
+    applyGraphInfo(drawGraph, fdpAttachment);
   }
 
   private AreaGraph layout(FdpAttachment attachment, GraphContainer container,
@@ -807,8 +807,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
   }
 
-  private void applyGraphInfo(DrawGraph drawGraph, FdpGraph graph) {
+  private void applyGraphInfo(DrawGraph drawGraph,  FdpAttachment attachment) {
     FlatPoint margin = drawGraph.getGraphviz().graphAttrs().getMargin();
+    FdpGraph graph = attachment.getFdpGraph();
     for (FNode node : graph) {
       if (node.empty()) {
         continue;
@@ -836,7 +837,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     drawGraph.syncToGraphvizBorder();
     containerLabelPos(drawGraph);
 
-    splines(drawGraph);
+    splines(drawGraph, attachment);
   }
 
   private static void refreshByClusters(Cluster cluster, DrawGraph drawGraph, FlatPoint margin) {
@@ -847,7 +848,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     drawGraph.updateYAxisRange(clusterDrawProp.getDownBorder() + margin.getHeight());
   }
 
-  private void splines(DrawGraph drawGraph) {
+  private void splines(DrawGraph drawGraph, FdpAttachment attachment) {
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
 
@@ -857,7 +858,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     // spline handler hand out
     for (LineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
-      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph);
+      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, attachment);
 
       if (dotLineRouter.needDeal(splines)) {
         dotLineRouter.route();

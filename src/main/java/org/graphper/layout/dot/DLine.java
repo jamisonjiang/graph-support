@@ -16,8 +16,6 @@
 
 package org.graphper.layout.dot;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
@@ -25,18 +23,14 @@ import org.graphper.api.attributes.LineStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.ALine;
 import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 
 class DLine extends ALine<DNode, DLine> {
 
   private static final long serialVersionUID = -4923098199188113451L;
 
-
   // The cut value
   private double cutVal;
 
-  // All parallel lines
-  private List<DLine> parallelLineRecord;
 
   // Limitations of network simplicity method between two vertices of an edge
   private int limit;
@@ -134,15 +128,6 @@ class DLine extends ALine<DNode, DLine> {
     return slack - limit();
   }
 
-  /**
-   * Returns whether it is a parallel edge aggregation edge, which means that the current edge
-   * replaces multiple parallel edges.
-   *
-   * @return <tt>true</tt> if have parallel edges
-   */
-  boolean isParallelMerge() {
-    return CollectionUtils.isNotEmpty(parallelLineRecord);
-  }
 
   /**
    * Returns whether the two nodes of an edge are at the same rank.
@@ -162,23 +147,6 @@ class DLine extends ALine<DNode, DLine> {
     return isSameRank() && Math.abs(from().getRankIndex() - to().getRankIndex()) == 1;
   }
 
-  int getParallelNums() {
-    return CollectionUtils.isEmpty(parallelLineRecord) ? 1 : parallelLineRecord.size();
-  }
-
-  DLine parallelLine(int no) {
-    return CollectionUtils.isEmpty(parallelLineRecord) ? this : parallelLineRecord.get(no);
-  }
-
-  void addParallelEdge(DLine edge) {
-    if (parallelLineRecord == null) {
-      parallelLineRecord = new ArrayList<>(2);
-      parallelLineRecord.add(this);
-    }
-
-    parallelLineRecord.add(edge);
-  }
-
   boolean isVirtual() {
     return line == null;
   }
@@ -190,7 +158,7 @@ class DLine extends ALine<DNode, DLine> {
   boolean haveLabel() {
     if (isParallelMerge()) {
       for (int i = 0; i < getParallelNums(); i++) {
-        DLine l = parallelLine(i);
+        DLine l = (DLine) parallelLine(i);
         if (l == this) {
           if (labelSize != null) {
             return true;
@@ -204,13 +172,6 @@ class DLine extends ALine<DNode, DLine> {
     }
 
     return labelSize != null;
-  }
-
-  boolean isReversal() {
-    if (isVirtual()) {
-      return false;
-    }
-    return line.tail() == to().getNode();
   }
 
   boolean isHide() {

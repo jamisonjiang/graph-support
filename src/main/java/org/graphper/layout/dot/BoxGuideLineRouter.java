@@ -38,6 +38,7 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.ALine;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlatShifterStrategy;
@@ -139,12 +140,12 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   @Override
-  protected void handleSameEndpointParallelLines(List<DLine> parallelLines) {
+  protected void handleSameEndpointParallelLines(List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
     }
 
-    DLine line = parallelLines.get(0);
+    DLine line = (DLine) parallelLines.get(0);
     DNode from = line.from();
     DNode to = line.to();
     Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), line.getLine(), drawGraph);
@@ -160,7 +161,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         symmetryParallelLine(parallelLines);
       }
 
-      lineConsumer(parallelLines.get(0), new ArrayList<Box>());
+      lineConsumer((DLine) parallelLines.get(0), new ArrayList<Box>());
       return;
     }
 
@@ -225,7 +226,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       }
 
       for (int i = 0; i < parallelLines.size(); i++) {
-        DLine parallelLine = parallelLines.get(i);
+        ALine parallelLine = parallelLines.get(i);
         Line edge = parallelLine.getLine();
 
         routerBoxes.add(fromBox);
@@ -251,7 +252,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   private void sameRankParallelLineDraw(ShapePosition shapePosition, boolean isSameRank,
                                         RankNode rank, double minY, double maxY,
-                                        List<DLine> parallelLines) {
+                                        List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
     }
@@ -265,7 +266,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     List<FlatParallelLineParam> flatParallelLineParams = new ArrayList<>(parallelLines.size());
 
     for (int j = 0; j < parallelLines.size(); j++) {
-      DLine line = parallelLines.get(j);
+      DLine line = (DLine) parallelLines.get(j);
       DNode from = line.from();
       DNode to = line.to();
 
@@ -449,9 +450,9 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     minY = Math.min(node.getY() - node.getHeight() * flatLabelLine.getParallelNums(), minY);
     maxY = Math.max(node.getY() + node.getHeight() * flatLabelLine.getParallelNums(), maxY);
 
-    Map<Integer, List<DLine>> parallelLineRecordMap = groupParallelLineByEndpoint(flatLabelLine);
+    Map<Integer, List<ALine>> parallelLineRecordMap = groupParallelLineByEndpoint(flatLabelLine);
 
-    for (Entry<Integer, List<DLine>> entry : parallelLineRecordMap.entrySet()) {
+    for (Entry<Integer, List<ALine>> entry : parallelLineRecordMap.entrySet()) {
       DNode from = flatLabelLine.from();
       sameRankParallelLineDraw(node, node.getRank() == from.getRank(), rankNode,
                                minY, maxY, entry.getValue());

@@ -25,7 +25,7 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
-import org.graphper.layout.HtmlConvert;
+import org.graphper.layout.HtmlConvertor;
 import org.graphper.util.Asserts;
 
 /**
@@ -175,7 +175,7 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     if (table == null) {
       return;
     }
-    assemble = HtmlConvert.toAssemble(table);
+    assemble = HtmlConvertor.toAssemble(table);
   }
 
   public boolean containsRounded() {

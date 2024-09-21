@@ -21,15 +21,12 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.LineRouter;
 import org.graphper.util.CollectionUtils;
 
-public class StraightLineRouter implements LineRouter {
+public class StraightLineRouter extends AbstractFdpLineRouter {
 
-  private final DrawGraph drawGraph;
-
-  public StraightLineRouter(DrawGraph drawGraph) {
-    this.drawGraph = drawGraph;
+  public StraightLineRouter(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
+    super(drawGraph, fdpAttachment);
   }
 
   @Override
@@ -52,8 +49,8 @@ public class StraightLineRouter implements LineRouter {
   public static class StraightLineRouterFactory implements LineRouterFactory<StraightLineRouter> {
 
     @Override
-    public StraightLineRouter newInstance(DrawGraph drawGraph) {
-      return new StraightLineRouter(drawGraph);
+    public StraightLineRouter newInstance(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
+      return new StraightLineRouter(drawGraph, fdpAttachment);
     }
   }
 }

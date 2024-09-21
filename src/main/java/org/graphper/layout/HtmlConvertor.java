@@ -45,9 +45,9 @@ import org.graphper.util.FontUtils;
  *
  * @author Jamison Jiang
  */
-public class HtmlConvert {
+public class HtmlConvertor {
 
-  private HtmlConvert() {
+  private HtmlConvertor() {
   }
 
   /**

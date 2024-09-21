@@ -19,7 +19,13 @@ package org.graphper.layout.fdp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.LineRouter;
 
-public interface LineRouterFactory<T extends LineRouter> {
+public abstract class AbstractFdpLineRouter implements LineRouter {
+  protected final DrawGraph drawGraph;
 
-  T newInstance(DrawGraph drawGraph, FdpAttachment fdpAttachment);
+  protected final FdpAttachment fdpAttachment;
+
+  public AbstractFdpLineRouter(DrawGraph drawGraph, FdpAttachment fdpAttachment) {
+    this.drawGraph = drawGraph;
+    this.fdpAttachment = fdpAttachment;
+  }
 }

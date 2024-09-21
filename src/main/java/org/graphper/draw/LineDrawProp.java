@@ -29,7 +29,7 @@ import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
-import org.graphper.layout.HtmlConvert;
+import org.graphper.layout.HtmlConvertor;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -329,7 +329,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
   private void convertTables() {
     Table table = lineAttrs.getTable();
     if (table != null) {
-      assemble = HtmlConvert.toAssemble(table);
+      assemble = HtmlConvertor.toAssemble(table);
     }
 
     FloatLabel[] floatLabels = lineAttrs.getFloatLabels();
@@ -340,7 +340,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     for (FloatLabel floatLabel : floatLabels) {
       Assemble floatLabelAssemble = floatLabel.getAssemble();
       if (floatLabelAssemble == null && floatLabel.getTable() != null) {
-        floatLabelAssemble = HtmlConvert.toAssemble(floatLabel.getTable());
+        floatLabelAssemble = HtmlConvertor.toAssemble(floatLabel.getTable());
       }
 
       if (floatLabelAssemble == null) {

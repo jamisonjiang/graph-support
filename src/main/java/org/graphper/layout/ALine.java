@@ -16,13 +16,19 @@
 
 package org.graphper.layout;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.graphper.api.Line;
 import org.graphper.def.AbstractDirectedEdge;
+import org.graphper.util.CollectionUtils;
 
 public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirectedEdge<N, E> {
 
   private static final long serialVersionUID = 7155243474988517017L;
   protected final Line line;
+
+  // All parallel lines
+  protected List<E> parallelLineRecord;
 
   public ALine(N from, N to, Line line) {
     super(from, to);
@@ -50,5 +56,32 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
 
   public boolean empty() {
     return line == null;
+  }
+
+  /**
+   * Returns whether it is a parallel edge aggregation edge, which means that the current edge
+   * replaces multiple parallel edges.
+   *
+   * @return <tt>true</tt> if have parallel edges
+   */
+  public boolean isParallelMerge() {
+    return CollectionUtils.isNotEmpty(parallelLineRecord);
+  }
+
+  public int getParallelNums() {
+    return CollectionUtils.isEmpty(parallelLineRecord) ? 1 : parallelLineRecord.size();
+  }
+
+  public E parallelLine(int no) {
+    return CollectionUtils.isEmpty(parallelLineRecord) ? (E) this : parallelLineRecord.get(no);
+  }
+
+  public void addParallelEdge(E edge) {
+    if (parallelLineRecord == null) {
+      parallelLineRecord = new ArrayList<>(2);
+      parallelLineRecord.add((E) this);
+    }
+
+    parallelLineRecord.add(edge);
   }
 }
