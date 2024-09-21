@@ -50,7 +50,7 @@ import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotAttachment.GeneratePort;
 import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
-import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
+import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;

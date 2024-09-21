@@ -43,7 +43,6 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DefaultShapePosition;
-import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.Cell.RootCell;
@@ -54,17 +53,13 @@ import org.graphper.util.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class LineClip {
+public abstract class LineClip extends LineHandler {
 
   private static final Logger log = LoggerFactory.getLogger(LineClip.class);
 
   private static final FlatPoint FLOAT_LABEL_LEFT_OFFSET = new UnmodifyFlatPoint(-0.5, -0.5);
   private static final FlatPoint FLOAT_LABEL_RIGHT_OFFSET = new UnmodifyFlatPoint(-0.5, 0.5);
   private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
-
-  protected DrawGraph drawGraph;
-
-  protected LayoutGraph<?, ?> layoutGraph;
 
   /**
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis

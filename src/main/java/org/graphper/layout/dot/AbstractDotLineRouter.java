@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import org.graphper.api.Line;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Port;
-import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.Curves;
@@ -46,12 +45,8 @@ import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractDotLineRouter extends LineClip implements LineRouter {
-
-  private static final Logger log = LoggerFactory.getLogger(AbstractDotLineRouter.class);
 
   protected static final double LABEL_NODE_SIDE_MIN_DISTANCE = 10;
 
@@ -119,10 +114,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
    * @param attach draw line attachment
    */
   protected void lineConsumer(DLine line, Object attach) {
-  }
-
-  protected boolean isSplineNone() {
-    return drawGraph.getGraphviz().graphAttrs().getSplines() == Splines.NONE;
   }
 
   /**
