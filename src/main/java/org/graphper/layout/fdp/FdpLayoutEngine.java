@@ -166,17 +166,16 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (LineDrawProp line : drawGraph.lines()) {
       FlatPoint labelCenter;
       if (line.isEmpty() || line.isBesselCurve()) {
-        labelCenter = line.getLabelCenter();
+        labelCenter = LineHelper.curveGetFloatLabelStart(null, 0.5, line);
       } else {
         FlatPoint first = line.get(0);
         FlatPoint last = line.get(line.size() - 1);
         labelCenter = new FlatPoint((first.getX() + last.getX()) / 2,
                                     (first.getY() + last.getY()) / 2);
-        line.setLabelCenter(labelCenter);
       }
 
-      assemble = line.getAssemble();
-      setCellNodeOffset(drawGraph, line.getLabelCenter(), assemble, true);
+      line.setLabelCenter(labelCenter);
+      setCellNodeOffset(drawGraph, labelCenter, line.getAssemble(), true);
 
       FlatPoint size = line.getLabelSize();
       if (size == null) {

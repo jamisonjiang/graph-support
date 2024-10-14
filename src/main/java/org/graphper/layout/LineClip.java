@@ -17,9 +17,9 @@
 package org.graphper.layout;
 
 import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
+import static org.graphper.layout.LineHelper.curveGetFloatLabelStart;
+import static org.graphper.layout.LineHelper.straightGetFloatLabelStart;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
@@ -36,7 +36,6 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Tend;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
-import org.graphper.def.Curves;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.def.Vectors;
@@ -486,124 +485,6 @@ public abstract class LineClip extends LineHandler {
     if ((haveHeadArrow(line) && !reversal) || (haveTailArrow(line) && reversal)) {
       arrowSet(t, noPathDirection == null ? f : noPathDirection, reversal, lineDrawProp);
     }
-  }
-
-  private FlatPoint curveGetFloatLabelStart(double[] labelLength,
-                                            double lengthRatio,
-                                            LineDrawProp lineDrawProp) {
-    if (lineDrawProp.size() < 4) {
-      return null;
-    }
-
-    double len = labelLength != null ? labelLength[0] : -1;
-    if (len < 0) {
-      len = 0;
-      for (int i = 3; i < lineDrawProp.size(); i += 3) {
-        FlatPoint v1 = lineDrawProp.get(i - 3);
-        FlatPoint v2 = lineDrawProp.get(i - 2);
-        FlatPoint v3 = lineDrawProp.get(i - 1);
-        FlatPoint v4 = lineDrawProp.get(i);
-
-        len += FlatPoint.twoFlatPointDistance(v1, v2);
-        len += FlatPoint.twoFlatPointDistance(v2, v3);
-        len += FlatPoint.twoFlatPointDistance(v3, v4);
-      }
-      if (labelLength != null) {
-        labelLength[0] = len;
-      }
-    }
-
-    double beforeLen = 0;
-    double floatLabelInCurveLen = 0;
-    FlatPoint v1 = null;
-    FlatPoint v2 = null;
-    FlatPoint v3 = null;
-    FlatPoint v4 = null;
-
-    double start = len * lengthRatio - 1;
-    double end = len * lengthRatio + 1;
-    for (int i = 3; i < lineDrawProp.size(); i += 3) {
-      v1 = lineDrawProp.get(i - 3);
-      v2 = lineDrawProp.get(i - 2);
-      v3 = lineDrawProp.get(i - 1);
-      v4 = lineDrawProp.get(i);
-
-      floatLabelInCurveLen = 0;
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v2, v3);
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v3, v4);
-      if (beforeLen + floatLabelInCurveLen > end) {
-        break;
-      }
-      beforeLen += floatLabelInCurveLen;
-    }
-
-    if (floatLabelInCurveLen == 0) {
-      return null;
-    }
-
-    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
-      return Curves.besselEquationCalc(t, v1, v2, v3, v4);
-    }
-
-    return lengthRatio == 0 ? v1 : v4;
-  }
-
-  private FlatPoint straightGetFloatLabelStart(double[] labelLength,
-                                               double lengthRatio,
-                                               LineDrawProp lineDrawProp) {
-    double len = labelLength != null ? labelLength[0] : -1;
-    if (len < 0) {
-      len = 0;
-      for (int i = 1; i < lineDrawProp.size(); i++) {
-        FlatPoint v1 = lineDrawProp.get(i - 1);
-        FlatPoint v2 = lineDrawProp.get(i);
-
-        len += FlatPoint.twoFlatPointDistance(v1, v2);
-      }
-      if (labelLength != null) {
-        labelLength[0] = len;
-      }
-    }
-
-    double beforeLen = 0;
-    double floatLabelInCurveLen = 0;
-    FlatPoint v1 = null;
-    FlatPoint v2 = null;
-
-    double start = len * lengthRatio - 1;
-    double end = len * lengthRatio + 1;
-    for (int i = 1; i < lineDrawProp.size(); i++) {
-      v1 = lineDrawProp.get(i - 1);
-      v2 = lineDrawProp.get(i);
-
-      floatLabelInCurveLen = 0;
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
-      if (beforeLen + floatLabelInCurveLen > end) {
-        break;
-      }
-      beforeLen += floatLabelInCurveLen;
-    }
-
-    if (floatLabelInCurveLen == 0) {
-      return null;
-    }
-
-    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
-      return Vectors.add(Vectors.multiple(Vectors.sub(v2, v1), t), v1);
-    }
-
-    return lengthRatio == 0 ? v1 : v2;
   }
 
   private FlatPoint floatPointCenter(FlatPoint startPoint, FlatPoint labelSize, FlatPoint offset) {

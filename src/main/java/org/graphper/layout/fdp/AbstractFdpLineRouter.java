@@ -17,12 +17,12 @@
 package org.graphper.layout.fdp;
 
 import org.graphper.draw.DrawGraph;
-import org.graphper.layout.LineHandler;
+import org.graphper.layout.LineClip;
 import org.graphper.layout.LineRouter;
 
-public abstract class AbstractFdpLineRouter extends LineHandler implements LineRouter {
+public abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
 
-  public AbstractFdpLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
+  protected AbstractFdpLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     this.drawGraph = drawGraph;
     this.layoutGraph = fdpGraph;
   }

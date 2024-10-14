@@ -16,6 +16,8 @@
 
 package org.graphper.layout;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -104,6 +106,126 @@ public class LineHelper {
         lineDrawProp.setEnd(lineDrawProp.get(lineDrawProp.size() - 1));
       }
     }
+  }
+
+  public static FlatPoint curveGetFloatLabelStart(double[] labelLength, double lengthRatio,
+                                                  LineDrawProp lineDrawProp) {
+    if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() < 4) {
+      return null;
+    }
+
+    double len = labelLength != null ? labelLength[0] : -1;
+    if (len < 0) {
+      len = 0;
+      for (int i = 3; i < lineDrawProp.size(); i += 3) {
+        FlatPoint v1 = lineDrawProp.get(i - 3);
+        FlatPoint v2 = lineDrawProp.get(i - 2);
+        FlatPoint v3 = lineDrawProp.get(i - 1);
+        FlatPoint v4 = lineDrawProp.get(i);
+
+        len += FlatPoint.twoFlatPointDistance(v1, v2);
+        len += FlatPoint.twoFlatPointDistance(v2, v3);
+        len += FlatPoint.twoFlatPointDistance(v3, v4);
+      }
+      if (labelLength != null) {
+        labelLength[0] = len;
+      }
+    }
+
+    double beforeLen = 0;
+    double floatLabelInCurveLen = 0;
+    FlatPoint v1 = null;
+    FlatPoint v2 = null;
+    FlatPoint v3 = null;
+    FlatPoint v4 = null;
+
+    double start = len * lengthRatio - 1;
+    double end = len * lengthRatio + 1;
+    for (int i = 3; i < lineDrawProp.size(); i += 3) {
+      v1 = lineDrawProp.get(i - 3);
+      v2 = lineDrawProp.get(i - 2);
+      v3 = lineDrawProp.get(i - 1);
+      v4 = lineDrawProp.get(i);
+
+      floatLabelInCurveLen = 0;
+      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
+      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v2, v3);
+      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v3, v4);
+      if (beforeLen + floatLabelInCurveLen > end) {
+        break;
+      }
+      beforeLen += floatLabelInCurveLen;
+    }
+
+    if (floatLabelInCurveLen == 0) {
+      return null;
+    }
+
+    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
+      double t = BigDecimal.valueOf(len)
+          .multiply(BigDecimal.valueOf(lengthRatio))
+          .subtract(BigDecimal.valueOf(beforeLen))
+          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
+          .doubleValue();
+      return Curves.besselEquationCalc(t, v1, v2, v3, v4);
+    }
+
+    return lengthRatio == 0 ? v1 : v4;
+  }
+
+  public static FlatPoint straightGetFloatLabelStart(double[] labelLength, double lengthRatio,
+                                                     LineDrawProp lineDrawProp) {
+    if (CollectionUtils.isEmpty(lineDrawProp)) {
+      return null;
+    }
+
+    double len = labelLength != null ? labelLength[0] : -1;
+    if (len < 0) {
+      len = 0;
+      for (int i = 1; i < lineDrawProp.size(); i++) {
+        FlatPoint v1 = lineDrawProp.get(i - 1);
+        FlatPoint v2 = lineDrawProp.get(i);
+
+        len += FlatPoint.twoFlatPointDistance(v1, v2);
+      }
+      if (labelLength != null) {
+        labelLength[0] = len;
+      }
+    }
+
+    double beforeLen = 0;
+    double floatLabelInCurveLen = 0;
+    FlatPoint v1 = null;
+    FlatPoint v2 = null;
+
+    double start = len * lengthRatio - 1;
+    double end = len * lengthRatio + 1;
+    for (int i = 1; i < lineDrawProp.size(); i++) {
+      v1 = lineDrawProp.get(i - 1);
+      v2 = lineDrawProp.get(i);
+
+      floatLabelInCurveLen = 0;
+      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
+      if (beforeLen + floatLabelInCurveLen > end) {
+        break;
+      }
+      beforeLen += floatLabelInCurveLen;
+    }
+
+    if (floatLabelInCurveLen == 0) {
+      return null;
+    }
+
+    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
+      double t = BigDecimal.valueOf(len)
+          .multiply(BigDecimal.valueOf(lengthRatio))
+          .subtract(BigDecimal.valueOf(beforeLen))
+          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
+          .doubleValue();
+      return Vectors.add(Vectors.multiple(Vectors.sub(v2, v1), t), v1);
+    }
+
+    return lengthRatio == 0 ? v1 : v2;
   }
 
   private static void twoSelfLineDraw(LineDrawProp lineDrawProp) {
