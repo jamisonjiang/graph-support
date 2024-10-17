@@ -29,7 +29,6 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
-import org.graphper.util.EnvProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +73,6 @@ public class LineHelper {
       return;
     }
 
-    boolean portAxisSelfLineMode = EnvProp.usePortAxisExpander();
-    FlatPoint center = new FlatPoint(node.getX(), node.getY());
     for (LineDrawProp lineDrawProp : node.getSelfLines()) {
       if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() < 2) {
         continue;
@@ -91,16 +88,7 @@ public class LineHelper {
         labelCenter.setY(node.getY() + labelCenter.getY());
       }
 
-      if (portAxisSelfLineMode) {
-        if (lineDrawProp.size() == 2) {
-          twoSelfLineDraw(lineDrawProp);
-        } else {
-          largeTwoSelfLineDraw(center, lineDrawProp);
-        }
-      } else {
-        newSelfLineDrawMode(lineDrawProp);
-      }
-
+      newSelfLineDrawMode(lineDrawProp);
       if (CollectionUtils.isNotEmpty(lineDrawProp)) {
         lineDrawProp.setStart(lineDrawProp.get(0));
         lineDrawProp.setEnd(lineDrawProp.get(lineDrawProp.size() - 1));

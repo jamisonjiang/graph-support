@@ -19,6 +19,8 @@ package org.graphper.layout;
 import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.Line;
+import org.graphper.api.LineAttrs;
+import org.graphper.api.attributes.LineStyle;
 import org.graphper.def.AbstractDirectedEdge;
 import org.graphper.util.CollectionUtils;
 
@@ -27,17 +29,21 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
   private static final long serialVersionUID = 7155243474988517017L;
   protected final Line line;
 
+  protected final LineAttrs lineAttrs;
+
   // All parallel lines
   protected List<E> parallelLineRecord;
 
-  public ALine(N from, N to, Line line) {
+  public ALine(N from, N to, Line line, LineAttrs lineAttrs) {
     super(from, to);
     this.line = line;
+    this.lineAttrs = lineAttrs;
   }
 
-  public ALine(N from, N to, double weight, Line line) {
+  public ALine(N from, N to, double weight, Line line, LineAttrs lineAttrs) {
     super(from, to, weight);
     this.line = line;
+    this.lineAttrs = lineAttrs;
   }
 
   @Override
@@ -83,5 +89,17 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     }
 
     parallelLineRecord.add(edge);
+  }
+
+  public LineAttrs lineAttrs() {
+    return lineAttrs;
+  }
+
+  public boolean isHide() {
+    if (isVirtual() || lineAttrs() == null) {
+      return true;
+    }
+
+    return lineAttrs().getStyles().contains(LineStyle.INVIS);
   }
 }

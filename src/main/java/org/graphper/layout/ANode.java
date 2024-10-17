@@ -25,6 +25,7 @@ import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.VertexIndex;
@@ -255,16 +256,12 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
       return;
     }
 
-    nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
-//
-//    Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
-//    if (splines == Splines.ORTHO) {
-//      nodeSizeExpander = new OrthoNodeSizeExpander(this);
-//    } else if (EnvProp.usePortAxisExpander()) {
-//      nodeSizeExpander = new PortNodeSizeExpander(drawGraph, this);
-//    } else {
-//      nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
-//    }
+    Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
+    if (splines == Splines.ORTHO) {
+      nodeSizeExpander = new OrthoNodeSizeExpander(this);
+    } else {
+      nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
+    }
   }
 
   public NodeSizeExpander getNodeSizeExpander() {

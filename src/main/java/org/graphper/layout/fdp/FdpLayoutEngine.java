@@ -132,9 +132,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     FLine fLine;
     if (weight != null) {
-      fLine = new FLine(source, target, weight, line);
+      fLine = new FLine(source, target, weight, line, lineDrawProp.lineAttrs());
     } else {
-      fLine = new FLine(source, target, line);
+      fLine = new FLine(source, target, line, lineDrawProp.lineAttrs());
     }
 
     if (fLine.isSelf()) {
@@ -255,9 +255,9 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       Double weight = lineDrawProp.lineAttrs().getWeight();
       FLine fLine;
       if (weight != null) {
-        fLine = new FLine(from, to, weight, line);
+        fLine = new FLine(from, to, weight, line, null);
       } else {
-        fLine = new FLine(from, to, line);
+        fLine = new FLine(from, to, line, null);
       }
       proxyGraph.addEdge(fLine);
       graph.recordAdj(fLine);
@@ -338,7 +338,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     for (AreaGraph areaGraph : areaGraphs) {
       for (FNode node : areaGraph) {
         for (FLine line : graph.outAdjacent(node)) {
-          areaGraph.addEdge(new FLine(line.from(), line.to(), line.getLine()));
+          areaGraph.addEdge(new FLine(line.from(), line.to(), line.getLine(), null));
         }
       }
 

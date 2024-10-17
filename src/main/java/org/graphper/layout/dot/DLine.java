@@ -19,7 +19,6 @@ package org.graphper.layout.dot;
 import java.util.Objects;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
-import org.graphper.api.attributes.LineStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.ALine;
 import org.graphper.util.Asserts;
@@ -31,7 +30,6 @@ class DLine extends ALine<DNode, DLine> {
   // The cut value
   private double cutVal;
 
-
   // Limitations of network simplicity method between two vertices of an edge
   private int limit;
 
@@ -39,8 +37,6 @@ class DLine extends ALine<DNode, DLine> {
 
   // The size of the edge label
   private final FlatPoint labelSize;
-
-  private final LineAttrs lineAttrs;
 
   DLine(DNode left, DNode right, Line line,
         LineAttrs lineAttrs, double weight, int limit) {
@@ -60,27 +56,14 @@ class DLine extends ALine<DNode, DLine> {
   DLine(DNode left, DNode right, Line line,
         LineAttrs lineAttrs, double weight, int limit,
         FlatPoint labelSize, boolean realTimeLimit) {
-    super(left, right, weight, line);
+    super(left, right, weight, line, lineAttrs);
 
     this.limit = limit;
     this.labelSize = labelSize;
     if (line != null) {
       Asserts.nullArgument(lineAttrs, "lineAttrs");
     }
-    this.lineAttrs = lineAttrs;
     this.realTimeLimit = realTimeLimit;
-  }
-
-  LineAttrs lineAttrs() {
-    return lineAttrs;
-  }
-
-  DNode getLowRankNode() {
-    return from().getRankIgnoreModel() < to().getRankIgnoreModel() ? from() : to();
-  }
-
-  DNode getLargeRankNode() {
-    return from().getRankIgnoreModel() >= to().getRankIgnoreModel() ? from() : to();
   }
 
   double getCutVal() {
@@ -168,14 +151,6 @@ class DLine extends ALine<DNode, DLine> {
     }
 
     return labelSize != null;
-  }
-
-  boolean isHide() {
-    if (isVirtual()) {
-      return false;
-    }
-
-    return lineAttrs().getStyles().contains(LineStyle.INVIS);
   }
 
   @Override

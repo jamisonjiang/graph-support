@@ -38,10 +38,6 @@ public final class EnvProp {
     return Rankdir.rankdir(System.getProperty("rankdir"));
   }
 
-  public static boolean usePortAxisExpander() {
-    return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("port_axis.node.expander"));
-  }
-
   public static boolean useV1Coordinate() {
     return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("dot.coordinate.v1"));
   }

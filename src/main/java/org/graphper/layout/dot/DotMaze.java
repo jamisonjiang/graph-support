@@ -21,23 +21,19 @@ import static org.graphper.layout.dot.AbstractDotLineRouter.LABEL_NODE_SIDE_MIN_
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.Maze;
 import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.graphper.api.Line;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.Grid.GridBuilder;
-import org.graphper.layout.OrthoVisGraph.GridVertex;
 import org.graphper.layout.dot.RankContent.RankNode;
 
 class DotMaze extends Maze {
 
   private final RankContent rankContent;
-
-  private Map<Line, List<GuideInfo>> labelGuideBoxes;
 
   protected DotMaze(RankContent rankContent, DrawGraph drawGraph) {
     super(drawGraph);
@@ -45,29 +41,6 @@ class DotMaze extends Maze {
     this.rankContent = rankContent;
 
     init();
-  }
-
-  List<GuideInfo> getGuideInfos(Line line) {
-    if (line == null || labelGuideBoxes == null) {
-      return null;
-    }
-    List<GuideInfo> guideInfos = labelGuideBoxes.get(line);
-    if (CollectionUtils.isEmpty(guideInfos)) {
-      return guideInfos;
-    }
-
-    for (GuideInfo guideInfo : guideInfos) {
-      if (guideInfo.guideVertex == null) {
-        guideInfo.guideVertex = getGuideVertex(guideInfo.guideBox);
-      }
-      Asserts.illegalArgument(guideInfo.signPos == null,
-                              "Can not found guide sign of label line");
-      Asserts.illegalArgument(guideInfo.guideBox == null,
-                              "Can not found guide box of label line");
-      Asserts.illegalArgument(guideInfo.guideVertex == null,
-                              "Can not found guide vertex of label line");
-    }
-    return guideInfos;
   }
 
   @Override
@@ -168,38 +141,15 @@ class DotMaze extends Maze {
   }
 
   private void recordGuideBox(Line line, Box sign, Box guideBox) {
-    if (labelGuideBoxes == null) {
-      labelGuideBoxes = new LinkedHashMap<>();
+    if (guideBoxes == null) {
+      guideBoxes = new LinkedHashMap<>();
     }
 
-    List<GuideInfo> guideInfos = labelGuideBoxes.computeIfAbsent(line, k -> new ArrayList<>());
+    List<GuideInfo> guideInfos = guideBoxes.computeIfAbsent(line, k -> new ArrayList<>());
     GuideInfo guideInfo = new GuideInfo();
-    guideInfo.signPos = sign;
-    guideInfo.guideBox = guideBox;
-    guideInfo.isLabelSign = true;
+    guideInfo.setSignPos(sign);
+    guideInfo.setGuideBox(guideBox);
+    guideInfo.setLabelSign(true);
     guideInfos.add(guideInfo);
-  }
-
-  static class GuideInfo {
-
-    private Box signPos;
-
-    private Box guideBox;
-
-    private GridVertex guideVertex;
-
-    private boolean isLabelSign;
-
-    public Box getSignPos() {
-      return signPos;
-    }
-
-    public GridVertex getGuideVertex() {
-      return guideVertex;
-    }
-
-    public boolean isLabelSign() {
-      return isLabelSign;
-    }
   }
 }
