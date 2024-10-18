@@ -20,6 +20,7 @@ import helper.GraphvizVisual;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.Splines;
 import org.junit.jupiter.api.Test;
 
 public class FdpTest extends GraphvizVisual {
@@ -38,6 +39,7 @@ public class FdpTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz.digraph()
         .layout(Layout.FDP)
+        .splines(Splines.ORTHO)
         .startClus()
         .startClus()
         .addLine(a, b)

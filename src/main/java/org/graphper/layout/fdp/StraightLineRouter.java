@@ -17,6 +17,7 @@
 package org.graphper.layout.fdp;
 
 import org.graphper.api.Line;
+import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
@@ -27,6 +28,11 @@ public class StraightLineRouter extends AbstractFdpLineRouter {
 
   public StraightLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
+  }
+
+  @Override
+  public boolean needDeal(Splines splines) {
+    return Splines.LINE == splines;
   }
 
   @Override
