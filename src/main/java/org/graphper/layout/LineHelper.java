@@ -19,7 +19,6 @@ package org.graphper.layout;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.graphper.def.Curves;
@@ -214,50 +213,6 @@ public class LineHelper {
     }
 
     return lengthRatio == 0 ? v1 : v2;
-  }
-
-  private static void twoSelfLineDraw(LineDrawProp lineDrawProp) {
-    if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() != 2) {
-      return;
-    }
-
-    FlatPoint start = lineDrawProp.get(0);
-    FlatPoint end = lineDrawProp.get(lineDrawProp.size() - 1);
-    FlatPoint axis = Vectors.sub(end, start);
-    FlatPoint vertical = new FlatPoint(axis.getY(), -axis.getX());
-    FlatPoint verticalOpposite = vertical.reserve();
-    lineDrawProp.clear();
-
-    double dist = axis.dist() / 4;
-    lineDrawProp.add(start);
-    lineDrawProp.add(Vectors.add(start, Vectors.scale(vertical, dist)));
-    lineDrawProp.add(Vectors.add(end, Vectors.scale(vertical, dist)));
-    lineDrawProp.add(end);
-    lineDrawProp.add(Vectors.add(end, Vectors.scale(verticalOpposite, dist)));
-    lineDrawProp.add(Vectors.add(start, Vectors.scale(verticalOpposite, dist)));
-    lineDrawProp.add(start);
-
-    lineDrawProp.markIsBesselCurve();
-  }
-
-  private static void largeTwoSelfLineDraw(FlatPoint center, LineDrawProp lineDrawProp) {
-    FlatPoint mid = lineDrawProp.get(lineDrawProp.size() / 2);
-    FlatPoint start = lineDrawProp.get(0);
-    FlatPoint end = lineDrawProp.get(lineDrawProp.size() - 1);
-
-    MultiBezierCurve curves = Curves.fitCurves(Arrays.asList(start, mid, end),
-                                               Vectors.add(
-                                                   Vectors.sub(start, center),
-                                                   Vectors.sub(mid, center)
-                                               ),
-                                               Vectors.add(
-                                                   Vectors.sub(end, center),
-                                                   Vectors.sub(mid, center)
-                                               ), 0);
-
-    lineDrawProp.clear();
-    lineDrawProp.markIsBesselCurve();
-    lineDrawProp.addAll(multiBezierCurveToPoints(curves));
   }
 
   private static void newSelfLineDrawMode(LineDrawProp lineDrawProp) {
