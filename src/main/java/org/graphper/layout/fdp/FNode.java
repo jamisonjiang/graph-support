@@ -18,7 +18,6 @@ package org.graphper.layout.fdp;
 
 import org.graphper.api.Node;
 import org.graphper.layout.ANode;
-import org.graphper.util.CollectionUtils;
 
 public class FNode extends ANode {
 
@@ -37,22 +36,6 @@ public class FNode extends ANode {
 
   public FNode(Node node) {
     super(node);
-  }
-
-  @Override
-  public double getWidth() {
-    if (CollectionUtils.isEmpty(selfLines)) {
-      return super.getWidth();
-    }
-    return leftWidth() + rightWidth();
-  }
-
-  @Override
-  public double getHeight() {
-    if (CollectionUtils.isEmpty(selfLines)) {
-      return super.getHeight();
-    }
-    return topHeight() + bottomHeight();
   }
 
   public void alignCenter() {
@@ -116,6 +99,24 @@ public class FNode extends ANode {
   public void setRepulsionLocation(double x, double y) {
     this.repulsionX = (int) Math.floor(x + 0.5);
     this.repulsionY = (int) Math.floor(y + 0.5);
+  }
+
+  public boolean isOverlap(FNode node) {
+    if (node == null) {
+      return false;
+    }
+
+    double deltaX = Math.abs(getX() - node.getX());
+    double deltaY= Math.abs(getY() - node.getY());
+    return deltaX <= wd2() + node.wd2() && deltaY <= ht2() + node.ht2();
+  }
+
+  private double wd2() {
+    return getAreaWidth() / 2 + 4;
+  }
+
+  private double ht2() {
+    return getAreaHeight() / 2 + 4;
   }
 
   String name() {

@@ -166,16 +166,17 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     new LineClipProcessor(drawGraph, fdpAttachment.getFdpGraph()).clipAllLines();
 
     for (LineDrawProp line : drawGraph.lines()) {
-      FlatPoint labelCenter;
-      if (line.isBesselCurve()) {
-        labelCenter = LineHelper.curveGetFloatLabelStart(null, 0.5, line);
-      } else {
-        labelCenter = LineHelper.straightGetFloatLabelStart(null, 0.5, line);
+      FlatPoint labelCenter = line.getLabelCenter();
+      if (labelCenter == null) {
+        if (line.isBesselCurve()) {
+          labelCenter = LineHelper.curveGetFloatLabelStart(null, 0.5, line);
+        } else {
+          labelCenter = LineHelper.straightGetFloatLabelStart(null, 0.5, line);
+        }
+        line.setLabelCenter(labelCenter);
       }
 
-      line.setLabelCenter(labelCenter);
       setCellNodeOffset(drawGraph, labelCenter, line.getAssemble(), true);
-
       FlatPoint size = line.getLabelSize();
       if (size == null || labelCenter == null) {
         continue;
@@ -344,7 +345,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       layout0(areaGraph, drawGraph);
       FNode connectComponent = new FNode(null);
       connectComponent.setWidth(areaGraph.width());
-      connectComponent.setHeight(areaGraph.getHeight());
+      connectComponent.setHeight(areaGraph.height());
       connectGraph.add(connectComponent);
     }
 
@@ -744,7 +745,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   private double rad(FNode node) {
-    return Math.hypot(node.getWidth(), node.getHeight());
+    return Math.hypot(node.getAreaWidth(), node.getAreaHeight());
   }
 
   private void resolveOverlaps(AreaGraph graph) {
@@ -761,7 +762,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
           double deltaY = v.getY() - u.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-          double overlap = (v.getWidth() / 2.0 + u.getWidth() / 2.0) - Math.abs(deltaX);
+          double overlap = (v.getAreaWidth() / 2.0 + u.getAreaWidth() / 2.0) - Math.abs(deltaX);
           double dx = (deltaX / distance) * overlap / 2.0;
           double dy = (deltaY / distance) * overlap / 2.0;
 

@@ -99,7 +99,7 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
 
       // All out edges
       for (ALine line : adjacentLines(node)) {
-        if (line.isVirtual()) {
+        if (line.isVirtual() || line.isSelf()) {
           continue;
         }
 
@@ -249,10 +249,14 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
 
     for (int i = 0; i < channel.segmentSize(); i++) {
       EdgeSeg edgeSeg = channel.get(i);
+      if (edgeSeg.illegal()) {
+        continue;
+      }
 
       for (int j = i + 1; j < channel.segmentSize(); j++) {
         EdgeSeg overlapSeg = channel.get(j);
-        if (overlapSeg.isHor != edgeSeg.isHor || !edgeSeg.overlap(overlapSeg)) {
+        if (overlapSeg.isHor != edgeSeg.isHor || overlapSeg.illegal()
+            || !edgeSeg.overlap(overlapSeg)) {
           break;
         }
 
@@ -320,6 +324,10 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
 
       lineDrawProp.setIsHeadStart(entry.getValue().from.getNode());
       while (edgeSeg != null) {
+        if (edgeSeg.illegal()) {
+          lineDrawProp.clear();
+          break;
+        }
         addPoint(lineDrawProp, edgeSeg);
         edgeSeg = edgeSeg.next;
       }
@@ -1238,18 +1246,8 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
       }
     }
 
-    private boolean preAtStart() {
-      if (pre == null) {
-        return false;
-      }
-      return Objects.equals(pre.axis, start);
-    }
-
-    private boolean nextAtStart() {
-      if (next == null) {
-        return false;
-      }
-      return Objects.equals(next.axis, start);
+    private boolean illegal() {
+      return start == null || end == null;
     }
 
     private void addPoint(double point) {

@@ -177,6 +177,20 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return nodeAttrs.getShape();
   }
 
+  public double getAreaWidth() {
+    if (CollectionUtils.isEmpty(selfLines)) {
+      return getWidth();
+    }
+    return leftWidth() + rightWidth();
+  }
+
+  public double getAreaHeight() {
+    if (CollectionUtils.isEmpty(selfLines)) {
+      return getHeight();
+    }
+    return topHeight() + bottomHeight();
+  }
+
   public void setWidth(double width) {
     this.width = width;
   }

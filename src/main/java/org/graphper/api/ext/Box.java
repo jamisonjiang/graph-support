@@ -144,22 +144,4 @@ public interface Box {
     return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
         && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
   }
-
-  default boolean isOverlap(Box box) {
-    if (box == null) {
-      return false;
-    }
-
-    double deltaX = Math.abs(getX() - box.getX());
-    double deltaY= Math.abs(getY() - box.getY());
-    return deltaX <= wd2(this) + wd2(box) && deltaY <= ht2(this) + ht2(box);
-  }
-
-  static double wd2(Box box) {
-    return box.getWidth() / 2 + 4;
-  }
-
-  static double ht2(Box box) {
-    return box.getHeight() / 2 + 4;
-  }
 }
