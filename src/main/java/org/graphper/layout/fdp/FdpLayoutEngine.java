@@ -410,7 +410,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     ShapePropCalc shapePropCalc = containerDrawProp.shapeProp();
     FlatPoint newSize = shapePropCalc.minContainerSize(areaGraph.height(), areaGraph.width());
     double widthIncr = (newSize.getWidth() - areaGraph.width()) / 2;
-    double heightIncr = (newSize.getHeight() - areaGraph.getHeight()) / 2;
+    double heightIncr = (newSize.getHeight() - areaGraph.height()) / 2;
     leftMax = Math.max(leftMax, widthIncr);
     rightMax = Math.max(rightMax, widthIncr);
     topMax = Math.max(topMax, heightIncr);

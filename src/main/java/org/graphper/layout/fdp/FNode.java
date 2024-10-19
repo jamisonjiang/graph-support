@@ -39,8 +39,8 @@ public class FNode extends ANode {
   }
 
   public void alignCenter() {
-    setX(getX() - getWidth() / 2 + leftWidth());
-    setY(getY() - getHeight() / 2 + topHeight());
+    setX(getX() - getAreaWidth() / 2 + leftWidth());
+    setY(getY() - getAreaHeight() / 2 + topHeight());
   }
 
   public double getRepulsionX() {
