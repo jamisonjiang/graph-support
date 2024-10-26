@@ -101,21 +101,13 @@ public class FNode extends ANode {
     this.repulsionY = (int) Math.floor(y + 0.5);
   }
 
-  public boolean isOverlap(FNode node) {
-    if (node == null) {
-      return false;
-    }
-
-    double deltaX = Math.abs(getX() - node.getX());
-    double deltaY= Math.abs(getY() - node.getY());
-    return deltaX <= wd2() + node.wd2() && deltaY <= ht2() + node.ht2();
-  }
-
-  private double wd2() {
+  @Override
+  public double wd2() {
     return getAreaWidth() / 2 + 4;
   }
 
-  private double ht2() {
+  @Override
+  public double ht2() {
     return getAreaHeight() / 2 + 4;
   }
 
