@@ -40,8 +40,11 @@ public class RectangleTree<B extends Box> {
     }
 
     if (root == null) {
-      root = new Node();
+      root = new Node(box);
+      return;
     }
+
+    insertion(root, box);
   }
 
   public void delete(B mbr) {
@@ -60,75 +63,155 @@ public class RectangleTree<B extends Box> {
     return 0;
   }
 
-  private NodePair insertion(Node node, B box) {
-    if (node.isLeaf && node.add(box)) {
-      return new NodePair(node);
+  private void insertion(Node node, B box) {
+    if (!node.isLeaf()) {
+      Node minIncrNode = selectAndUpdateMinIncrNode(node, box);
+      insertion(minIncrNode, box);
+      return;
     }
 
-    MBR minIncrBox = selectMinIncrNode(node, box);
-    if (node.isLeaf) {
-
+    Node insertNode = new Node(box);
+    if (node.isFull()) {
+      split(node, insertNode);
     } else {
-      NodePair nodePair = insertion(minIncrBox.next, box);
-      if (nodePair.right == null) {
-        nodePair.left = node;
-        return nodePair;
-      }
-
-
+      node.add(insertNode);
     }
   }
 
-  private NodePair split(Node node, B box) {
-    return null;
+  private void split(Node node, Node insertNode) {
+    List<Node> nodes = node.split(insertNode);
+    Node newNode = new Node(null);
+    newNode.children = nodes;
+
+    Node parent = node.parent;
+    if (parent == null) {
+      parent = new Node(null);
+      parent.add(node);
+      this.root = parent;
+    }
+
+    if (parent.isFull()) {
+      split(parent, newNode);
+    } else {
+      parent.add(newNode);
+    }
   }
 
-  private MBR selectMinIncrNode(Node node, B box) {
-    return null;
+  private Node selectAndUpdateMinIncrNode(Node node, B box) {
+    Node minIncrNode = null;
+    Box minCombineBox = null;
+    double minIncArea = Double.MAX_VALUE;
+    for (Node child : node.getChildren()) {
+      Box combine = newCombineBox(child, box);
+      double incrArea = combine.getArea() - child.getArea();
+
+      if (minCombineBox == null || minIncArea > incrArea) {
+        minCombineBox = combine;
+        minIncArea = incrArea;
+        minIncrNode = child;
+      }
+    }
+
+    minIncrNode.setLeftBorder(minCombineBox.getLeftBorder());
+    minIncrNode.setRightBorder(minCombineBox.getRightBorder());
+    minIncrNode.setUpBorder(minCombineBox.getUpBorder());
+    minIncrNode.setDownBorder(minCombineBox.getDownBorder());
+    return minIncrNode;
+  }
+
+  private Box newCombineBox(Box origin, Box expand) {
+    return new DefaultBox(
+        Math.min(origin.getLeftBorder(), expand.getLeftBorder()),
+        Math.max(origin.getRightBorder(), expand.getRightBorder()),
+        Math.min(origin.getUpBorder(), expand.getUpBorder()),
+        Math.max(origin.getDownBorder(), expand.getDownBorder())
+    );
   }
 
   private class NodePair {
 
-    private Node left;
+    private Node origin;
 
-    private Node right;
+    private Node splitting;
 
-    public NodePair(Node left) {
-      this.left = left;
+    public NodePair(Node origin) {
+      this.origin = origin;
     }
   }
 
   private class Node extends DefaultBox {
 
-    private boolean isRoot;
+    private B box;
 
-    private boolean isLeaf;
+    private Node parent;
 
-    private MBR parent;
+    private List<Node> children;
 
-    private List<MBR> boundingBoxes;
+    public Node(B box) {
+      this.box = box;
+    }
 
-    private boolean add(B box) {
-      if (boundingBoxes == null) {
-        boundingBoxes = new ArrayList<>(maxNodeCapacity);
+    private boolean add(Node child) {
+      if (children == null) {
+        children = new ArrayList<>(maxNodeCapacity);
       }
       if (isFull()) {
         return false;
       }
-//      boundingBoxes.add(box);
+
+      children.add(child);
+      setLeftBorder(Math.min(getLeftBorder(), child.getLeftBorder()));
+      setRightBorder(Math.max(getRightBorder(), child.getRightBorder()));
+      setUpBorder(Math.min(getUpBorder(), child.getUpBorder()));
+      setDownBorder(Math.max(getDownBorder(), child.getDownBorder()));
+      child.parent = this;
       return true;
     }
 
+    private List<Node> split(Node insertNode) {
+      if (!isFull()) {
+        throw new IllegalArgumentException();
+      }
+
+      int size = maxNodeCapacity / 2;
+      int remainSize = maxNodeCapacity - size;
+      List<Node> splitting = new ArrayList<>(size);
+      List<Node> newChildren = new ArrayList<>(remainSize);
+
+      for (int i = 0; i < children.size(); i++) {
+        if (i < remainSize) {
+          newChildren.add(children.get(i));
+        } else {
+          splitting.add(children.get(i));
+        }
+      }
+
+      this.children = newChildren;
+      splitting.add(insertNode);
+      return splitting;
+    }
+
+    private boolean isRoot() {
+      return parent == null;
+    }
+
     private boolean isFull() {
-      return CollectionUtils.isNotEmpty(boundingBoxes) && boundingBoxes.size() == maxNodeCapacity;
+      return CollectionUtils.isNotEmpty(children) && children.size() == maxNodeCapacity;
     }
 
     private boolean isLeaf() {
-      return isLeaf;
+      if (CollectionUtils.isEmpty(children)) {
+        return false;
+      }
+      return children.get(0).box != null;
+    }
+
+    private boolean isMBR() {
+      return box != null;
     }
 
     public boolean containment(Box box) {
-      if (isRoot) {
+      if (isRoot()) {
         return true;
       }
 
@@ -140,18 +223,18 @@ public class RectangleTree<B extends Box> {
 
     @Override
     public boolean isOverlap(Box box) {
-      if (isRoot) {
+      if (isRoot()) {
         return true;
       }
 
       return super.isOverlap(box);
     }
-  }
 
-  private class MBR extends DefaultBox {
-
-    private Box box;
-
-    private Node next;
+    public List<Node> getChildren() {
+      if (CollectionUtils.isEmpty(children)) {
+        throw new IllegalArgumentException();
+      }
+      return children;
+    }
   }
 }
