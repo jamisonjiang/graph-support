@@ -145,7 +145,7 @@ public interface Box {
         && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
   }
 
-  default double   getArea() {
+  default double getArea() {
     return getWidth() * getHeight();
   }
 

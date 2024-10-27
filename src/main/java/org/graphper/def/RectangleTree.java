@@ -40,7 +40,8 @@ public class RectangleTree<B extends Box> {
     }
 
     if (root == null) {
-      root = new Node(box);
+      root = new Node(null);
+      root.add(new Node(box));
       return;
     }
 
@@ -82,6 +83,7 @@ public class RectangleTree<B extends Box> {
     List<Node> nodes = node.split(insertNode);
     Node newNode = new Node(null);
     newNode.children = nodes;
+    nodes.forEach(newNode::alignSize);
 
     Node parent = node.parent;
     if (parent == null) {
@@ -130,18 +132,24 @@ public class RectangleTree<B extends Box> {
 
   private class NodePair {
 
-    private Node origin;
+    private final Node origin;
 
-    private Node splitting;
+    private final Node splitting;
 
     public NodePair(Node origin) {
       this.origin = origin;
+      this.splitting = null;
+    }
+
+    public NodePair(Node origin, Node splitting) {
+      this.origin = origin;
+      this.splitting = splitting;
     }
   }
 
   private class Node extends DefaultBox {
 
-    private B box;
+    private final B box;
 
     private Node parent;
 
@@ -149,6 +157,9 @@ public class RectangleTree<B extends Box> {
 
     public Node(B box) {
       this.box = box;
+      if (box != null) {
+        alignSize(box);
+      }
     }
 
     private boolean add(Node child) {
@@ -160,35 +171,16 @@ public class RectangleTree<B extends Box> {
       }
 
       children.add(child);
-      setLeftBorder(Math.min(getLeftBorder(), child.getLeftBorder()));
-      setRightBorder(Math.max(getRightBorder(), child.getRightBorder()));
-      setUpBorder(Math.min(getUpBorder(), child.getUpBorder()));
-      setDownBorder(Math.max(getDownBorder(), child.getDownBorder()));
+      alignSize(child);
       child.parent = this;
       return true;
     }
 
-    private List<Node> split(Node insertNode) {
-      if (!isFull()) {
-        throw new IllegalArgumentException();
-      }
-
-      int size = maxNodeCapacity / 2;
-      int remainSize = maxNodeCapacity - size;
-      List<Node> splitting = new ArrayList<>(size);
-      List<Node> newChildren = new ArrayList<>(remainSize);
-
-      for (int i = 0; i < children.size(); i++) {
-        if (i < remainSize) {
-          newChildren.add(children.get(i));
-        } else {
-          splitting.add(children.get(i));
-        }
-      }
-
-      this.children = newChildren;
-      splitting.add(insertNode);
-      return splitting;
+    private void alignSize(Box box) {
+      setLeftBorder(Math.min(getLeftBorder(), box.getLeftBorder()));
+      setRightBorder(Math.max(getRightBorder(), box.getRightBorder()));
+      setUpBorder(Math.min(getUpBorder(), box.getUpBorder()));
+      setDownBorder(Math.max(getDownBorder(), box.getDownBorder()));
     }
 
     private boolean isRoot() {
@@ -230,7 +222,78 @@ public class RectangleTree<B extends Box> {
       return super.isOverlap(box);
     }
 
-    public List<Node> getChildren() {
+    private List<Node> split(Node insertNode) {
+      if (!isFull()) {
+        throw new IllegalArgumentException();
+      }
+
+      children.add(insertNode);
+      int size = maxNodeCapacity / 2;
+      int remainSize = maxNodeCapacity - size;
+      List<Node> splitting = new ArrayList<>(size);
+      List<Node> newChildren = new ArrayList<>(remainSize);
+
+      distribute(remainSize, findSeeds(), splitting, newChildren);
+      this.children = newChildren;
+      return splitting;
+    }
+
+    private void distribute(int remainSize, NodePair seeds,
+                            List<Node> splitting, List<Node> newChildren) {
+      newChildren.add(seeds.origin);
+      splitting.add(seeds.splitting);
+
+      for (Node child : children) {
+        if (child == seeds.origin || child == seeds.splitting) {
+          continue;
+        }
+
+        Box combineOrigin = newCombineBox(child, seeds.origin);
+        Box combineSplitting = newCombineBox(child, seeds.splitting);
+        if (combineOrigin.getArea() < combineSplitting.getArea()
+            && newChildren.size() != remainSize) {
+          newChildren.add(child);
+        } else {
+          splitting.add(child);
+        }
+      }
+    }
+
+    private NodePair findSeeds() {
+      Node minXNode = null;
+      Node maxXNode = null;
+      Node minYNode = null;
+      Node maxYNode = null;
+
+      for (Node child : children) {
+        if (minXNode == null || minXNode.getLeftBorder() > child.getLeftBorder()) {
+          minXNode = child;
+        }
+        if (maxXNode == null || maxXNode.getRightBorder() < child.getRightBorder()) {
+          maxXNode = child;
+        }
+        if (minYNode == null || minYNode.getUpBorder() > child.getUpBorder()) {
+          minYNode = child;
+        }
+        if (maxYNode == null || maxYNode.getDownBorder() < child.getDownBorder()) {
+          maxYNode = child;
+        }
+      }
+
+      return waste(minXNode, maxXNode, true) > waste(minYNode, maxYNode, false)
+          ? new NodePair(minXNode, maxXNode)
+          : new NodePair(minYNode, maxYNode);
+    }
+
+    private double waste(Node min, Node max, boolean xDim) {
+      if (xDim) {
+        return (max.getRightBorder() - min.getLeftBorder()) - (min.getWidth() + max.getWidth());
+      }
+
+      return (max.getDownBorder() - min.getUpBorder()) - (min.getHeight() + max.getHeight());
+    }
+
+    private List<Node> getChildren() {
       if (CollectionUtils.isEmpty(children)) {
         throw new IllegalArgumentException();
       }
