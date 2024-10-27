@@ -137,8 +137,7 @@ public interface Box {
    *
    * @param x x-coordinate
    * @param y y-coordinate
-   * @return true - in box area
-   *         false - not in box area
+   * @return true - in box area false - not in box area
    */
   default boolean in(double x, double y) {
     return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
@@ -155,7 +154,7 @@ public interface Box {
     }
 
     double deltaX = Math.abs(getX() - box.getX());
-    double deltaY= Math.abs(getY() - box.getY());
+    double deltaY = Math.abs(getY() - box.getY());
     return deltaX <= wd2() + box.wd2() && deltaY <= ht2() + box.ht2();
   }
 

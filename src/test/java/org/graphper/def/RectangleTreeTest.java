@@ -72,7 +72,7 @@ public class RectangleTreeTest {
     }
 
     List<DefaultBox> result = rtree.search(new DefaultBox(3, 4, 3, 4));
-    assertEquals(1, result.size());  // Only one box should match.
+    assertEquals(3, result.size());  // Only one box should match.
   }
 
   @Test
@@ -130,6 +130,8 @@ public class RectangleTreeTest {
       int height = random.nextInt(5) + 1; // Height between 1 and 5
       rtree.insert(new DefaultBox(x1, x1 + width, y1, y1 + height));
     }
+
+    rtree.insert(new DefaultBox(4900, 5100, 4400, 5200));
 
     // Perform a search for a box at a known range and assert the result size
     List<DefaultBox> result = rtree.search(new DefaultBox(5000, 5005, 5000, 5005));

@@ -101,10 +101,7 @@ public class RectangleTree<B extends Box> {
   }
 
   private void split(Node node, Node insertNode) {
-    List<Node> nodes = node.split(insertNode);
-    Node newNode = new Node(null);
-    newNode.children = nodes;
-    nodes.forEach(newNode::alignSize);
+    Node newNode = node.split(insertNode);
 
     Node parent = node.parent;
     if (parent == null) {
@@ -239,39 +236,37 @@ public class RectangleTree<B extends Box> {
       return super.isOverlap(box);
     }
 
-    private List<Node> split(Node insertNode) {
+    private Node split(Node insertNode) {
       if (!isFull()) {
         throw new IllegalArgumentException();
       }
 
+      init();
       children.add(insertNode);
-      int size = maxNodeCapacity / 2;
-      int remainSize = maxNodeCapacity - size;
-      List<Node> splitting = new ArrayList<>(size);
-      List<Node> newChildren = new ArrayList<>(remainSize);
-
-      distribute(remainSize, findSeeds(), splitting, newChildren);
-      this.children = newChildren;
+      Node splitting = new Node(null);
+      distribute(findSeeds(), splitting);
       return splitting;
     }
 
-    private void distribute(int remainSize, NodePair seeds,
-                            List<Node> splitting, List<Node> newChildren) {
-      newChildren.add(seeds.origin);
+    private void distribute(NodePair seeds, Node splitting) {
+      List<Node> nodes = children;
+      children = null;
+      int size = maxNodeCapacity - (maxNodeCapacity / 2);
+
+      add(seeds.origin);
       splitting.add(seeds.splitting);
 
-      for (Node child : children) {
+      for (Node child : nodes) {
         if (child == seeds.origin || child == seeds.splitting) {
           continue;
         }
 
         Box combineOrigin = newCombineBox(child, seeds.origin);
         Box combineSplitting = newCombineBox(child, seeds.splitting);
-        if (combineOrigin.getArea() < combineSplitting.getArea()
-            && newChildren.size() != remainSize) {
-          newChildren.add(child);
-        } else {
+        if (combineOrigin.getArea() > combineSplitting.getArea() && splitting.size() != size) {
           splitting.add(child);
+        } else {
+          add(child);
         }
       }
     }
@@ -315,6 +310,10 @@ public class RectangleTree<B extends Box> {
         throw new IllegalArgumentException();
       }
       return children;
+    }
+
+    private int size() {
+      return CollectionUtils.isEmpty(children) ? 0 : children.size();
     }
   }
 }
