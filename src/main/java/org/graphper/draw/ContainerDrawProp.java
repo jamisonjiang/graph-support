@@ -67,28 +67,6 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return Math.max(getVerMargin(), labelSize.getHeight());
   }
 
-  public double leftLowestWidth() {
-    Asserts.nullArgument(margin(), "margin");
-    Asserts.nullArgument(labeljust(), "labeljust");
-
-    if (labelSize == null || labeljust() != Labeljust.LEFT) {
-      return getVerMargin();
-    }
-
-    return Math.max(getVerMargin(), labelSize.getWidth());
-  }
-
-  public double rightLowestWidth() {
-    Asserts.nullArgument(margin(), "margin");
-    Asserts.nullArgument(labeljust(), "labeljust");
-
-    if (labelSize == null || labeljust() != Labeljust.RIGHT) {
-      return getVerMargin();
-    }
-
-    return Math.max(getVerMargin(), labelSize.getWidth());
-  }
-
   public double getHorMargin() {
     FlatPoint margin = margin();
     return margin.getWidth();

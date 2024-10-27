@@ -17,17 +17,19 @@
 package org.graphper.def;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
+import org.graphper.draw.Rectangle;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
 public class RectangleTree<B extends Box> {
 
-  private final int maxNodeCapacity;
-
   private Node root;
+
+  private final int maxNodeCapacity;
 
   public RectangleTree(int maxNodeCapacity) {
     Asserts.illegalArgument(maxNodeCapacity < 2, "max node capacity cannot be less than 2");
@@ -39,6 +41,7 @@ public class RectangleTree<B extends Box> {
       return;
     }
 
+    box.check();
     if (root == null) {
       root = new Node(null);
       root.add(new Node(box));
@@ -48,20 +51,38 @@ public class RectangleTree<B extends Box> {
     insertion(root, box);
   }
 
-  public void delete(B mbr) {
-
-  }
-
   public List<B> search(Box searchBox) {
-    return null;
+    if (searchBox == null || this.root == null) {
+      return Collections.emptyList();
+    }
+
+    searchBox.check();
+    return search(root, searchBox);
   }
 
-  public List<B> getAll() {
-    return null;
-  }
+  private List<B> search(Node node, Box searchBox) {
+    if (!node.isOverlap(searchBox)) {
+      return Collections.emptyList();
+    }
 
-  public int size() {
-    return 0;
+    if (node.isMBR()) {
+      return Collections.singletonList(node.box);
+    }
+
+    List<B> result = null;
+    for (Node child : node.getChildren()) {
+      List<B> childResult = search(child, searchBox);
+      if (CollectionUtils.isEmpty(childResult)) {
+        continue;
+      }
+
+      if (result == null) {
+        result = new ArrayList<>(childResult);
+      } else {
+        result.addAll(childResult);
+      }
+    }
+    return result != null ? result : Collections.emptyList();
   }
 
   private void insertion(Node node, B box) {
@@ -136,18 +157,13 @@ public class RectangleTree<B extends Box> {
 
     private final Node splitting;
 
-    public NodePair(Node origin) {
-      this.origin = origin;
-      this.splitting = null;
-    }
-
     public NodePair(Node origin, Node splitting) {
       this.origin = origin;
       this.splitting = splitting;
     }
   }
 
-  private class Node extends DefaultBox {
+  private class Node extends Rectangle {
 
     private final B box;
 
@@ -157,6 +173,7 @@ public class RectangleTree<B extends Box> {
 
     public Node(B box) {
       this.box = box;
+      init();
       if (box != null) {
         alignSize(box);
       }
@@ -177,10 +194,10 @@ public class RectangleTree<B extends Box> {
     }
 
     private void alignSize(Box box) {
-      setLeftBorder(Math.min(getLeftBorder(), box.getLeftBorder()));
-      setRightBorder(Math.max(getRightBorder(), box.getRightBorder()));
-      setUpBorder(Math.min(getUpBorder(), box.getUpBorder()));
-      setDownBorder(Math.max(getDownBorder(), box.getDownBorder()));
+      updateXAxisRange(box.getLeftBorder());
+      updateXAxisRange(box.getRightBorder());
+      updateYAxisRange(box.getUpBorder());
+      updateYAxisRange(box.getDownBorder());
     }
 
     private boolean isRoot() {
