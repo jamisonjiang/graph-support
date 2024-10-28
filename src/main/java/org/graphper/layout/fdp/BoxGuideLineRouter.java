@@ -16,19 +16,21 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.ext.DefaultBox;
+import org.graphper.def.RectangleTree;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.ANode;
 import org.graphper.util.CollectionUtils;
 
 class BoxGuideLineRouter extends AbstractFdpLineRouter {
 
+  protected RectangleTree<ANode> rtree;
+
   public BoxGuideLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
-  }
-
-  @Override
-  public void route() {
-
+    rtree = new RectangleTree<>(5);
+    fdpGraph.forEach(rtree::insert);
   }
 
   @Override
@@ -38,6 +40,11 @@ class BoxGuideLineRouter extends AbstractFdpLineRouter {
       return;
     }
 
+    FNode from = line.from();
+    FNode to = line.to();
 
+    new DefaultBox();
+
+//    rtree.search()
   }
 }
