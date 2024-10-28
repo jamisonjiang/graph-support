@@ -67,7 +67,7 @@ public class RectangleTreeTest {
   public void testMultipleSplits() {
     RectangleTree<DefaultBox> rtree = new RectangleTree<>(2);  // Lower capacity for more splits
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1000; i++) {
       rtree.insert(new DefaultBox(i, i + 1, i, i + 1));
     }
 
@@ -119,7 +119,7 @@ public class RectangleTreeTest {
 
   @Test
   public void testMassiveInsertion() {
-    RectangleTree<DefaultBox> rtree = new RectangleTree<>(4);  // Higher capacity to trigger splits
+    RectangleTree<DefaultBox> rtree = new RectangleTree<>(5);  // Higher capacity to trigger splits
     Random random = new Random();
 
     // Insert 10,000 random boxes with non-overlapping coordinates

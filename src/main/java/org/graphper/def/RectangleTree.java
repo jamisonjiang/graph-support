@@ -25,46 +25,66 @@ import org.graphper.draw.Rectangle;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * A spatial data structure that organizes rectangular regions using a tree structure. It allows
+ * efficient insertion and search for overlapping rectangles.
+ *
+ * @param <B> the type of {@link Box} to be stored in the tree.
+ */
 public class RectangleTree<B extends Box> {
 
   private Node root;
-
   private final int maxNodeCapacity;
 
+  /**
+   * Constructs a new {@code RectangleTree} with a specified maximum node capacity.
+   *
+   * @param maxNodeCapacity the maximum number of children a node can have.
+   * @throws IllegalArgumentException if {@code maxNodeCapacity} is less than 2.
+   */
   public RectangleTree(int maxNodeCapacity) {
     Asserts.illegalArgument(maxNodeCapacity < 2, "max node capacity cannot be less than 2");
     this.maxNodeCapacity = maxNodeCapacity;
   }
 
+  /**
+   * Inserts a {@link Box} into the tree.
+   *
+   * @param box the box to be inserted.
+   */
   public void insert(B box) {
     if (box == null) {
       return;
     }
-
     box.check();
+
     if (root == null) {
       root = new Node(null);
       root.add(new Node(box));
       return;
     }
-
     insertion(root, box);
   }
 
+  /**
+   * Searches for all boxes that overlap with the specified search box.
+   *
+   * @param searchBox the box to search for overlaps.
+   * @return a list of overlapping boxes, or an empty list if none found.
+   */
   public List<B> search(Box searchBox) {
     if (searchBox == null || this.root == null) {
       return Collections.emptyList();
     }
-
     searchBox.check();
     return search(root, searchBox);
   }
 
+  // Private search method to recursively find overlapping boxes.
   private List<B> search(Node node, Box searchBox) {
     if (!node.isOverlap(searchBox)) {
       return Collections.emptyList();
     }
-
     if (node.isMBR()) {
       return Collections.singletonList(node.box);
     }
@@ -75,7 +95,6 @@ public class RectangleTree<B extends Box> {
       if (CollectionUtils.isEmpty(childResult)) {
         continue;
       }
-
       if (result == null) {
         result = new ArrayList<>(childResult);
       } else {
@@ -85,6 +104,7 @@ public class RectangleTree<B extends Box> {
     return result != null ? result : Collections.emptyList();
   }
 
+  // Inserts a box into the tree.
   private void insertion(Node node, B box) {
     if (!node.isLeaf()) {
       Node minIncrNode = selectAndUpdateMinIncrNode(node, box);
@@ -100,10 +120,11 @@ public class RectangleTree<B extends Box> {
     }
   }
 
+  // Splits a node when it exceeds capacity.
   private void split(Node node, Node insertNode) {
     Node newNode = node.split(insertNode);
-
     Node parent = node.parent;
+
     if (parent == null) {
       parent = new Node(null);
       parent.add(node);
@@ -117,10 +138,12 @@ public class RectangleTree<B extends Box> {
     }
   }
 
+  // Selects the child node with the minimum area increase.
   private Node selectAndUpdateMinIncrNode(Node node, B box) {
     Node minIncrNode = null;
     Box minCombineBox = null;
     double minIncArea = Double.MAX_VALUE;
+
     for (Node child : node.getChildren()) {
       Box combine = newCombineBox(child, box);
       double incrArea = combine.getArea() - child.getArea();
@@ -139,6 +162,7 @@ public class RectangleTree<B extends Box> {
     return minIncrNode;
   }
 
+  // Creates a new bounding box by combining two boxes.
   private Box newCombineBox(Box origin, Box expand) {
     return new DefaultBox(
         Math.min(origin.getLeftBorder(), expand.getLeftBorder()),
@@ -148,24 +172,13 @@ public class RectangleTree<B extends Box> {
     );
   }
 
-  private class NodePair {
-
-    private final Node origin;
-
-    private final Node splitting;
-
-    public NodePair(Node origin, Node splitting) {
-      this.origin = origin;
-      this.splitting = splitting;
-    }
-  }
-
+  /**
+   * Represents a node in the RectangleTree. Each node can contain child nodes or a single box.
+   */
   private class Node extends Rectangle {
 
     private final B box;
-
     private Node parent;
-
     private List<Node> children;
 
     public Node(B box) {
@@ -206,25 +219,11 @@ public class RectangleTree<B extends Box> {
     }
 
     private boolean isLeaf() {
-      if (CollectionUtils.isEmpty(children)) {
-        return false;
-      }
-      return children.get(0).box != null;
+      return CollectionUtils.isNotEmpty(children) && children.get(0).box != null;
     }
 
     private boolean isMBR() {
       return box != null;
-    }
-
-    public boolean containment(Box box) {
-      if (isRoot()) {
-        return true;
-      }
-
-      return getLeftBorder() <= box.getLeftBorder()
-          && getRightBorder() >= box.getRightBorder()
-          && getUpBorder() <= box.getUpBorder()
-          && getDownBorder() >= box.getDownBorder();
     }
 
     @Override
@@ -232,10 +231,10 @@ public class RectangleTree<B extends Box> {
       if (isRoot()) {
         return true;
       }
-
       return super.isOverlap(box);
     }
 
+    // Splits the node into two when capacity is exceeded.
     private Node split(Node insertNode) {
       if (!isFull()) {
         throw new IllegalArgumentException();
@@ -248,6 +247,7 @@ public class RectangleTree<B extends Box> {
       return splitting;
     }
 
+    // Distributes child nodes between two nodes during a split.
     private void distribute(NodePair seeds, Node splitting) {
       List<Node> nodes = children;
       children = null;
@@ -272,10 +272,7 @@ public class RectangleTree<B extends Box> {
     }
 
     private NodePair findSeeds() {
-      Node minXNode = null;
-      Node maxXNode = null;
-      Node minYNode = null;
-      Node maxYNode = null;
+      Node minXNode = null, maxXNode = null, minYNode = null, maxYNode = null;
 
       for (Node child : children) {
         if (minXNode == null || minXNode.getLeftBorder() > child.getLeftBorder()) {
@@ -298,11 +295,9 @@ public class RectangleTree<B extends Box> {
     }
 
     private double waste(Node min, Node max, boolean xDim) {
-      if (xDim) {
-        return (max.getRightBorder() - min.getLeftBorder()) - (min.getWidth() + max.getWidth());
-      }
-
-      return (max.getDownBorder() - min.getUpBorder()) - (min.getHeight() + max.getHeight());
+      return xDim
+          ? (max.getRightBorder() - min.getLeftBorder()) - (min.getWidth() + max.getWidth())
+          : (max.getDownBorder() - min.getUpBorder()) - (min.getHeight() + max.getHeight());
     }
 
     private List<Node> getChildren() {
@@ -314,6 +309,20 @@ public class RectangleTree<B extends Box> {
 
     private int size() {
       return CollectionUtils.isEmpty(children) ? 0 : children.size();
+    }
+  }
+
+  /**
+   * A pair of nodes used during splitting.
+   */
+  private class NodePair {
+
+    private final Node origin;
+    private final Node splitting;
+
+    public NodePair(Node origin, Node splitting) {
+      this.origin = origin;
+      this.splitting = splitting;
     }
   }
 }
