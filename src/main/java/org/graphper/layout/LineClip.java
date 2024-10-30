@@ -450,7 +450,7 @@ public abstract class LineClip extends LineHandler {
   private FlatPoint calcArrowLinkPoint(FlatPoint clip, double arrowSize, FlatPoint point) {
     FlatPoint dirVector = Vectors.sub(clip, point);
     double dist = dirVector.dist();
-    if (ValueUtils.approximate(dist, 0, 0.001)) {
+    if (ValueUtils.approximate(dist, 0)) {
       return point;
     }
     return Vectors.add(

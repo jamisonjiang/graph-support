@@ -16,35 +16,40 @@
 
 package org.graphper.layout.fdp;
 
-import org.graphper.api.ext.DefaultBox;
-import org.graphper.def.RectangleTree;
+import org.graphper.api.attributes.Splines;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.layout.ANode;
 import org.graphper.util.CollectionUtils;
 
-class BoxGuideLineRouter extends AbstractFdpLineRouter {
+class PolylineRouter extends AroundLineRouter {
 
-  protected RectangleTree<ANode> rtree;
-
-  public BoxGuideLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
+  public PolylineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
-    rtree = new RectangleTree<>(5);
-    fdpGraph.forEach(rtree::insert);
   }
 
   @Override
-  protected void handle(FLine line) {
+  public boolean needDeal(Splines splines) {
+    return splines == Splines.POLYLINE && super.needDeal(splines);
+  }
+
+  @Override
+  protected void drawLine(FLine line, Iterable<FlatPoint> splitPoints) {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
     if (CollectionUtils.isNotEmpty(lineDrawProp)) {
       return;
     }
 
-    FNode from = line.from();
-    FNode to = line.to();
+    lineDrawProp.add(new FlatPoint(line.from().getX(), line.from().getY()));
+    splitPoints.forEach(lineDrawProp::add);
+    lineDrawProp.add(new FlatPoint(line.to().getX(), line.to().getY()));
+  }
 
-    new DefaultBox();
+  public static class PolylineRouterFactory implements LineRouterFactory<PolylineRouter> {
 
-//    rtree.search()
+    @Override
+    public PolylineRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {
+      return new PolylineRouter(drawGraph, fdpGraph);
+    }
   }
 }

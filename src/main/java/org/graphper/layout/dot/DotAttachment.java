@@ -406,17 +406,17 @@ class DotAttachment extends LayoutAttach {
       }
 
       Rectangle cellBox = cell.getCellBox(node);
-      if (ValueUtils.approximate(cellBox.getLeftBorder(), node.getLeftBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getLeftBorder(), node.getLeftBorder())) {
         ports = new ArrayList<>(2);
         ports.add(Port.WEST);
       }
-      if (ValueUtils.approximate(cellBox.getRightBorder(), node.getRightBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getRightBorder(), node.getRightBorder())) {
         if (ports == null) {
           ports = new ArrayList<>(2);
         }
         ports.add(Port.EAST);
       }
-      if (ValueUtils.approximate(cellBox.getUpBorder(), node.getUpBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getUpBorder(), node.getUpBorder())) {
         if (ports == null) {
           ports = new ArrayList<>(2);
         }

@@ -16,13 +16,8 @@
 
 package org.graphper.layout.fdp;
 
-import org.graphper.api.Line;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
-import org.graphper.draw.LineDrawProp;
-import org.graphper.draw.NodeDrawProp;
-import org.graphper.util.CollectionUtils;
 
 public class StraightLineRouter extends AbstractFdpLineRouter {
 
@@ -37,18 +32,7 @@ public class StraightLineRouter extends AbstractFdpLineRouter {
 
   @Override
   protected void handle(FLine fline) {
-    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(fline.getLine());
-    if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-      return;
-    }
-
-    Line line = lineDrawProp.getLine();
-    NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
-    NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
-
-    lineDrawProp.markIsLineSegment();
-    lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
-    lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
+    drawStraightLine(fline);
   }
 
   public static class StraightLineRouterFactory implements LineRouterFactory<StraightLineRouter> {

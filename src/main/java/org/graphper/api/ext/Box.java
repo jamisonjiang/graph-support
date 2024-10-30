@@ -105,6 +105,24 @@ public interface Box {
   }
 
   /**
+   * Returns the left-down corner coordinate.
+   *
+   * @return left-down corner coordinate
+   */
+  default FlatPoint getLeftDown() {
+    return new FlatPoint(getLeftBorder(), getDownBorder());
+  }
+
+  /**
+   * Returns the right-up corner coordinate.
+   *
+   * @return right-up corner coordinate
+   */
+  default FlatPoint getRightUp() {
+    return new FlatPoint(getRightBorder(), getUpBorder());
+  }
+
+  /**
    * Returns the right-down corner coordinate.
    *
    * @return right-down corner coordinate
@@ -130,6 +148,10 @@ public interface Box {
 
     Asserts.illegalArgument(getLeftBorder() > getRightBorder(), HORIZONTAL_ERROR);
     Asserts.illegalArgument(getUpBorder() > getDownBorder(), VERTICAL_ERROR);
+  }
+
+  default boolean positive() {
+    return getArea() > 0;
   }
 
   /**

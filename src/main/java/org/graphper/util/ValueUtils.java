@@ -28,6 +28,18 @@ public class ValueUtils {
 
   /**
    * Compares two numbers within a specified precision within which two double numbers can be
+   * considered approximately equal, the largest tolerance is 0.01.
+   *
+   * @param source    comparison double value
+   * @param target    comparison double value
+   * @return two values are approximately equal
+   */
+  public static boolean approximate(double source, double target) {
+    return approximate(source, target, 0.01);
+  }
+
+  /**
+   * Compares two numbers within a specified precision within which two double numbers can be
    * considered approximately equal.
    *
    * @param source    comparison double value

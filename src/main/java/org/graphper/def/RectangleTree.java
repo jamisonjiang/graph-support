@@ -16,11 +16,12 @@
 
 package org.graphper.def;
 
+import static org.graphper.util.BoxUtils.newCombineBox;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.graphper.api.ext.Box;
-import org.graphper.api.ext.DefaultBox;
 import org.graphper.draw.Rectangle;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -160,16 +161,6 @@ public class RectangleTree<B extends Box> {
     minIncrNode.setUpBorder(minCombineBox.getUpBorder());
     minIncrNode.setDownBorder(minCombineBox.getDownBorder());
     return minIncrNode;
-  }
-
-  // Creates a new bounding box by combining two boxes.
-  private Box newCombineBox(Box origin, Box expand) {
-    return new DefaultBox(
-        Math.min(origin.getLeftBorder(), expand.getLeftBorder()),
-        Math.max(origin.getRightBorder(), expand.getRightBorder()),
-        Math.min(origin.getUpBorder(), expand.getUpBorder()),
-        Math.max(origin.getDownBorder(), expand.getDownBorder())
-    );
   }
 
   /**

@@ -16,9 +16,14 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.Line;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
+import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.LineClip;
 import org.graphper.layout.LineRouter;
+import org.graphper.util.CollectionUtils;
 
 public abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
 
@@ -47,4 +52,23 @@ public abstract class AbstractFdpLineRouter extends LineClip implements LineRout
   }
 
   protected abstract void handle(FLine line);
+
+  protected void drawStraightLine(FLine fLine) {
+    if (fLine == null) {
+      return;
+    }
+
+    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(fLine.getLine());
+    if (CollectionUtils.isNotEmpty(lineDrawProp)) {
+      return;
+    }
+
+    Line line = lineDrawProp.getLine();
+    NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
+    NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
+
+    lineDrawProp.markIsLineSegment();
+    lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
+    lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
+  }
 }

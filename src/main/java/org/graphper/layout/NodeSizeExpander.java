@@ -242,8 +242,8 @@ public class NodeSizeExpander {
         return false;
       }
 
-      return ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1)
-          && !ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1);
+      return ValueUtils.approximate(tailPoint.getY(), headPoint.getY())
+          && !ValueUtils.approximate(tailPoint.getX(), headPoint.getX());
     }
 
     public boolean isOnlySameVer() {
@@ -255,8 +255,8 @@ public class NodeSizeExpander {
         return false;
       }
 
-      return ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1)
-          && !ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1);
+      return ValueUtils.approximate(tailPoint.getX(), headPoint.getX())
+          && !ValueUtils.approximate(tailPoint.getY(), headPoint.getY());
     }
 
     public boolean sameCell() {
