@@ -67,13 +67,12 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
       return;
     }
 
-
     drawLine(line, splitPoints);
   }
 
   private Iterable<FlatPoint> findSplitPoints(FlatPoint n, FlatPoint w, ANode from, ANode to,
                                               int times, int maxTimes) {
-    if (times > maxTimes) {
+    if (times > maxTimes || approximateEquals(n, w)) {
       return null;
     }
 
@@ -120,41 +119,41 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
 
   private FlatPoint findSplitPoint(FlatPoint n, FlatPoint w, Box checkBox) {
     FlatPoint leftUp = checkBox.getLeftUp();
-    if (isNotCross(n, w, leftUp, checkBox)) {
+    if (eitherEquals(n, w, leftUp) && isNotCross(n, w, leftUp, checkBox)) {
       return leftUp;
     }
 
     FlatPoint leftDown = checkBox.getLeftDown();
-    if (isNotCross(n, w, leftDown, checkBox)) {
+    if (eitherEquals(n, w, leftDown) && isNotCross(n, w, leftDown, checkBox)) {
       return leftDown;
     }
 
     FlatPoint rightUp = checkBox.getRightUp();
-    if (isNotCross(n, w, rightUp, checkBox)) {
+    if (eitherEquals(n, w, rightUp) && isNotCross(n, w, rightUp, checkBox)) {
       return rightUp;
     }
 
     FlatPoint rightDown = checkBox.getRightDown();
-    if (isNotCross(n, w, rightDown, checkBox)) {
+    if (eitherEquals(n, w, rightDown) && isNotCross(n, w, rightDown, checkBox)) {
       return rightDown;
     }
 
     double dist;
     double minDist = Double.MAX_VALUE;
     FlatPoint minDistCorner = null;
-    if ((dist = Vectors.disToLine(leftUp, n, w)) < minDist) {
+    if (eitherEquals(n, w, leftUp) && (dist = Vectors.disToLine(leftUp, n, w)) < minDist) {
       minDist = dist;
       minDistCorner = leftUp;
     }
-    if ((dist = Vectors.disToLine(leftDown, n, w)) < minDist) {
+    if (eitherEquals(n, w, leftDown) && (dist = Vectors.disToLine(leftDown, n, w)) < minDist) {
       minDist = dist;
       minDistCorner = leftDown;
     }
-    if ((dist = Vectors.disToLine(rightUp, n, w)) < minDist) {
+    if (eitherEquals(n, w, rightUp) && (dist = Vectors.disToLine(rightUp, n, w)) < minDist) {
       minDist = dist;
       minDistCorner = rightUp;
     }
-    if (Vectors.disToLine(rightDown, n, w) < minDist) {
+    if (eitherEquals(n, w, rightDown) && Vectors.disToLine(rightDown, n, w) < minDist) {
       minDistCorner = rightDown;
     }
 
@@ -174,8 +173,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
                                  FlatPoint source, FlatPoint target) {
     try {
       FlatPoint intersect = Vectors.lineInters(fromPoint, toPoint, source, target);
-      if (ValueUtils.approximate(intersect.getX(), source.getX())
-          || ValueUtils.approximate(intersect.getY(), source.getY())) {
+      if (approximateEquals(intersect, fromPoint) || approximateEquals(intersect, toPoint)) {
         return false;
       }
 
@@ -183,5 +181,14 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
     } catch (UnfeasibleException e) {
       return false;
     }
+  }
+
+  private boolean eitherEquals(FlatPoint p, FlatPoint q, FlatPoint t) {
+    return !t.equals(p) && !t.equals(q);
+  }
+
+  private boolean approximateEquals(FlatPoint p, FlatPoint q) {
+    return ValueUtils.approximate(p.getX(), q.getX())
+        && ValueUtils.approximate(p.getY(), q.getY());
   }
 }
