@@ -68,7 +68,8 @@ public class RouterBox extends DefaultBox implements Serializable {
     return inRange(upBorder, downBorder, y);
   }
 
-  boolean in(FlatPoint point) {
+  @Override
+  public boolean in(FlatPoint point) {
     if (point == null) {
       return false;
     }

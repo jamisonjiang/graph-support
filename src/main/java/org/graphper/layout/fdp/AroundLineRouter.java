@@ -96,7 +96,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
     }
 
     for (ANode node : nodes) {
-      if (node == from || node == to) {
+      if (node == from || node == to || node.in(n) || node.in(w)) {
         continue;
       }
 
@@ -173,14 +173,20 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
                                  FlatPoint source, FlatPoint target) {
     try {
       FlatPoint intersect = Vectors.lineInters(fromPoint, toPoint, source, target);
-      if (approximateEquals(intersect, fromPoint) || approximateEquals(intersect, toPoint)) {
+      if (approximateEquals(intersect, fromPoint) || approximateEquals(intersect, toPoint)
+          || approximateEquals(intersect, source) || approximateEquals(intersect, target)) {
         return false;
       }
 
-      return intersect.getX() < source.getX() == intersect.getX() > target.getX();
+      return inLineSegment(fromPoint, toPoint, intersect)
+          && inLineSegment(source, target, intersect);
     } catch (UnfeasibleException e) {
       return false;
     }
+  }
+
+  private boolean inLineSegment(FlatPoint n, FlatPoint w, FlatPoint intersect) {
+    return intersect.getX() < n.getX() == intersect.getX() > w.getX();
   }
 
   private boolean eitherEquals(FlatPoint p, FlatPoint q, FlatPoint t) {

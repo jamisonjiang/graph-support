@@ -31,6 +31,8 @@ public interface Box {
 
   String VERTICAL_ERROR = "Box's down wall must be greater than up wall";
 
+  String NOT_POSITIVE_BOX = "Box don't have positive area";
+
   /**
    * Returns the left border.
    *
@@ -146,24 +148,39 @@ public interface Box {
       return;
     }
 
-    Asserts.illegalArgument(getLeftBorder() > getRightBorder(), HORIZONTAL_ERROR);
-    Asserts.illegalArgument(getUpBorder() > getDownBorder(), VERTICAL_ERROR);
+    Asserts.illegalArgument(!positive(), NOT_POSITIVE_BOX);
   }
 
   default boolean positive() {
-    return getArea() > 0;
+    return getLeftBorder() < getRightBorder() && getUpBorder() < getDownBorder();
   }
 
   /**
-   * Returns coordinate whether in box area.
+   * Returns true if point in box area.
+   *
+   * @param point flat point
+   * @return true - point in box area false - point not in box area
+   */
+  default boolean in(FlatPoint point) {
+    if (point == null) {
+      return false;
+    }
+    return in(point.getX(), point.getY());
+  }
+
+  /**
+   * Returns true if coordinate in box area.
    *
    * @param x x-coordinate
    * @param y y-coordinate
    * @return true - in box area false - not in box area
    */
   default boolean in(double x, double y) {
-    return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
-        && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
+    if (!positive()) {
+      return false;
+    }
+    return x >= getLeftBorder() + 0.01 && x <= getRightBorder() - 0.01
+        && y >= getUpBorder() + 0.01 && y <= getDownBorder() - 0.01;
   }
 
   default double getArea() {
