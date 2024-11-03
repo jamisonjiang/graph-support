@@ -231,6 +231,8 @@ public class LineHelper {
                                               UnaryOperator<MultiBezierCurve> fitFunction) {
     if (Objects.isNull(line) || CollectionUtils.isEmpty(throughPoints)
         || throughPoints.size() < 2) {
+      lineDrawPropConnect(line, startPoints, true);
+      lineDrawPropConnect(line, endPoints, false);
       return;
     }
 

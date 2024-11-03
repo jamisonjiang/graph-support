@@ -29,7 +29,7 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
   protected static final int MAX_ITERATORS = 24;
 
   protected void straightenSpline(ThirdOrderBezierCurve curve) {
-    curve.adjust(0.6, 0.6);
+//    curve.adjust(0.6, 0.6);
   }
 
   protected void refineSpline(SplineFitInfo splineFitInfo) {
