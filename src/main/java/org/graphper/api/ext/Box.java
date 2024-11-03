@@ -152,7 +152,7 @@ public interface Box {
   }
 
   default boolean positive() {
-    return getLeftBorder() < getRightBorder() && getUpBorder() < getDownBorder();
+    return getLeftBorder() <= getRightBorder() && getUpBorder() <= getDownBorder();
   }
 
   /**

@@ -68,7 +68,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   protected boolean nodeConsumer(DNode node, Object attach) {
     if (node.isVirtual()) {
       if (node.isLabelNode()) {

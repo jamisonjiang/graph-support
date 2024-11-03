@@ -54,6 +54,7 @@ import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 import org.graphper.layout.fdp.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.fdp.PolylineRouter.PolylineRouterFactory;
+import org.graphper.layout.fdp.RoundedRouter.RoundedRouterFactory;
 import org.graphper.layout.fdp.StraightLineRouter.StraightLineRouterFactory;
 import org.graphper.util.FontUtils;
 
@@ -68,6 +69,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   static {
     SPLINES_HANDLERS = Arrays.asList(new PolylineRouterFactory(),
+                                     new RoundedRouterFactory(),
                                      new StraightLineRouterFactory(),
                                      new OrthogonalRouterFactory());
   }
