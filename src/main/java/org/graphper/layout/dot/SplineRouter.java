@@ -16,12 +16,15 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.lineDrawPropConnect;
+import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
+
 import java.util.Collections;
 import java.util.List;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.FlatPoint;
 import org.graphper.def.Curves;
 import org.graphper.def.Curves.MultiBezierCurve;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 

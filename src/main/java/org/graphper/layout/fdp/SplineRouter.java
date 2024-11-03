@@ -16,45 +16,52 @@
 
 package org.graphper.layout.fdp;
 
-import static org.graphper.layout.LineHelper.connectWithRoundedCorner;
+import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.attributes.Splines;
+import org.graphper.def.Curves;
+import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.util.CollectionUtils;
 
-class RoundedRouter extends AroundLineRouter {
+class SplineRouter extends AroundLineRouter {
 
-  public RoundedRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
+  public SplineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
   }
 
   @Override
   public boolean needDeal(Splines splines) {
-    return splines == Splines.ROUNDED && super.needDeal(splines);
+    return splines == Splines.SPLINE && super.needDeal(splines);
   }
 
   @Override
   protected void drawLine(FLine line, Iterable<FlatPoint> splitPoints) {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
 
-    List<FlatPoint> throughPoints = new ArrayList<>();
-    throughPoints.add(new FlatPoint(line.from().getX(), line.from().getY()));
-    splitPoints.forEach(throughPoints::add);
-    throughPoints.add(new FlatPoint(line.to().getX(), line.to().getY()));
+    List<FlatPoint> points = new ArrayList<>();
+    points.add(new FlatPoint(line.from().getX(), line.from().getY()));
+    splitPoints.forEach(points::add);
+    points.add(new FlatPoint(line.to().getX(), line.to().getY()));
 
-    connectWithRoundedCorner(lineDrawProp, null, null, throughPoints, null);
+    MultiBezierCurve curves = Curves.fitCurves(points, 0.04);
+    if (CollectionUtils.isEmpty(curves)) {
+      return;
+    }
+
+    multiBezierCurveToPoints(curves, lineDrawProp::add);
+    lineDrawProp.markIsBesselCurve();
   }
 
-  // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
-
-  static class RoundedRouterFactory implements LineRouterFactory<RoundedRouter> {
+  public static class SplineRouterFactory implements LineRouterFactory<SplineRouter> {
 
     @Override
-    public RoundedRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {
-      return new RoundedRouter(drawGraph, fdpGraph);
+    public SplineRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {
+      return new SplineRouter(drawGraph, fdpGraph);
     }
   }
 }

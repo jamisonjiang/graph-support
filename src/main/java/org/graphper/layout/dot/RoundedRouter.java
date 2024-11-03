@@ -16,11 +16,12 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.connectWithRoundedCorner;
+
 import java.util.List;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.layout.RoundedHelper;
 
 /**
  * Implementation of {@link Splines#ROUNDED}.
@@ -44,10 +45,9 @@ class RoundedRouter extends CurveFitBoxRouter {
     List<ThroughPoint> throughPoints = throughParam.throughPoints;
     LineDrawProp lineDrawProp = throughParam.lineDrawProp;
 
-    RoundedHelper
-        .connectWithRoundedCorner(lineDrawProp, throughParam.fromPortPoints,
-                                  throughParam.toPortPoints, throughPoints,
-                                  curves -> checkFixBox(throughParam.lineRouterBoxes, curves));
+    connectWithRoundedCorner(lineDrawProp, throughParam.fromPortPoints,
+                             throughParam.toPortPoints, throughPoints,
+                             curves -> checkFixBox(throughParam.lineRouterBoxes, curves));
   }
 
   private MultiBezierCurve checkFixBox(List<RouterBox> lineRouterBoxes, MultiBezierCurve curves) {

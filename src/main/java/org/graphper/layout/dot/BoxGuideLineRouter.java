@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -114,27 +116,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         lineCompute(line.getLine(), lineDrawProp, lineRouterBoxes, ports[0], ports[1]);
         lineRouterBoxes.clear();
       }
-    }
-  }
-
-  protected void lineDrawPropConnect(LineDrawProp lineDrawProp,
-                                     List<FlatPoint> target, boolean before) {
-    if (Objects.isNull(lineDrawProp) || CollectionUtils.isEmpty(target)) {
-      return;
-    }
-
-    if (before) {
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        target.remove(target.size() - 1);
-      }
-      for (int i = target.size() - 1; i >= 0; i--) {
-        lineDrawProp.add(0, target.get(i));
-      }
-    } else {
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        target.remove(0);
-      }
-      lineDrawProp.addAll(target);
     }
   }
 

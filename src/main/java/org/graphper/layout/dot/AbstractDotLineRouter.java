@@ -18,13 +18,11 @@ package org.graphper.layout.dot;
 
 import static org.graphper.util.EnvProp.CLIP_DIST_ERROR;
 
-import java.util.List;
 import java.util.function.Consumer;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.Curves;
-import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
@@ -109,18 +107,6 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
    */
   protected void lineConsumer(DLine line, Object attach) {
   }
-
-  /**
-   * A piecewise cubic Bessel converted to control points, adjacent curves share the same control
-   * point.
-   *
-   * @param curves piecewise cubic Bessel
-   * @return cubic Bessel control points
-   */
-  protected List<FlatPoint> multiBezierCurveToPoints(MultiBezierCurve curves) {
-    return LineHelper.multiBezierCurveToPoints(curves);
-  }
-
 
   /**
    * According to the shape object of the specified coordinates and size, cut the specified bessel

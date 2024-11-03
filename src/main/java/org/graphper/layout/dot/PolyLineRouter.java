@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.lineDrawPropConnect;
+
 import org.graphper.api.attributes.Splines;
 
 /**
