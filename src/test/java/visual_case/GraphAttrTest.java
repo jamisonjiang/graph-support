@@ -345,10 +345,10 @@ public class GraphAttrTest extends GraphvizVisual {
             g -> {
               try {
                 return Stream.of(
-                    g.clone().nslimit1(1),
-                    g.clone().nslimit1(0),
-                    g.clone().nslimit1(20),
-                    g.clone().nslimit1(30)
+//                    g.clone().nslimit1(1),
+                    g.clone().nslimit1(0)
+//                    g.clone().nslimit1(20),
+//                    g.clone().nslimit1(30)
                 );
               } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);

@@ -133,9 +133,9 @@ public class RoundedHelper {
 
     MultiBezierCurve curves;
     if (d1 < radian || d2 < radian) {
-      return Curves.fitCurves(Arrays.asList(p1, p3),
-                              lt != null ? Vectors.sub(p2, lt) : null,
-                              rt != null ? Vectors.sub(p3, rt) : null, 0);
+      curves = Curves.fitCurves(Arrays.asList(p1, p3),
+                                lt != null ? Vectors.sub(p2, lt) : null,
+                                rt != null ? Vectors.sub(p3, rt) : null, 0);
 
     } else {
       FlatPoint dir = Vectors.sub(p2, p1);
@@ -157,7 +157,6 @@ public class RoundedHelper {
     }
 
     return fitFunction == null ? curves : fitFunction.apply(curves);
-//    return curves;
   }
 
   private static boolean isCorner(FlatPoint p1, FlatPoint p2, FlatPoint p3) {
