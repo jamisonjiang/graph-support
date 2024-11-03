@@ -20,7 +20,6 @@ import static org.graphper.layout.LineHelper.connectWithRoundedCorner;
 
 import java.util.List;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.draw.LineDrawProp;
 
 /**
@@ -47,28 +46,7 @@ class RoundedRouter extends CurveFitBoxRouter {
 
     connectWithRoundedCorner(lineDrawProp, throughParam.fromPortPoints,
                              throughParam.toPortPoints, throughPoints,
-                             curves -> checkFixBox(throughParam.lineRouterBoxes, curves));
-  }
-
-  private MultiBezierCurve checkFixBox(List<RouterBox> lineRouterBoxes, MultiBezierCurve curves) {
-    SplineFitInfo splineFitInfo = splineIsFit(curves, lineRouterBoxes, 0,
-                                              lineRouterBoxes.size() - 1, false);
-    if (splineFitInfo.isFit()) {
-      return curves;
-    }
-
-    int count = 0;
-    // Always try to adjust the curve so that it fits the box.
-    do {
-      refineSpline(splineFitInfo);
-      splineFitInfo = splineIsFit(curves, lineRouterBoxes, 0, lineRouterBoxes.size() - 1, true);
-      if (splineFitInfo.isFit()) {
-        break;
-      }
-      count++;
-    } while (count <= MAX_ITERATORS);
-
-    return curves;
+                             curves -> fixBox(throughParam.lineRouterBoxes, curves));
   }
 
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------

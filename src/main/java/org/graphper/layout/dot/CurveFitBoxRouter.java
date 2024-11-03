@@ -23,17 +23,42 @@ import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
+import org.graphper.util.CollectionUtils;
 
 abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
   protected static final int MAX_ITERATORS = 24;
 
-  protected void straightenSpline(ThirdOrderBezierCurve curve) {
-//    curve.adjust(0.6, 0.6);
-  }
-
   protected void refineSpline(SplineFitInfo splineFitInfo) {
     splineFitInfo.curve.adjust(0.9, 0.9);
+  }
+
+  protected MultiBezierCurve fixBox(List<RouterBox> lineRouterBoxes, MultiBezierCurve curves) {
+    SplineFitInfo splineFitInfo = splineIsFit(curves, lineRouterBoxes,false);
+    if (splineFitInfo.isFit()) {
+      return curves;
+    }
+
+    int count = 0;
+    // Always try to adjust the curve so that it fits the box.
+    do {
+      refineSpline(splineFitInfo);
+      splineFitInfo = splineIsFit(curves, lineRouterBoxes, true);
+      if (splineFitInfo.isFit()) {
+        break;
+      }
+      count++;
+    } while (count <= MAX_ITERATORS);
+
+    return curves;
+  }
+
+  protected SplineFitInfo splineIsFit(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
+                                      boolean needOffset) {
+    if (CollectionUtils.isEmpty(curves) || CollectionUtils.isEmpty(lineRouterBoxes)) {
+      return null;
+    }
+    return splineIsFit(curves, lineRouterBoxes, 0, lineRouterBoxes.size() - 1, needOffset);
   }
 
   protected SplineFitInfo splineIsFit(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
@@ -42,13 +67,14 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
   }
 
   protected SplitInfo splineSplit(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
-                                List<ThroughPoint> throughPoints, int pointStart,
-                                int pointEnd, int boxStart, int boxEnd) {
+                                  List<ThroughPoint> throughPoints, int pointStart,
+                                  int pointEnd, int boxStart, int boxEnd) {
     if (pointEnd - pointStart < 2) {
       return null;
     }
 
-    SplineFitInfo splineFitInfo = splineCheck(curves, lineRouterBoxes, true, false, boxStart, boxEnd);
+    SplineFitInfo splineFitInfo = splineCheck(curves, lineRouterBoxes, true, false, boxStart,
+                                              boxEnd);
 
     // Loop through all current control points, looking for switched control points and guide boxes.
     for (int i = pointStart; i <= pointEnd; i++) {
@@ -141,8 +167,10 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
           double ratio = Math.abs(
               minY != maxY
-                  ? (Math.abs(lineRouterBox.getUpBorder() + lineRouterBox.getDownBorder()) / 2 - minY) /
-                  (maxY - minY)
+                  ?
+                  (Math.abs(lineRouterBox.getUpBorder() + lineRouterBox.getDownBorder()) / 2 - minY)
+                      /
+                      (maxY - minY)
                   : 0.5
           );
           ratio = ratio > 1 ? 1 : ratio;
@@ -188,7 +216,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
     // There is at least one vertex whose coordinates are within the y interval,
     // and it is accessed from two directions until it exceeds the y area.
-    if (!inBox(curve, p1, routerBox, unit, currentSegment, -1, minY, maxY, c -> 0 < c, splineFitInfo)
+    if (!inBox(curve, p1, routerBox, unit, currentSegment, -1, minY, maxY, c -> 0 < c,
+               splineFitInfo)
         && !splineFitInfo.needOffset) {
       return false;
     }
@@ -222,7 +251,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
         continue;
       }
 
-      if (!approximatelyInBoxY(routerBox, p1.getY()) && !approximatelyInBoxY(routerBox, p2.getY())) {
+      if (!approximatelyInBoxY(routerBox, p1.getY()) && !approximatelyInBoxY(routerBox,
+                                                                             p2.getY())) {
         break;
       }
 

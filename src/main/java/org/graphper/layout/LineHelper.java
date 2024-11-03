@@ -229,14 +229,17 @@ public class LineHelper {
                                               List<FlatPoint> endPoints,
                                               List<? extends FlatPoint> throughPoints,
                                               UnaryOperator<MultiBezierCurve> fitFunction) {
-    if (Objects.isNull(line) || CollectionUtils.isEmpty(throughPoints)
-        || throughPoints.size() < 2) {
+    if (Objects.isNull(line)) {
+      return;
+    }
+
+    line.markIsBesselCurve();
+    if (CollectionUtils.isEmpty(throughPoints) || throughPoints.size() < 2) {
       lineDrawPropConnect(line, startPoints, true);
       lineDrawPropConnect(line, endPoints, false);
       return;
     }
 
-    line.markIsBesselCurve();
     if (throughPoints.size() == 2) {
       FlatPoint first = throughPoints.get(0);
       FlatPoint last = throughPoints.get(throughPoints.size() - 1);

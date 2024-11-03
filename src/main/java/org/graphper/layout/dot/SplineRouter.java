@@ -19,14 +19,12 @@ package org.graphper.layout.dot;
 import static org.graphper.layout.LineHelper.lineDrawPropConnect;
 import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.Curves;
 import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.util.CollectionUtils;
 
 /**
  * Implementation of {@link Splines#SPLINE}.
@@ -55,25 +53,19 @@ class SplineRouter extends CurveFitBoxRouter {
 
     List<FlatPoint> fromPortPoints = throughParam.fromPortPoints;
     List<FlatPoint> toPortPoints = throughParam.toPortPoints;
+    lineDrawProp.markIsBesselCurve();
 
-    if (CollectionUtils.isEmpty(throughParam.throughPoints)) {
+    if (throughParam.throughPoints.size() < 2) {
       lineDrawPropConnect(lineDrawProp, fromPortPoints, true);
       lineDrawPropConnect(lineDrawProp, toPortPoints, false);
       return;
     }
 
     MultiBezierCurve curves = Curves.fitCurves(throughParam.throughPoints, 0.04);
+    fixBox(throughParam.lineRouterBoxes, curves);
     multiBezierCurveToPoints(curves, lineDrawProp::add);
     lineDrawPropConnect(lineDrawProp, throughParam.fromPortPoints, true);
     lineDrawPropConnect(lineDrawProp, throughParam.toPortPoints, false);
-    lineDrawProp.markIsBesselCurve();
-  }
-
-  private void addPoint(ThroughParam throughParam, FlatPoint point) {
-    if (CollectionUtils.isEmpty(throughParam.throughPoints)) {
-      throughParam.throughPoints = new ArrayList<>(2);
-    }
-    throughParam.throughPoints.add(new ThroughPoint(point));
   }
 
   // --------------------------------------------- SplineRouterFactory ---------------------------------------------
