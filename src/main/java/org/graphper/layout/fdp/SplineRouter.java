@@ -44,9 +44,7 @@ class SplineRouter extends AroundLineRouter {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
 
     List<FlatPoint> points = new ArrayList<>();
-    points.add(new FlatPoint(line.from().getX(), line.from().getY()));
     splitPoints.forEach(points::add);
-    points.add(new FlatPoint(line.to().getX(), line.to().getY()));
 
     MultiBezierCurve curves = Curves.fitCurves(points, 0.04);
     if (CollectionUtils.isEmpty(curves)) {

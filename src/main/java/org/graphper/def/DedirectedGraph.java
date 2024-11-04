@@ -141,7 +141,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> adjacent(Object v) {
-    return new BiConcatIterable<>(outAdjacent(v), inAdjacent(v));
+    return new UnaryConcatIterable<>(outAdjacent(v), inAdjacent(v));
   }
 
   /**
@@ -153,7 +153,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> inAdjacent(Object v) {
-    return new BiConcatIterable<>(reDigraph.adjacent(v), Collections.emptyList());
+    return new UnaryConcatIterable<>(reDigraph.adjacent(v), Collections.emptyList());
   }
 
   /**
@@ -165,6 +165,6 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> outAdjacent(Object v) {
-    return new BiConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
   }
 }

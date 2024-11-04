@@ -314,7 +314,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    */
   @Override
   public Iterable<E> outAdjacent(Object v) {
-    return new BiConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
   }
 
   @Override
@@ -349,7 +349,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
 
   // ------------------------------------------- Subclass -------------------------------------------
 
-  static class ComConcatItr<V, E extends DirectedEdge<V, E>> extends BiConcatIterable<E> {
+  static class ComConcatItr<V, E extends DirectedEdge<V, E>> extends UnaryConcatIterable<E> {
 
     public ComConcatItr(Iterable<? extends E>... iterables) {
       super(iterables);

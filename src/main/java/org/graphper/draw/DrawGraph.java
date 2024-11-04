@@ -29,7 +29,7 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 
@@ -113,7 +113,7 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public Iterable<NodeDrawProp> nodes(boolean filterCell) {
     if (filterCell) {
-      return new BiConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());
+      return new UnaryConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());
     }
     return nodeDrawPropMap.values();
   }

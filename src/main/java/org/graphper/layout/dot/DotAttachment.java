@@ -29,7 +29,7 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.Port;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -236,7 +236,7 @@ class DotAttachment extends LayoutAttach {
     }
 
     iterables.add(container.clusters());
-    return new BiConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(iterables);
   }
 
   static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {

@@ -35,15 +35,15 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class SelfLineTest extends GraphvizVisual {
 
-  static Iterable<Port> ALL_PORTS = new BiConcatIterable<>(Collections.singletonList(null),
-                                                           Arrays.asList(Port.values()));
+  static Iterable<Port> ALL_PORTS = new UnaryConcatIterable<>(Collections.singletonList(null),
+                                                              Arrays.asList(Port.values()));
 
   static Stream<GraphvizBuilder> portCases() {
     Node a = Node.builder().label("a").shape(NodeShapeEnum.RECT).build();

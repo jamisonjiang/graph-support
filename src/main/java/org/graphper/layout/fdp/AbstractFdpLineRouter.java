@@ -16,13 +16,13 @@
 
 package org.graphper.layout.fdp;
 
-import org.graphper.api.Line;
-import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.ANode;
 import org.graphper.layout.LineClip;
 import org.graphper.layout.LineRouter;
+import org.graphper.layout.PortHelper;
+import org.graphper.layout.PortHelper.PortPoint;
 import org.graphper.util.CollectionUtils;
 
 public abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
@@ -63,12 +63,13 @@ public abstract class AbstractFdpLineRouter extends LineClip implements LineRout
       return;
     }
 
-    Line line = lineDrawProp.getLine();
-    NodeDrawProp head = drawGraph.getNodeDrawProp(line.head());
-    NodeDrawProp tail = drawGraph.getNodeDrawProp(line.tail());
+    ANode tail = layoutGraph.getNode(lineDrawProp.getLine().tail());
+    ANode head = layoutGraph.getNode(lineDrawProp.getLine().head());
+    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
+    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
 
     lineDrawProp.markIsLineSegment();
-    lineDrawProp.add(new FlatPoint(tail.getX(), tail.getY()));
-    lineDrawProp.add(new FlatPoint(head.getX(), head.getY()));
+    lineDrawProp.add(tailPoint);
+    lineDrawProp.add(headPoint);
   }
 }

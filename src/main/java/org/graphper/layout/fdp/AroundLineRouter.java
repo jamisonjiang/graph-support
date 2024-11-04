@@ -21,7 +21,7 @@ import java.util.List;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.RectangleTree;
 import org.graphper.def.UnfeasibleException;
@@ -29,6 +29,8 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.ANode;
+import org.graphper.layout.PortHelper;
+import org.graphper.layout.PortHelper.PortPoint;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
 
@@ -66,6 +68,13 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
       drawStraightLine(line);
       return;
     }
+
+    ANode tail = layoutGraph.getNode(lineDrawProp.getLine().tail());
+    ANode head = layoutGraph.getNode(lineDrawProp.getLine().head());
+    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
+    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
+    splitPoints = new UnaryConcatIterable<>(Collections.singletonList(tailPoint),
+                                            splitPoints, Collections.singletonList(headPoint));
 
     drawLine(line, splitPoints);
   }
@@ -111,7 +120,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
 
       Iterable<FlatPoint> group1 = findSplitPoints(n, splitPoint, from, to, times + 1, maxTimes);
       Iterable<FlatPoint> group2 = findSplitPoints(splitPoint, w, from, to, times + 1, maxTimes);
-      return new BiConcatIterable<>(group1, Collections.singleton(splitPoint), group2);
+      return new UnaryConcatIterable<>(group1, Collections.singleton(splitPoint), group2);
     }
 
     return null;

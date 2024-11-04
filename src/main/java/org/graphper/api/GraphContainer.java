@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.graphper.api.Subgraph.IntegrationSubgraphBuilder;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
@@ -206,7 +206,7 @@ public abstract class GraphContainer extends VertexIndex {
       return Collections.emptyList();
     }
 
-    return new BiConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(iterables);
   }
 
   /**
@@ -273,7 +273,7 @@ public abstract class GraphContainer extends VertexIndex {
       return Collections.emptyList();
     }
 
-    return new BiConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(iterables);
   }
 
   /**

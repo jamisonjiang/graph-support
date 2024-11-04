@@ -18,7 +18,7 @@ package org.graphper.layout.dot;
 
 import java.util.Objects;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.ALine;
@@ -64,10 +64,10 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
 
     @Override
     protected Iterable<ANode> nodes() {
-      BiConcatIterable<ANode> nodeConcatIterable = null;
+      UnaryConcatIterable<ANode> nodeConcatIterable = null;
       for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
         RankNode rankNode = rankContent.get(i);
-        nodeConcatIterable = new BiConcatIterable<>(nodeConcatIterable, rankNode);
+        nodeConcatIterable = new UnaryConcatIterable<>(nodeConcatIterable, rankNode);
       }
       Objects.requireNonNull(nodeConcatIterable);
       return nodeConcatIterable;

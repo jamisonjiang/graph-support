@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.graphper.api.Line;
 import org.graphper.api.ext.Box;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
@@ -136,7 +136,7 @@ public abstract class Maze {
     if (guideVertex == null) {
       return cellMap.values();
     }
-    return new BiConcatIterable<>(cellMap.values(), guideVertex.keySet());
+    return new UnaryConcatIterable<>(cellMap.values(), guideVertex.keySet());
   }
 
   private void addGuideBox(Box box) {

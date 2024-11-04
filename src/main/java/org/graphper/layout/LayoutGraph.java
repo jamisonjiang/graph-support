@@ -30,7 +30,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.ConcatIterable;
 import org.graphper.def.Digraph.EdgeDigraph;
 import org.graphper.def.EdgeOpGraph;
@@ -283,7 +283,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     }
 
     iterables.add(container.clusters());
-    return new BiConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(iterables);
   }
 
   public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(
@@ -407,11 +407,11 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     private Set<Node> repeatNodes;
 
     private List<Line> patchLines;
-    private BiConcatIterable<Node> containerNodes;
+    private UnaryConcatIterable<Node> containerNodes;
 
     private GraphGroup(GraphContainer container) {
       this.container = container;
-      this.containerNodes = new BiConcatIterable<>(
+      this.containerNodes = new UnaryConcatIterable<>(
           node -> repeatNodes == null || !repeatNodes.contains(node), container.nodes());
     }
 
@@ -431,7 +431,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
       return new ConcatIterable<>(this::nodeFilter, nodeMap::get, containerNodes, repeatNodes);
     }
 
-    private BiConcatIterable<Line> lines() {
+    private UnaryConcatIterable<Line> lines() {
       List<Iterable<Line>> iterables = null;
       for (Cluster cluster : container.clusters()) {
         GraphGroup graphGroup = containerMap().get(cluster);
@@ -445,11 +445,11 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
         iterables.add(graphGroup.lines());
       }
       if (CollectionUtils.isEmpty(iterables)) {
-        return new BiConcatIterable<>(this::lineFilter, container.lines(), patchLines);
+        return new UnaryConcatIterable<>(this::lineFilter, container.lines(), patchLines);
       }
 
-      iterables.add(new BiConcatIterable<>(this::lineFilter, container.lines(), patchLines));
-      return new BiConcatIterable<>(this::lineFilter, iterables);
+      iterables.add(new UnaryConcatIterable<>(this::lineFilter, container.lines(), patchLines));
+      return new UnaryConcatIterable<>(this::lineFilter, iterables);
     }
 
     private void addRepeatNode(Node node) {

@@ -40,9 +40,7 @@ class PolylineRouter extends AroundLineRouter {
       return;
     }
 
-    lineDrawProp.add(new FlatPoint(line.from().getX(), line.from().getY()));
     splitPoints.forEach(lineDrawProp::add);
-    lineDrawProp.add(new FlatPoint(line.to().getX(), line.to().getY()));
   }
 
   public static class PolylineRouterFactory implements LineRouterFactory<PolylineRouter> {

@@ -41,9 +41,7 @@ class RoundedRouter extends AroundLineRouter {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
 
     List<FlatPoint> throughPoints = new ArrayList<>();
-    throughPoints.add(new FlatPoint(line.from().getX(), line.from().getY()));
     splitPoints.forEach(throughPoints::add);
-    throughPoints.add(new FlatPoint(line.to().getX(), line.to().getY()));
 
     connectWithRoundedCorner(lineDrawProp, null, null, throughPoints, null);
   }

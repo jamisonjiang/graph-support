@@ -25,14 +25,14 @@ import java.util.function.Predicate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class BiConcatIterableTest {
+public class UnaryConcatIterableTest {
 
   @Test
   public void testConcatIterator() {
     List<Integer> l1 = Arrays.asList(1, 2, 3, 4, 5);
     List<Integer> l2 = Arrays.asList(6, 7, 8, 9, 10);
 
-    BiConcatIterable<Integer> concatIterable = new BiConcatIterable<>(l1, l2);
+    UnaryConcatIterable<Integer> concatIterable = new UnaryConcatIterable<>(l1, l2);
 
     int i = 1;
     for (Integer integer : concatIterable) {
@@ -46,7 +46,7 @@ public class BiConcatIterableTest {
     List<Integer> l2 = Arrays.asList(6, 7, 8, 9, 10);
     List<Integer> l3 = Arrays.asList(11, 12, 13, 14, 15);
 
-    BiConcatIterable<Integer> concatIterable = new BiConcatIterable<>(l1, l2, l3);
+    UnaryConcatIterable<Integer> concatIterable = new UnaryConcatIterable<>(l1, l2, l3);
 
     Iterator<Integer> iterator = concatIterable.iterator();
 
@@ -66,15 +66,15 @@ public class BiConcatIterableTest {
     List<Integer> l3 = Arrays.asList(11, 12, 13, 14, 15);
     List<Integer> l4 = Arrays.asList(16, 17, 18);
 
-    BiConcatIterable<Integer> concatIterable = new BiConcatIterable<>(
-        new BiConcatIterable<>(l1, l2),
-        new BiConcatIterable<>(l3, l4)
+    UnaryConcatIterable<Integer> concatIterable = new UnaryConcatIterable<>(
+        new UnaryConcatIterable<>(l1, l2),
+        new UnaryConcatIterable<>(l3, l4)
     );
 
     List<Integer> l5 = Arrays.asList(19, 20);
     List<Integer> l6 = Arrays.asList(21, 22);
-    concatIterable = new BiConcatIterable<>(concatIterable, l5, l6);
-    concatIterable = new BiConcatIterable<>(concatIterable, Collections.emptyList());
+    concatIterable = new UnaryConcatIterable<>(concatIterable, l5, l6);
+    concatIterable = new UnaryConcatIterable<>(concatIterable, Collections.emptyList());
 
     int i = 1;
     for (Integer integer : concatIterable) {
@@ -97,15 +97,15 @@ public class BiConcatIterableTest {
       return integer % 2 == 0;
     };
 
-    BiConcatIterable<Integer> concatIterable = new BiConcatIterable<>(
-        new BiConcatIterable<>(l1, l2),
-        new BiConcatIterable<>(l3, l4)
+    UnaryConcatIterable<Integer> concatIterable = new UnaryConcatIterable<>(
+        new UnaryConcatIterable<>(l1, l2),
+        new UnaryConcatIterable<>(l3, l4)
     );
 
     List<Integer> l5 = Arrays.asList(19, 20);
     List<Integer> l6 = Arrays.asList(21, 22);
-    concatIterable = new BiConcatIterable<>(concatIterable, l5, l6);
-    concatIterable = new BiConcatIterable<>(filter, concatIterable, Collections.emptyList());
+    concatIterable = new UnaryConcatIterable<>(concatIterable, l5, l6);
+    concatIterable = new UnaryConcatIterable<>(filter, concatIterable, Collections.emptyList());
 
 
     int i = 2;

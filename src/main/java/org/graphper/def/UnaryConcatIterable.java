@@ -27,7 +27,7 @@ import java.util.function.Predicate;
  * @param <T> element type
  * @author Jamison Jiang
  */
-public class BiConcatIterable<T> extends ConcatIterable<T, T> {
+public class UnaryConcatIterable<T> extends ConcatIterable<T, T> {
 
   /**
    * Creates a combined iterator from the passed iterator array.
@@ -36,7 +36,7 @@ public class BiConcatIterable<T> extends ConcatIterable<T, T> {
    * @throws NullPointerException if the converter is null or iterables is empty
    */
   @SafeVarargs
-  public BiConcatIterable(Iterable<? extends T>... iterables) {
+  public UnaryConcatIterable(Iterable<? extends T>... iterables) {
     super(Function.identity(), iterables);
   }
 
@@ -49,7 +49,7 @@ public class BiConcatIterable<T> extends ConcatIterable<T, T> {
    * @throws NullPointerException if the converter is null or iterables is empty
    */
   @SafeVarargs
-  public BiConcatIterable(Predicate<? super T> filter, Iterable<? extends T>... iterables) {
+  public UnaryConcatIterable(Predicate<? super T> filter, Iterable<? extends T>... iterables) {
     super(filter, Function.identity(), iterables);
   }
 
@@ -60,7 +60,7 @@ public class BiConcatIterable<T> extends ConcatIterable<T, T> {
    * @throws IllegalArgumentException empty iterator collection
    * @throws NullPointerException     if the converter is null
    */
-  public BiConcatIterable(Collection<? extends Iterable<? extends T>> iterables) {
+  public UnaryConcatIterable(Collection<? extends Iterable<? extends T>> iterables) {
     super(Function.identity(), iterables);
   }
 
@@ -73,8 +73,8 @@ public class BiConcatIterable<T> extends ConcatIterable<T, T> {
    * @throws IllegalArgumentException empty iterator collection
    * @throws NullPointerException     if the converter is null
    */
-  public BiConcatIterable(Predicate<? super T> filter,
-                          Collection<? extends Iterable<? extends T>> iterables) {
+  public UnaryConcatIterable(Predicate<? super T> filter,
+                             Collection<? extends Iterable<? extends T>> iterables) {
     super(filter, Function.identity(), iterables);
   }
 }
