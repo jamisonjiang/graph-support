@@ -132,10 +132,12 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     public void setNodeLocation(FNode node, double x, double y) {
       initStatus = false;
       node.setLocation(x, y);
-      area.updateXAxisRange(node.getLeftBorder());
-      area.updateXAxisRange(node.getRightBorder());
-      area.updateYAxisRange(node.getUpBorder());
-      area.updateYAxisRange(node.getDownBorder());
+      double w2 = node.wd2();
+      double h2 = node.ht2();
+      area.updateXAxisRange(node.getX() - w2);
+      area.updateXAxisRange(node.getX() + w2);
+      area.updateYAxisRange(node.getY() - h2);
+      area.updateYAxisRange(node.getY() + h2);
     }
 
     public void initArea() {
