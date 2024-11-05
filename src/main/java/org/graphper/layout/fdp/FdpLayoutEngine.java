@@ -94,9 +94,6 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
   protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
                               GraphContainer parentContainer) {
     FdpAttachment fdpAttachment = (FdpAttachment) attachment;
-    if (parentContainer.isCluster()) {
-      fdpAttachment.markHaveCluster();
-    }
 
     FdpGraph fdpGraph = fdpAttachment.getFdpGraph();
     FNode fn = fdpGraph.getNode(node);
@@ -110,7 +107,10 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
       fn.setNodeSep(drawGraph.getGraphviz().graphAttrs().getNodeSep());
     }
 
-    fdpGraph.add(fn, parentContainer);
+    parentContainer = fdpGraph.add(fn, parentContainer);
+    if (parentContainer.isCluster()) {
+      fdpAttachment.markHaveCluster();;
+    }
   }
 
   @Override
