@@ -109,7 +109,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   public static Port backPort(Port port, DrawGraph drawGraph) {
-    if (port == null || drawGraph == null) {
+    if (port == null || notNeedMove(drawGraph)) {
       return port;
     }
     for (Port p : Port.values()) {
@@ -121,7 +121,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   public static Port movePort(Port port, DrawGraph drawGraph) {
-    if (port == null || drawGraph == null || drawGraph.notNeedFlip()) {
+    if (port == null || notNeedMove(drawGraph)) {
       return port;
     }
     switch (drawGraph.rankdir()) {
