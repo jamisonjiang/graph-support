@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import org.graphper.api.attributes.Splines;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.LineRouter;
@@ -25,9 +26,20 @@ import org.graphper.layout.LineRouter;
  *
  * @param <T> router type
  */
-interface DotLineRouterFactory<T extends LineRouter> {
+abstract class DotLineRouterFactory<T extends LineRouter> {
 
-  T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,
-                EdgeDedigraph<DNode, DLine> digraphProxy);
+  /**
+   * Determine whether the current router needs to process the current {@link Splines } attribute.
+   *
+   * @param splines Splines
+   * @return <tt>true</tt> if router need handle the splines attribute
+   */
+  protected boolean needDeal(Splines splines) {
+    return splines != Splines.NONE;
+  }
+
+  protected abstract T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph,
+                                   RankContent rankContent,
+                                   EdgeDedigraph<DNode, DLine> digraphProxy);
 }
 

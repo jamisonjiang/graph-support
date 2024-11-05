@@ -41,11 +41,6 @@ import org.graphper.util.CollectionUtils;
 class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.LINE && super.needDeal(splines);
-  }
-
-  @Override
   public void route() {
     DNode[] to = {null};
     // Record parallel lines cross multi ranks, these lines not be able added to DLine#addParallelEdge
@@ -195,6 +190,11 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
 
   static class LineRouterBuilder extends AbstractDotLineRouterFactory<StraightLineRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.LINE && super.needDeal(splines);
+    }
 
     @Override
     protected StraightLineRouter newInstance() {

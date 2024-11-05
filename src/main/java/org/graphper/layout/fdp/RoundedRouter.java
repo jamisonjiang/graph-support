@@ -20,6 +20,7 @@ import static org.graphper.layout.LineHelper.connectWithRoundedCorner;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
@@ -29,11 +30,6 @@ class RoundedRouter extends AroundLineRouter {
 
   public RoundedRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
-  }
-
-  @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.ROUNDED && super.needDeal(splines);
   }
 
   @Override
@@ -48,7 +44,12 @@ class RoundedRouter extends AroundLineRouter {
 
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
 
-  static class RoundedRouterFactory implements LineRouterFactory<RoundedRouter> {
+  static class RoundedRouterFactory extends LineRouterFactory<RoundedRouter> {
+
+    @Override
+    public boolean needDeal(Graphviz graphviz) {
+      return graphviz.graphAttrs().getSplines() == Splines.ROUNDED;
+    }
 
     @Override
     public RoundedRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {

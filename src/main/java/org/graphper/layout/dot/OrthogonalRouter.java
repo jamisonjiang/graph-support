@@ -36,11 +36,6 @@ import org.graphper.layout.dot.RankContent.RankNode;
 class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.ORTHO && super.needDeal(splines);
-  }
-
-  @Override
   public void route() {
     DotOrthogonalRouter router = new DotOrthogonalRouter(rankContent, drawGraph,
                                                          layoutGraph, digraphProxy);
@@ -87,6 +82,11 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
 
   static class OrthogonalRouterFactory extends
       AbstractDotLineRouterFactory<OrthogonalRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.ORTHO && super.needDeal(splines);
+    }
 
     @Override
     protected OrthogonalRouter newInstance() {

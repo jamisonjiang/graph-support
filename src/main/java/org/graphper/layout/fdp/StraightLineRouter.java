@@ -16,6 +16,7 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.DrawGraph;
 
@@ -26,16 +27,16 @@ public class StraightLineRouter extends AbstractFdpLineRouter {
   }
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return Splines.LINE == splines;
-  }
-
-  @Override
   protected void handle(FLine fline) {
     drawStraightLine(fline);
   }
 
-  public static class StraightLineRouterFactory implements LineRouterFactory<StraightLineRouter> {
+  public static class StraightLineRouterFactory extends LineRouterFactory<StraightLineRouter> {
+
+    @Override
+    public boolean needDeal(Graphviz graphviz) {
+      return Splines.LINE == graphviz.graphAttrs().getSplines();
+    }
 
     @Override
     public StraightLineRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {

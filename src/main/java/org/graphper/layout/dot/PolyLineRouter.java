@@ -31,11 +31,6 @@ class PolyLineRouter extends BoxGuideLineRouter {
   }
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.POLYLINE && super.needDeal(splines);
-  }
-
-  @Override
   protected boolean curveLine() {
     return false;
   }
@@ -49,6 +44,11 @@ class PolyLineRouter extends BoxGuideLineRouter {
   }
 
   static class PolyLineRouterFactory extends AbstractDotLineRouterFactory<PolyLineRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.POLYLINE && super.needDeal(splines);
+    }
 
     @Override
     protected PolyLineRouter newInstance() {

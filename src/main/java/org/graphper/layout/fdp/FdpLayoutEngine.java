@@ -863,12 +863,12 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     FdpGraph fdpGraph = attachment.getFdpGraph();
     // spline handler hand out
     for (LineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
-      LineRouter lineRouter = linesHandlerFactory.newInstance(drawGraph, fdpGraph);
-
-      if (lineRouter.needDeal(splines)) {
-        lineRouter.route();
-        break;
+      if (!linesHandlerFactory.needDeal(drawGraph.getGraphviz())) {
+        continue;
       }
+
+      LineRouter lineRouter = linesHandlerFactory.newInstance(drawGraph, fdpGraph);
+      lineRouter.route();
     }
   }
 

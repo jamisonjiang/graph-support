@@ -46,6 +46,7 @@ public abstract class Maze {
   private static final int DOWN_ACCESSED = 0x20;
   private static final int LEFT_UP_CORNET = 0x40;
   private static final double INTERNAL_OFFSET = 0.01;
+  private boolean checkMaze;
   private double minBorderExtendSize = 20;
   private OrthoVisGraph ovg;
   private final DrawGraph drawGraph;
@@ -55,8 +56,13 @@ public abstract class Maze {
   protected Map<Line, List<GuideInfo>> guideBoxes;
 
   protected Maze(DrawGraph drawGraph) {
+    this(drawGraph, true);
+  }
+
+  protected Maze(DrawGraph drawGraph, boolean checkMaze) {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
+    this.checkMaze = checkMaze;
     this.cellMap = new LinkedHashMap<>();
     this.minBorderExtendSize = Math.max(this.minBorderExtendSize,
                                         drawGraph.getGraphviz().graphAttrs().getNodeSep());
@@ -72,7 +78,9 @@ public abstract class Maze {
     extendGrid(gridBuilder);
 
     // Add obstacle record for grid
-    createOrthoVisGraph(gridBuilder);
+    if (checkMaze) {
+      createOrthoVisGraph(gridBuilder);
+    }
   }
 
   public List<GuideInfo> getGuideInfos(Line line) {

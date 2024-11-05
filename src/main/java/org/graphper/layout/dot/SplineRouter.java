@@ -37,11 +37,6 @@ class SplineRouter extends CurveFitBoxRouter {
   }
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.SPLINE && super.needDeal(splines);
-  }
-
-  @Override
   protected boolean curveLine() {
     return true;
   }
@@ -71,6 +66,11 @@ class SplineRouter extends CurveFitBoxRouter {
   // --------------------------------------------- SplineRouterFactory ---------------------------------------------
 
   public static class SplineRouterFactory extends AbstractDotLineRouterFactory<SplineRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.SPLINE && super.needDeal(splines);
+    }
 
     @Override
     protected SplineRouter newInstance() {

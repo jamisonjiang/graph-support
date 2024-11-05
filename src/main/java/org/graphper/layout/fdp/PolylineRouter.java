@@ -16,6 +16,7 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
@@ -29,11 +30,6 @@ class PolylineRouter extends AroundLineRouter {
   }
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.POLYLINE && super.needDeal(splines);
-  }
-
-  @Override
   protected void drawLine(FLine line, Iterable<FlatPoint> splitPoints) {
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
     if (CollectionUtils.isNotEmpty(lineDrawProp)) {
@@ -43,7 +39,12 @@ class PolylineRouter extends AroundLineRouter {
     splitPoints.forEach(lineDrawProp::add);
   }
 
-  public static class PolylineRouterFactory implements LineRouterFactory<PolylineRouter> {
+  public static class PolylineRouterFactory extends LineRouterFactory<PolylineRouter> {
+
+    @Override
+    public boolean needDeal(Graphviz graphviz) {
+      return graphviz.graphAttrs().getSplines() == Splines.POLYLINE;
+    }
 
     @Override
     public PolylineRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {

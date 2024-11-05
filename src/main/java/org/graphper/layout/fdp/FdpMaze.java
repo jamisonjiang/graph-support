@@ -25,7 +25,7 @@ public class FdpMaze extends Maze {
   private final FdpGraph fdpGraph;
 
   public FdpMaze(DrawGraph drawGraph, FdpGraph fdpGraph) {
-    super(drawGraph);
+    super(drawGraph, true);
     this.fdpGraph = fdpGraph;
     init();
   }

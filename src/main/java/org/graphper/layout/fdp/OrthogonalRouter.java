@@ -16,6 +16,7 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.ALine;
@@ -27,16 +28,15 @@ class OrthogonalRouter extends AbstractOrthogonalRouter implements LineRouter {
 
   protected OrthogonalRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
-    this.maze = new FdpMaze(drawGraph, fdpGraph);
-  }
-
-  @Override
-  public boolean needDeal(Splines splines) {
-    return Splines.ORTHO == splines;
   }
 
   @Override
   public void route() {
+    if (drawGraph.getGraphviz().graphAttrs().isOverlap()) {
+      new StraightLineRouter(drawGraph, (FdpGraph) layoutGraph).route();
+      return;
+    }
+    this.maze = new FdpMaze(drawGraph, (FdpGraph) layoutGraph);
     generateEdge();
   }
 
@@ -50,7 +50,12 @@ class OrthogonalRouter extends AbstractOrthogonalRouter implements LineRouter {
     return ((FdpGraph) layoutGraph).outAdjacent(node);
   }
 
-  static class OrthogonalRouterFactory implements LineRouterFactory<OrthogonalRouter> {
+  static class OrthogonalRouterFactory extends LineRouterFactory<OrthogonalRouter> {
+
+    @Override
+    public boolean needDeal(Graphviz graphviz) {
+      return Splines.ORTHO == graphviz.graphAttrs().getSplines();
+    }
 
     @Override
     public OrthogonalRouter newInstance(DrawGraph drawGraph, FdpGraph fdpGraph) {

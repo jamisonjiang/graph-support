@@ -16,24 +16,12 @@
 
 package org.graphper.layout;
 
-import org.graphper.api.attributes.Splines;
-
 /**
  * Line routing interface.
  *
  * @author Jamison Jiang
  */
 public interface LineRouter {
-
-  /**
-   * Determine whether the current router needs to process the current {@link Splines } attribute.
-   *
-   * @param splines Splines
-   * @return <tt>true</tt> if router need handle the splines attribute
-   */
-  default boolean needDeal(Splines splines) {
-    return splines != Splines.NONE;
-  }
 
   /**
    * Routing the line.

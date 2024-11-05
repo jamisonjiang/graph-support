@@ -16,10 +16,13 @@
 
 package org.graphper.layout.fdp;
 
+import org.graphper.api.Graphviz;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.LineRouter;
 
-public interface LineRouterFactory<T extends LineRouter> {
+public abstract class LineRouterFactory<T extends LineRouter> {
 
-  T newInstance(DrawGraph drawGraph, FdpGraph fdpGraph);
+  protected abstract boolean needDeal(Graphviz graphviz);
+
+  protected abstract T newInstance(DrawGraph drawGraph, FdpGraph fdpGraph);
 }

@@ -422,13 +422,13 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     // spline handler hand out
     for (DotLineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
+      if (!linesHandlerFactory.needDeal(splines)) {
+        continue;
+      }
+
       LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
                                                                  rankContent, digraphProxy);
-
-      if (dotLineRouter.needDeal(splines)) {
-        dotLineRouter.route();
-        break;
-      }
+      dotLineRouter.route();
     }
   }
 

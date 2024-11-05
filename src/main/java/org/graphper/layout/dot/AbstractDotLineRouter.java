@@ -219,7 +219,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
   // --------------------------------------------- Abstract DotLinesHandlerFactory ---------------------------------------------
 
   public abstract static class AbstractDotLineRouterFactory<T extends AbstractDotLineRouter>
-      implements DotLineRouterFactory<T> {
+      extends DotLineRouterFactory<T> {
 
     @Override
     public T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,
@@ -240,6 +240,5 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
 
     protected abstract T newInstance();
   }
-
 
 }

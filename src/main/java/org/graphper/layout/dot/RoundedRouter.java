@@ -30,11 +30,6 @@ import org.graphper.draw.LineDrawProp;
 class RoundedRouter extends CurveFitBoxRouter {
 
   @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.ROUNDED && super.needDeal(splines);
-  }
-
-  @Override
   protected boolean curveLine() {
     return true;
   }
@@ -52,6 +47,11 @@ class RoundedRouter extends CurveFitBoxRouter {
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
 
   static class RoundedRouterFactory extends AbstractDotLineRouterFactory<RoundedRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.ROUNDED && super.needDeal(splines);
+    }
 
     @Override
     protected RoundedRouter newInstance() {

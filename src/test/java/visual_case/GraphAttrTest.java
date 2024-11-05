@@ -79,7 +79,7 @@ public class GraphAttrTest extends GraphvizVisual {
   }
 
   static Stream<GraphvizBuilder> splinesCases() {
-    return Stream.of(Graphviz.digraph().label("splines_test"))
+    return Stream.of(Graphviz.digraph().label("splines_test").showGrid(true))
         .peek(GraphAttrTest::splinesCase)
         .flatMap(
             g -> {
