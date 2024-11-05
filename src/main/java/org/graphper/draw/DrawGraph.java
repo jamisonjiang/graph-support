@@ -103,6 +103,10 @@ public class DrawGraph extends Rectangle implements Serializable {
     return getGraphviz().graphAttrs().getRankdir();
   }
 
+  public Layout layout() {
+    return getGraphviz().graphAttrs().getLayout();
+  }
+
   public GraphvizDrawProp getGraphvizDrawProp() {
     return graphvizDrawProp;
   }

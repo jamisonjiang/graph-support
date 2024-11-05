@@ -179,7 +179,7 @@ public class PortHelper {
     }
 
     if (nodeCenter(portPoint, rectangle) || !portClipNode || shapeProp.in(rectangle, portPoint)) {
-      FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, portPoint);
+      FlipShifterStrategy.movePointOpposite(drawGraph, shapePosition, portPoint);
       return portPoint;
     }
 
@@ -198,7 +198,7 @@ public class PortHelper {
                                      rectangle.getUpBorder() + topHeight);
 
     FlatPoint p = straightLineClipShape(rectangle, shapeProp, center, portPoint);
-    FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, p);
+    FlipShifterStrategy.movePointOpposite(drawGraph, shapePosition, p);
     return new PortPoint(p.getX(), p.getY(), true, port);
   }
 

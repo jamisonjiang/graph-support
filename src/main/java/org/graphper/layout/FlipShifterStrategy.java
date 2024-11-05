@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.ext.Box;
@@ -195,7 +196,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   public static void movePoint(DrawGraph drawGraph, FlatPoint point) {
-    if (point == null || drawGraph == null || notNeedMove(drawGraph.rankdir())) {
+    if (point == null || drawGraph == null || notNeedMove(drawGraph)) {
       return;
     }
 
@@ -220,13 +221,13 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     }
   }
 
-  public static void movePointOpposite(Rankdir rankdir, Box box, FlatPoint point) {
-    if (point == null || box == null || notNeedMove(rankdir)) {
+  public static void movePointOpposite(DrawGraph drawGraph, Box box, FlatPoint point) {
+    if (point == null || box == null || notNeedMove(drawGraph)) {
       return;
     }
 
     double t;
-    switch (rankdir) {
+    switch (drawGraph.rankdir()) {
       case LR:
         flipVertical(point, box.getDownBorder());
         point.flip();
@@ -405,10 +406,10 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     return drawGraph.rankdir() == Rankdir.TB;
   }
 
-  private static boolean notNeedMove(Rankdir rankdir) {
-    if (rankdir == null) {
+  private static boolean notNeedMove(DrawGraph drawGraph) {
+    if (drawGraph == null || drawGraph.rankdir() == null || drawGraph.layout() != Layout.DOT) {
       return true;
     }
-    return rankdir == Rankdir.TB;
+    return drawGraph.rankdir() == Rankdir.TB;
   }
 }
