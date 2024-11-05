@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.graphper.api.attributes.Port;
-import org.graphper.api.attributes.Rankdir;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
@@ -57,21 +56,18 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
         GroupKey groupKey = groupEntry.groupKey;
         LineDrawProp line = drawGraph.getLineDrawProp(dLine.getLine());
 
-        nextInterval += setSamePointLine(groupKey, drawGraph.rankdir(),
-                                         nextInterval, line);
+        nextInterval += setSamePointLine(groupKey, drawGraph, nextInterval, line);
 
-        nextInterval += setUpDownLine(groupKey, drawGraph.rankdir(),
-                                      nextInterval, line);
+        nextInterval += setUpDownLine(groupKey, drawGraph, nextInterval, line);
 
-        nextInterval += setLeftRightLine(groupKey, drawGraph.rankdir(),
-                                         nextInterval, line);
+        nextInterval += setLeftRightLine(groupKey, drawGraph, nextInterval, line);
 
         nextInterval += interval;
       }
     }
   }
 
-  private double setSamePointLine(GroupKey groupKey, Rankdir rankdir,
+  private double setSamePointLine(GroupKey groupKey, DrawGraph drawGraph,
                                   double interval, LineDrawProp line) {
     if (!groupKey.samePoint()) {
       return 0;
@@ -79,7 +75,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
     Port port = groupKey.tailPort;
     FlatPoint point = groupKey.getTailPoint();
-    int direction = portDirection(port, rankdir);
+    int direction = portDirection(port, drawGraph);
     addPoint(line, point);
 
     if (direction == LEFT) {
@@ -107,7 +103,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return addLabelByLastPoint(false, true, line);
   }
 
-  private double setUpDownLine(GroupKey groupKey, Rankdir rankdir,
+  private double setUpDownLine(GroupKey groupKey, DrawGraph drawGraph,
                                double interval, LineDrawProp line) {
     if (!groupKey.isOnlySameHor()) {
       return 0;
@@ -118,7 +114,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     addPoint(line, tailPoint);
 
     double x = (tailPoint.getX() + headPoint.getX()) / 2;
-    int direction = sameCellHorDirection(groupKey.tailPort, rankdir);
+    int direction = sameCellHorDirection(groupKey.tailPort, drawGraph);
     if (direction == UP) {
       double upBorder = node.getUpBorder();
       addPoint(line, new FlatPoint(x, upBorder - interval));
@@ -135,7 +131,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return interval;
   }
 
-  private double setLeftRightLine(GroupKey groupKey, Rankdir rankdir,
+  private double setLeftRightLine(GroupKey groupKey, DrawGraph drawGraph,
                                   double interval, LineDrawProp line) {
     if (groupKey.samePoint() || groupKey.isOnlySameHor()) {
       return 0;
@@ -148,9 +144,9 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     double y = (tailPoint.getY() + headPoint.getY()) / 2;
     int direction;
     if (groupKey.isOnlySameVer()) {
-      direction = sameCellVerDirection(groupKey.tailPort, rankdir);
+      direction = sameCellVerDirection(groupKey.tailPort, drawGraph);
     } else if (groupKey.sameCell()) {
-      direction = sameCellHorDirection(groupKey.tailPort, groupKey.headPort, rankdir);
+      direction = sameCellHorDirection(groupKey.tailPort, groupKey.headPort, drawGraph);
     } else {
       direction = diagonalPointDirection(groupKey);
     }
@@ -223,21 +219,21 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     refreshVolume(labelCenter.getX() + halfWidth, labelCenter.getY() + halfHeight);
   }
 
-  private int portDirection(Port port, Rankdir rankdir) {
-    return portDirection(FlipShifterStrategy.movePort(port, rankdir));
+  private int portDirection(Port port, DrawGraph drawGraph) {
+    return portDirection(FlipShifterStrategy.movePort(port, drawGraph));
   }
 
-  private int sameCellHorDirection(Port port, Rankdir rankdir) {
-    return sameCellHorDirection(FlipShifterStrategy.movePort(port, rankdir));
+  private int sameCellHorDirection(Port port, DrawGraph drawGraph) {
+    return sameCellHorDirection(FlipShifterStrategy.movePort(port, drawGraph));
   }
 
-  private int sameCellVerDirection(Port port, Rankdir rankdir) {
-    return sameCellVerDirection(FlipShifterStrategy.movePort(port, rankdir));
+  private int sameCellVerDirection(Port port, DrawGraph drawGraph) {
+    return sameCellVerDirection(FlipShifterStrategy.movePort(port, drawGraph));
   }
 
-  private int sameCellHorDirection(Port tailPort, Port headPort, Rankdir rankdir) {
-    tailPort = FlipShifterStrategy.movePort(tailPort, rankdir);
-    headPort = FlipShifterStrategy.movePort(headPort, rankdir);
+  private int sameCellHorDirection(Port tailPort, Port headPort, DrawGraph drawGraph) {
+    tailPort = FlipShifterStrategy.movePort(tailPort, drawGraph);
+    headPort = FlipShifterStrategy.movePort(headPort, drawGraph);
 
     if (isNW_S(tailPort, headPort) || isNW_S(headPort, tailPort)
         || isN_SW(tailPort, headPort) || isN_SW(headPort, tailPort)

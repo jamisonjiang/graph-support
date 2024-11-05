@@ -222,7 +222,7 @@ public class PortHelper {
     rectangle.setRightBorder(shapePosition.getRightBorder());
 
     // Rotation the rectangle to original position
-    FlipShifterStrategy.moveRectangle(drawGraph.rankdir(), maxX, maxY, rectangle);
+    FlipShifterStrategy.moveRectangle(drawGraph, maxX, maxY, rectangle);
     return rectangle;
   }
 

@@ -16,7 +16,6 @@
 
 package org.graphper.layout;
 
-import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.ext.Box;
@@ -106,27 +105,26 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     if (port == null) {
       return null;
     }
-    Rankdir rankdir = drawGraph.rankdir();
-    return movePort(port, rankdir);
+    return movePort(port, drawGraph);
   }
 
-  public static Port backPort(Port port, Rankdir rankdir) {
-    if (port == null || rankdir == null) {
+  public static Port backPort(Port port, DrawGraph drawGraph) {
+    if (port == null || drawGraph == null) {
       return port;
     }
     for (Port p : Port.values()) {
-      if (movePort(p, rankdir) == port) {
+      if (movePort(p, drawGraph) == port) {
         return p;
       }
     }
     return port;
   }
 
-  public static Port movePort(Port port, Rankdir rankdir) {
-    if (port == null || rankdir == null) {
+  public static Port movePort(Port port, DrawGraph drawGraph) {
+    if (port == null || drawGraph == null || drawGraph.notNeedFlip()) {
       return port;
     }
-    switch (rankdir) {
+    switch (drawGraph.rankdir()) {
       case LR:
         switch (port) {
           case WEST:
@@ -248,15 +246,11 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
 
   public static void moveRectangle(DrawGraph drawGraph, Rectangle rectangle) {
     Asserts.nullArgument(drawGraph, "drawGraph");
-    moveRectangle(drawGraph.rankdir(), drawGraph.getMaxX(), drawGraph.getMaxY(), rectangle);
+    moveRectangle(drawGraph, drawGraph.getMaxX(), drawGraph.getMaxY(), rectangle);
   }
 
-  public static void moveRectangle(Rankdir rankdir, Rectangle rectangle) {
-    moveRectangle(rankdir, null, null, rectangle);
-  }
-
-  public static void moveRectangle(Rankdir rankdir, Double maxX, Double maxY, Rectangle rectangle) {
-    if (rectangle == null) {
+  public static void moveRectangle(DrawGraph drawGraph, Double maxX, Double maxY, Rectangle rectangle) {
+    if (rectangle == null || notNeedMove(drawGraph)) {
       return;
     }
 
@@ -267,7 +261,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
 
     maxX = maxX != null ? maxX : rectangle.getRightBorder();
     maxY = maxY != null ? maxY : rectangle.getDownBorder();
-    switch (rankdir) {
+    switch (drawGraph.rankdir()) {
       case LR:
         rectangle.setLeftBorder(upBorder);
         rectangle.setRightBorder(downBorder);
@@ -403,11 +397,11 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   private boolean notNeedMove() {
-    return drawGraph.rankdir() == Rankdir.TB;
+    return drawGraph.notNeedFlip();
   }
 
   private static boolean notNeedMove(DrawGraph drawGraph) {
-    if (drawGraph == null || drawGraph.rankdir() == null || drawGraph.layout() != Layout.DOT) {
+    if (drawGraph == null || drawGraph.notNeedFlip()) {
       return true;
     }
     return drawGraph.rankdir() == Rankdir.TB;

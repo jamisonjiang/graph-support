@@ -317,7 +317,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     Map<Cell, Box> cellBoxMap = new HashMap<>();
-    Rankdir rankdir = attach.getDrawGraph().rankdir();
+    DrawGraph drawGraph = attach.getDrawGraph();
     for (GeneratePortLine line : generatePort.getLines()) {
       Cell fromCell = line.getFromCell();
       Cell toCell = line.getToCell();
@@ -336,7 +336,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         Port port = closestPort(ports, fromCellBox, line.getTo());
 
         if (port != null) {
-          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, rankdir));
+          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, drawGraph));
         }
       }
       if (toCellBox != null) {
@@ -344,7 +344,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         Port port = closestPort(ports, toCellBox, line.getFrom());
 
         if (port != null) {
-          setLinePort(line.getLine(), line.getTo(), FlipShifterStrategy.backPort(port, rankdir));
+          setLinePort(line.getLine(), line.getTo(), FlipShifterStrategy.backPort(port, drawGraph));
         }
       }
     }
