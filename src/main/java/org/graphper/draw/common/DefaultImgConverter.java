@@ -16,6 +16,8 @@
 
 package org.graphper.draw.common;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -27,17 +29,16 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultGraphResource;
@@ -47,6 +48,7 @@ import org.graphper.draw.svg.Document;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.EnvProp;
+import org.graphper.util.FontUtils;
 
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
@@ -159,67 +161,34 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
 
   public void drawString(Element ele, Graphics2D g2d) {
-    // Extract text content from the Element
-    drawStringWithCharTransform(ele, g2d, 1);
-  }
+    String text = ele.textContext();
+    if (StringUtils.isNotEmpty(text)) {
+      text = StringEscapeUtils.unescapeXml(text);
+    }
+    int fontSize = toInt(ele.getAttribute(FONT_SIZE));
+    double x = toDouble(ele.getAttribute(X));
+    double y = toDouble(ele.getAttribute(Y));
+    String fontName = ele.getAttribute(FONT_FAMILY);
+    Color color = toColor(ele.getAttribute(FILL));
+    if (color == null) {
+      color = Color.BLACK;
+    }
+    g2d.setColor(color);
 
-  public void drawStringWithCharTransform(Element ele, Graphics2D g2d, double scaleFactor) {
-    // Extract text content from the Element
-    String textContent = ele.textContext();
-
-    // Parse position (x, y) attributes
-    float x = Float.parseFloat(ele.getAttribute("x"));
-    float y = Float.parseFloat(ele.getAttribute("y"));
-
-    // Parse font size, default to 12 if not specified
-    int fontSize = ele.getAttribute("font-size") != null
-        ? (int) Float.parseFloat(ele.getAttribute("font-size"))
-        : 12;
-
-    // Parse font family, default to "Arial" if not specified
-    String fontFamily = ele.getAttribute("font-family") != null
-        ? ele.getAttribute("font-family")
-        : "Arial";
-
-    // Parse color, default to black if not specified
-    Color color = ele.getAttribute("fill") != null
-        ? Color.decode(ele.getAttribute("fill"))
-        : Color.BLACK;
-
-    // Parse text anchor (alignment), default to "start" if not specified
-    String textAnchor = ele.getAttribute("text-anchor") != null
-        ? ele.getAttribute("text-anchor")
-        : "start";
-
-    // Set font with parsed font family and size
-    Font font = new Font(fontFamily, Font.PLAIN, fontSize);
+    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
+    Font font = new Font(fontName, Font.PLAIN, fontSize);
     g2d.setFont(font);
     g2d.setPaint(color);
 
-    // Initialize FontRenderContext
     FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
-//    FontRenderContext frc = g2d.getFontRenderContext();
-    GlyphVector glyphVector = font.createGlyphVector(frc, textContent);
+    GlyphVector glyphVector = font.createGlyphVector(frc, text);
 
     // Adjust x position based on text-anchor
-    float adjustedX = x;
-    Rectangle2D textBounds = glyphVector.getVisualBounds();
-    if ("middle".equals(textAnchor)) {
-      adjustedX -= textBounds.getWidth() / 2;
-    } else if ("end".equals(textAnchor)) {
-      adjustedX -= textBounds.getWidth();
-    }
+    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
+    double adjustedX = x - (size.getWidth() / 2);
 
-    FlatPoint[] points = { new FlatPoint(43.600006103515625, 277.3214416503906), new FlatPoint(53.710357666015625, 277.3214416503906), new FlatPoint(63.048248291015625, 277.3214416503906), new FlatPoint(70.83438110351562, 277.3214416503906), new FlatPoint(78.62051391601562, 277.3214416503906), new FlatPoint(89.51016235351562, 277.3214416503906), new FlatPoint(93.39981079101562, 277.3214416503906), new FlatPoint(106.61367797851562, 277.3214416503906), new FlatPoint(117.50332641601562, 277.3214416503906), new FlatPoint(127.61367797851562, 277.3214416503906), new FlatPoint(135.39981079101562, 277.3214416503906), new FlatPoint(145.51016235351562, 277.3214416503906), new FlatPoint(149.39981079101562, 277.3214416503906), new FlatPoint(159.51016235351562, 277.3214416503906), new FlatPoint(168.84805297851562, 277.3214416503906), new FlatPoint(176.63418579101562, 277.3214416503906), new FlatPoint(184.42031860351562, 277.3214416503906), new FlatPoint(195.30996704101562, 277.3214416503906), new FlatPoint(199.19961547851562, 277.3214416503906), new FlatPoint(212.41348266601562, 277.3214416503906), new FlatPoint(223.30313110351562, 277.3214416503906), new FlatPoint(233.41348266601562, 277.3214416503906), new FlatPoint(241.19961547851562, 277.3214416503906), new FlatPoint(251.30996704101562, 277.3214416503906), new FlatPoint(255.19961547851562, 277.3214416503906), new FlatPoint(265.3099670410156, 277.3214416503906), new FlatPoint(274.6478576660156, 277.3214416503906), new FlatPoint(282.4339904785156, 277.3214416503906), new FlatPoint(290.2201232910156, 277.3214416503906), new FlatPoint(301.1097717285156, 277.3214416503906), new FlatPoint(304.9994201660156, 277.3214416503906), new FlatPoint(318.2132873535156, 277.3214416503906), new FlatPoint(329.1029357910156, 277.3214416503906), new FlatPoint(339.2132873535156, 277.3214416503906), new FlatPoint(346.9994201660156, 277.3214416503906), new FlatPoint(357.1097717285156, 277.3214416503906), new FlatPoint(360.9994201660156, 277.3214416503906), new FlatPoint(371.1097717285156, 277.3214416503906), new FlatPoint(380.4476623535156, 277.3214416503906), new FlatPoint(388.2337951660156, 277.3214416503906), new FlatPoint(396.0199279785156, 277.3214416503906), new FlatPoint(406.9095764160156, 277.3214416503906), new FlatPoint(410.7992248535156, 277.3214416503906), new FlatPoint(424.0130920410156, 277.3214416503906), new FlatPoint(434.9027404785156, 277.3214416503906), new FlatPoint(445.0130920410156, 277.3214416503906), new FlatPoint(452.7992248535156, 277.3214416503906)};
-    float totalWidth = 0;
-    GeneralPath outline = new GeneralPath();
     // Loop over each glyph (character) in the GlyphVector
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
-      Rectangle2D glyphBounds = glyphVector.getGlyphLogicalBounds(i).getBounds2D();
-
-      // Add the width of the glyph to the total width
-      totalWidth += glyphBounds.getWidth();
-
       // Get the position of the glyph in the vector
       Point2D glyphPos = glyphVector.getGlyphPosition(i);
 
@@ -227,77 +196,19 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
       double glyphX = adjustedX + glyphPos.getX();
       double glyphY = y + glyphPos.getY();
 
-      // Apply a transformation to each glyph for scaling
-      AffineTransform transform = AffineTransform.getTranslateInstance(glyphX, glyphY);
-      transform.scale(scaleFactor, scaleFactor); // Scale each character individually
-
       // Get the outline of the glyph
       Shape glyphOutline = glyphVector.getGlyphOutline(i);
 
+      // Apply a transformation to each glyph for scaling
+      AffineTransform transform = AffineTransform.getTranslateInstance(glyphX, glyphY);
+
       // Apply the transformation to the glyph outline
       Shape transformedGlyph = transform.createTransformedShape(glyphOutline);
-
-      AffineTransform tr = AffineTransform.getTranslateInstance
-          (-glyphPos.getX(), -glyphPos.getY());
+      AffineTransform tr = AffineTransform.getTranslateInstance(-glyphPos.getX(), -glyphPos.getY());
       transformedGlyph = tr.createTransformedShape(transformedGlyph);
-
-      outline.append(transformedGlyph, false);
 
       g2d.fill(transformedGlyph);
     }
-
-//    g2d.fill(outline);
-
-//    FlatPoint measureSize = FontUtils.measure(textContent, fontFamily, fontSize, 0);
-//    System.out.println("size from glyph:" + totalWidth + " size from measure:" + measureSize);
-  }
-
-
-  /**
-   * Draws a string using per-glyph transformations and positioning.
-   *
-   * @param g2d         The Graphics2D context used to draw the text.
-   * @param text        The string to be drawn.
-   * @param font        The font to use for the text.
-   * @param x           The x-coordinate for the starting position of the text.
-   * @param y           The y-coordinate for the starting position of the text.
-   * @param scaleFactor Scaling factor to adjust glyph size.
-   * @param color       The color to use for the text.
-   */
-  public static void drawRepeatingTextPattern(Graphics2D g2d, String text, Font font,
-                                              float startX, float startY, double scaleFactor,
-                                              Color color, int boxWidth, int boxHeight) {
-    // Set font and color
-    g2d.setFont(font);
-    g2d.setPaint(color);
-
-    // Initialize FontRenderContext and create GlyphVector
-    FontRenderContext frc = g2d.getFontRenderContext();
-    GlyphVector glyphVector = font.createGlyphVector(frc, text);
-
-    // Get the bounds of the full text to determine spacing
-    Rectangle2D textBounds = glyphVector.getVisualBounds();
-    double textWidth = textBounds.getWidth() * scaleFactor;
-    double textHeight = textBounds.getHeight() * scaleFactor;
-
-    // Save the original transform of the Graphics2D context
-    AffineTransform originalTransform = g2d.getTransform();
-
-    // Loop over positions within the defined box to create the repeating pattern
-    for (float y = startY; y < startY + boxHeight; y += textHeight) {
-      for (float x = startX; x < startX + boxWidth; x += textWidth) {
-        // Apply scaling and translation transform to the entire Graphics2D context
-        g2d.setTransform(originalTransform);  // Reset to the original transform
-        g2d.translate(x, y);                  // Translate to the new position
-        g2d.scale(scaleFactor, scaleFactor);  // Apply scaling
-
-        // Draw the text at the origin (0, 0) with transformed Graphics2D
-        g2d.drawGlyphVector(glyphVector, 0, 0);
-      }
-    }
-
-    // Restore the original transform to avoid affecting other graphics operations
-    g2d.setTransform(originalTransform);
   }
 
   private void drawPolygon(Element ele, Graphics2D g2d) {

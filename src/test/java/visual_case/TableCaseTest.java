@@ -801,6 +801,7 @@ public class TableCaseTest extends GraphvizVisual {
                 .cellSpacing(0)
                 .cellPadding(6)
                 .href("https://github.com/kovzol/Java-Geometry-Expert/blob/master/src/docs/help/images_a/rectangle.gif")
+                .tooltip("rectangle")
                 .tr(td().color(COFFFF).text("1) FG  ⊥  DE"))
                 .tr(td().color(COFFFF).text("8. sz.").fontSize(10))
         )
