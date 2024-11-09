@@ -16,11 +16,16 @@
 
 package org.graphper.draw.common;
 
+import static org.graphper.util.FontUtils.DEFAULT_FONT;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
@@ -29,14 +34,11 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.nio.file.Files;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultGraphResource;
@@ -46,6 +48,7 @@ import org.graphper.draw.svg.Document;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.EnvProp;
+import org.graphper.util.FontUtils;
 
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
@@ -158,65 +161,54 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
 
   public void drawString(Element ele, Graphics2D g2d) {
-    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    String path = Objects.requireNonNull(loader.getResource("")).getPath();
-    try (InputStream is = Files.newInputStream(new File(path + "/serial/GeneralPath").toPath());
-        ObjectInputStream ois = new ObjectInputStream(is)) {
-      Shape o = (Shape) ois.readObject();
-      g2d.fill(o);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException(e);
+    String text = ele.textContext();
+    if (StringUtils.isNotEmpty(text)) {
+      text = StringEscapeUtils.unescapeXml(text);
     }
-//    String text = ele.textContext();
-//    if (StringUtils.isNotEmpty(text)) {
-//      text = StringEscapeUtils.unescapeXml(text);
-//    }
-//    int fontSize = toInt(ele.getAttribute(FONT_SIZE));
-//    double x = toDouble(ele.getAttribute(X));
-//    double y = toDouble(ele.getAttribute(Y));
-//    String fontName = ele.getAttribute(FONT_FAMILY);
-//    Color color = toColor(ele.getAttribute(FILL));
-//    if (color == null) {
-//      color = Color.BLACK;
-//    }
-//    g2d.setColor(color);
-//
-//    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
-//    Font font = new Font(fontName, Font.PLAIN, fontSize);
-//    g2d.setFont(font);
-//    g2d.setPaint(color);
-//
-//    FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
-//    GlyphVector glyphVector = font.createGlyphVector(frc, text);
-//
-//    // Adjust x position based on text-anchor
-//    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
-//    double adjustedX = x - (size.getWidth() / 2);
-//
-//    // Loop over each glyph (character) in the GlyphVector
-//    for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
-//      // Get the position of the glyph in the vector
-//      Point2D glyphPos = glyphVector.getGlyphPosition(i);
-//
-//      // Calculate transformed position based on initial x, y, and glyph position
-//      double glyphX = adjustedX + glyphPos.getX();
-//      double glyphY = y + glyphPos.getY();
-//
-//      // Get the outline of the glyph
-//      Shape glyphOutline = glyphVector.getGlyphOutline(i);
-//
-//      // Apply a transformation to each glyph for scaling
-//      AffineTransform transform = AffineTransform.getTranslateInstance(glyphX, glyphY);
-//
-//      // Apply the transformation to the glyph outline
-//      Shape transformedGlyph = transform.createTransformedShape(glyphOutline);
-//      AffineTransform tr = AffineTransform.getTranslateInstance(-glyphPos.getX(), -glyphPos.getY());
-//      transformedGlyph = tr.createTransformedShape(transformedGlyph);
-//
-//      g2d.fill(transformedGlyph);
-//    }
+    int fontSize = toInt(ele.getAttribute(FONT_SIZE));
+    double x = toDouble(ele.getAttribute(X));
+    double y = toDouble(ele.getAttribute(Y));
+    String fontName = ele.getAttribute(FONT_FAMILY);
+    Color color = toColor(ele.getAttribute(FILL));
+    if (color == null) {
+      color = Color.BLACK;
+    }
+    g2d.setColor(color);
+
+    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
+    Font font = new Font(fontName, Font.PLAIN, fontSize);
+    g2d.setFont(font);
+    g2d.setPaint(color);
+
+    FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
+    GlyphVector glyphVector = font.createGlyphVector(frc, text);
+
+    // Adjust x position based on text-anchor
+    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
+    double adjustedX = x - (size.getWidth() / 2);
+
+    // Loop over each glyph (character) in the GlyphVector
+    for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
+      // Get the position of the glyph in the vector
+      Point2D glyphPos = glyphVector.getGlyphPosition(i);
+
+      // Calculate transformed position based on initial x, y, and glyph position
+      double glyphX = adjustedX + glyphPos.getX();
+      double glyphY = y + glyphPos.getY();
+
+      // Get the outline of the glyph
+      Shape glyphOutline = glyphVector.getGlyphOutline(i);
+
+      // Apply a transformation to each glyph for scaling
+      AffineTransform transform = AffineTransform.getTranslateInstance(glyphX, glyphY);
+
+      // Apply the transformation to the glyph outline
+      Shape transformedGlyph = transform.createTransformedShape(glyphOutline);
+      AffineTransform tr = AffineTransform.getTranslateInstance(-glyphPos.getX(), -glyphPos.getY());
+      transformedGlyph = tr.createTransformedShape(transformedGlyph);
+
+      g2d.fill(transformedGlyph);
+    }
   }
 
   private void drawPolygon(Element ele, Graphics2D g2d) {
