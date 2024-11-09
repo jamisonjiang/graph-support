@@ -655,4 +655,11 @@ public class BugCaseTest extends GraphvizVisual {
 
     visual(graphviz);
   }
+
+  @Test
+  public void testMultiFontName() {
+    visual(Graphviz.digraph()
+               .addNode(Node.builder().label("Hello, 你好, مرحبا, Δ, अ").fontName("SansSerif").build())
+               .build());
+  }
 }

@@ -16,11 +16,12 @@
 
 package org.graphper.layout;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
+import java.util.ServiceLoader;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.graphper.util.Asserts;
 
 /**
  * Provide the basic font select policy is try best to fount the most popular font from exists fonts
@@ -31,64 +32,15 @@ import java.util.Set;
  */
 public abstract class AbstractFontSelector implements FontSelector {
 
-  private static final String[] TOP_POPULAR_FONTS = {
-      "Arial",
-      "Times New Roman",
-      "Calibri",
-      "Helvetica",
-      "Georgia",
-      "Verdana",
-      "Comic Sans MS",
-      "Trebuchet MS",
-      "Courier New",
-      "Cambria",
-      "Garamond",
-      "Palatino",
-      "Lucida Sans",
-      "Lucida Console",
-      "Futura",
-      "Franklin Gothic",
-      "Myriad",
-      "Roboto",
-      "Open Sans",
-      "Baskerville",
-      "Rockwell",
-      "Century Gothic",
-      "Tahoma",
-      "Gill Sans",
-      "Bodoni",
-      "Copperplate",
-      "Eurostile",
-      "Museo",
-      "Proxima Nova",
-      "Lato",
-      "Ubuntu",
-      "DIN",
-      "Arial Narrow",
-      "Impact",
-      "Book Antiqua",
-      "Optima",
-      "Segoe UI",
-      "Brush Script",
-      "Didot",
-      "Helvetica Neue",
-      "Raleway",
-      "Montserrat",
-      "Oswald",
-      "Avenir",
-      "Roboto Condensed",
-      "PT Sans",
-      "Source Sans Pro",
-      "Merriweather",
-      "Candara",
-      "Courier Prime"
-  };
-
   private String defaultFont;
 
-  private Set<String> allAvailableFonts;
+  private FontOrder fontOrder;
+
+  private TreeSet<String> allAvailableFonts;
 
   protected AbstractFontSelector() {
+    initFontComparator();
+    Asserts.nullArgument(fontOrder, "Cannot found font comparator");
     initDefaultFont();
   }
 
@@ -98,6 +50,8 @@ public abstract class AbstractFontSelector implements FontSelector {
    * @return all system available fonts
    */
   protected abstract String[] listAllSystemFonts();
+
+  protected abstract boolean fontSupport(String fontName, char c);
 
   /**
    * Returns default font name when not set fontName attribute.
@@ -124,22 +78,36 @@ public abstract class AbstractFontSelector implements FontSelector {
     return allAvailableFonts.contains(fontName);
   }
 
+  @Override
+  public String findFirstSupportFont(char c) {
+    for (String font : allAvailableFonts) {
+      if (fontSupport(font, c)) {
+        return font;
+      }
+    }
+
+    return null;
+  }
+
+  private void initFontComparator() {
+    ServiceLoader<FontOrder> fontComparatorServiceLoader = ServiceLoader
+        .load(FontOrder.class);
+    for (FontOrder comparator : fontComparatorServiceLoader) {
+      fontOrder = comparator;
+    }
+  }
+
   private void initDefaultFont() {
     String[] fonts = listAllSystemFonts();
     if (fonts == null || fonts.length == 0) {
-      defaultFont = TOP_POPULAR_FONTS[0];
-      allAvailableFonts = Collections.emptySet();
+      defaultFont = fontOrder.first();
+      Asserts.nullArgument(defaultFont, "Cannot init default Font");
+      allAvailableFonts = new TreeSet<>();
       return;
     }
 
-    allAvailableFonts = new HashSet<>(fonts.length);
-    allAvailableFonts.addAll(Arrays.asList(fonts));
-
-    for (String font : TOP_POPULAR_FONTS) {
-      if (allAvailableFonts.contains(font)) {
-        defaultFont = font;
-        return;
-      }
-    }
+    allAvailableFonts = Stream.of(fonts)
+        .collect(Collectors.toCollection(() -> new TreeSet<>(fontOrder)));
+    this.defaultFont = allAvailableFonts.first();
   }
 }

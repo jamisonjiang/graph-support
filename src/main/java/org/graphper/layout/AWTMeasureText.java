@@ -22,6 +22,8 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 
@@ -31,6 +33,8 @@ import org.graphper.def.FlatPoint;
  * @author Jamison Jiang
  */
 public class AWTMeasureText extends AbstractFontSelector implements MeasureText, FontSelector {
+
+  private volatile Map<String, Font> fontCache;
 
   public AWTMeasureText() {
     super();
@@ -79,5 +83,23 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   @Override
   protected String[] listAllSystemFonts() {
     return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+  }
+
+  @Override
+  protected boolean fontSupport(String fontName, char c) {
+    if (StringUtils.isEmpty(fontName)) {
+      return false;
+    }
+
+    if (fontCache == null) {
+      synchronized (this) {
+        if (fontCache == null) {
+          fontCache = new ConcurrentHashMap<>();
+        }
+      }
+    }
+
+    Font font = fontCache.computeIfAbsent(fontName, fn -> new Font(fn, Font.PLAIN, 0));
+    return font.canDisplay(c);
   }
 }

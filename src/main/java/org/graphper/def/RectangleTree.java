@@ -52,6 +52,7 @@ public class RectangleTree<B extends Box> {
    * Inserts a {@link Box} into the tree.
    *
    * @param box the box to be inserted.
+   * @throws IllegalArgumentException the insert box is illegal status
    */
   public void insert(B box) {
     if (box == null) {
@@ -72,6 +73,7 @@ public class RectangleTree<B extends Box> {
    *
    * @param searchBox the box to search for overlaps.
    * @return a list of overlapping boxes, or an empty list if none found.
+   * @throws IllegalArgumentException the search box is illegal status
    */
   public List<B> search(Box searchBox) {
     if (searchBox == null || this.root == null) {

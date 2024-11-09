@@ -159,7 +159,6 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     setShapeCommonAttr(ele, g2d, ellipse);
   }
 
-
   public void drawString(Element ele, Graphics2D g2d) {
     String text = ele.textContext();
     if (StringUtils.isNotEmpty(text)) {
@@ -187,7 +186,6 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
     double adjustedX = x - (size.getWidth() / 2);
 
-    // Loop over each glyph (character) in the GlyphVector
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
       // Get the position of the glyph in the vector
       Point2D glyphPos = glyphVector.getGlyphPosition(i);

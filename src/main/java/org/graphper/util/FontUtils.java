@@ -99,4 +99,8 @@ public class FontUtils {
   public static boolean fontExists(String fontName) {
     return FONT_SELECTOR.exists(fontName);
   }
+
+  public static String findFirstSupportFont(char c) {
+    return FONT_SELECTOR.findFirstSupportFont(c);
+  }
 }

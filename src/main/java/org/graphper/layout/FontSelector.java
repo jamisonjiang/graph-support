@@ -41,4 +41,8 @@ public interface FontSelector extends EnvStrategy {
   default boolean exists(String fontName) {
     return true;
   }
+
+  default String findFirstSupportFont(char c) {
+    return defaultFont();
+  }
 }

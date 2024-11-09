@@ -38,7 +38,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
 
   protected RectangleTree<ANode> rtree;
 
-  public AroundLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
+  protected AroundLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, fdpGraph);
     rtree = new RectangleTree<>(5);
     fdpGraph.forEach(rtree::insert);
