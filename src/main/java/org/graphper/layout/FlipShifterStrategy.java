@@ -194,7 +194,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   public static void movePoint(DrawGraph drawGraph, FlatPoint point) {
-    if (point == null || drawGraph == null || notNeedMove(drawGraph)) {
+    if (point == null || notNeedMove(drawGraph)) {
       return;
     }
 
@@ -397,11 +397,11 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
   }
 
   private boolean notNeedMove() {
-    return drawGraph.notNeedFlip();
+    return drawGraph.ignoreRankdir() || drawGraph.rankdir() == Rankdir.TB;
   }
 
   private static boolean notNeedMove(DrawGraph drawGraph) {
-    if (drawGraph == null || drawGraph.notNeedFlip()) {
+    if (drawGraph == null || drawGraph.ignoreRankdir()) {
       return true;
     }
     return drawGraph.rankdir() == Rankdir.TB;

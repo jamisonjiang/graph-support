@@ -89,14 +89,21 @@ public class DrawGraph extends Rectangle implements Serializable {
     clusterDrawPropMap.put(cluster, clusterDrawProp);
   }
 
+  public boolean ignoreRankdir() {
+    Layout layout = getGraphviz().graphAttrs().getLayout();
+    return layout != Layout.DOT;
+  }
+
   public boolean notNeedFlip() {
     return !needFlip();
   }
 
   public boolean needFlip() {
-    Layout layout = getGraphviz().graphAttrs().getLayout();
+    if (ignoreRankdir()) {
+      return false;
+    }
     Rankdir rankdir = getGraphviz().graphAttrs().getRankdir();
-    return layout == Layout.DOT && rankdir != Rankdir.TB && rankdir != Rankdir.BT;
+    return rankdir != Rankdir.TB && rankdir != Rankdir.BT;
   }
 
   public Graphviz getGraphviz() {
