@@ -856,7 +856,7 @@ public class FdpLayoutEngine extends AbstractLayoutEngine implements Serializabl
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
 
-    if (splines == null || splines == Splines.NONE || lineDrawPropMap == null) {
+    if (splines == Splines.NONE || lineDrawPropMap == null) {
       return;
     }
 

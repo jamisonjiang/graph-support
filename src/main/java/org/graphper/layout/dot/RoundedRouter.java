@@ -50,7 +50,7 @@ class RoundedRouter extends CurveFitBoxRouter {
 
     @Override
     public boolean needDeal(Splines splines) {
-      return splines == Splines.ROUNDED && super.needDeal(splines);
+      return splines == null || splines == Splines.ROUNDED && super.needDeal(splines);
     }
 
     @Override

@@ -36,7 +36,7 @@ public class AWTextRender {
 
   private final Font font;
 
-  private String text;
+  private final String text;
 
   private final double x;
 

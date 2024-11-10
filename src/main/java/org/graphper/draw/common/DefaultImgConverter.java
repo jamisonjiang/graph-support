@@ -207,11 +207,9 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
       }
     }
 
-    if (pre != text.length() - 1) {
-      font = font != null ? font : defaultFont;
-      AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
-      awTextRender.draw();
-    }
+    font = font != null ? font : defaultFont;
+    AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
+    awTextRender.draw();
   }
 
   private void drawPolygon(Element ele, Graphics2D g2d) {

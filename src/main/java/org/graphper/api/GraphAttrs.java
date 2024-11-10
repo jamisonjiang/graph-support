@@ -42,7 +42,7 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   Color bgColor;
 
-  Splines splines = Splines.ROUNDED;
+  Splines splines;
 
   Color fontColor = Color.BLACK;
 

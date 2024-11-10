@@ -671,6 +671,7 @@ public class BugCaseTest extends GraphvizVisual {
                .addNode(Node.builder()
                             .label("مرحبا بالعالم 2023")
                             .build())
+               .addNode(Node.builder().label("a").build())
                .build());
   }
 }

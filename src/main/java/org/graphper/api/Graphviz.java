@@ -342,9 +342,6 @@ public class Graphviz extends GraphContainer implements Serializable {
     public GraphvizBuilder layout(Layout layout) {
       Asserts.nullArgument(layout, "layout");
       graphAttrs.layout = layout;
-      if (layout != Layout.DOT) {
-        graphAttrs.splines = Splines.LINE;
-      }
       return self();
     }
 

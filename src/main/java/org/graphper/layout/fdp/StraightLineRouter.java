@@ -35,7 +35,8 @@ public class StraightLineRouter extends AbstractFdpLineRouter {
 
     @Override
     public boolean needDeal(Graphviz graphviz) {
-      return Splines.LINE == graphviz.graphAttrs().getSplines();
+      Splines splines = graphviz.graphAttrs().getSplines();
+      return splines == null || Splines.LINE == splines;
     }
 
     @Override
