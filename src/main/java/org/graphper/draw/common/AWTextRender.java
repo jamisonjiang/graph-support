@@ -22,7 +22,9 @@ import java.awt.Shape;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 
 public class AWTextRender {
@@ -48,12 +50,14 @@ public class AWTextRender {
     this.graphics2D = graphics2D;
   }
 
-  public void draw() {
+  public double draw() {
     graphics2D.setFont(font);
     FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
     GlyphVector glyphVector = font.createGlyphVector(frc, text);
 
     // Adjust x position based on text-anchor
+    double xoffset = 0;
+    GeneralPath outline = new GeneralPath();
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
       // Get the position of the glyph in the vector
       Point2D glyphPos = glyphVector.getGlyphPosition(i);
@@ -72,8 +76,13 @@ public class AWTextRender {
       Shape transformedGlyph = transform.createTransformedShape(glyphOutline);
       AffineTransform tr = AffineTransform.getTranslateInstance(-glyphPos.getX(), -glyphPos.getY());
       transformedGlyph = tr.createTransformedShape(transformedGlyph);
+      outline.append(transformedGlyph, false);
 
-      graphics2D.fill(transformedGlyph);
+      Rectangle2D glyphBounds = glyphVector.getGlyphLogicalBounds(i).getBounds2D();
+      xoffset += glyphBounds.getBounds2D().getWidth();
     }
+
+    graphics2D.fill(outline);
+    return xoffset;
   }
 }

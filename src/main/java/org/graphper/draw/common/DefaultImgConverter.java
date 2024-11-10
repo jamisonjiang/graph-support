@@ -191,7 +191,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
       if (font != null) {
         AWTextRender awTextRender = new AWTextRender(font, text.substring(pre, i), x, y, g2d);
-        awTextRender.draw();
+        x += awTextRender.draw();
         pre = i;
       }
 
