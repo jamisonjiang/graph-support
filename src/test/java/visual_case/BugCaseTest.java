@@ -664,6 +664,13 @@ public class BugCaseTest extends GraphvizVisual {
 //                            .label(" مرحبا, Δ, अ")
                             .fontColor(Color.RED).build())
                .addNode(Node.builder().label("مرحبا بالعالم").build())
+               .addNode(Node.builder()
+                            .shape(NodeShapeEnum.RECORD)
+                            .label("ملاعلاب ابحرم| الحروف العربية")
+                            .build())
+               .addNode(Node.builder()
+                            .label("مرحبا بالعالم 2023")
+                            .build())
                .build());
   }
 }
