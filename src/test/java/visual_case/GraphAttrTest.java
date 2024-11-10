@@ -48,7 +48,7 @@ public class GraphAttrTest extends GraphvizVisual {
           Node a = Node.builder().label("aaaaaaaaaaa").build();
           Node b = Node.builder().label("b").build();
           g.addLine(a, b);
-          g.label("label_test");
+          g.label("label_test").fontName("Elephant");
         })
         .flatMap(
             g -> {

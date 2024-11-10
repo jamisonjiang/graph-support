@@ -232,6 +232,7 @@ public class CellLabelTest extends GraphvizVisual {
             .floatLabels(
                 FloatLabel.builder()
                     .label("tailPort=" + port.name())
+                    .fontName("Elephant")
                     .build()
             )
             .build();

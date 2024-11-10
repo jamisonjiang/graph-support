@@ -30,6 +30,7 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 
 /**
  * Html-related APIs.
@@ -505,6 +506,7 @@ public class Html {
      */
     public Td text(String text) {
       this.text = text;
+      this.fontName = FontUtils.selectFont(this.text, this.fontName);
       return this;
     }
 
@@ -527,6 +529,7 @@ public class Html {
      */
     public Td fontName(String fontName) {
       this.fontName = fontName;
+      this.fontName = FontUtils.selectFont(this.text, this.fontName);
       return this;
     }
 

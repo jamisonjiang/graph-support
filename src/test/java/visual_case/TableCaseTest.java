@@ -525,7 +525,7 @@ public class TableCaseTest extends GraphvizVisual {
                     td().valign(Labelloc.CENTER).bgColor(Color.BLUE).text("line 2"),
                     td().width(100).bgColor(Color.GREY).text("line 3"),
                     td().width(100).align(Labeljust.RIGHT).bgColor(Color.YELLOW)
-                        .fontName("ambrosia").text("line 4"),
+                        .fontName("Elephant").text("line 4"),
                     td().table(
                         table().cellPadding(0).border(0).cellSpacing(0)
                             .tr(

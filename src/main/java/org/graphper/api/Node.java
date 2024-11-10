@@ -31,6 +31,7 @@ import org.graphper.api.attributes.Port;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
+import org.graphper.util.FontUtils;
 
 /**
  * Graphviz nodes.
@@ -187,6 +188,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      */
     public NodeBuilder label(String label) {
       nodeAttrs.label = label;
+      nodeAttrs.fontName = FontUtils.selectFont(nodeAttrs.label, nodeAttrs.fontName);
       return this;
     }
 
@@ -285,6 +287,7 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
      */
     public NodeBuilder fontName(String fontName) {
       nodeAttrs.fontName = fontName;
+      nodeAttrs.fontName = FontUtils.selectFont(nodeAttrs.label, nodeAttrs.fontName);
       return this;
     }
 

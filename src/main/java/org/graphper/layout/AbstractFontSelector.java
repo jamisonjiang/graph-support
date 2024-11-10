@@ -52,7 +52,8 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   protected abstract String[] listAllSystemFonts();
 
-  protected abstract boolean fontSupport(String fontName, char c);
+  @Override
+  public abstract boolean fontSupport(String fontName, char c);
 
   /**
    * Returns default font name when not set fontName attribute.

@@ -273,6 +273,8 @@ public class BugCaseTest extends GraphvizVisual {
                 .cluster(
                     Cluster.builder()
                         .id("6p0")
+                        .label("670")
+                        .fontName("Elephant")
                         .cluster(
                             Cluster.builder()
                                 .id("6")
@@ -661,7 +663,6 @@ public class BugCaseTest extends GraphvizVisual {
     visual(Graphviz.digraph()
                .addNode(Node.builder()
                             .label("Hello, 你好, مرحبا, Δ, अ \uD83C\uDD2F \uD83C\uDD2F \uD83C\uDD2F welcome 欢迎")
-                            .fontName("Elephant")
                             .fontColor(Color.RED).build())
                .addNode(Node.builder().label("\uD835\uDD6C \uD835\uDD6C ").build())
                .addNode(Node.builder().label("مرحبا بالعالم").build())
@@ -672,8 +673,10 @@ public class BugCaseTest extends GraphvizVisual {
                .addNode(Node.builder()
                             .label("مرحبا بالعالم 2023")
                             .build())
-               .addNode(Node.builder().label("a").build())
-               .addNode(Node.builder().label("你好世界 你好世界").fontName("Arial").build())
+               .addNode(Node.builder().label("a").fontName("Elephant").build())
+               .addNode(Node.builder().label("你好世界, 你好世界")
+                            .fontName("Arial")
+                            .build())
                .build());
   }
 }

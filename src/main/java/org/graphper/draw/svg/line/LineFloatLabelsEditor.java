@@ -59,7 +59,8 @@ public class LineFloatLabelsEditor extends SvgEditor implements LineEditor<SvgBr
       };
 
       text(new TextAttribute(flatPointCenter, floatLabel.getFontSize(), floatLabel.getLabel(),
-                             lineDrawProp.lineAttrs().getFontColor(), lineConsumer));
+                             lineDrawProp.lineAttrs().getFontColor(), floatLabel.getFontName(),
+                             lineConsumer));
       i++;
     }
 

@@ -446,11 +446,6 @@ public class SvgEditor implements SvgConstants {
     private final Consumer<TextLineAttribute> lineAttributeConsumer;
 
     public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
-                         Consumer<TextLineAttribute> lineAttributeConsumer) {
-      this(centerPoint, fontsize, label, fontColor, DEFAULT_FONT, lineAttributeConsumer);
-    }
-
-    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
                          String fontName, Consumer<TextLineAttribute> lineAttributeConsumer) {
       Asserts.nullArgument(centerPoint, "centerPoint");
       Asserts.illegalArgument(StringUtils.isEmpty(label), "label can not be empty");
@@ -458,7 +453,7 @@ public class SvgEditor implements SvgConstants {
       this.fontsize = fontsize;
       this.label = label;
       this.fontColor = fontColor;
-      this.fontName = fontName;
+      this.fontName = StringUtils.isNotEmpty(fontName) ? fontName : DEFAULT_FONT;
       this.lineAttributeConsumer = lineAttributeConsumer;
     }
   }

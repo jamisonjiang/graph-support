@@ -16,6 +16,9 @@
 
 package org.graphper.util;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
@@ -102,5 +105,57 @@ public class FontUtils {
 
   public static String findFirstSupportFont(char c) {
     return FONT_SELECTOR.findFirstSupportFont(c);
+  }
+
+  public static String selectFont(String text, String fontName) {
+    if (StringUtils.isEmpty(text)) {
+      return fontName;
+    }
+
+    /*
+     * 1. Return manual set fontName if fontName support all characters;
+     * 2. Otherwise, return the font that support the most of character.
+     */
+    boolean supportALl = true;
+    Map<String, Integer> fontCount = null;
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (!FONT_SELECTOR.fontSupport(fontName, c)) {
+        supportALl = false;
+      }
+
+      String font = findFirstSupportFont(c);
+      if (font == null) {
+        continue;
+      }
+      if (fontCount == null) {
+        fontCount = new HashMap<>(1);
+      }
+      fontCount.compute(font, (f, n) -> {
+        if (n == null) {
+          return 1;
+        }
+        return ++n;
+      });
+    }
+
+    if (supportALl) {
+      return fontName;
+    }
+    if (fontCount == null) {
+      return DEFAULT_FONT;
+    }
+
+    int max = Integer.MIN_VALUE;
+    String maxSupportFont = null;
+    for (Entry<String, Integer> entry : fontCount.entrySet()) {
+      if (entry.getValue() > max) {
+        max = entry.getValue();
+        maxSupportFont = entry.getKey();
+      }
+    }
+
+    maxSupportFont = maxSupportFont == null ? DEFAULT_FONT : maxSupportFont;
+    return maxSupportFont;
   }
 }

@@ -86,7 +86,7 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   }
 
   @Override
-  protected boolean fontSupport(String fontName, char c) {
+  public boolean fontSupport(String fontName, char c) {
     if (StringUtils.isEmpty(fontName)) {
       return false;
     }

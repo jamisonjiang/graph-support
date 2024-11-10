@@ -35,6 +35,7 @@ import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.draw.ExecuteException;
 import org.graphper.draw.common.CommonRenderEngine;
 import org.graphper.util.Asserts;
+import org.graphper.util.FontUtils;
 import org.graphper.util.GraphvizUtils;
 
 /**
@@ -238,6 +239,7 @@ public class Graphviz extends GraphContainer implements Serializable {
      */
     public GraphvizBuilder label(String label) {
       graphAttrs.label = label;
+      graphAttrs.fontName = FontUtils.selectFont(graphAttrs.label, graphAttrs.fontName);
       return self();
     }
 
@@ -279,6 +281,7 @@ public class Graphviz extends GraphContainer implements Serializable {
     public GraphvizBuilder fontName(String fontName) {
       Asserts.nullArgument(fontName, "fontName");
       graphAttrs.fontName = fontName;
+      graphAttrs.fontName = FontUtils.selectFont(graphAttrs.label, graphAttrs.fontName);
       return self();
     }
 

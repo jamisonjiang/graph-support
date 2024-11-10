@@ -29,6 +29,7 @@ import org.graphper.util.Asserts;
 import org.graphper.api.Cluster.ClusterBuilder;
 import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.attributes.Port;
+import org.graphper.util.FontUtils;
 
 /**
  * Graphviz lines.
@@ -216,6 +217,7 @@ public class Line implements Comparable<Line>, Serializable {
      */
     public LineBuilder label(String label) {
       lineAttrs.label = label;
+      lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
 
@@ -318,6 +320,7 @@ public class Line implements Comparable<Line>, Serializable {
      */
     public LineBuilder fontName(String fontName) {
       lineAttrs.fontName = fontName;
+      lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
 

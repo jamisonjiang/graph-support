@@ -17,15 +17,12 @@
 package regression;
 
 import helper.GraphvizVisual;
-import java.io.IOException;
-import org.apache.batik.transcoder.TranscoderException;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Splines;
-import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Test;
 
 public class LineTest extends GraphvizVisual {
@@ -53,7 +50,7 @@ public class LineTest extends GraphvizVisual {
 				.addLine(Line.builder(a, b).tailPort(Port.SOUTH).headPort(Port.SOUTH).label("a -> b").build())
 
 				.addLine(a, g)
-				.addLine(Line.builder(a, g).label("a -> g").build())
+				.addLine(Line.builder(a, g).label("a -> g").fontName("Elephant").build())
 				.endSub()
 
 				.addLine(a, c)
