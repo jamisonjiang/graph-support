@@ -660,9 +660,9 @@ public class BugCaseTest extends GraphvizVisual {
   public void testMultiFontName() {
     visual(Graphviz.digraph()
                .addNode(Node.builder()
-                            .label("Hello, 你好, مرحبا, Δ, अ")
-//                            .label(" مرحبا, Δ, अ")
+                            .label("Hello, 你好, مرحبا, Δ, अ \uD83C\uDD2F \uD83C\uDD2F \uD83C\uDD2F welcome 欢迎")
                             .fontColor(Color.RED).build())
+               .addNode(Node.builder().label("\uD835\uDD6C \uD835\uDD6C ").build())
                .addNode(Node.builder().label("مرحبا بالعالم").build())
                .addNode(Node.builder()
                             .shape(NodeShapeEnum.RECORD)

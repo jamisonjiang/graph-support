@@ -17,6 +17,7 @@
 package org.graphper.draw.common;
 
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
@@ -41,31 +42,33 @@ public class AWTextRender {
 
   private final double y;
 
-  private final Graphics2D graphics2D;
+  private final Graphics2D g2d;
 
-  public AWTextRender(Font font, String text, double x, double y, Graphics2D graphics2D) {
+  public AWTextRender(Font font, String text, double x, double y, Graphics2D g2d) {
     Objects.requireNonNull(font);
     Objects.requireNonNull(text);
-    Objects.requireNonNull(graphics2D);
+    Objects.requireNonNull(g2d);
     this.font = font;
+    this.text = text;
     this.x = x;
     this.y = y;
-    this.graphics2D = graphics2D;
-    if (StringUtils.containsArabic(text)) {
-      this.text = ArabicTextHandler.createSubstituteString(text);
-    } else {
-      this.text = text;
-    }
+    this.g2d = g2d;
   }
 
   public double draw() {
+    if (StringUtils.containsArabic(text)) {
+      g2d.setFont(font);
+      g2d.drawString(text, (float) x, (float) y);
+      return getTextBounds().getWidth();
+    }
+
     // Prepare AttributedString to handle multi-language layout and shaping
     AttributedString attributedString = new AttributedString(text);
     attributedString.addAttribute(TextAttribute.FONT, font);
     AttributedCharacterIterator iterator = attributedString.getIterator();
 
     // Use AttributedCharacterIterator to create GlyphVector
-    graphics2D.setFont(font);
+    g2d.setFont(font);
     FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
     GlyphVector glyphVector = font.createGlyphVector(frc, iterator);
 
@@ -98,7 +101,18 @@ public class AWTextRender {
     }
 
     // Render the final outline
-    graphics2D.fill(outline);
+    g2d.fill(outline);
     return xoffset;
+  }
+
+  public Rectangle2D getTextBounds() {
+    // Get FontMetrics for the current font
+    FontMetrics metrics = g2d.getFontMetrics(font);
+
+    int textWidth = metrics.stringWidth(text);
+    int textHeight = metrics.getHeight();
+
+    float topLeftY = (float) y - metrics.getAscent();
+    return new Rectangle2D.Float((float) x, topLeftY, textWidth, textHeight);
   }
 }

@@ -163,20 +163,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
       return;
     }
 
-    String f = ele.getAttribute(FONT_FAMILY);
-    f = FontUtils.fontExists(f) ? f : DEFAULT_FONT;
-
     text = StringEscapeUtils.unescapeXml(text);
-    text = normalizeString(text, false, true);
-    text = reverseArabicText(text);
-    // Prepare the Arabic text with right-to-left attributes
-//    AttributedString attributedString = new AttributedString(text);
-//    attributedString.addAttribute(TextAttribute.FONT, f);
-//    attributedString.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
-//
-//    AttributedCharacterIterator iterator = attributedString.getIterator();
-
-//    text = "ملاعلاب ابحرم";
     int fontSize = toInt(ele.getAttribute(FONT_SIZE));
     double x = toDouble(ele.getAttribute(X));
     double y = toDouble(ele.getAttribute(Y));
@@ -212,8 +199,11 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
         font = defaultFont;
       } else {
         String supportFont = FontUtils.findFirstSupportFont(c);
-        supportFont = StringUtils.isEmpty(supportFont) ? fontName : supportFont;
-        font = new Font(supportFont, Font.PLAIN, fontSize);
+        if (supportFont == null) {
+          font = null;
+        } else {
+          font = new Font(supportFont, Font.PLAIN, fontSize);
+        }
       }
     }
 
@@ -222,14 +212,6 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
       AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
       awTextRender.draw();
     }
-  }
-
-  private String reverseArabicText(String text) {
-    StringBuilder reversed = new StringBuilder();
-    for (int i = text.length() - 1; i >= 0; i--) {
-      reversed.append(text.charAt(i));
-    }
-    return reversed.toString();
   }
 
   private void drawPolygon(Element ele, Graphics2D g2d) {
@@ -365,62 +347,6 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
     int rgb = Integer.parseInt(hexColorCode.substring(1), 16);
     return new Color(rgb);
-  }
-
-  protected String normalizeString(String s, boolean preserve, boolean stripfirst) {
-    StringBuffer sb = new StringBuffer(s.length());
-    if (preserve) {
-      for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);
-        switch (c) {                // fall-through is intended
-          case 10:
-          case 13:
-          case '\t':
-            sb.append(' ');
-            break;
-          default:
-            sb.append(c);
-        }
-      }
-      return sb.toString();
-    }
-
-    int idx = 0;
-    if (stripfirst) {
-      loop: while (idx < s.length()) {
-        switch (s.charAt(idx)) {
-          default:
-            break loop;
-          case 10:                   // fall-through is intended
-          case 13:
-          case ' ':
-          case '\t':
-            idx++;
-        }
-      }
-    }
-
-    boolean space = false;
-    for (int i = idx; i < s.length(); i++) {
-      char c = s.charAt(i);
-      switch (c) {
-        case 10:                      // fall-through is intended
-        case 13:
-          break;
-        case ' ':                     // fall-through is intended
-        case '\t':
-          if (!space) {
-            sb.append(' ');
-            space = true;
-          }
-          break;
-        default:
-          sb.append(c);
-          space = false;
-      }
-    }
-
-    return sb.toString();
   }
 
   private static class ImgContext {
