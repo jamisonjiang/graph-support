@@ -56,7 +56,7 @@ public class AWTextRender {
   }
 
   public double draw() {
-    if (StringUtils.containsArabic(text)) {
+    if (StringUtils.containsRTL(text)) {
       g2d.setFont(font);
       g2d.drawString(text, (float) x, (float) y);
       return getTextBounds().getWidth();
