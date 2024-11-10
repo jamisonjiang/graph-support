@@ -16,9 +16,10 @@
 
 package org.graphper.layout;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.graphper.util.Asserts;
@@ -36,7 +37,7 @@ public abstract class AbstractFontSelector implements FontSelector {
 
   private FontOrder fontOrder;
 
-  private TreeSet<String> allAvailableFonts;
+  private LinkedHashSet<String> allAvailableFonts;
 
   protected AbstractFontSelector() {
     initFontComparator();
@@ -102,12 +103,13 @@ public abstract class AbstractFontSelector implements FontSelector {
     if (fonts == null || fonts.length == 0) {
       defaultFont = fontOrder.first();
       Asserts.nullArgument(defaultFont, "Cannot init default Font");
-      allAvailableFonts = new TreeSet<>();
+      allAvailableFonts = new LinkedHashSet<>();
       return;
     }
 
-    allAvailableFonts = Stream.of(fonts)
-        .collect(Collectors.toCollection(() -> new TreeSet<>(fontOrder)));
-    this.defaultFont = allAvailableFonts.first();
+    List<String> orderFonts = Stream.of(fonts).sorted(fontOrder).collect(Collectors.toList());
+    this.allAvailableFonts = new LinkedHashSet<>(orderFonts);
+    this.defaultFont = orderFonts.get(0);
   }
+
 }

@@ -24,8 +24,6 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
@@ -161,51 +159,55 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
   public void drawString(Element ele, Graphics2D g2d) {
     String text = ele.textContext();
-    if (StringUtils.isNotEmpty(text)) {
-      text = StringEscapeUtils.unescapeXml(text);
+    if (StringUtils.isEmpty(text)) {
+      return;
     }
+
+    text = StringEscapeUtils.unescapeXml(text);
     int fontSize = toInt(ele.getAttribute(FONT_SIZE));
     double x = toDouble(ele.getAttribute(X));
     double y = toDouble(ele.getAttribute(Y));
-    String fontName = ele.getAttribute(FONT_FAMILY);
     Color color = toColor(ele.getAttribute(FILL));
     if (color == null) {
       color = Color.BLACK;
     }
     g2d.setColor(color);
-
-    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
-    Font font = new Font(fontName, Font.PLAIN, fontSize);
-    g2d.setFont(font);
     g2d.setPaint(color);
 
-    FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
-    GlyphVector glyphVector = font.createGlyphVector(frc, text);
+    String fontName = ele.getAttribute(FONT_FAMILY);
+    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
+    Font defaultFont = new Font(fontName, Font.PLAIN, fontSize);
 
-    // Adjust x position based on text-anchor
+    int pre = 0;
+    Font font = null;
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
-    double adjustedX = x - (size.getWidth() / 2);
+    x = x - (size.getWidth() / 2);
 
-    for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
-      // Get the position of the glyph in the vector
-      Point2D glyphPos = glyphVector.getGlyphPosition(i);
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (font != null && font.canDisplay(c)) {
+        continue;
+      }
 
-      // Calculate transformed position based on initial x, y, and glyph position
-      double glyphX = adjustedX + glyphPos.getX();
-      double glyphY = y + glyphPos.getY();
+      if (font != null) {
+        AWTextRender awTextRender = new AWTextRender(font, text.substring(pre, i), x, y, g2d);
+        awTextRender.draw();
+        pre = i;
+      }
 
-      // Get the outline of the glyph
-      Shape glyphOutline = glyphVector.getGlyphOutline(i);
+      if (defaultFont.canDisplay(c)) {
+        font = defaultFont;
+      } else {
+        String supportFont = FontUtils.findFirstSupportFont(c);
+        supportFont = StringUtils.isEmpty(supportFont) ? fontName : supportFont;
+        font = new Font(supportFont, Font.PLAIN, fontSize);
+      }
+    }
 
-      // Apply a transformation to each glyph for scaling
-      AffineTransform transform = AffineTransform.getTranslateInstance(glyphX, glyphY);
-
-      // Apply the transformation to the glyph outline
-      Shape transformedGlyph = transform.createTransformedShape(glyphOutline);
-      AffineTransform tr = AffineTransform.getTranslateInstance(-glyphPos.getX(), -glyphPos.getY());
-      transformedGlyph = tr.createTransformedShape(transformedGlyph);
-
-      g2d.fill(transformedGlyph);
+    if (pre != text.length() - 1) {
+      font = font != null ? font : defaultFont;
+      AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
+      awTextRender.draw();
     }
   }
 

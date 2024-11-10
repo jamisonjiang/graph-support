@@ -20,6 +20,8 @@ import java.util.Comparator;
 
 public interface FontOrder extends Comparator<String>, Iterable<String> {
 
+  boolean haveRank(String fontName);
+
   @Override
   int compare(String o1, String o2);
 

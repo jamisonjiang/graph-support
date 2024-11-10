@@ -37,6 +37,14 @@ public abstract class StaticFontOrder implements FontOrder {
   }
 
   @Override
+  public boolean haveRank(String fontName) {
+    if (fontOrderRecord == null || StringUtils.isEmpty(fontName)) {
+      return false;
+    }
+    return fontOrderRecord.get(fontName) != null;
+  }
+
+  @Override
   public int compare(String o1, String o2) {
     if (StringUtils.isEmpty(o1)) {
       return 1;
@@ -67,6 +75,6 @@ public abstract class StaticFontOrder implements FontOrder {
       return 0;
     }
     Integer order = fontOrderRecord.get(font);
-    return order == null ? Integer.MIN_VALUE : order;
+    return order == null ? Integer.MAX_VALUE : order;
   }
 }

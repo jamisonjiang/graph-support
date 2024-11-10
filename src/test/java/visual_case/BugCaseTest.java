@@ -659,7 +659,7 @@ public class BugCaseTest extends GraphvizVisual {
   @Test
   public void testMultiFontName() {
     visual(Graphviz.digraph()
-               .addNode(Node.builder().label("Hello, 你好, مرحبا, Δ, अ").fontName("SansSerif").build())
+               .addNode(Node.builder().label("Hello, 你好, مرحبا, Δ, अ").fontColor(Color.RED).build())
                .build());
   }
 }
