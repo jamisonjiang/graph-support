@@ -251,6 +251,28 @@ public class StringUtils {
     }
 
     /**
+     * Checks if a given string contains any character from the Arabic Unicode block.
+     *
+     * This method iterates through each character in the input string to determine if
+     * any of them falls within the Arabic Unicode block (U+0600 to U+06FF), which includes
+     * Arabic script characters commonly used in languages such as Arabic, Persian, and Urdu.
+     *
+     * @param text the string to check for Arabic characters
+     * @return {@code true} if the string contains at least one Arabic character; {@code false} otherwise
+     */
+    public static boolean containsArabic(String text) {
+        if (text == null) {
+            return false;
+        }
+        for (char c : text.toCharArray()) {
+            if (isArabic(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Determine whether a character is a Chinese character.
      *
      * @param c the character need determined
@@ -258,6 +280,19 @@ public class StringUtils {
      */
     public static boolean isChineseChar(char c) {
         return c >= 0x4E00 && c <= 0x9FA5;
+    }
+
+    /**
+     * Checks if a given character is part of the Arabic Unicode block.
+     *
+     * The Arabic Unicode block ranges from U+0600 to U+06FF and includes Arabic script
+     * characters commonly used in languages such as Arabic, Persian, and Urdu.
+     *
+     * @param c the character to check
+     * @return {@code true} if the character is in the Arabic Unicode block; {@code false} otherwise
+     */
+    public static boolean isArabic(char c) {
+        return c >= 0x0600 && c <= 0x06FF;
     }
 
     /**

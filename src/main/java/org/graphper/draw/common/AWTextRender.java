@@ -21,17 +21,21 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.Objects;
+import org.apache_gs.commons.lang3.StringUtils;
 
 public class AWTextRender {
 
   private final Font font;
 
-  private final String text;
+  private String text;
 
   private final double x;
 
@@ -44,18 +48,28 @@ public class AWTextRender {
     Objects.requireNonNull(text);
     Objects.requireNonNull(graphics2D);
     this.font = font;
-    this.text = text;
     this.x = x;
     this.y = y;
     this.graphics2D = graphics2D;
+    if (StringUtils.containsArabic(text)) {
+      this.text = ArabicTextHandler.createSubstituteString(text);
+    } else {
+      this.text = text;
+    }
   }
 
   public double draw() {
+    // Prepare AttributedString to handle multi-language layout and shaping
+    AttributedString attributedString = new AttributedString(text);
+    attributedString.addAttribute(TextAttribute.FONT, font);
+    AttributedCharacterIterator iterator = attributedString.getIterator();
+
+    // Use AttributedCharacterIterator to create GlyphVector
     graphics2D.setFont(font);
     FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
-    GlyphVector glyphVector = font.createGlyphVector(frc, text);
+    GlyphVector glyphVector = font.createGlyphVector(frc, iterator);
 
-    // Adjust x position based on text-anchor
+    // Your existing drawing logic starts here
     double xoffset = 0;
     GeneralPath outline = new GeneralPath();
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
@@ -78,10 +92,12 @@ public class AWTextRender {
       transformedGlyph = tr.createTransformedShape(transformedGlyph);
       outline.append(transformedGlyph, false);
 
+      // Calculate the width of each glyph and add it to the x-offset
       Rectangle2D glyphBounds = glyphVector.getGlyphLogicalBounds(i).getBounds2D();
-      xoffset += glyphBounds.getBounds2D().getWidth();
+      xoffset += glyphBounds.getWidth();
     }
 
+    // Render the final outline
     graphics2D.fill(outline);
     return xoffset;
   }
