@@ -33,6 +33,9 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
@@ -175,11 +178,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     g2d.setPaint(color);
 
     String fontName = ele.getAttribute(FONT_FAMILY);
-    fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
+    fontName = FontUtils.fontExists(fontName) ? fontName : mostSupportFont(text);
     Font defaultFont = new Font(fontName, Font.PLAIN, fontSize);
 
     int pre = 0;
     Font font = null;
+    fontName = mostSupportFont(text);
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
     x = x - (size.getWidth() / 2);
 
@@ -339,12 +343,47 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     return point2d;
   }
 
-  public Color toColor(String hexColorCode) {
+  private Color toColor(String hexColorCode) {
     if (hexColorCode == null || NONE.equals(hexColorCode)) {
       return null;
     }
     int rgb = Integer.parseInt(hexColorCode.substring(1), 16);
     return new Color(rgb);
+  }
+
+  private String mostSupportFont(String text) {
+    Map<String, Integer> fontCount = null;
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      String font = FontUtils.findFirstSupportFont(c);
+      if (font == null) {
+        continue;
+      }
+      if (fontCount == null) {
+        fontCount = new HashMap<>(1);
+      }
+      fontCount.compute(font, (f, n) -> {
+        if (n == null) {
+          return 1;
+        }
+        return ++n;
+      });
+    }
+
+    if (fontCount == null) {
+      return DEFAULT_FONT;
+    }
+
+    int max = Integer.MIN_VALUE;
+    String maxSupportFont = null;
+    for (Entry<String, Integer> entry : fontCount.entrySet()) {
+      if (entry.getValue() > max) {
+        max = entry.getValue();
+        maxSupportFont = entry.getKey();
+      }
+    }
+
+    return maxSupportFont == null ? DEFAULT_FONT : maxSupportFont;
   }
 
   private static class ImgContext {
