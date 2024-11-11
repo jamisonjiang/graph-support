@@ -558,6 +558,10 @@ public final class Curves {
 			this.v4 = v4;
 		}
 
+		public ThirdOrderBezierCurve(ThirdOrderBezierCurve curve) {
+			this(curve.v1, curve.v2, curve.v3, curve.v4);
+		}
+
 		public FlatPoint getV1() {
 			return v1;
 		}
