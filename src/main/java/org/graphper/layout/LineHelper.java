@@ -350,32 +350,30 @@ public class LineHelper {
     double d1 = FlatPoint.twoFlatPointDistance(p1, p2);
     double d2 = FlatPoint.twoFlatPointDistance(p2, p3);
 
-    MultiBezierCurve curves;
     if (d1 < radian || d2 < radian) {
-      curves = Curves.fitCurves(Arrays.asList(p1, p3),
+      MultiBezierCurve curves = Curves.fitCurves(Arrays.asList(p1, p3),
                                 lt != null ? Vectors.sub(p2, lt) : null,
                                 rt != null ? Vectors.sub(p3, rt) : null, 0);
-
-    } else {
-      FlatPoint dir = Vectors.sub(p2, p1);
-      double ratio = (d1 - radian) / d1;
-      FlatPoint v1 = Vectors.add(p1, Vectors.multiple(dir, ratio));
-
-      ratio = (d1 - radian / 2) / d1;
-      FlatPoint v2 = Vectors.add(p1, Vectors.multiple(dir, ratio));
-
-      dir = Vectors.sub(p2, p3);
-      ratio = (d2 - radian) / d2;
-      FlatPoint v4 = Vectors.add(p3, Vectors.multiple(dir, ratio));
-
-      ratio = (d2 - radian / 2) / d2;
-      FlatPoint v3 = Vectors.add(p3, Vectors.multiple(dir, ratio));
-
-      curves = new MultiBezierCurve(1);
-      curves.add(new ThirdOrderBezierCurve(v1, v2, v3, v4));
+      return fitFunction == null ? curves : fitFunction.apply(curves);
     }
 
-    return fitFunction == null ? curves : fitFunction.apply(curves);
+    FlatPoint dir = Vectors.sub(p2, p1);
+    double ratio = (d1 - radian) / d1;
+    FlatPoint v1 = Vectors.add(p1, Vectors.multiple(dir, ratio));
+
+    ratio = (d1 - radian / 2) / d1;
+    FlatPoint v2 = Vectors.add(p1, Vectors.multiple(dir, ratio));
+
+    dir = Vectors.sub(p2, p3);
+    ratio = (d2 - radian) / d2;
+    FlatPoint v4 = Vectors.add(p3, Vectors.multiple(dir, ratio));
+
+    ratio = (d2 - radian / 2) / d2;
+    FlatPoint v3 = Vectors.add(p3, Vectors.multiple(dir, ratio));
+
+    MultiBezierCurve curves = new MultiBezierCurve(1);
+    curves.add(new ThirdOrderBezierCurve(v1, v2, v3, v4));
+    return curves;
   }
 
   private static boolean isCorner(FlatPoint p1, FlatPoint p2, FlatPoint p3) {
