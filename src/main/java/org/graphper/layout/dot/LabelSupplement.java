@@ -271,14 +271,6 @@ class LabelSupplement {
       return 0;
     }
 
-    if (leftPreNode.getContainer() != rightPreNode.getContainer()) {
-      return Double.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
-    }
-
-    if (leftNextNode.getContainer() != rightNextNode.getContainer()) {
-      return Double.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
-    }
-
     int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
                            rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
 
