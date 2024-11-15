@@ -271,7 +271,15 @@ class LabelSupplement {
       return 0;
     }
 
-    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
+    if (leftPreNode.getContainer() != rightPreNode.getContainer()) {
+      return Double.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
+    }
+
+    if (leftNextNode.getContainer() != rightNextNode.getContainer()) {
+      return Double.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
+    }
+
+    int r = Integer.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
                            rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
 
     if (r != 0) {
@@ -320,7 +328,6 @@ class LabelSupplement {
      * }
      * */
     Map<DNode, Map<DNode, DLine>> parallelEdgeRecord = null;
-    Map<DLine, DNode> flatLabelNodeRecord = null;
 
     for (Entry<DNode, SameRankAdjacentInfo> rankAdjacentInfoEntry :
         sameRankAdjacentRecord.getOutSameRankAdjacent().entrySet()) {
@@ -374,30 +381,34 @@ class LabelSupplement {
       return false;
     }
 
+    Map<DLine, DNode> flatLabelNodeRecord = null;
+
     for (Map<DNode, DLine> value : parallelEdgeRecord.values()) {
       for (DLine line : value.values()) {
         // If the merged FlatEdge contains a labelLine, the current mergeLine will become a Label Node.
-        if (line.haveLabel()) {
-          if (flatLabelNodeRecord == null) {
-            flatLabelNodeRecord = new HashMap<>();
-          }
+        if (!line.haveLabel()) {
+          continue;
+        }
 
-          DNode flatLabelNode = flatLabelNodeRecord.computeIfAbsent(
-              line,
-              ml -> new DNode(
-                  null, 0, 0,
-                  ml.isSameRankAdj()
-                      ? ml.from().getNodeSep() / 2
-                      : ml.from().getNodeSep(),
-                  ml
-              )
-          );
+        if (flatLabelNodeRecord == null) {
+          flatLabelNodeRecord = new HashMap<>();
+        }
 
-          flatLabelNode.setContainer(dotAttachment.commonParent(line.from(), line.to()));
+        DNode flatLabelNode = flatLabelNodeRecord.computeIfAbsent(
+            line,
+            ml -> new DNode(
+                null, 0, 0,
+                ml.isSameRankAdj()
+                    ? ml.from().getNodeSep() / 2
+                    : ml.from().getNodeSep(),
+                ml
+            )
+        );
 
-          if (line.isSameRankAdj()) {
-            line.from().nodeSepHalving();
-          }
+        flatLabelNode.setContainer(dotAttachment.commonParent(line.from(), line.to()));
+
+        if (line.isSameRankAdj()) {
+          line.from().nodeSepHalving();
         }
       }
     }
@@ -421,10 +432,6 @@ class LabelSupplement {
 
     for (DNode flatLabelNode : flatLabelNodeRecord.values()) {
       DLine labelLine = flatLabelNode.getFlatLabelLine();
-      if (labelLine == null) {
-        continue;
-      }
-
       flatLabelNode.setMedian(
           (double) (labelLine.from().getRankIndex() + labelLine.to().getRankIndex()) / 2
       );
@@ -504,7 +511,6 @@ class LabelSupplement {
 
     List<DLine> removeLines = new ArrayList<>();
     for (RankNode rankNode : needInsertVirtualRank) {
-
       for (int i = 0; i < rankNode.size(); i++) {
         DNode node = rankNode.get(i);
 
@@ -517,7 +523,6 @@ class LabelSupplement {
       }
 
       RankNode next = rankNode.next();
-
       for (DLine removeLine : removeLines) {
         if (removeLine.isParallelMerge()) {
           for (int i = 0; i < removeLine.getParallelNums(); i++) {
