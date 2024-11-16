@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.PortHelper;
@@ -68,57 +67,6 @@ class LabelSupplement {
     // Flat parallel edge handle
     if (needInsertFlatEdges) {
       flatParallelEdge();
-    }
-
-    if (dotAttachment.haveClusters() && (needInsertLabelNodeRank || needInsertFlatEdges)) {
-      checkNodeNotBrokeCluster();
-    }
-  }
-
-  private void checkNodeNotBrokeCluster() {
-    Map<GraphContainer, Integer> preIdxRecord = new HashMap<>();
-    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
-      RankNode rankNode = rankContent.get(i);
-
-      boolean notEnded = true;
-      while (notEnded) {
-        preIdxRecord.clear();
-        notEnded = checkAndFixWrongNodeContainer(preIdxRecord, rankNode);
-      }
-    }
-  }
-
-  private boolean checkAndFixWrongNodeContainer(Map<GraphContainer, Integer> preIdxRecord, RankNode rankNode) {
-    for (int j = 0; j < rankNode.size(); j++) {
-      DNode node = rankNode.get(j);
-
-      GraphContainer container = node.getContainer();
-      while (container != null) {
-        Integer preIdx = preIdxRecord.get(container);
-        if (preIdx != null && preIdx != j - 1) {
-          DNode brokeClusterNode = rankNode.get(preIdx + 1);
-          if (!brokeClusterNode.isVirtual()) {
-            throw new IllegalStateException("No virtual node broke cluster");
-          }
-
-          brokeClusterNode.setContainer(container);
-          return true;
-        }
-        container = dotAttachment.getGraphviz().effectiveFather(container);
-      }
-
-      preIdxRecord.put(node.getContainer(), j);
-      updateContainerIdx(preIdxRecord, j, node.getContainer());
-    }
-
-    return false;
-  }
-
-  private void updateContainerIdx(Map<GraphContainer, Integer> preIdxRecord, int j,
-                                  GraphContainer container) {
-    while (container != null) {
-      preIdxRecord.put(container, j);
-      container = dotAttachment.getGraphviz().effectiveFather(container);
     }
   }
 
