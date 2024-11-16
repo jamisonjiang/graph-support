@@ -861,14 +861,17 @@ class MinCross {
         return;
       }
 
-      if (isOutDirection && to.getRank() == from.getRank() && dLine != null) {
-        if (sameRankAdjacentRecord == null) {
-          sameRankAdjacentRecord = new SameRankAdjacentRecord();
-        }
+      if (to.getRank() == from.getRank() && dLine != null) {
+        if (isOutDirection) {
+          if (sameRankAdjacentRecord == null) {
+            sameRankAdjacentRecord = new SameRankAdjacentRecord();
+          }
 
-        sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+          sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+        }
         return;
       }
+
 
       if (isMark(to)) {
         return;
