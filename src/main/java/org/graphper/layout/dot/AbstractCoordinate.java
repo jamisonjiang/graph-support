@@ -491,7 +491,7 @@ abstract class AbstractCoordinate {
             ((nextRankY - preRankY - rankNode.getRankSep()) / 2) - (node.getHeight() / 2);
         node.setY(preRankY + node.realTopHeight() + offset);
 
-        containerAdjust(node);
+        containerAdjust(node, !rankNode.noNormalNode());
         if (!node.isVirtual()) {
           updateNodeContainer(node, drawGraph.getNodeDrawProp(node.getNode()));
         }
@@ -506,7 +506,7 @@ abstract class AbstractCoordinate {
     refreshGraphBorder(drawGraph);
   }
 
-  private void containerAdjust(DNode node) {
+  private void containerAdjust(DNode node, boolean normalRank) {
     if (!node.getContainer().isCluster()) {
       return;
     }
@@ -524,7 +524,7 @@ abstract class AbstractCoordinate {
         continue;
       }
 
-      if (EnvProp.qualityCheck()) {
+      if (normalRank && EnvProp.qualityCheck()) {
         double leftBorder = containerLeftBorder(container);
         double rightBorder = containerRightBorder(container);
         Asserts.illegalArgument(node.getX() < leftBorder || node.getX() > rightBorder,

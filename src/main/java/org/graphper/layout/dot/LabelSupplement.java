@@ -19,20 +19,13 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import org.graphper.api.GraphContainer;
-import org.graphper.api.Graphviz;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.PortHelper;
@@ -48,8 +41,6 @@ import org.graphper.util.CollectionUtils;
  * @author Jamison Jiang
  */
 class LabelSupplement {
-
-  private ClusterOrder clusterOrder;
 
   private final RankContent rankContent;
 
@@ -68,10 +59,6 @@ class LabelSupplement {
     boolean needInsertFlatEdges = dotAttachment.getSameRankAdjacentRecord() != null
         && dotAttachment.getSameRankAdjacentRecord().haveSameRank();
 
-    if (dotAttachment.haveClusters() && (needInsertLabelNodeRank || needInsertFlatEdges)) {
-      clusterOrder = new ClusterOrder(rankContent, dotAttachment.getGraphviz());
-    }
-
     // If graph have any label line, may be need create some relay rank.
     if (needInsertLabelNodeRank) {
       insertLabelNodeRank();
@@ -80,109 +67,6 @@ class LabelSupplement {
     // Flat parallel edge handle
     if (needInsertFlatEdges) {
       flatParallelEdge();
-    }
-
-    if (clusterOrder != null) {
-      fixWrongOrder();
-      checkNodeNotBrokeCluster();
-    }
-  }
-
-  private void fixWrongOrder() {
-    Graphviz graphviz = dotAttachment.getGraphviz();
-    for (int i = rankContent.minRank; i <= rankContent.maxRank; i++) {
-      RankNode rankNode = rankContent.get(i);
-
-      Map<GraphContainer, Integer> containerMinIdx = new HashMap<>();
-      Iterator<DNode> iterator = rankNode.iterator();
-
-      int j = 0;
-      NavigableMap<Integer, SortedSet<DNode>> reorderNodes = null;
-
-      while (iterator.hasNext()) {
-        DNode node = iterator.next();
-        GraphContainer container = node.getContainer();
-        Integer minWrongOrderContainerIdx = null;
-
-        for (Entry<GraphContainer, Integer> entry : containerMinIdx.entrySet()) {
-          int minIdx = entry.getValue();
-          GraphContainer leftContainer = entry.getKey();
-
-          // Order is wrong, find the minimum index container at the left
-          if (clusterOrder.compare(leftContainer, container) > 0) {
-            if (minWrongOrderContainerIdx == null || minWrongOrderContainerIdx > minIdx) {
-              minWrongOrderContainerIdx = minIdx;
-            }
-          }
-        }
-
-        if (minWrongOrderContainerIdx != null) {
-          if (reorderNodes == null) {
-            reorderNodes = new TreeMap<>();
-          }
-
-          Comparator.comparing(DNode::getContainer).thenComparing(clusterOrder::compare);
-          reorderNodes.computeIfAbsent(minWrongOrderContainerIdx, k -> new TreeSet<>())
-
-          iterator.remove();
-          continue;
-        }
-
-        int n = j;
-        while (container != null && !container.isCluster()) {
-          containerMinIdx.computeIfAbsent(container, k -> n);
-          container = graphviz.effectiveFather(container);
-        }
-
-        j++;
-      }
-    }
-  }
-
-  private void checkNodeNotBrokeCluster() {
-    Map<GraphContainer, Integer> preIdxRecord = new HashMap<>();
-    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
-      RankNode rankNode = rankContent.get(i);
-
-      boolean notEnded = true;
-      while (notEnded) {
-        preIdxRecord.clear();
-        notEnded = checkAndFixWrongNodeContainer(preIdxRecord, rankNode);
-      }
-    }
-  }
-
-  private boolean checkAndFixWrongNodeContainer(Map<GraphContainer, Integer> preIdxRecord, RankNode rankNode) {
-    for (int j = 0; j < rankNode.size(); j++) {
-      DNode node = rankNode.get(j);
-
-      GraphContainer container = node.getContainer();
-      while (container != null) {
-        Integer preIdx = preIdxRecord.get(container);
-        if (preIdx != null && preIdx != j - 1) {
-          DNode brokeClusterNode = rankNode.get(preIdx + 1);
-          if (!brokeClusterNode.isVirtual()) {
-            throw new IllegalStateException("No virtual node broke cluster");
-          }
-
-          brokeClusterNode.setContainer(container);
-          return true;
-        }
-        container = dotAttachment.getGraphviz().effectiveFather(container);
-      }
-
-      preIdxRecord.put(node.getContainer(), j);
-      updateContainerIdx(preIdxRecord, j, node.getContainer());
-    }
-
-    return false;
-  }
-
-  private void updateContainerIdx(Map<GraphContainer, Integer> preIdxRecord, int j,
-                                  GraphContainer container) {
-    while (container != null) {
-      preIdxRecord.put(container, j);
-      container = dotAttachment.getGraphviz().effectiveFather(container);
     }
   }
 
@@ -652,9 +536,16 @@ class LabelSupplement {
     }
 
     DLine flatLabelLine = flatLabelNode.getFlatLabelLine();
+    DNode pre = rankNode.get(flatLabelNode.getRankIndex() - 1);
     DNode next = rankNode.get(flatLabelNode.getRankIndex() + 1);
-    if (next != null && (flatLabelLine.from() == next || flatLabelLine.to() == next)) {
-      return;
+    if (pre != null) {
+      flatLabelNode.setContainer(pre.getContainer());
+    }
+    if (next != null) {
+      flatLabelNode.setContainer(next.getContainer());
+      if ((flatLabelLine.from() == next || flatLabelLine.to() == next)) {
+        return;
+      }
     }
 
     digraphProxy.addEdge(
