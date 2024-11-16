@@ -19,14 +19,20 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.PortHelper;
@@ -77,7 +83,59 @@ class LabelSupplement {
     }
 
     if (clusterOrder != null) {
+      fixWrongOrder();
       checkNodeNotBrokeCluster();
+    }
+  }
+
+  private void fixWrongOrder() {
+    Graphviz graphviz = dotAttachment.getGraphviz();
+    for (int i = rankContent.minRank; i <= rankContent.maxRank; i++) {
+      RankNode rankNode = rankContent.get(i);
+
+      Map<GraphContainer, Integer> containerMinIdx = new HashMap<>();
+      Iterator<DNode> iterator = rankNode.iterator();
+
+      int j = 0;
+      NavigableMap<Integer, SortedSet<DNode>> reorderNodes = null;
+
+      while (iterator.hasNext()) {
+        DNode node = iterator.next();
+        GraphContainer container = node.getContainer();
+        Integer minWrongOrderContainerIdx = null;
+
+        for (Entry<GraphContainer, Integer> entry : containerMinIdx.entrySet()) {
+          int minIdx = entry.getValue();
+          GraphContainer leftContainer = entry.getKey();
+
+          // Order is wrong, find the minimum index container at the left
+          if (clusterOrder.compare(leftContainer, container) > 0) {
+            if (minWrongOrderContainerIdx == null || minWrongOrderContainerIdx > minIdx) {
+              minWrongOrderContainerIdx = minIdx;
+            }
+          }
+        }
+
+        if (minWrongOrderContainerIdx != null) {
+          if (reorderNodes == null) {
+            reorderNodes = new TreeMap<>();
+          }
+
+          Comparator.comparing(DNode::getContainer).thenComparing(clusterOrder::compare);
+          reorderNodes.computeIfAbsent(minWrongOrderContainerIdx, k -> new TreeSet<>())
+
+          iterator.remove();
+          continue;
+        }
+
+        int n = j;
+        while (container != null && !container.isCluster()) {
+          containerMinIdx.computeIfAbsent(container, k -> n);
+          container = graphviz.effectiveFather(container);
+        }
+
+        j++;
+      }
     }
   }
 
@@ -565,21 +623,8 @@ class LabelSupplement {
         addArchBridgeFlatLine(poll, rankNode);
       }
 
-      rankNode.sort(this::flatLabelComparator);
       rankNode = rankNode.next();
     }
-  }
-
-  private int flatLabelComparator(DNode left, DNode right) {
-    int r = Integer.compare(left.getRankIndex(), right.getRankIndex());
-    if (clusterOrder != null) {
-      int cr = clusterOrder.compare(left.getContainer(), right.getContainer());
-      if (cr != 0) {
-        r = cr;
-      }
-    }
-
-    return r;
   }
 
   private void cutLine(RankNode next, DLine removeLine) {
