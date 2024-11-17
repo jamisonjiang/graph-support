@@ -28,6 +28,7 @@ import org.graphper.api.ext.CylinderPropCalc;
 import org.graphper.api.ext.NotePropCalc;
 import org.graphper.api.ext.RecordPropCalc;
 import org.graphper.api.ext.StarPropCalc;
+import org.graphper.api.ext.TrianglePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.CustomizeShapeRender;
 import org.graphper.draw.NodeDrawProp;
@@ -71,7 +72,9 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
         rect(nodeDrawProp, brush);
         break;
       case TRIANGLE:
-        triangle(nodeDrawProp, brush);
+      case INVTRIANGLE:
+        TrianglePropCalc trianglePropCalc = (TrianglePropCalc)nodeShape.getShapePropCalc();
+        triangle(nodeDrawProp, brush, trianglePropCalc.isPositive());
         break;
       case DIAMOND:
         diamond(nodeDrawProp, brush);
@@ -143,13 +146,22 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
                            nodeDrawProp.getUpBorder());
   }
 
-  private void triangle(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getX(),
-                           nodeDrawProp.getUpBorder(),
-                           nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder(),
-                           nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getDownBorder());
+  private void triangle(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean positive) {
+    if (positive) {
+      SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getX(),
+                             nodeDrawProp.getUpBorder(),
+                             nodeDrawProp.getLeftBorder(),
+                             nodeDrawProp.getDownBorder(),
+                             nodeDrawProp.getRightBorder(),
+                             nodeDrawProp.getDownBorder());
+    } else {
+      SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getX(),
+                             nodeDrawProp.getDownBorder(),
+                             nodeDrawProp.getLeftBorder(),
+                             nodeDrawProp.getUpBorder(),
+                             nodeDrawProp.getRightBorder(),
+                             nodeDrawProp.getUpBorder());
+    }
   }
 
   private void diamond(NodeDrawProp nodeDrawProp, SvgBrush brush) {
