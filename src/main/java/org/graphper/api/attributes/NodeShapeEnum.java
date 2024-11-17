@@ -71,7 +71,9 @@ public enum NodeShapeEnum implements NodeShape {
 
   DIAMOND("diamond", new DiamondPropCalc()),
 
-  TRAPEZIUM("trapezium", new TrapeziumPropCalc()),
+  TRAPEZIUM("trapezium", new TrapeziumPropCalc(true)),
+
+  INVTRAPEZIUM("invtrapezium", new TrapeziumPropCalc(false)),
 
   PARALLELOGRAM("parallelogram", new ParallelogramPropCalc()),
 

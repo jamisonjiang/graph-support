@@ -32,10 +32,7 @@ public class TrianglePropCalc implements ShapePropCalc, Serializable {
 
   @Override
   public FlatPoint minContainerSize(double innerHeight, double innerWidth) {
-    double a = 2 * Math.sqrt(innerWidth * innerWidth + 4 * innerHeight * innerHeight);
-    double h = ((3 * innerHeight * innerWidth) / a) + 1.5 * innerHeight;
-    h = Math.max(h, 2 * innerHeight);
-    return new FlatPoint(h, h * innerWidth / innerHeight);
+    return new FlatPoint(2 * innerHeight, 3 * innerWidth);
   }
 
   @Override
@@ -62,9 +59,9 @@ public class TrianglePropCalc implements ShapePropCalc, Serializable {
 
     double y;
     if (positive) {
-      y = box.getUpBorder() + 1.5 * labelSize.getHeight();
+      y = box.getDownBorder() - labelSize.getHeight();
     } else {
-      y = box.getDownBorder() - 1.5 * labelSize.getHeight();
+      y = box.getUpBorder() + labelSize.getHeight();
     }
 
     return new FlatPoint(box.getX(), y);
