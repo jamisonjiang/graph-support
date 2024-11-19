@@ -349,19 +349,14 @@ class LabelSupplement {
 
     // The rank at which a new virtual node needs to be inserted at the next rank.
     List<RankNode> needInsertVirtualRank = null;
-    // The rank index of the newly inserted rank, which is the median value between the original two rank.
-    Map<RankNode, Double> newRankNodeIndex = null;
     // The priority queue mapping of the label node that needs to be inserted at the rank.
     Map<RankNode, Queue<DNode>> rankLabelNodeQueue = null;
-    double minRankIndex = Double.MAX_VALUE;
-    RankNode minRankNode = null;
 
     for (DNode flatLabelNode : flatLabelNodeRecord.values()) {
       DLine labelLine = flatLabelNode.getFlatLabelLine();
       flatLabelNode.setMedian(
           (double) (labelLine.from().getRankIndex() + labelLine.to().getRankIndex()) / 2
       );
-
       RankNode rankNode = rankContent.get(labelLine.from().getRank());
 
       if (!labelLine.isSameRankAdj()) {
@@ -375,14 +370,7 @@ class LabelSupplement {
             needInsertVirtualRank.add(rankNode.pre());
           }
 
-          double ri = rankNode.pre() != null
-              ? (double) (rankNode.pre().rankIndex() + rankNode.rankIndex()) / 2
-              : rankNode.rankIndex() - 1;
           rankNode = rankContent.insertLabelRankNode(rankNode.rankIndex());
-          if (newRankNodeIndex == null) {
-            newRankNodeIndex = new HashMap<>(1);
-          }
-          newRankNodeIndex.put(rankNode, ri);
         } else {
           rankNode = rankNode.pre();
         }
@@ -390,25 +378,6 @@ class LabelSupplement {
 
       if (rankNode == null) {
         continue;
-      }
-
-      Double ri;
-      if (minRankNode == null
-          || (newRankNodeIndex != null && (ri = newRankNodeIndex.get(rankNode)) != null
-          && ri < minRankIndex)
-          || rankNode.rankIndex() < minRankIndex
-      ) {
-        minRankNode = rankNode;
-        if (newRankNodeIndex != null) {
-          ri = newRankNodeIndex.get(rankNode);
-          if (ri != null) {
-            minRankIndex = ri;
-          } else {
-            minRankIndex = rankNode.rankIndex();
-          }
-        } else {
-          minRankIndex = rankNode.rankIndex();
-        }
       }
 
       if (rankLabelNodeQueue == null) {
@@ -425,8 +394,13 @@ class LabelSupplement {
     // The previous rank of the newly inserted rank, if it exists, a new virtual node needs to be inserted.
     newRankAddVirtualNode(needInsertVirtualRank);
 
+    RankNode rankNode = rankContent.get(rankContent.minRank());
+    while (rankNode != null && rankNode.pre() != null) {
+      rankNode = rankNode.pre();
+    }
+
     // Synchronize rank and rankIndex of nodes in rank.
-    syncNodeProp(minRankNode, rankLabelNodeQueue);
+    syncNodeProp(rankNode, rankLabelNodeQueue);
   }
 
   private void newRankAddVirtualNode(List<RankNode> needInsertVirtualRank) {
@@ -480,7 +454,7 @@ class LabelSupplement {
 
         // Find the first node whose median value is smaller than the current node and insert
         // it in front of the current node
-        while (labelNodes != null && !labelNodes.isEmpty()) {
+        while (CollectionUtils.isNotEmpty(labelNodes)) {
           DNode peek = labelNodes.peek();
           if (peek.getMedian() > median) {
             break;
@@ -497,7 +471,7 @@ class LabelSupplement {
         node.setRankIndex(i);
       }
 
-      while (labelNodes != null && !labelNodes.isEmpty()) {
+      while (CollectionUtils.isNotEmpty(labelNodes)) {
         DNode poll = labelNodes.poll();
         poll.setRank(rankNode.rankIndex());
         poll.setRankIndex(i++);
