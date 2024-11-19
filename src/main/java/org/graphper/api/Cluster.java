@@ -265,6 +265,12 @@ public class Cluster extends GraphContainer implements Serializable {
       return self();
     }
 
+    /**
+     * Sets the tooltip text for the cluster.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return cluster builder
+     */
     public B tooltip(String tooltip) {
       clusterAttrs.tooltip = tooltip;
       return self();

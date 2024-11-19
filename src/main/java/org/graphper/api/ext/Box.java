@@ -151,6 +151,11 @@ public interface Box {
     Asserts.illegalArgument(!positive(), NOT_POSITIVE_BOX);
   }
 
+  /**
+   * Returns true if box have positive area.
+   *
+   * @return true if box have positive area
+   */
   default boolean positive() {
     return getLeftBorder() <= getRightBorder() && getUpBorder() <= getDownBorder();
   }
@@ -183,24 +188,44 @@ public interface Box {
         && y >= getUpBorder() + 0.01 && y <= getDownBorder() - 0.01;
   }
 
+  /**
+   * Calculates the area of the box.
+   *
+   * @return the area of the box
+   */
   default double getArea() {
     return getWidth() * getHeight();
   }
 
+  /**
+   * Checks if this box overlaps with another box.
+   *
+   * @param box the box to check for overlap
+   * @return {@code true} if the boxes overlap, {@code false} otherwise
+   */
   default boolean isOverlap(Box box) {
     if (box == null) {
       return false;
     }
-
     double deltaX = Math.abs(getX() - box.getX());
     double deltaY = Math.abs(getY() - box.getY());
     return deltaX <= wd2() + box.wd2() && deltaY <= ht2() + box.ht2();
   }
 
+  /**
+   * Returns half the width of the box.
+   *
+   * @return half the width of the box
+   */
   default double wd2() {
     return getWidth() / 2;
   }
 
+  /**
+   * Returns half the height of the box.
+   *
+   * @return half the height of the box
+   */
   default double ht2() {
     return getHeight() / 2;
   }

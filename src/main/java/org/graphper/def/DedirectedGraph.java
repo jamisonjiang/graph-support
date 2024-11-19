@@ -74,6 +74,13 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
     return digraph.adjacent(v);
   }
 
+  /**
+   * Return next node in current graph and sequence strategy considered by different attribute
+   * graphs, return null if graph iteration finished.
+   *
+   * @param v vertex to be queried
+   * @return next node in current graph
+   */
   @Override
   public V next(V v) {
     return digraph.next(v);

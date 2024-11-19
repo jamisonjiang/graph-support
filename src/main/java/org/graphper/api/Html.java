@@ -203,6 +203,12 @@ public class Html {
       return self();
     }
 
+    /**
+     * Sets the tooltip text for the Html.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return this element
+     */
     public T tooltip(String tooltip) {
       this.tooltip = tooltip;
       return self();

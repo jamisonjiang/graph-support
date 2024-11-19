@@ -513,9 +513,9 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set a cluster link, only valid when the output is <tt>svg</tt>.
+     * Set a graph link, only valid when the output is <tt>svg</tt>.
      *
-     * @param href cluster href
+     * @param href graph href
      * @return graphviz builder
      */
     public GraphvizBuilder href(String href) {
@@ -523,6 +523,12 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    /**
+     * Sets the tooltip text for the graph.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return graphviz builder
+     */
     public GraphvizBuilder tooltip(String tooltip) {
       graphAttrs.tooltip = tooltip;
       return self();
@@ -540,23 +546,60 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    /**
+     * Sets the maximum number of iterations for the fdo layout algorithms.
+     *
+     * @param maxiter the maximum number of iterations, must be non-negative
+     * @return graphviz builder
+     * @throws IllegalArgumentException if {@code maxiter} is less than 0
+     */
     public GraphvizBuilder maxiter(int maxiter) {
       Asserts.illegalArgument(maxiter < 0, "maxiter " + maxiter + " can not be less than 0");
       graphAttrs.maxiter = maxiter;
       return self();
     }
 
+    /**
+     * Sets the spring constant for the layout algorithm.
+     *
+     * <p>The spring constant determines the "stiffness" of the virtual springs connecting the
+     * nodes. Higher values can result in tighter node placement, while lower values allow for more
+     * spacing.
+     *
+     * @param k the spring constant, must be non-negative
+     * @return graphviz builder
+     * @throws IllegalArgumentException if {@code k} is less than 0
+     */
     public GraphvizBuilder k(double k) {
       Asserts.illegalArgument(k < 0, "spring constant can not be less than 0");
       graphAttrs.k = k;
       return self();
     }
 
+    /**
+     * Configures whether node overlaps are allowed in the layout.
+     *
+     * <p>If set to {@code true}, nodes may overlap in the final layout. If set to {@code false},
+     * the algorithm will attempt to adjust the layout to prevent node overlaps.
+     *
+     * @param overlap {@code true} to allow overlaps, {@code false} to prevent overlaps
+     * @return graphviz builder
+     */
     public GraphvizBuilder overlap(boolean overlap) {
       graphAttrs.overlap = overlap;
       return self();
     }
 
+    /**
+     * Sets the initial positioning strategy for the graph layout.
+     *
+     * <p>The initial position can influence the final layout, particularly in iterative layout
+     * algorithms. Use this to specify how the layout should initialize node positions.
+     *
+     * @param pos the initial position strategy, must not be {@code null}
+     * @return graphviz builder
+     * @throws IllegalArgumentException if {@code pos} is {@code null}
+     */
     public GraphvizBuilder initPos(InitPos pos) {
       Asserts.nullArgument(pos, "null pos");
       graphAttrs.initPos = pos;

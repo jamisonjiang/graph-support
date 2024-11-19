@@ -645,6 +645,12 @@ public class Line implements Comparable<Line>, Serializable {
       return this;
     }
 
+    /**
+     * Sets the tooltip text for the line.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return line builder
+     */
     public LineBuilder tooltip(String tooltip) {
       lineAttrs.tooltip = tooltip;
       return this;

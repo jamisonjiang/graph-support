@@ -151,7 +151,6 @@ public final class Curves {
 	public static ThirdOrderBezierCurve divideThirdBesselCurve(double t, boolean isFirstHalf,
 	                                                           ThirdOrderBezierCurve bezierCurve) {
 		Asserts.nullArgument(bezierCurve, "bezierCurve");
-
 		FlatPoint dividePoint = besselEquationCalc(t, bezierCurve.v1, bezierCurve.v2,
 		                                           bezierCurve.v3, bezierCurve.v4);
 

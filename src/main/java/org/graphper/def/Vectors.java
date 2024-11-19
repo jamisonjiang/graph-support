@@ -324,7 +324,7 @@ public class Vectors {
       FlatPoint intersect = lineInters(point, endPoint, lineP1, lineP2);
       return sub(intersect, point).dist();
     } catch (UnfeasibleException e) {
-      return 0;
+      return Double.MAX_VALUE;
     }
   }
 

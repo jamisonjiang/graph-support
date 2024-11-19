@@ -411,6 +411,12 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
       return this;
     }
 
+    /**
+     * Sets the tooltip text for the Node.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return node builder
+     */
     public NodeBuilder tooltip(String tooltip) {
       nodeAttrs.tooltip = tooltip;
       return this;
