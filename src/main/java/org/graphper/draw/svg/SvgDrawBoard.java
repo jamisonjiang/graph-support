@@ -53,6 +53,8 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
 
   private static final String XMLNS_XLINK_VAL = "http://www.w3.org/1999/xlink";
 
+  private static final String GRAPH_ID = SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0";
+
   protected final SvgDocument svgDocument;
 
   protected final Element graphElement;
@@ -98,11 +100,12 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     transform = String.format(transform, "0");
     graphElement.setAttribute(SvgConstants.TRANSFORM, transform);
 
+    ;
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
-    element.setAttribute(SvgConstants.ID, SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0");
+    element.setAttribute(SvgConstants.ID, GRAPH_ID);
     element.setAttribute(SvgConstants.CLASS, SvgConstants.GRAPH);
 
-    return new SvgBrush(element, svgDocument, this);
+    return new SvgBrush(GRAPH_ID, element, svgDocument, this);
   }
 
   @Override
@@ -110,7 +113,7 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
     element.setAttribute(SvgConstants.ID, clusterId(cluster));
     element.setAttribute(SvgConstants.CLASS, SvgConstants.CLUSTER);
-    return new SvgBrush(element, svgDocument, this);
+    return new SvgBrush(clusterId(cluster), element, svgDocument, this);
   }
 
   @Override
@@ -118,14 +121,14 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
     element.setAttribute(SvgConstants.ID, nodeId(nodeDrawProp));
     element.setAttribute(SvgConstants.CLASS, SvgConstants.NODE);
-    return new SvgBrush(element, svgDocument, this);
+    return new SvgBrush(nodeId(nodeDrawProp.getNode()), element, svgDocument, this);
   }
 
   @Override
   public synchronized SvgBrush drawLine(LineDrawProp line) {
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
     element.setAttribute(SvgConstants.ID, lineId(line));
-    return new SvgBrush(element, svgDocument, this);
+    return new SvgBrush(lineId(line.getLine()), element, svgDocument, this);
   }
 
   @Override

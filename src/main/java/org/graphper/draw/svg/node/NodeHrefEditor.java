@@ -38,8 +38,7 @@ public class NodeHrefEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     }
 
     String href = nodeAttrs.getHref();
-    String id = brush.nodeId(node.getNode());
-    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
+    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);

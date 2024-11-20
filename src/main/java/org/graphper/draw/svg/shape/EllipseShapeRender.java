@@ -34,14 +34,13 @@ public class EllipseShapeRender extends CustomizeShapeRender {
 
   @Override
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
-    Element shapeEle = nodeBrush.getOrCreateChildElement(nodeDrawProp, NodeShapeEnum.ELLIPSE.getName());
+    Element shapeEle = nodeBrush.getOrCreateChildElement(NodeShapeEnum.ELLIPSE.getName());
     draw(nodeDrawProp, shapeEle);
   }
 
   @Override
   public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
-    Element shapeEle = clusterBrush.getOrCreateChildElement(clusterDrawProp,
-                                                            NodeShapeEnum.ELLIPSE.getName());
+    Element shapeEle = clusterBrush.getOrCreateChildElement(NodeShapeEnum.ELLIPSE.getName());
     draw(clusterDrawProp, shapeEle);
   }
 

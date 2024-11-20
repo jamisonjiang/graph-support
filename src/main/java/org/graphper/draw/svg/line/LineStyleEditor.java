@@ -40,10 +40,8 @@ public class LineStyleEditor implements LineEditor<SvgBrush> {
       return true;
     }
 
-    Element pathEle = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(line), SvgConstants.PATH_ELE),
-        SvgConstants.PATH_ELE
-    );
+    Element pathEle = brush.getOrCreateChildElementById(SvgConstants.PATH_ELE,
+                                                        SvgConstants.PATH_ELE);
 
     for (LineStyle style : styles) {
       if (style == LineStyle.DASHED) {

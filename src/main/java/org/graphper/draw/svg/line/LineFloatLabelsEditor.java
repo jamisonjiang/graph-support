@@ -45,12 +45,9 @@ public class LineFloatLabelsEditor extends SvgEditor implements LineEditor<SvgBr
 
       final int n = i;
       Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-        String id = SvgBrush.getId(
-            brush.lineId(lineDrawProp),
-            SvgConstants.TEXT_ELE
+        String id = SvgConstants.TEXT_ELE
                 + SvgConstants.UNDERSCORE + FLOAT_LABEL
-                + n + textLineAttribute.getLineNo()
-        );
+                + n + textLineAttribute.getLineNo();
 
         Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
         setText(text, floatLabel.getFontSize(), textLineAttribute);

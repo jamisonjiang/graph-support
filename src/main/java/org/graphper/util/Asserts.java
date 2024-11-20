@@ -42,8 +42,17 @@ public final class Asserts {
    * the specified parameter name.
    *
    * @param obj       condition to be checked
+   */
+  public static void nullArgument(Object obj) {
+    Objects.requireNonNull(obj);
+  }
+
+  /**
+   * When the specified parameter is <tt>null</tt>, a {@link NullPointerException} is thrown with
+   * the specified parameter name.
+   *
+   * @param obj       condition to be checked
    * @param paramName error message when parameters are abnormal
-   * @throws IllegalArgumentException predicate is false
    */
   public static void nullArgument(Object obj, String paramName) {
     Objects.requireNonNull(obj, paramName + " can not be null");
@@ -55,6 +64,7 @@ public final class Asserts {
    * @param arrays object arrays
    * @throws IllegalArgumentException array is empty or contains null element
    */
+  @SafeVarargs
   public static <T> void nullOrContainsNull(T... arrays) {
     illegalArgument(arrays == null || arrays.length == 0, "Array is empty");
     for (T ele : arrays) {

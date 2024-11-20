@@ -31,57 +31,53 @@ import org.graphper.util.CollectionUtils;
 
 public class LinePathEditor extends SvgEditor implements LineEditor<SvgBrush> {
 
-	private static final Logger log = LoggerFactory.getLogger(LinePathEditor.class);
+  private static final Logger log = LoggerFactory.getLogger(LinePathEditor.class);
 
-	@Override
-	public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
-		if (CollectionUtils.isEmpty(lineDrawProp)) {
-			if (log.isWarnEnabled()) {
-				log.warn("Find the wrong LineDrawProp attribute, "
-						         + "terminate the drawing of the svg path, line={}", lineDrawProp.lineAttrs());
-			}
-			return true;
-		}
+  @Override
+  public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
+    if (CollectionUtils.isEmpty(lineDrawProp)) {
+      if (log.isWarnEnabled()) {
+        log.warn("Find the wrong LineDrawProp attribute, "
+                     + "terminate the drawing of the svg path, line={}", lineDrawProp.lineAttrs());
+      }
+      return true;
+    }
 
-		Element pathElement = brush.getOrCreateChildElementById(
-				SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.PATH_ELE),
-				SvgConstants.PATH_ELE
-		);
+    Element pathElement = brush.getOrCreateChildElementById(SvgConstants.PATH_ELE,
+                                                            SvgConstants.PATH_ELE);
 
-		Color color = lineDrawProp.lineAttrs().getColor();
-		pathElement.setAttribute(SvgConstants.D, pointsToSvgLine(lineDrawProp.getStart(), lineDrawProp,
-		                                                         lineDrawProp.isBesselCurve()));
-		pathElement.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
-		pathElement.setAttribute(SvgConstants.STROKE, color.value());
+    Color color = lineDrawProp.lineAttrs().getColor();
+    pathElement.setAttribute(SvgConstants.D, pointsToSvgLine(lineDrawProp.getStart(), lineDrawProp,
+                                                             lineDrawProp.isBesselCurve()));
+    pathElement.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
+    pathElement.setAttribute(SvgConstants.STROKE, color.value());
 
-		Element title = brush.getOrCreateChildElementById(
-				SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.TITLE_ELE),
-				SvgConstants.TITLE_ELE
-		);
+    Element title = brush.getOrCreateChildElementById(SvgConstants.TITLE_ELE,
+                                                      SvgConstants.TITLE_ELE);
 
-		String text;
-		if (brush.drawBoard().drawGraph().getGraphviz().isDirected()) {
-			text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
-					+ "->"
-					+ lineDrawProp.getLine().head().nodeAttrs().getLabel();
-		} else {
-			text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
-					+ "--"
-					+ lineDrawProp.getLine().head().nodeAttrs().getLabel();
-		}
+    String text;
+    if (brush.drawBoard().drawGraph().getGraphviz().isDirected()) {
+      text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
+          + "->"
+          + lineDrawProp.getLine().head().nodeAttrs().getLabel();
+    } else {
+      text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
+          + "--"
+          + lineDrawProp.getLine().head().nodeAttrs().getLabel();
+    }
 
-		title.setTextContent(text);
+    title.setTextContent(text);
 
-		LineAttrs lineAttrs = lineDrawProp.lineAttrs();
-		Double penWidth = lineAttrs.getPenWidth();
-		boolean haveBold = lineAttrs.getStyles().contains(LineStyle.BOLD);
-		if (penWidth != null) {
-			penWidth = SvgEditor.strokeWidth(penWidth, haveBold);
-			pathElement.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
-		} else if (haveBold) {
-			pathElement.setAttribute(STROKE_WIDTH, "2");
-		}
+    LineAttrs lineAttrs = lineDrawProp.lineAttrs();
+    Double penWidth = lineAttrs.getPenWidth();
+    boolean haveBold = lineAttrs.getStyles().contains(LineStyle.BOLD);
+    if (penWidth != null) {
+      penWidth = SvgEditor.strokeWidth(penWidth, haveBold);
+      pathElement.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
+    } else if (haveBold) {
+      pathElement.setAttribute(STROKE_WIDTH, "2");
+    }
 
-		return true;
-	}
+    return true;
+  }
 }

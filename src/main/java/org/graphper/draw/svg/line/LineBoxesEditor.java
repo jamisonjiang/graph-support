@@ -37,10 +37,9 @@ public class LineBoxesEditor implements LineEditor<SvgBrush> {
       RouterBox routerBox = lineDrawProp.getBoxes().get(i);
 
       Element boxEle = brush.getOrCreateChildElementById(
-          SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.POLYGON_ELE)
-              + SvgConstants.UNDERSCORE + "routerBox" + SvgConstants.UNDERSCORE + i,
-          SvgConstants.POLYGON_ELE
-      );
+          SvgConstants.POLYGON_ELE + SvgConstants.UNDERSCORE + "routerBox"
+              + SvgConstants.UNDERSCORE + i,
+          SvgConstants.POLYGON_ELE);
 
       String points = routerBox.getLeftBorder() + SvgConstants.COMMA + routerBox.getUpBorder()
           + SvgConstants.SPACE

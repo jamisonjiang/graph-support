@@ -43,11 +43,7 @@ public class LineLabelEditor extends SvgEditor implements LineEditor<SvgBrush> {
     FlatPoint labelCenter = lineDrawProp.getLabelCenter();
 
     Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = SvgBrush.getId(
-          brush.lineId(lineDrawProp),
-          SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo()
-      );
-
+      String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
       Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
 

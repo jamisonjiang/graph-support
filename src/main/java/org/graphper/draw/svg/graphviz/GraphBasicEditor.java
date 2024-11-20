@@ -17,14 +17,13 @@
 package org.graphper.draw.svg.graphviz;
 
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.draw.svg.Element;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.attributes.Color;
 import org.graphper.draw.GraphEditor;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgDrawBoard;
 import org.graphper.draw.svg.SvgEditor;
 
 public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush> {
@@ -35,9 +34,7 @@ public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush>
 
     setHref(graphvizDrawProp, brush);
 
-    Element background = brush.getOrCreateChildElementById(
-        SvgBrush.getId(SvgDrawBoard.GRAPH_ROOT, POLYGON_ELE), POLYGON_ELE
-    );
+    Element background = brush.getOrCreateChildElementById(POLYGON_ELE, POLYGON_ELE);
 
     double leftBorder = graphvizDrawProp.getLeftBorder();
     double rightBorder = graphvizDrawProp.getRightBorder();

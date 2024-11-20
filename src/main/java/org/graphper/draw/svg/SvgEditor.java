@@ -28,7 +28,6 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
-import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
@@ -121,18 +120,17 @@ public class SvgEditor implements SvgConstants {
     Element shapeEle;
     boolean isRound = drawProp.containsRounded();
     if (drawProp.isNodeProp()) {
-      NodeDrawProp nodeDrawProp = ((NodeDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getOrCreateChildElement(nodeDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(PATH_ELE);
       } else {
-        shapeEle = brush.getOrCreateChildElement(nodeDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(POLYGON_ELE);
       }
     } else if (drawProp.isClusterProp()) {
       ClusterDrawProp clusterDrawProp = ((ClusterDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getOrCreateChildElement(clusterDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(PATH_ELE);
       } else {
-        shapeEle = brush.getOrCreateChildElement(clusterDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(POLYGON_ELE);
       }
     } else {
       throw new IllegalArgumentException("Unsupport container draw properties");

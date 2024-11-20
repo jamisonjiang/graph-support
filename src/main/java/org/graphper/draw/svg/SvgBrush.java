@@ -16,18 +16,16 @@
 
 package org.graphper.draw.svg;
 
+import static org.graphper.draw.svg.SvgConstants.UNDERSCORE;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.graphper.draw.ClusterDrawProp;
+import org.graphper.draw.Brush;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.api.Node;
-import org.graphper.draw.Brush;
-import org.graphper.draw.LineDrawProp;
-import org.graphper.draw.NodeDrawProp;
 
 /**
  * SVG brush for graph elements, providing utility methods to manipulate SVG elements such as nodes
@@ -39,6 +37,8 @@ import org.graphper.draw.NodeDrawProp;
 public class SvgBrush implements Brush {
 
   private Element wrapEle;
+
+  private final String rootId;
 
   private final Element element;
 
@@ -57,33 +57,24 @@ public class SvgBrush implements Brush {
    * @param svgDrawBoard the drawing board used for managing graph elements
    * @throws NullPointerException if any of the arguments are {@code null}
    */
-  public SvgBrush(Element element, SvgDocument svgDocument, SvgDrawBoard svgDrawBoard) {
-    Asserts.nullArgument(element, "element");
-    Asserts.nullArgument(svgDocument, "svgomDocument");
-    Asserts.nullArgument(svgDrawBoard, "svgDrawBorad");
+  public SvgBrush(String rootId, Element element, SvgDocument svgDocument, SvgDrawBoard svgDrawBoard) {
+    Asserts.nullArgument(rootId);
+    Asserts.nullArgument(element);
+    Asserts.nullArgument(svgDocument);
+    Asserts.nullArgument(svgDrawBoard);
+    this.rootId = rootId;
     this.element = element;
     this.svgDocument = svgDocument;
     this.svgDrawBoard = svgDrawBoard;
   }
 
   /**
-   * Returns the unique identifier for the specified node.
+   * Returns root container element id.
    *
-   * @param node the node whose ID is to be retrieved
-   * @return the unique identifier of the node
+   * @return root container element id
    */
-  public String nodeId(Node node) {
-    return drawBoard().nodeId(node);
-  }
-
-  /**
-   * Returns the unique identifier for the specified line.
-   *
-   * @param lineDrawProp the line draw properties object
-   * @return the unique identifier of the line
-   */
-  public String lineId(LineDrawProp lineDrawProp) {
-    return drawBoard().lineId(lineDrawProp);
+  public String getRootId() {
+    return rootId;
   }
 
   /**
@@ -119,11 +110,15 @@ public class SvgBrush implements Brush {
    * }
    * </pre>
    *
-   * @param id      the ID of the element to retrieve or create
+   * @param childId      the ID of the element to retrieve or create
    * @param tagName the tag name of the element to create if it does not exist
    * @return the existing or newly created child element
    */
-  public Element getOrCreateChildElementById(String id, String tagName) {
+  public Element getOrCreateChildElementById(String childId, String tagName) {
+    Asserts.nullArgument(childId);
+    Asserts.nullArgument(tagName);
+
+    String id = rootId + UNDERSCORE + childId;
     Element ele = svgDocument.getElementById(id);
     if (ele == null) {
       ele = getCommonContainer().createChildElement(id, tagName);
@@ -137,12 +132,12 @@ public class SvgBrush implements Brush {
    * Retrieves or creates a shape element under the current element, based on the given ID and tag
    * name. The created element will be added to the shape group.
    *
-   * @param id      the ID of the element to retrieve or create
+   * @param childId      the ID of the element to retrieve or create
    * @param tagName the tag name of the element to create if it does not exist
    * @return the existing or newly created shape element
    */
-  public Element getOrCreateShapeEleById(String id, String tagName) {
-    Element shapeEle = getOrCreateChildElementById(id, tagName);
+  public Element getOrCreateShapeEleById(String childId, String tagName) {
+    Element shapeEle = getOrCreateChildElementById(childId, tagName);
     addGroup(SvgConstants.SHAPE_GROUP_KEY, Collections.singletonList(shapeEle));
     return shapeEle;
   }
@@ -151,26 +146,12 @@ public class SvgBrush implements Brush {
    * Retrieves or creates a child element under the current node, based on the given node and tag
    * name.
    *
-   * @param node    the node draw properties object
    * @param tagName the tag name of the element
    * @return the shape element corresponding to the given node and tag name
    */
-  public Element getOrCreateChildElement(NodeDrawProp node, String tagName) {
-    String shapeId = SvgBrush.getId(nodeId(node.getNode()), tagName);
-    return getOrCreateShapeEleById(shapeId, tagName);
-  }
-
-  /**
-   * Retrieves or creates a child element under the current cluster, based on the given cluster and
-   * tag name.
-   *
-   * @param cluster the cluster draw properties object
-   * @param tagName the tag name of the element
-   * @return the shape element corresponding to the given cluster and tag name
-   */
-  public Element getOrCreateChildElement(ClusterDrawProp cluster, String tagName) {
-    String shapeId = SvgBrush.getId(drawBoard().clusterId(cluster), tagName);
-    return getOrCreateShapeEleById(shapeId, tagName);
+  public Element getOrCreateChildElement(String tagName) {
+    Asserts.nullArgument(tagName);
+    return getOrCreateShapeEleById(tagName, tagName);
   }
 
   /**
@@ -235,19 +216,6 @@ public class SvgBrush implements Brush {
    */
   public void setWrapEle(Element wrapEle) {
     this.wrapEle = wrapEle;
-  }
-
-  // -------------------------------------------- static ------------------------------------------
-
-  /**
-   * Constructs an ID for a child element by combining the parent element ID and the element name.
-   *
-   * @param parentElementId the ID of the parent element
-   * @param elementName     the name of the child element
-   * @return the constructed ID for the child element
-   */
-  public static String getId(String parentElementId, String elementName) {
-    return parentElementId + SvgConstants.UNDERSCORE + elementName;
   }
 
   // -------------------------------------------- private ------------------------------------------
