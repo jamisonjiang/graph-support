@@ -29,8 +29,53 @@ import org.graphper.util.CollectionUtils;
 
 /**
  * SVG brush for graph elements, providing utility methods to manipulate SVG elements such as nodes
- * and edges within an SVG document. This class allows creating, modifying, and grouping SVG
- * elements to represent various shapes in the diagram.
+ * and edges within an SVG document. Each instance of {@code SvgBrush} represents a root SVG element
+ * in the graph, enabling the creation, modification, and grouping of SVG elements to represent
+ * various graphical shapes and structures.
+ *
+ * <p>For example, the following SVG structure represents a node in a graph:</p>
+ * <pre>
+ * {@code
+ * <g id="node_1" class="node">
+ *   <ellipse id="node_1_ellipse" cx="67.0" cy="160.0" rx="27.0" ry="18.0" fill="none" stroke="#000000"/>
+ *   <text id="node_1_text_0" x="67.0" y="164.66666666666666" text-anchor="middle" font-size="14.0" fill="#000000" font-family="Arial">b</text>
+ * </g>
+ * }
+ * </pre>
+ *
+ * <p>This class allows you to:</p>
+ * <ul>
+ *   <li>Create and manage child elements under a specific root element.</li>
+ *   <li>Group related SVG elements (e.g., shapes, labels) for consistent styling or behavior.</li>
+ *   <li>Retrieve or create individual elements dynamically based on their IDs and tag names.</li>
+ *   <li>Integrate seamlessly with an {@link SvgDrawBoard} to manage the overall SVG document.</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * // Already got root container element represent as SvgBrush, so brush is the root element <g id="node_1" class="node">
+ * SvgBrush brush = ...;
+ *
+ * // Add an ellipse to the node
+ * Element ellipse = brush.getOrCreateChildElementById("ellipse", "ellipse");
+ * ellipse.setAttribute("cx", "67.0");
+ * ellipse.setAttribute("cy", "160.0");
+ * ellipse.setAttribute("rx", "27.0");
+ * ellipse.setAttribute("ry", "18.0");
+ * ellipse.setAttribute("fill", "none");
+ * ellipse.setAttribute("stroke", "#000000");
+ *
+ * // Add a text label to the node
+ * Element text = brush.getOrCreateChildElementById("text_0", "text");
+ * text.setAttribute("x", "67.0");
+ * text.setAttribute("y", "164.66666666666666");
+ * text.setAttribute("text-anchor", "middle");
+ * text.setAttribute("font-size", "14.0");
+ * text.setAttribute("fill", "#000000");
+ * text.setTextContent("b");
+ * }
+ * </pre>
  *
  * @author Jamison Jiang
  */
@@ -57,7 +102,8 @@ public class SvgBrush implements Brush {
    * @param svgDrawBoard the drawing board used for managing graph elements
    * @throws NullPointerException if any of the arguments are {@code null}
    */
-  public SvgBrush(String rootId, Element element, SvgDocument svgDocument, SvgDrawBoard svgDrawBoard) {
+  public SvgBrush(String rootId, Element element, SvgDocument svgDocument,
+                  SvgDrawBoard svgDrawBoard) {
     Asserts.nullArgument(rootId);
     Asserts.nullArgument(element);
     Asserts.nullArgument(svgDocument);
@@ -69,50 +115,54 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Returns root container element id.
+   * Returns the ID of the root container element associated with this {@code SvgBrush}.
    *
-   * @return root container element id
+   * @return the root container element ID
    */
   public String getRootId() {
     return rootId;
   }
 
   /**
-   * Retrieves a child element with the specified ID and tag name under the current element. If the
-   * element does not exist, it will be created.
+   * Retrieves a child element with the specified ID and tag name under the current root element
+   * represented by this {@code SvgBrush}. If the element does not exist, it will be created and
+   * associated with the current root element.
    *
-   * <p>
-   * The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects, forming a
-   * complete SVG structure. Each element represents a distinct part of the shape, such as the
-   * outline, internal details, labels.
+   * <p>The {@code childId} does not need to be globally unique across the entire SVG document.
+   * It only needs to be unique within the context of the current {@code SvgBrush}, as the method
+   * appends the {@code childId} to the root element's ID to construct a fully qualified, unique
+   * identifier for the child element.
+   *
+   * <p>The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects,
+   * forming a complete SVG structure. Each element represents a distinct part of the shape, such as
+   * the outline, internal details, or labels.
    *
    * <p>Example usage:</p>
    * <pre>
    * {@code
    * SvgBrush brush = ...;
-   * Element root = brush.getOrCreateChildElementById("node_0", "g");
-   * Element noteElement = brush.getOrCreateChildElementById("node_0note0", "polygon");
+   * Element root = brush.getOrCreateChildElementById("ellipse", "ellipse");
+   * Element text = brush.getOrCreateChildElementById("text_0", "text");
    * }
    * </pre>
    * <p>Before calling {@code getOrCreateChildElementById}:</p>
    * <pre>
-   * {@code
-   * <g id="node_0">
-   * </g>
-   * }
+   * {@code <g id="node_1"></g>}
    * </pre>
    * <p>After calling {@code getOrCreateChildElementById}:</p>
    * <pre>
    * {@code
-   * <g id="node_0">
-   *   <polygon id="node_0note0"/>
+   * <g id="node_1">
+   *   <ellipse id="node_1_ellipse"/>
+   *   <text id="node_1_text_0"/>
    * </g>
    * }
    * </pre>
    *
-   * @param childId      the ID of the element to retrieve or create
-   * @param tagName the tag name of the element to create if it does not exist
+   * @param childId the unique identifier for the child element within the current {@code SvgBrush}
+   * @param tagName the tag name of the element
    * @return the existing or newly created child element
+   * @throws NullPointerException if {@code childId} or {@code tagName} is {@code null}
    */
   public Element getOrCreateChildElementById(String childId, String tagName) {
     Asserts.nullArgument(childId);
@@ -129,11 +179,17 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Retrieves or creates a shape element under the current element, based on the given ID and tag
-   * name. The created element will be added to the shape group.
+   * Retrieves or creates a shape element under the current root element represented by this
+   * {@code SvgBrush}, based on the given child ID and tag name. The created element will be added
+   * to the shape group for consistent styling or behavior.
    *
-   * @param childId      the ID of the element to retrieve or create
-   * @param tagName the tag name of the element to create if it does not exist
+   * <p>The {@code childId} does not need to be unique across the entire SVG document but must be
+   * unique within the context of the current {@code SvgBrush}. This method ensures the created or
+   * retrieved element is associated with the shape group defined by
+   * {@link SvgConstants#SHAPE_GROUP_KEY}.
+   *
+   * @param childId the ID of the element to retrieve or create
+   * @param tagName the tag name of the element
    * @return the existing or newly created shape element
    */
   public Element getOrCreateShapeEleById(String childId, String tagName) {
@@ -143,8 +199,12 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Retrieves or creates a child element under the current node, based on the given node and tag
-   * name.
+   * Retrieves or creates a child element under the current root element represented by this
+   * {@code SvgBrush}, based on the specified tag name. This method simplifies element creation by
+   * using the same value for both the child ID and the tag name.
+   *
+   * <p>The created or retrieved element will automatically be added to the shape group for the
+   * current {@code SvgBrush}.
    *
    * @param tagName the tag name of the element
    * @return the shape element corresponding to the given node and tag name
@@ -155,13 +215,45 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Adds elements to a group list. Since a graph element often consists of multiple SVG elements,
-   * this group helps maintain the same characteristics for all elements representing a single graph
-   * entity.
+   * Adds elements to a group identified by the specified key. Groups are used to logically organize
+   * and manage SVG elements that represent different parts of a single graph entity, such as nodes
+   * or edges. This allows consistent styling and behavior for all elements in the group.
+   *
+   * <p>The group key serves as an identifier to retrieve or manage the elements in the group
+   * later. This method ensures that the specified elements are added to the appropriate group,
+   * making it easier to apply transformations or styling to all elements in the group at once.
+   *
+   * <p>For example, consider two text elements representing different lines of text. By grouping
+   * them under the key {@code "line_group"}, you can manage their text color or other shared
+   * attributes collectively, rather than setting the color individually for each element.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * SvgBrush brush = ...;
+   *
+   * // Create two text elements
+   * Element textLine1 = brush.getOrCreateChildElementById("text_1", "text");
+   * textLine1.setTextContent("First line of text");
+   *
+   * Element textLine2 = brush.getOrCreateChildElementById("text_2", "text");
+   * textLine2.setTextContent("Second line of text");
+   *
+   * // Group the text elements under "line_group"
+   * brush.addGroup("text_group", textLine1, textLine2);
+   *
+   * // Later, in a common handler, apply color styling to all elements in the group
+   * List<Element> lineGroup = brush.getEleGroup("text_group");
+   * for (Element line : lineGroup) {
+   *     // Set the text color to blue
+   *     line.setAttribute("fill", "#0000FF");
+   * }
+   * }
+   * </pre>
    *
    * @param key   the key representing the group
    * @param group the array of elements to add to the group
-   * @throws IllegalArgumentException if the group is {@code null} or empty
+   * @throws IllegalArgumentException if the {@code group} is {@code null} or empty
    */
   public void addGroup(String key, Element... group) {
     Asserts.illegalArgument(group == null || group.length == 0, "Group is empty");
@@ -169,13 +261,45 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Adds elements to a group list. Since a graph element often consists of multiple SVG elements,
-   * this group helps maintain the same characteristics for all elements representing a single graph
-   * entity.
+   * Adds elements to a group identified by the specified key. Groups are used to logically organize
+   * and manage SVG elements that represent different parts of a single graph entity, such as nodes
+   * or edges. This allows consistent styling and behavior for all elements in the group.
+   *
+   * <p>The group key serves as an identifier to retrieve or manage the elements in the group
+   * later. This method ensures that the specified elements are added to the appropriate group,
+   * making it easier to apply transformations or styling to all elements in the group at once.
+   *
+   * <p>For example, consider two text elements representing different lines of text. By grouping
+   * them under the key {@code "line_group"}, you can manage their text color or other shared
+   * attributes collectively, rather than setting the color individually for each element.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * SvgBrush brush = ...;
+   *
+   * // Create two text elements
+   * Element textLine1 = brush.getOrCreateChildElementById("text_1", "text");
+   * textLine1.setTextContent("First line of text");
+   *
+   * Element textLine2 = brush.getOrCreateChildElementById("text_2", "text");
+   * textLine2.setTextContent("Second line of text");
+   *
+   * // Group the text elements under "line_group"
+   * brush.addGroup("text_group", Arrays.asList(textLine1, textLine2));
+   *
+   * // Later, in a common handler, apply color styling to all elements in the group
+   * List<Element> lineGroup = brush.getEleGroup("text_group");
+   * for (Element line : lineGroup) {
+   *     // Set the text color to blue
+   *     line.setAttribute("fill", "#0000FF");
+   * }
+   * }
+   * </pre>
    *
    * @param key   the key representing the group
-   * @param group the list of elements to add to the group
-   * @throws IllegalArgumentException if the group is {@code null} or empty
+   * @param group the array of elements to add to the group
+   * @throws IllegalArgumentException if the {@code group} is {@code null} or empty
    */
   public void addGroup(String key, List<Element> group) {
     if (CollectionUtils.isEmpty(group)) {

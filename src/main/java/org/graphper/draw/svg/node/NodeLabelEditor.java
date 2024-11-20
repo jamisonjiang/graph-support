@@ -42,10 +42,8 @@ public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     }
 
     double fontSize = nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize();
-
     Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
       String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
-
       Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
       text.setTextContent(textLineAttribute.getLine());
