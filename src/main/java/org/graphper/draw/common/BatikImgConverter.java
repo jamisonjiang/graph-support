@@ -29,6 +29,14 @@ import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
 
+/**
+ * Implementation of {@link SvgConverter} that uses Apache Batik to convert SVG documents into
+ * various image formats. This class supports formats such as PNG, JPEG, and TIFF by utilizing
+ * Batik's transcoder classes. The environment must support the AWT {@link java.awt.Graphics2D} and
+ * have Batik libraries available.
+ *
+ * @author Jamison Jiang
+ */
 public class BatikImgConverter implements SvgConverter {
 
   private static final String T_IN_C = "org.apache.batik.transcoder.TranscoderInput";
@@ -38,11 +46,22 @@ public class BatikImgConverter implements SvgConverter {
   private static final String J_T_C = "org.apache.batik.transcoder.image.JPEGTranscoder";
   private static final String TF_T_C = "org.apache.batik.transcoder.image.TIFFTranscoder";
 
+  /**
+   * Returns the priority order of this converter. The default order is set to 0.
+   *
+   * @return the priority order of this converter
+   */
   @Override
   public int order() {
     return 0;
   }
 
+  /**
+   * Checks if the current environment supports image conversion. Specifically, it checks for the
+   * availability of required AWT and Batik classes.
+   *
+   * @return {@code true} if the environment supports image conversion, {@code false} otherwise
+   */
   @Override
   public boolean envSupport() {
     try {
@@ -59,11 +78,26 @@ public class BatikImgConverter implements SvgConverter {
     }
   }
 
+  /**
+   * Returns the supported file types for the conversion.
+   *
+   * @return an array of supported {@link FileType}
+   */
   @Override
   public FileType[] supportFileTypes() {
     return new FileType[]{FileType.PNG, FileType.JPG, FileType.JPEG, FileType.TIFF};
   }
 
+  /**
+   * Converts the given SVG document into an image of the specified type. Uses Apache Batik's
+   * transcoders to handle the conversion.
+   *
+   * @param document  the SVG document to convert
+   * @param drawGraph the drawing context with graph-related attributes
+   * @param fileType  the target image type for conversion
+   * @return a {@link DefaultGraphResource} representing the converted image
+   * @throws FailInitResourceException if the conversion fails or if parameters are missing
+   */
   @Override
   public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType fileType)
       throws FailInitResourceException {
@@ -99,6 +133,16 @@ public class BatikImgConverter implements SvgConverter {
     }
   }
 
+  /**
+   * Generates a {@link DefaultGraphResource} for the converted image.
+   *
+   * @param drawGraph  the drawing context with graph-related attributes
+   * @param fileType   the target image type for conversion
+   * @param is         the input stream containing the SVG data
+   * @param transcoder the Batik transcoder object used for conversion
+   * @return a {@link DefaultGraphResource} representing the converted image
+   * @throws Exception if the conversion fails
+   */
   protected DefaultGraphResource getFileGraphResource(DrawGraph drawGraph, FileType fileType,
                                                       InputStream is, Object transcoder)
       throws Exception {
@@ -107,7 +151,17 @@ public class BatikImgConverter implements SvgConverter {
     return new DefaultGraphResource(label, fileType.getType(), baos);
   }
 
-  private ByteArrayOutputStream transcodeAndReturnOS(InputStream is, Object transcoder) throws Exception {
+  /**
+   * Transcodes the SVG data from the input stream and writes it to a
+   * {@link ByteArrayOutputStream}.
+   *
+   * @param is         the input stream containing the SVG data
+   * @param transcoder the Batik transcoder object used for conversion
+   * @return a {@link ByteArrayOutputStream} containing the transcoded image data
+   * @throws Exception if the transcoding process fails
+   */
+  private ByteArrayOutputStream transcodeAndReturnOS(InputStream is, Object transcoder)
+      throws Exception {
     Class<?> inputClazz = Class.forName(T_IN_C);
     Class<?> outputClazz = Class.forName(T_OUT_C);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();

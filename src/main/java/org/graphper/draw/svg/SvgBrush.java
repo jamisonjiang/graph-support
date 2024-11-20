@@ -30,7 +30,9 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 
 /**
- * Svg brush for graph element.
+ * SVG brush for graph elements, providing utility methods to manipulate SVG elements such as nodes
+ * and edges within an SVG document. This class allows creating, modifying, and grouping SVG
+ * elements to represent various shapes in the diagram.
  *
  * @author Jamison Jiang
  */
@@ -46,6 +48,15 @@ public class SvgBrush implements Brush {
 
   private Map<String, List<Element>> eleGroups;
 
+  /**
+   * Constructs an instance of {@code SvgBrush} with the specified SVG element, document, and
+   * drawing board.
+   *
+   * @param element      the root SVG element
+   * @param svgDocument  the SVG document to which this element belongs
+   * @param svgDrawBoard the drawing board used for managing graph elements
+   * @throws NullPointerException if any of the arguments are {@code null}
+   */
   public SvgBrush(Element element, SvgDocument svgDocument, SvgDrawBoard svgDrawBoard) {
     Asserts.nullArgument(element, "element");
     Asserts.nullArgument(svgDocument, "svgomDocument");
@@ -56,32 +67,61 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Returns the node id.
+   * Returns the unique identifier for the specified node.
    *
-   * @param node node
-   * @return node id
+   * @param node the node whose ID is to be retrieved
+   * @return the unique identifier of the node
    */
   public String nodeId(Node node) {
     return drawBoard().nodeId(node);
   }
 
   /**
-   * Returns the line id.
+   * Returns the unique identifier for the specified line.
    *
-   * @param lineDrawProp LineDrawProp
-   * @return line id
+   * @param lineDrawProp the line draw properties object
+   * @return the unique identifier of the line
    */
   public String lineId(LineDrawProp lineDrawProp) {
     return drawBoard().lineId(lineDrawProp);
   }
 
   /**
-   * Get the child element under the current element according to the id and element tag, if there
-   * is no one, create one, if there is, return it directly.
+   * Retrieves a child element with the specified ID and tag name under the current element. If the
+   * element does not exist, it will be created.
    *
-   * @param id      element id
-   * @param tagName element tag name
-   * @return child element
+   * <p>
+   * The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects, forming a
+   * complete SVG structure. Each element represents a distinct part of the shape, such as the
+   * outline, internal details, labels.
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * SvgBrush brush = ...;
+   * Element root = brush.getOrCreateChildElementById("node_0", "g");
+   * Element noteElement = brush.getOrCreateChildElementById("node_0note0", "polygon");
+   * }
+   * </pre>
+   * <p>Before calling {@code getOrCreateChildElementById}:</p>
+   * <pre>
+   * {@code
+   * <g id="node_0">
+   * </g>
+   * }
+   * </pre>
+   * <p>After calling {@code getOrCreateChildElementById}:</p>
+   * <pre>
+   * {@code
+   * <g id="node_0">
+   *   <polygon id="node_0note0"/>
+   * </g>
+   * }
+   * </pre>
+   *
+   * @param id      the ID of the element to retrieve or create
+   * @param tagName the tag name of the element to create if it does not exist
+   * @return the existing or newly created child element
    */
   public Element getOrCreateChildElementById(String id, String tagName) {
     Element ele = svgDocument.getElementById(id);
@@ -94,39 +134,12 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Get the child element under the current element according to the node and element tag, if there
-   * is no one, create one, if there is, return it directly.
+   * Retrieves or creates a shape element under the current element, based on the given ID and tag
+   * name. The created element will be added to the shape group.
    *
-   * @param node    node
-   * @param tagName element tag name
-   * @return child element
-   */
-  public Element getShapeElement(NodeDrawProp node, String tagName) {
-    String shapeId = SvgBrush.getId(nodeId(node.getNode()), tagName);
-    return getOrCreateShapeEleById(shapeId, tagName);
-  }
-
-  /**
-   * Get the child element under the current element according to the cluster and element tag, if
-   * there is no one, create one, if there is, return it directly.
-   *
-   * @param cluster cluster
-   * @param tagName element tag name
-   * @return child element
-   */
-  public Element getShapeElement(ClusterDrawProp cluster, String tagName) {
-    String shapeId = SvgBrush.getId(drawBoard().clusterId(cluster), tagName);
-    return getOrCreateShapeEleById(shapeId, tagName);
-  }
-
-  /**
-   * Get the shape child element under the current element according to the id and element tag, if
-   * there is no one, create one, if there is, return it directly. Then this element will be put
-   * into the {@link SvgConstants#SHAPE_GROUP_KEY} key.
-   *
-   * @param id      element id
-   * @param tagName element tag name
-   * @return child element
+   * @param id      the ID of the element to retrieve or create
+   * @param tagName the tag name of the element to create if it does not exist
+   * @return the existing or newly created shape element
    */
   public Element getOrCreateShapeEleById(String id, String tagName) {
     Element shapeEle = getOrCreateChildElementById(id, tagName);
@@ -135,12 +148,39 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Add elements to a group list. Because a graph element needs a group of svg elements, this group
-   * of svg elements needs to maintain the same characteristics of the graph element.
+   * Retrieves or creates a child element under the current node, based on the given node and tag
+   * name.
    *
-   * @param key   group key
-   * @param group elements group
-   * @throws IllegalArgumentException group is null or empty
+   * @param node    the node draw properties object
+   * @param tagName the tag name of the element
+   * @return the shape element corresponding to the given node and tag name
+   */
+  public Element getOrCreateChildElement(NodeDrawProp node, String tagName) {
+    String shapeId = SvgBrush.getId(nodeId(node.getNode()), tagName);
+    return getOrCreateShapeEleById(shapeId, tagName);
+  }
+
+  /**
+   * Retrieves or creates a child element under the current cluster, based on the given cluster and
+   * tag name.
+   *
+   * @param cluster the cluster draw properties object
+   * @param tagName the tag name of the element
+   * @return the shape element corresponding to the given cluster and tag name
+   */
+  public Element getOrCreateChildElement(ClusterDrawProp cluster, String tagName) {
+    String shapeId = SvgBrush.getId(drawBoard().clusterId(cluster), tagName);
+    return getOrCreateShapeEleById(shapeId, tagName);
+  }
+
+  /**
+   * Adds elements to a group list. Since a graph element often consists of multiple SVG elements,
+   * this group helps maintain the same characteristics for all elements representing a single graph
+   * entity.
+   *
+   * @param key   the key representing the group
+   * @param group the array of elements to add to the group
+   * @throws IllegalArgumentException if the group is {@code null} or empty
    */
   public void addGroup(String key, Element... group) {
     Asserts.illegalArgument(group == null || group.length == 0, "Group is empty");
@@ -148,12 +188,13 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Add elements to a group list. Because a graph element needs a group of svg elements, this group
-   * of svg elements needs to maintain the same characteristics of the graph element.
+   * Adds elements to a group list. Since a graph element often consists of multiple SVG elements,
+   * this group helps maintain the same characteristics for all elements representing a single graph
+   * entity.
    *
-   * @param key   group key
-   * @param group elements group
-   * @throws IllegalArgumentException group is null or empty
+   * @param key   the key representing the group
+   * @param group the list of elements to add to the group
+   * @throws IllegalArgumentException if the group is {@code null} or empty
    */
   public void addGroup(String key, List<Element> group) {
     if (CollectionUtils.isEmpty(group)) {
@@ -167,10 +208,10 @@ public class SvgBrush implements Brush {
   }
 
   /**
-   * Return all elements in a group according to the group key.
+   * Returns all elements in a group specified by the group key.
    *
-   * @param groupKey group key
-   * @return all elements in this group
+   * @param groupKey the key representing the group
+   * @return a list of all elements in this group, or an empty list if the group does not exist
    */
   public List<Element> getEleGroup(String groupKey) {
     if (eleGroups == null) {
@@ -187,18 +228,35 @@ public class SvgBrush implements Brush {
     return svgDrawBoard;
   }
 
+  /**
+   * Sets the wrapper element for the current SVG brush.
+   *
+   * @param wrapEle the wrapper element to be set
+   */
   public void setWrapEle(Element wrapEle) {
     this.wrapEle = wrapEle;
   }
 
   // -------------------------------------------- static ------------------------------------------
 
+  /**
+   * Constructs an ID for a child element by combining the parent element ID and the element name.
+   *
+   * @param parentElementId the ID of the parent element
+   * @param elementName     the name of the child element
+   * @return the constructed ID for the child element
+   */
   public static String getId(String parentElementId, String elementName) {
     return parentElementId + SvgConstants.UNDERSCORE + elementName;
   }
 
   // -------------------------------------------- private ------------------------------------------
 
+  /**
+   * Returns the container element for the current element, either the wrapper or the root element.
+   *
+   * @return the container element
+   */
   private Element getCommonContainer() {
     return wrapEle != null ? wrapEle : element;
   }

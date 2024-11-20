@@ -107,7 +107,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private Element singleElement(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    return brush.getShapeElement(nodeDrawProp, getShapeElement(nodeDrawProp));
+    return brush.getOrCreateChildElement(nodeDrawProp, getShapeElement(nodeDrawProp));
   }
 
   private void ellipse(NodeDrawProp nodeDrawProp, Element shapeElement) {
@@ -228,7 +228,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
   private void note(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     String nodeId = brush.nodeId(nodeDrawProp.getNode());
-    brush.getShapeElement(nodeDrawProp, getShapeElement(nodeDrawProp));
+    brush.getOrCreateChildElement(nodeDrawProp, getShapeElement(nodeDrawProp));
     String shape = NodeShapeEnum.NOTE.getName();
 
     Element firstEle = brush.getOrCreateChildElementById(nodeId + shape + "0",
@@ -265,7 +265,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
   private void cylinder(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     String nodeId = brush.nodeId(nodeDrawProp.getNode());
-    brush.getShapeElement(nodeDrawProp, getShapeElement(nodeDrawProp));
+    brush.getOrCreateChildElement(nodeDrawProp, getShapeElement(nodeDrawProp));
     String shape = NodeShapeEnum.CYLINDER.getName();
 
     double up = nodeDrawProp.getUpBorder() + CylinderPropCalc.TOP_LEN;

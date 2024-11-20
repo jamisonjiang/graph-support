@@ -123,16 +123,16 @@ public class SvgEditor implements SvgConstants {
     if (drawProp.isNodeProp()) {
       NodeDrawProp nodeDrawProp = ((NodeDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getShapeElement(nodeDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(nodeDrawProp, PATH_ELE);
       } else {
-        shapeEle = brush.getShapeElement(nodeDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(nodeDrawProp, POLYGON_ELE);
       }
     } else if (drawProp.isClusterProp()) {
       ClusterDrawProp clusterDrawProp = ((ClusterDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getShapeElement(clusterDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(clusterDrawProp, PATH_ELE);
       } else {
-        shapeEle = brush.getShapeElement(clusterDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(clusterDrawProp, POLYGON_ELE);
       }
     } else {
       throw new IllegalArgumentException("Unsupport container draw properties");

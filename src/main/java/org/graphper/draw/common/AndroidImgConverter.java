@@ -34,6 +34,12 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.FontUtils;
 
+/**
+ * Implementation of {@link SvgConverter} to convert SVG elements into Android Bitmap images.
+ * This class uses Android's graphics library to perform the rendering and supports both PNG and JPEG formats.
+ *
+ * @author Jamison Jiang
+ */
 public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
   private static Class<?> PATH;
@@ -72,21 +78,47 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Returns the priority order of this converter. The default order for Android implementation is set to 0.
+   *
+   * @return the priority order of this converter
+   */
   @Override
   public int order() {
     return 0;
   }
 
+  /**
+   * Checks if the current environment supports image conversion on Android.
+   * This requires certain Android graphics classes to be present.
+   *
+   * @return {@code true} if the environment supports image conversion, {@code false} otherwise
+   */
   @Override
   public boolean envSupport() {
     return PATH != null && DASH_PATH_EFFECT != null;
   }
 
+  /**
+   * Returns the supported file types for the conversion.
+   *
+   * @return an array of supported {@link FileType}
+   */
   @Override
   public FileType[] supportFileTypes() {
     return new FileType[]{FileType.PNG, FileType.JPEG};
   }
 
+  /**
+   * Converts the given SVG document into an image of the specified type.
+   * Processes each element of the SVG and renders it using Android's graphics classes.
+   *
+   * @param document   the SVG document to convert
+   * @param drawGraph  the drawing context with graph-related attributes
+   * @param fileType   the target image type for conversion
+   * @return a {@link DefaultGraphResource} representing the converted image
+   * @throws FailInitResourceException if the conversion fails or if parameters are missing
+   */
   @Override
   public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType fileType)
       throws FailInitResourceException {
@@ -146,6 +178,14 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Initializes an image based on the provided dimensions and scale.
+   *
+   * @param drawGraph  the drawing context
+   * @param imgContext the image context to be initialized
+   * @param ele        the SVG element containing the attributes
+   * @throws Exception if initialization fails
+   */
   private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
@@ -166,6 +206,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Draws an ellipse based on the attributes of the given SVG element.
+   *
+   * @param ele    the SVG element representing the ellipse
+   * @param canvas the graphics context used to draw the ellipse
+   * @throws Exception if drawing fails
+   */
   private void drawEllipse(Element ele, Object canvas) throws Exception {
     float x = toFloat(ele.getAttribute(CX));
     float y = toFloat(ele.getAttribute(CY));
@@ -184,6 +231,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Draws a text string based on the attributes of the given SVG element.
+   *
+   * @param ele    the SVG element representing the text
+   * @param canvas the graphics context used to draw the text
+   * @throws Exception if drawing fails
+   */
   private void drawString(Element ele, Object canvas) throws Exception {
     String text = ele.textContext();
     if (StringUtils.isNotEmpty(text)) {
@@ -213,6 +267,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
                       text, (float) (x - (size.getWidth() / 2)), (float) y, paint);
   }
 
+  /**
+   * Draws a polygon based on the attributes of the given SVG element.
+   *
+   * @param ele    the SVG element representing the polygon
+   * @param canvas the graphics context used to draw the polygon
+   * @throws Exception if drawing fails
+   */
   private void drawPolygon(Element ele, Object canvas) throws Exception {
     Object[] path = toPoints(ele.getAttribute(POINTS));
     if (path == null) {
@@ -222,6 +283,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     drawPath(ele, canvas, path, false, true);
   }
 
+  /**
+   * Draws a path based on the attributes of the given SVG element.
+   *
+   * @param ele    the SVG element representing the path
+   * @param canvas the graphics context used to draw the path
+   * @throws Exception if drawing fails
+   */
   private void drawPath(Element ele, Object canvas) throws Exception {
     String points = ele.getAttribute(D);
     Object[] pointFs = toPoints(points);
@@ -232,6 +300,16 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     drawPath(ele, canvas, pointFs, points.contains(CURVE_PATH_MARK), false);
   }
 
+  /**
+   * Draws a path based on given points.
+   *
+   * @param ele        the SVG element
+   * @param canvas     the graphics context
+   * @param pointFs    the points defining the path
+   * @param isCurve    {@code true} if the path contains curves, {@code false} otherwise
+   * @param needClose  {@code true} if the path should be closed, {@code false} otherwise
+   * @throws Exception if drawing fails
+   */
   private void drawPath(Element ele, Object canvas, Object[] pointFs,
                         boolean isCurve, boolean needClose) throws Exception {
     Object path = ClassUtils.newObject(PATH);
@@ -267,6 +345,15 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Sets the common attributes of a shape such as fill color, stroke color, and stroke width.
+   *
+   * @param ele     the SVG element with attributes to be set
+   * @param paint   the paint object to apply these attributes
+   * @param isBorder {@code true} if setting border attributes, {@code false} for fill attributes
+   * @return {@code true} if the shape attributes were successfully set, {@code false} otherwise
+   * @throws Exception if setting attributes fails
+   */
   private boolean setShapeCommonAttr(Element ele, Object paint, boolean isBorder) throws Exception {
     Integer color;
     if (isBorder) {
@@ -300,10 +387,24 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     return true;
   }
 
+  /**
+   * Retrieves the x-coordinate from a given point object.
+   *
+   * @param point the point object
+   * @return the x-coordinate
+   * @throws Exception if retrieval fails
+   */
   private Object getX(Object point) throws Exception {
     return ClassUtils.getField(point, "x");
   }
 
+  /**
+   * Retrieves the y-coordinate from a given point object.
+   *
+   * @param point the point object
+   * @return the y-coordinate
+   * @throws Exception if retrieval fails
+   */
   private Object getY(Object point) throws Exception {
     return ClassUtils.getField(point, "y");
   }
@@ -329,6 +430,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     return Double.parseDouble(doubleStr.replaceAll(PT, StringUtils.EMPTY));
   }
 
+  /**
+   * Converts a hex color code to an Android color integer.
+   *
+   * @param hexColorCode the hex color code to convert
+   * @return the corresponding Android color integer, or {@code null} if conversion fails
+   * @throws Exception if conversion fails
+   */
   public Integer toColor(String hexColorCode) throws Exception {
     if (hexColorCode == null || NONE.equals(hexColorCode)) {
       return null;
@@ -362,7 +470,6 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
     return pointFs;
   }
-
 
   private static class ImgContext {
 

@@ -27,6 +27,14 @@ import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
 
+/**
+ * Implementation of a converter that extends {@link BatikImgConverter} to convert SVG documents
+ * into PDF format. This class uses Apache FOP's {@code PDFTranscoder} to handle the SVG to PDF
+ * conversion process. The environment must support the AWT {@link java.awt.Graphics2D}, Apache
+ * Batik, and Apache FOP libraries.
+ *
+ * @author Jamison Jiang
+ */
 public class SvgToPdfConverter extends BatikImgConverter {
 
   private static Class<?> PDF_TRANSCODER;
@@ -47,11 +55,22 @@ public class SvgToPdfConverter extends BatikImgConverter {
     }
   }
 
+  /**
+   * Returns the priority order of this converter. The default order is set to 0.
+   *
+   * @return the priority order of this converter
+   */
   @Override
   public int order() {
     return 0;
   }
 
+  /**
+   * Checks if the current environment supports image conversion to PDF. Specifically, it checks for
+   * the availability of required AWT, Apache Batik, and Apache FOP classes.
+   *
+   * @return {@code true} if the environment supports conversion to PDF, {@code false} otherwise
+   */
   @Override
   public boolean envSupport() {
     if (!super.envSupport()) {
@@ -60,11 +79,26 @@ public class SvgToPdfConverter extends BatikImgConverter {
     return PDF_TRANSCODER != null && SVG_DOM_IMPL != null;
   }
 
+  /**
+   * Returns the supported file type for the conversion, which is PDF.
+   *
+   * @return an array containing {@link FileType#PDF}
+   */
   @Override
   public FileType[] supportFileTypes() {
     return new FileType[]{FileType.PDF};
   }
 
+  /**
+   * Converts the given SVG document into a PDF. Uses Apache FOP's {@code PDFTranscoder} to handle
+   * the conversion.
+   *
+   * @param document  the SVG document to convert
+   * @param drawGraph the drawing context with graph-related attributes
+   * @param fileType  the target file type for conversion, which must be PDF
+   * @return a {@link DefaultGraphResource} representing the converted PDF
+   * @throws FailInitResourceException if the conversion fails or if parameters are missing
+   */
   @Override
   public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType fileType)
       throws FailInitResourceException {

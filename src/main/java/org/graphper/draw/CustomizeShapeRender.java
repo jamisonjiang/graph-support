@@ -23,11 +23,15 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.util.Asserts;
 
 /**
- * Renderer for custom shapes. No matter how many types of rendering methods are supported in the
- * future, brushes corresponding to the rendering type will be provided for editing in this method.
+ * Renderer for custom shapes. This abstract class allows registering and rendering custom shapes.
+ * Regardless of the number of rendering methods supported in the future, brushes corresponding to
+ * the rendering type can be provided for editing within this class.
  *
- * <p>There are two ways to register a custom shape renderer, the first is to manually call
- * the {@link #register(CustomizeShapeRender)} method, and the second is to register using SPI.
+ * <p>There are two ways to register a custom shape renderer:
+ * <ul>
+ *   <li>Manually calling the {@link #register(CustomizeShapeRender)} method.</li>
+ *   <li>Registering using the Service Provider Interface (SPI).</li>
+ * </ul>
  *
  * @author Jamison Jiang
  */
@@ -45,13 +49,14 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Register a custom shape renderer. If the shape has the same name, the priority
-   * registration will take effect first, you can use {@link #registered(String)} to check whether
-   * the corresponding shape has been registered.
+   * Registers a custom shape renderer. If a shape with the same name already exists, the first
+   * registered shape renderer will take precedence. Use {@link #registered(String)} to check if the
+   * corresponding shape has been registered.
    *
-   * @param customizeShapeRender customize renderer
-   * @throws NullPointerException     null render
-   * @throws IllegalArgumentException null shape name
+   * @param customizeShapeRender the custom shape renderer to register
+   * @throws NullPointerException     if the provided renderer is {@code null}
+   * @throws IllegalArgumentException if the shape name returned by {@link #getShapeName()} is
+   *                                  {@code null}
    */
   public static void register(CustomizeShapeRender customizeShapeRender) {
     Asserts.nullArgument(customizeShapeRender, "custimizeNodeShape");
@@ -64,8 +69,8 @@ public abstract class CustomizeShapeRender {
   /**
    * Returns the registered shape renderer for the specified shape.
    *
-   * @param shapeName shape name
-   * @return the shape renderer
+   * @param shapeName the name of the shape
+   * @return the shape renderer, or {@code null} if no renderer is registered for the given shape
    */
   public static CustomizeShapeRender getCustomizeShapeRender(String shapeName) {
     if (CUSTOMIZE_REGISTER == null) {
@@ -75,10 +80,10 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Returns the shape whether registered.
+   * Checks whether a shape with the specified name has been registered.
    *
-   * @param shapeName shape name
-   * @return <tt>true</tt> if the shape have been registered
+   * @param shapeName the name of the shape
+   * @return {@code true} if the shape has been registered, {@code false} otherwise
    */
   public static boolean registered(String shapeName) {
     return getCustomizeShapeRender(shapeName) != null;
@@ -87,32 +92,45 @@ public abstract class CustomizeShapeRender {
   // --------------------------------- Customize draw method ---------------------------------
 
   /**
-   * Returns the shape name.
+   * Returns the name of the shape.
    *
-   * @return shape name
+   * @return the shape name
    */
   public abstract String getShapeName();
 
   /**
-   * Draw node shapes under the svg structure.
+   * Draws node shapes within an SVG structure.
+   * <p>
+   * The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects, forming a
+   * complete SVG structure. Each element represents a distinct part of the shape, such as the
+   * outline, internal details.
    *
-   * @param nodeBrush    svg brush for drawing
-   * @param nodeDrawProp node draw properties
+   * @param nodeBrush    the SVG brush used for drawing, which provides utility methods for
+   *                     interacting with the SVG structure
+   * @param nodeDrawProp the properties of the node to be drawn, such as size, color, and position
    */
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
   }
 
   /**
-   * Draw cluster shapes under the svg structure.
+   * Draws cluster shapes within an SVG structure.
    *
-   * @param clusterBrush    svg brush for drawing
-   * @param clusterDrawProp cluster draw properties
+   * @param clusterBrush    the SVG brush used for drawing, providing functionality to add and
+   *                        modify SVG elements
+   * @param clusterDrawProp the properties of the cluster to be drawn, including size, color,
+   *                        boundaries, and labels
    */
   public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
   }
 
   // --------------------------------- private method ---------------------------------
 
+  /**
+   * Returns the map containing all registered custom shape renderers. Initializes the map if it has
+   * not been created yet.
+   *
+   * @return the map of custom shape renderers
+   */
   private static Map<String, CustomizeShapeRender> customizeNodeShapeMap() {
     if (CUSTOMIZE_REGISTER == null) {
       synchronized (CustomizeShapeRender.class) {
