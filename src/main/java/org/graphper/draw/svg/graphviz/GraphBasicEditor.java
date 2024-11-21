@@ -24,9 +24,8 @@ import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
 
-public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush> {
+public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(GraphvizDrawProp graphvizDrawProp, SvgBrush brush) {

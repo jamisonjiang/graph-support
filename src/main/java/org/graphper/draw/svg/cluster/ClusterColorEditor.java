@@ -23,9 +23,8 @@ import org.graphper.draw.ClusterEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
 
-public class ClusterColorEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterColorEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {

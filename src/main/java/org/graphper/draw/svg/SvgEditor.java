@@ -40,8 +40,8 @@ public class SvgEditor implements SvgConstants {
 
   private static final int MAX_ROUNDED = 30;
 
-//  private SvgEditor() {
-//  }
+  private SvgEditor() {
+  }
 
   /**
    * Set each line text to svg.

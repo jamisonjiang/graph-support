@@ -23,9 +23,9 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 
-public class NodeHrefEditor extends SvgEditor implements NodeEditor<SvgBrush> {
+public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(NodeDrawProp node, SvgBrush brush) {

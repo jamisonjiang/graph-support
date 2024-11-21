@@ -16,6 +16,8 @@
 
 package org.graphper.draw.svg.graphviz;
 
+import static org.graphper.draw.svg.SvgEditor.pointsToSvgLine;
+
 import java.util.Arrays;
 import java.util.List;
 import org.graphper.api.attributes.Color;
@@ -24,11 +26,11 @@ import org.graphper.draw.GraphEditor;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 import org.graphper.layout.OrthoVisGraph.Segment;
 import org.graphper.util.CollectionUtils;
 
-public class GraphGridEditor extends SvgEditor implements GraphEditor<SvgBrush> {
+public class GraphGridEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   private static final String GRID_SEGMENT = "grid_segment";
 

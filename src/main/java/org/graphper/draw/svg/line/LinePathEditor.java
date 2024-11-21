@@ -16,6 +16,8 @@
 
 package org.graphper.draw.svg.line;
 
+import static org.graphper.draw.svg.SvgEditor.pointsToSvgLine;
+
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.LineStyle;
@@ -29,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.graphper.util.CollectionUtils;
 
-public class LinePathEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   private static final Logger log = LoggerFactory.getLogger(LinePathEditor.class);
 

@@ -16,6 +16,9 @@
 
 package org.graphper.draw.svg.graphviz;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.GraphAttrs;
@@ -23,9 +26,11 @@ import org.graphper.draw.GraphEditor;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class GraphLabelEditor extends SvgEditor implements GraphEditor<SvgBrush> {
+public class GraphLabelEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(GraphvizDrawProp graphvizDrawProp, SvgBrush brush) {

@@ -33,6 +33,8 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 

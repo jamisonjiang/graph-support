@@ -16,6 +16,9 @@
 
 package org.graphper.draw.svg.cluster;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.ClusterAttrs;
@@ -23,9 +26,11 @@ import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ClusterEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class ClusterLabelEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterLabelEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
@@ -40,7 +45,6 @@ public class ClusterLabelEditor extends SvgEditor implements ClusterEditor<SvgBr
       Element text = brush.getOrCreateChildElementById(
           TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo(), TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
-
       text.setTextContent(textLineAttribute.getLine());
     };
 

@@ -16,19 +16,20 @@
 
 package org.graphper.draw.svg.line;
 
+import static org.graphper.draw.svg.SvgEditor.getPathPointStr;
+
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
+import org.graphper.def.FlatPoint;
+import org.graphper.def.Vectors;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
-import org.graphper.def.FlatPoint;
-import org.graphper.def.Vectors;
 
-public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {

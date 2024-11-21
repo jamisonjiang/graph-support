@@ -16,6 +16,9 @@
 
 package org.graphper.draw.svg.cluster;
 
+import static org.graphper.draw.svg.SvgConstants.SHAPE_GROUP_KEY;
+import static org.graphper.draw.svg.SvgConstants.STROKE_WIDTH;
+
 import org.graphper.api.ClusterAttrs;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterStyle;
@@ -26,7 +29,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
-public class ClusterShapeEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterShapeEditor implements ClusterEditor<SvgBrush> {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {

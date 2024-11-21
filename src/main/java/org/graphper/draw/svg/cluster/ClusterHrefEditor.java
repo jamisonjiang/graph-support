@@ -17,15 +17,15 @@
 package org.graphper.draw.svg.cluster;
 
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.attributes.ClusterStyle;
-import org.graphper.draw.svg.Element;
 import org.graphper.api.ClusterAttrs;
+import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ClusterEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 
-public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {

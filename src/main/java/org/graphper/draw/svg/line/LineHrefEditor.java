@@ -23,9 +23,9 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 
-public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineHrefEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp line, SvgBrush brush) {
