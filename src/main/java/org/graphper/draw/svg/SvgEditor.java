@@ -26,20 +26,22 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.ext.Box;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
-import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
 
 /**
- * Svg editor for graph element.
+ * Svg edit help methods for graph element.
  *
  * @author Jamison Jiang
  */
 public class SvgEditor implements SvgConstants {
 
   private static final int MAX_ROUNDED = 30;
+
+//  private SvgEditor() {
+//  }
 
   /**
    * Set each line text to svg.
@@ -63,7 +65,8 @@ public class SvgEditor implements SvgConstants {
     }
 
     if (attribute.fontName != null) {
-      String fontName = FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
+      String fontName =
+          FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
       text.setAttribute(FONT_FAMILY, fontName);
     }
   }
@@ -126,7 +129,6 @@ public class SvgEditor implements SvgConstants {
         shapeEle = brush.getOrCreateChildElement(POLYGON_ELE);
       }
     } else if (drawProp.isClusterProp()) {
-      ClusterDrawProp clusterDrawProp = ((ClusterDrawProp) drawProp);
       if (isRound) {
         shapeEle = brush.getOrCreateChildElement(PATH_ELE);
       } else {
@@ -270,25 +272,18 @@ public class SvgEditor implements SvgConstants {
     cornerLen = Math.min(cornerLen, (int) box.getHeight() / 2);
     return pointsToSvgPath(true, leftBorder, upBorder + cornerLen, leftBorder, upBorder + cornerLen,
                            leftBorder, downBorder - cornerLen, leftBorder, downBorder - cornerLen,
-
                            leftBorder, downBorder, leftBorder, downBorder, leftBorder + cornerLen,
                            downBorder,
-
                            leftBorder + cornerLen, downBorder, rightBorder - cornerLen, downBorder,
                            rightBorder - cornerLen, downBorder,
-
                            rightBorder, downBorder, rightBorder, downBorder, rightBorder,
                            downBorder - cornerLen,
-
                            rightBorder, downBorder - cornerLen, rightBorder, upBorder + cornerLen,
                            rightBorder, upBorder + cornerLen,
-
                            rightBorder, upBorder, rightBorder, upBorder, rightBorder - cornerLen,
                            upBorder,
-
                            rightBorder - cornerLen, upBorder, leftBorder + cornerLen, upBorder,
                            leftBorder + cornerLen, upBorder,
-
                            leftBorder, upBorder, leftBorder, upBorder, leftBorder,
                            upBorder + cornerLen);
   }

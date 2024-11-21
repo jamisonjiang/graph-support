@@ -19,8 +19,11 @@ package org.graphper.draw;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.ClusterShape;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.util.Asserts;
+import org.graphper.draw.svg.SvgConstants;
 
 /**
  * Renderer for custom shapes. This abstract class allows registering and rendering custom shapes.
@@ -33,7 +36,12 @@ import org.graphper.util.Asserts;
  *   <li>Registering using the Service Provider Interface (SPI).</li>
  * </ul>
  *
+ * <p>This pairing of a ({@link NodeShape} or {@link ClusterShape}) and its {@code CustomizeShapeRender}
+ * implementation ensures a complete lifecycle for defining, describing, and rendering the node shape.
+ *
  * @author Jamison Jiang
+ * @see NodeShape
+ * @see ClusterShape
  */
 @SuppressWarnings("all")
 public abstract class CustomizeShapeRender {
@@ -99,18 +107,49 @@ public abstract class CustomizeShapeRender {
   public abstract String getShapeName();
 
   /**
-   * Draws node shapes within an SVG structure.
-   * <p>
-   * The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects, forming a
-   * complete SVG structure. Each element represents a distinct part of the shape, such as the
-   * outline, internal details.
+   * Draws a node shape within an SVG structure.
    *
-   * @param nodeBrush    the SVG brush used for drawing, which provides utility methods for
-   *                     interacting with the SVG structure
-   * @param nodeDrawProp the properties of the node to be drawn, such as size, color, and position
+   * <p>The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects,
+   * forming a complete SVG structure. Each element represents a distinct part of the shape, such as
+   * the outline, internal details, or decorations. The rendering logic is determined by the
+   * specific implementation of this method.</p>
+   *
+   * <p>This method focuses solely on rendering the outline of the shape. It does not consider
+   * other node attributes such as color, labels, pen width, or style, which will be handled by
+   * other dedicated handlers. The rendered shape is constructed using multiple SVG elements and is
+   * automatically added to the {@link SvgConstants#SHAPE_GROUP_KEY} group via the
+   * {@link SvgBrush#getOrCreateShapeEleById(String, String)} method.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * // Example implementation for drawing a complex node outline with multiple elements
+   * @Override
+   * public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
+   *     // Create a rectangle as part of the node outline
+   *     Element rectElement = nodeBrush.getOrCreateShapeEleById("rect", "rect");
+   *     rectElement.setAttribute("x", String.valueOf(nodeDrawProp.getX()));
+   *     rectElement.setAttribute("y", String.valueOf(nodeDrawProp.getY()));
+   *     rectElement.setAttribute("width", String.valueOf(nodeDrawProp.getWidth()));
+   *     rectElement.setAttribute("height", String.valueOf(nodeDrawProp.getHeight()));
+   *
+   *     // Create a border circle as another part of the node outline
+   *     Element circleElement = nodeBrush.getOrCreateShapeEleById("circle", "circle");
+   *     circleElement.setAttribute("cx", String.valueOf(nodeDrawProp.getX() + nodeDrawProp.getWidth() / 2));
+   *     circleElement.setAttribute("cy", String.valueOf(nodeDrawProp.getY() + nodeDrawProp.getHeight() / 2));
+   *     circleElement.setAttribute("r", String.valueOf(Math.min(nodeDrawProp.getWidth(), nodeDrawProp.getHeight()) / 2));
+   * }
+   * }
+   * </pre>
+   *
+   * @param nodeBrush    the SVG brush used for drawing, which provides utility methods for creating
+   *                     and interacting with SVG elements
+   * @param nodeDrawProp the properties of the node to be drawn, such as size, color, position, and
+   *                     styling information
    */
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
   }
+
 
   /**
    * Draws cluster shapes within an SVG structure.

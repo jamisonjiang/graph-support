@@ -34,7 +34,8 @@ import org.graphper.draw.CustomizeShapeRender;
  * <p>Unlike {@link NodeShape}, other cluster shapes except {@link ClusterShapeEnum#RECT} no
  * guarantee that cluster container will surround all nodes under {@link Layout#DOT} engine but will
  * try best estimated the container size by {@link #minContainerSize(double, double)} method, but
- * still have the following principles as much as possible surround all nodes:
+ * still have the following principles as much as possible surround all nodes if you want to
+ * {@code ClusterShape} works well under {@link Layout#DOT} engine:
  * <ul>
  *   <li>The gap between internal box and external box is as small ass possible, it means output
  *   of {@link #minContainerSize(double, double)} of current shape close enough than input.

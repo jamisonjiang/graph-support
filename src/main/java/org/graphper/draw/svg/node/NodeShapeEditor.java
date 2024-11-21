@@ -16,9 +16,6 @@
 
 package org.graphper.draw.svg.node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.NodeAttrs;
@@ -230,7 +227,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     brush.getOrCreateChildElement(getShapeElement(nodeDrawProp));
     String shape = NodeShapeEnum.NOTE.getName();
 
-    Element firstEle = brush.getOrCreateChildElementById(shape + "0", POLYGON_ELE);
+    Element firstEle = brush.getOrCreateShapeEleById(shape + "0", POLYGON_ELE);
     String points = SvgEditor.generatePolylinePoints(nodeDrawProp.getLeftBorder(),
                                                      nodeDrawProp.getUpBorder(),
                                                      nodeDrawProp.getRightBorder()
@@ -247,7 +244,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
                                                      nodeDrawProp.getUpBorder());
     firstEle.setAttribute(SvgConstants.POINTS, points);
 
-    Element secondEle = brush.getOrCreateChildElementById(shape + "1", POLYGON_ELE);
+    Element secondEle = brush.getOrCreateShapeEleById(shape + "1", POLYGON_ELE);
     points = SvgEditor.generatePolylinePoints(
         nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
         nodeDrawProp.getUpBorder(),
@@ -256,8 +253,6 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
         nodeDrawProp.getRightBorder(),
         nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN);
     secondEle.setAttribute(SvgConstants.POINTS, points);
-
-    brush.addGroup(SvgConstants.SHAPE_GROUP_KEY, Arrays.asList(firstEle, secondEle));
   }
 
   private void cylinder(NodeDrawProp nodeDrawProp, SvgBrush brush) {
@@ -281,17 +276,15 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
                                               nodeDrawProp.getUpBorder(), v2x,
                                               nodeDrawProp.getUpBorder(),
                                               nodeDrawProp.getLeftBorder(), up);
-    Element firstEle = brush.getOrCreateChildElementById(shape + "0", PATH_ELE);
+    Element firstEle = brush.getOrCreateShapeEleById(shape + "0", PATH_ELE);
     firstEle.setAttribute(SvgConstants.D, points);
 
     points = SvgEditor.pointsToSvgPath(true, nodeDrawProp.getLeftBorder(), up,
                                        v2x, up + CylinderPropCalc.TOP_LEN,
                                        v3x, up + CylinderPropCalc.TOP_LEN,
                                        nodeDrawProp.getRightBorder(), up);
-    Element secondEle = brush.getOrCreateChildElementById(shape + "1", PATH_ELE);
+    Element secondEle = brush.getOrCreateShapeEleById(shape + "1", PATH_ELE);
     secondEle.setAttribute(SvgConstants.D, points);
-
-    brush.addGroup(SvgConstants.SHAPE_GROUP_KEY, Arrays.asList(firstEle, secondEle));
   }
 
   private void record(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean radianCorner) {
@@ -304,25 +297,20 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     String borderId = NodeShapeEnum.RECORD.getName() + "0";
     Element border;
     if (radianCorner) {
-      border = brush.getOrCreateChildElementById(borderId, SvgConstants.PATH_ELE);
+      border = brush.getOrCreateShapeEleById(borderId, SvgConstants.PATH_ELE);
       border.setAttribute(SvgConstants.D, mrecordBorder(nodeDrawProp));
     } else {
-      border = brush.getOrCreateChildElementById(borderId, SvgConstants.POLYGON_ELE);
+      border = brush.getOrCreateShapeEleById(borderId, SvgConstants.POLYGON_ELE);
       border.setAttribute(SvgConstants.POINTS, SvgEditor.generateBox(nodeDrawProp));
     }
 
-    List<Element> cellElements = new ArrayList<>(cell.childrenSize());
-    cellElements.add(border);
-
     if (!nodeDrawProp.haveChildrenCell()) {
       // Draw cell
-      record(nodeDrawProp, cell, brush, new int[]{1}, cellElements);
+      record(nodeDrawProp, cell, brush, new int[]{1});
     }
-    brush.addGroup(SvgConstants.SHAPE_GROUP_KEY, cellElements);
   }
 
-  private void record(NodeDrawProp nodeDrawProp, Cell cell, SvgBrush brush,
-                      int[] cellNo, List<Element> cellElements) {
+  private void record(NodeDrawProp nodeDrawProp, Cell cell, SvgBrush brush, int[] cellNo) {
     if (cell.isLeaf()) {
       return;
     }
@@ -330,7 +318,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     int no = ++cellNo[0];
     for (int i = 0; i < cell.childrenSize(); i++) {
       Cell child = cell.getChild(i);
-      record(nodeDrawProp, child, brush, cellNo, cellElements);
+      record(nodeDrawProp, child, brush, cellNo);
 
       // Get the leftUp position by offset
       FlatPoint offset = child.getOffset();
@@ -352,7 +340,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       }
 
       // Set split element
-      setRecordSplitEle(cellId, cell, child, brush, upBorder, leftBorder, cellElements);
+      setRecordSplitEle(cellId, cell, child, brush, upBorder, leftBorder);
     }
   }
 
@@ -361,9 +349,9 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private void setRecordSplitEle(String cellId, Cell parent, Cell child, SvgBrush brush,
-                                 double upBorder, double leftBorder, List<Element> cellElements) {
+                                 double upBorder, double leftBorder) {
     double cellRightBorder = leftBorder + child.getWidth();
-    Element cellEle = brush.getOrCreateChildElementById(cellId, SvgConstants.PATH_ELE);
+    Element cellEle = brush.getOrCreateShapeEleById(cellId, SvgConstants.PATH_ELE);
 
     String points;
     if (child.isHor()) {
@@ -374,7 +362,6 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       points = SvgEditor.pointsToSvgPath(false, leftBorder, upBorder, cellRightBorder, upBorder);
     }
     cellEle.setAttribute(SvgConstants.D, points);
-    cellElements.add(cellEle);
   }
 
   private void recordTextSet(NodeDrawProp nodeDrawProp, SvgBrush brush, String label,

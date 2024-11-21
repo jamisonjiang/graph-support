@@ -18,6 +18,7 @@ package org.graphper.draw.svg;
 
 import static org.graphper.draw.svg.SvgConstants.UNDERSCORE;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -194,7 +195,7 @@ public class SvgBrush implements Brush {
    */
   public Element getOrCreateShapeEleById(String childId, String tagName) {
     Element shapeEle = getOrCreateChildElementById(childId, tagName);
-    addGroup(SvgConstants.SHAPE_GROUP_KEY, Collections.singletonList(shapeEle));
+    addGroup(SvgConstants.SHAPE_GROUP_KEY, shapeEle);
     return shapeEle;
   }
 
@@ -309,7 +310,14 @@ public class SvgBrush implements Brush {
     if (eleGroups == null) {
       eleGroups = new HashMap<>(1);
     }
-    eleGroups.put(key, group);
+    List<Element> groupEles = eleGroups.get(key);
+    if (CollectionUtils.isEmpty(groupEles)) {
+      eleGroups.put(key, group);
+    } else {
+      groupEles = new ArrayList<>(groupEles);
+      groupEles.addAll(group);
+      eleGroups.put(key, groupEles);
+    }
   }
 
   /**
