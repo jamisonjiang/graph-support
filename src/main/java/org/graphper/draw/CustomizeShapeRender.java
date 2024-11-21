@@ -150,14 +150,45 @@ public abstract class CustomizeShapeRender {
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
   }
 
-
   /**
-   * Draws cluster shapes within an SVG structure.
+   * Draws a cluster shape within an SVG structure.
    *
-   * @param clusterBrush    the SVG brush used for drawing, providing functionality to add and
-   *                        modify SVG elements
-   * @param clusterDrawProp the properties of the cluster to be drawn, including size, color,
-   *                        boundaries, and labels
+   * <p>The cluster shape can consist of multiple {@link org.graphper.draw.svg.Element} objects,
+   * forming a complete SVG structure. Each element represents a distinct part of the cluster, such as
+   * the outline, boundaries, or decorations. The rendering logic is determined by the specific
+   * implementation of this method.</p>
+   *
+   * <p>This method focuses solely on rendering the outline or boundary of the cluster. It does not
+   * handle other cluster attributes such as color, labels, or styles, which will be processed by
+   * other dedicated handlers. The cluster outline is constructed using multiple SVG elements and is
+   * automatically added to the {@link SvgConstants#SHAPE_GROUP_KEY} group via the
+   * {@link SvgBrush#getOrCreateShapeEleById(String, String)} method.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * // Example implementation for drawing a cluster outline with multiple elements
+   * @Override
+   * public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
+   *     // Create a rectangle to represent the cluster boundary
+   *     Element rectElement = clusterBrush.getOrCreateShapeEleById("cluster_rect", "rect");
+   *     rectElement.setAttribute("x", String.valueOf(clusterDrawProp.getX()));
+   *     rectElement.setAttribute("y", String.valueOf(clusterDrawProp.getY()));
+   *     rectElement.setAttribute("width", String.valueOf(clusterDrawProp.getWidth()));
+   *     rectElement.setAttribute("height", String.valueOf(clusterDrawProp.getHeight()));
+   *
+   *     // Create a decorative element (e.g., a dashed border) for the cluster
+   *     Element dashedBorder = clusterBrush.getOrCreateShapeEleById("cluster_border", "path");
+   *     dashedBorder.setAttribute("d", "M ..."); // Specify the path data for the dashed border
+   *     dashedBorder.setAttribute("stroke-dasharray", "5,5");
+   * }
+   * }
+   * </pre>
+   *
+   * @param clusterBrush    the SVG brush used for drawing, providing utility methods for creating
+   *                        and grouping SVG elements
+   * @param clusterDrawProp the properties of the cluster to be drawn, such as size, position,
+   *                        and boundaries
    */
   public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
   }
