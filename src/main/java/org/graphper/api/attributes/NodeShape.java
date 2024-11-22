@@ -44,12 +44,10 @@ import org.graphper.api.ext.ShapePropCalc;
  *
  * // Implement the rendering logic for the custom shape
  * public class ArrowNodeShapeRender extends CustomizeShapeRender {
- *     @Override
  *     public String getShapeName() {
  *         return "arrow";
  *     }
  *
- *     @Override
  *     public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
  *         // Custom rendering logic for the arrow shape...
  *     }

@@ -53,7 +53,6 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
    *   <li>If the line is a parallel merge and not virtual, invokes specific handling logic.</li>
    *   <li>Delegates other lines to the {@link #handle(FLine)} method for routing.</li>
    * </ul>
-   * </p>
    */
   @Override
   public void route() {

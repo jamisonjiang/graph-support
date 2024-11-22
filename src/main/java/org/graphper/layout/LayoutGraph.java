@@ -308,6 +308,8 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
    * @param graphviz root container
    * @param n        node
    * @param w        node
+   * @param <N>      node type
+   * @param <E>      edge type
    * @return The first common parent container of both nodes
    */
   public static <N extends ANode, E extends ALine<N, E>> GraphContainer commonParent(
@@ -325,6 +327,8 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
    * @param graphviz root container
    * @param c1       container one
    * @param c2       container two
+   * @param <N>      node type
+   * @param <E>      edge type
    * @return The first common parent container of both nodes
    */
   public static <N extends ANode, E extends ALine<N, E>> GraphContainer commonParent(

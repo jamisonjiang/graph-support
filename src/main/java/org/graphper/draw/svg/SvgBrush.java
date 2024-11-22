@@ -98,6 +98,7 @@ public class SvgBrush implements Brush {
    * Constructs an instance of {@code SvgBrush} with the specified SVG element, document, and
    * drawing board.
    *
+   * @param rootId       brush element root id
    * @param element      the root SVG element
    * @param svgDocument  the SVG document to which this element belongs
    * @param svgDrawBoard the drawing board used for managing graph elements

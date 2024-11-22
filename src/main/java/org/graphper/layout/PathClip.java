@@ -117,6 +117,7 @@ public abstract class PathClip {
    *
    * @param path the list of {@link FlatPoint} representing the path
    * @param i    the index of the point to retrieve
+   * @param <E>  FlatPoint type
    * @return the point at the specified index, or {@code null} if the index is out of bounds
    */
   public static <E extends FlatPoint> E getPoint(List<E> path, int i) {
@@ -130,6 +131,7 @@ public abstract class PathClip {
    * Retrieves the first point of the path.
    *
    * @param path the list of {@link FlatPoint} representing the path
+   * @param <E>  FlatPoint type
    * @return the first point, or {@code null} if the path is empty
    */
   public static <E extends FlatPoint> E getFirst(List<E> path) {
@@ -140,6 +142,7 @@ public abstract class PathClip {
    * Retrieves the last point of the path.
    *
    * @param path the list of {@link FlatPoint} representing the path
+   * @param <E>  FlatPoint type
    * @return the last point, or {@code null} if the path is empty
    */
   public static <E extends FlatPoint> E getLast(List<E> path) {
@@ -153,6 +156,7 @@ public abstract class PathClip {
    * @param path          the list of {@link FlatPoint} representing the path
    * @param firstStart    whether to check the start of the path first
    * @param shapePosition the {@link ShapePosition} representing the shape boundary
+   * @param <E>  FlatPoint type
    * @return an {@link InOutPointPair} representing the transition points, or {@code null} if not
    * found
    */

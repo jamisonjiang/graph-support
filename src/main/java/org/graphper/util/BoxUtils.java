@@ -41,7 +41,6 @@ public class BoxUtils {
    *   <li>The upper border is the minimum of the two boxes' upper borders.</li>
    *   <li>The lower border is the maximum of the two boxes' lower borders.</li>
    * </ul>
-   * </p>
    *
    * @param origin the first box to combine
    * @param expand the second box to combine

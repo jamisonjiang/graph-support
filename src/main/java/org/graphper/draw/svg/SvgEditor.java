@@ -112,6 +112,7 @@ public class SvgEditor implements SvgConstants {
    * @param drawProp draw container needs drawing
    * @param brush    svg brush need to generate element
    * @param points   polygon points
+   * @return polygon shape element
    * @throws NullPointerException     null container or null brush
    * @throws IllegalArgumentException wrong size radius or wrong close path points or wrong
    *                                  container type
@@ -273,24 +274,21 @@ public class SvgEditor implements SvgConstants {
     return pointsToSvgPath(true, leftBorder, upBorder + cornerLen, leftBorder, upBorder + cornerLen,
                            leftBorder, downBorder - cornerLen, leftBorder, downBorder - cornerLen,
                            leftBorder, downBorder, leftBorder, downBorder, leftBorder + cornerLen,
-                           downBorder,
-                           leftBorder + cornerLen, downBorder, rightBorder - cornerLen, downBorder,
-                           rightBorder - cornerLen, downBorder,
-                           rightBorder, downBorder, rightBorder, downBorder, rightBorder,
-                           downBorder - cornerLen,
+                           downBorder, leftBorder + cornerLen, downBorder, rightBorder - cornerLen,
+                           downBorder, rightBorder - cornerLen, downBorder, rightBorder, downBorder,
+                           rightBorder, downBorder, rightBorder, downBorder - cornerLen,
                            rightBorder, downBorder - cornerLen, rightBorder, upBorder + cornerLen,
-                           rightBorder, upBorder + cornerLen,
-                           rightBorder, upBorder, rightBorder, upBorder, rightBorder - cornerLen,
-                           upBorder,
-                           rightBorder - cornerLen, upBorder, leftBorder + cornerLen, upBorder,
-                           leftBorder + cornerLen, upBorder,
-                           leftBorder, upBorder, leftBorder, upBorder, leftBorder,
+                           rightBorder, upBorder + cornerLen, rightBorder, upBorder, rightBorder,
+                           upBorder, rightBorder - cornerLen, upBorder, rightBorder - cornerLen,
+                           upBorder, leftBorder + cornerLen, upBorder, leftBorder + cornerLen,
+                           upBorder, leftBorder, upBorder, leftBorder, upBorder, leftBorder,
                            upBorder + cornerLen);
   }
 
   /**
    * Returns a rounded shape points according to the close path points.
    *
+   * @param path path points coordinate
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
    * @throws IllegalArgumentException wrong size radius or wrong close path points
    */

@@ -124,7 +124,6 @@ public abstract class CustomizeShapeRender {
    * <pre>
    * {@code
    * // Example implementation for drawing a complex node outline with multiple elements
-   * @Override
    * public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
    *     // Create a rectangle as part of the node outline
    *     Element rectElement = nodeBrush.getOrCreateShapeEleById("rect", "rect");
@@ -168,7 +167,6 @@ public abstract class CustomizeShapeRender {
    * <pre>
    * {@code
    * // Example implementation for drawing a cluster outline with multiple elements
-   * @Override
    * public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
    *     // Create a rectangle to represent the cluster boundary
    *     Element rectElement = clusterBrush.getOrCreateShapeEleById("cluster_rect", "rect");
