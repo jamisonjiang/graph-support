@@ -18,7 +18,16 @@ package org.graphper.layout.fdp;
 
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
-public class JFdpLayoutEngine extends FdpLayoutEngine {
+/**
+ * A specialized force-directed placement (JFDP) layout engine.
+ * <ul>
+ *   <li>Reduced node displacement for better stability.</li>
+ *   <li>Degree-based scaling of attractive forces.</li>
+ *   <li>Efficient repulsive force calculation to avoid overlaps.</li>
+ *   <li>Bounding node positions within the graph area.</li>
+ * </ul>
+ */
+public class JFdpLayoutEngine extends AbstractFdpLayout {
 
   private static final long serialVersionUID = -5998157771161759195L;
 

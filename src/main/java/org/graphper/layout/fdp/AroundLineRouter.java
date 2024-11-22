@@ -34,6 +34,11 @@ import org.graphper.layout.PortHelper.PortPoint;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
 
+/**
+ * Abstract base class for routing graph edges around obstacles using a recursive splitting strategy.
+ *
+ * @author Jamison Jiang
+ */
 abstract class AroundLineRouter extends AbstractFdpLineRouter {
 
   protected RectangleTree<ANode> rtree;

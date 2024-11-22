@@ -78,7 +78,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
     add(node);
     if (originalContainer != node.getContainer()) {
-      GraphContainer repeatContainer = null;
+      GraphContainer repeatContainer;
       if (originalContainer.containsContainer(node.getContainer())) {
         repeatContainer = originalContainer;
       } else if (node.getContainer().containsContainer(originalContainer)) {

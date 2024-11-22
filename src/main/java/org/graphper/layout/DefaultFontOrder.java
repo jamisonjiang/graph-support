@@ -16,6 +16,15 @@
 
 package org.graphper.layout;
 
+/**
+ * Provides a predefined font order based on global popularity statistics.
+ *
+ * <p>This implementation uses a static list of the most popular fonts worldwide,
+ * ranking them in a fixed sequence. The order is independent of system availability
+ * and reflects general usage trends across different regions and applications.</p>
+ *
+ * @author Jamison Jiang
+ */
 public class DefaultFontOrder extends StaticFontOrder {
 
   @Override

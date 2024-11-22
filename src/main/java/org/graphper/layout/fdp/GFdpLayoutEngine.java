@@ -20,7 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
-public class GFdpLayoutEngine extends FdpLayoutEngine {
+/**
+ * A specialized force-directed placement (GFDP) layout engine.
+ * <p>
+ * This algorithm is another variant of FDP that focuses on localized node interactions,
+ * considering only the forces within the cell area of a node. This optimization reduces
+ * computational complexity and is particularly effective for dense graphs with limited
+ * interaction ranges.
+ * </p>
+ *
+ * @author Jamison Jiang
+ */
+public class GFdpLayoutEngine extends AbstractFdpLayout {
 
   private static final long serialVersionUID = 5753649446512849866L;
 

@@ -97,6 +97,28 @@ public abstract class LineClip extends LineHandler {
     }
   }
 
+  /**
+   * Processes the clipping of a line within a graph layout, handling interactions with nodes,
+   * clusters, and arrowheads. This method ensures that lines are appropriately clipped at their
+   * start and end points based on node or cluster boundaries and handles scenarios like self-loops
+   * and directional lines.
+   *
+   * <p>The clipping process involves the following steps:</p>
+   * <ul>
+   *   <li>Determine whether the line requires clipping at the start or end based on its attributes
+   *       and the nodes it connects.</li>
+   *   <li>Clip the line against the boundaries of the relevant node or cluster.</li>
+   *   <li>Adjust arrow positions and sizes as needed for the clipped path.</li>
+   *   <li>Handle scenarios where no valid path exists, ensuring appropriate arrow handling.</li>
+   * </ul>
+   *
+   * @param path             the current line path to be clipped
+   * @param pathClip         the clipping utility handling node and cluster boundaries
+   * @param noPathDirection  the fallback direction when no valid path exists
+   * @param lineDrawProp     the properties of the line being processed, including start and end nodes
+   * @throws NullPointerException     if {@code pathClip} or {@code lineDrawProp} is {@code null}
+   * @throws IllegalArgumentException if required nodes for the line are missing in the layout
+   */
   protected void clipProcess(LineDrawProp path, PathClip pathClip,
                              FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
     Asserts.nullArgument(pathClip, "pathClip");

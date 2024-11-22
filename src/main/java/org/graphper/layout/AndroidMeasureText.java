@@ -22,6 +22,14 @@ import org.graphper.util.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Implementation of {@link MeasureText} and {@link FontSelector} for measuring text dimensions on
+ * Android platforms. This class uses reflection to interact with Android's native {@code TextPaint}
+ * and {@code Rect} classes to calculate the width and height of a given text string based on the
+ * specified font and size.
+ *
+ * @author Jamison Jiang
+ */
 public class AndroidMeasureText implements MeasureText, FontSelector {
 
   private static final Logger log = LoggerFactory.getLogger(AndroidMeasureText.class);
@@ -34,25 +42,58 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
       RECT = Class.forName("android.graphics.Rect");
       TEXT_PAIN = Class.forName("android.text.TextPaint");
     } catch (ClassNotFoundException e) {
-      // ignore
+      // Ignore missing classes
     }
   }
 
+  /**
+   * Returns the order of this implementation for environments where multiple strategies exist.
+   * Lower values indicate higher priority.
+   *
+   * @return the priority order, default is {@code 0}
+   */
   @Override
   public int order() {
     return 0;
   }
 
+  /**
+   * Checks if the current environment supports Android text measurement by verifying the
+   * availability of required classes ({@code Rect} and {@code TextPaint}).
+   *
+   * @return {@code true} if the environment supports Android text measurement, {@code false}
+   * otherwise
+   */
   @Override
   public boolean envSupport() {
     return RECT != null && TEXT_PAIN != null;
   }
 
+  /**
+   * Returns the default font name used when no specific font is provided.
+   *
+   * @return the default font name, "Times New Roman"
+   */
   @Override
   public String defaultFont() {
     return "Times New Roman";
   }
 
+  /**
+   * Measures the width and height of the specified text based on the given font name and size.
+   *
+   * <p>This method uses Android's {@code TextPaint} and {@code Rect} classes to calculate
+   * dimensions. The height accounts for multiple lines by multiplying the height of a single line
+   * by the number of lines in the text.</p>
+   *
+   * <p>If an error occurs during measurement, it logs the error and returns a {@link FlatPoint}
+   * with both dimensions set to {@code 0}.</p>
+   *
+   * @param text     the text to be measured
+   * @param fontName the name of the font (not used in this implementation)
+   * @param fontSize the size of the font in points
+   * @return a {@link FlatPoint} representing the height and width of the text
+   */
   @Override
   public FlatPoint measure(String text, String fontName, double fontSize) {
     if (StringUtils.isEmpty(text)) {
@@ -70,7 +111,7 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
       double height = (double) (int) ClassUtils.invoke(bounds, "height") * text.split("\n").length;
       return new FlatPoint(height, width);
     } catch (Exception e) {
-      log.error("Measure text size had occurred error: ", e);
+      log.error("Measure text size encountered an error: ", e);
       return new FlatPoint(0, 0);
     }
   }

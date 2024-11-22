@@ -24,6 +24,11 @@ import org.graphper.layout.ANode;
 import org.graphper.layout.AbstractOrthogonalRouter;
 import org.graphper.layout.LineRouter;
 
+/**
+ * A specialized {@link LineRouter} implementation for routing edges in an orthogonal layout.
+ *
+ * @author Jamison Jiang
+ */
 class OrthogonalRouter extends AbstractOrthogonalRouter implements LineRouter {
 
   protected OrthogonalRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {

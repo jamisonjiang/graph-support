@@ -23,6 +23,11 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * A specialized {@link AroundLineRouter} implementation for routing edges as polylines.
+ *
+ * @author Jamison Jiang
+ */
 class PolylineRouter extends AroundLineRouter {
 
   public PolylineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {

@@ -31,6 +31,14 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
 import org.graphper.util.ValueUtils;
 
+/**
+ * A utility class designed to dynamically expand the area occupied by a graph node in response to
+ * specific layout requirements. This class is particularly useful in scenarios where nodes have
+ * self-loops or other visual elements that require extra clearance to avoid intersection with
+ * other nodes or edges.
+ *
+ * @author Jamison Jiang
+ */
 public class NodeSizeExpander {
 
   protected ANode node;

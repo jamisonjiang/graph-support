@@ -20,6 +20,11 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.DrawGraph;
 
+/**
+ * A router for drawing straight lines between nodes in a graph.
+ *
+ * @author Jamison Jiang
+ */
 public class StraightLineRouter extends AbstractFdpLineRouter {
 
   public StraightLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {

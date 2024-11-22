@@ -36,6 +36,11 @@ import org.graphper.draw.Rectangle;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
 
+/**
+ * Helper to handle various case of {@link Port} feature.
+ *
+ * @author Jamison Jiang
+ */
 public class PortHelper {
 
   private PortHelper() {

@@ -45,6 +45,22 @@ import org.graphper.util.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Abstract implementation of an orthogonal edge router for graph layouts. This class provides
+ * mechanisms for routing edges in an orthogonal style, handling bends, overlaps, and self-loops
+ * efficiently. It integrates a maze-solving algorithm to calculate paths and manages edge
+ * segments for proper alignment and layout.
+ *
+ * <p>Key Features:</p>
+ * <ul>
+ *   <li>Handles routing of orthogonal edges between nodes.</li>
+ *   <li>Supports special cases like self-loops and overlapping edge segments.</li>
+ *   <li>Uses a priority queue-based pathfinding mechanism for optimal routing.</li>
+ *   <li>Manages edge segments with splitting, ranking, and grouping logic.</li>
+ * </ul>
+ *
+ * @author Jamison Jiang
+ */
 public abstract class AbstractOrthogonalRouter extends LineClip {
 
   private static final Logger log = LoggerFactory.getLogger(AbstractOrthogonalRouter.class);

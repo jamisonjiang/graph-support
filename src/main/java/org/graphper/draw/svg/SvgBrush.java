@@ -39,7 +39,7 @@ import org.graphper.util.CollectionUtils;
  * {@code
  * <g id="node_1" class="node">
  *   <ellipse id="node_1_ellipse" cx="67.0" cy="160.0" rx="27.0" ry="18.0" fill="none" stroke="#000000"/>
- *   <text id="node_1_text_0" x="67.0" y="164.66666666666666" text-anchor="middle" font-size="14.0" fill="#000000" font-family="Arial">b</text>
+ *   <text id="node_1_text_0" x="67.0" y="164" text-anchor="middle" font-size="14.0" fill="#000000" font-family="Arial">b</text>
  * </g>
  * }
  * </pre>
@@ -70,7 +70,7 @@ import org.graphper.util.CollectionUtils;
  * // Add a text label to the node
  * Element text = brush.getOrCreateChildElementById("text_0", "text");
  * text.setAttribute("x", "67.0");
- * text.setAttribute("y", "164.66666666666666");
+ * text.setAttribute("y", "164");
  * text.setAttribute("text-anchor", "middle");
  * text.setAttribute("font-size", "14.0");
  * text.setAttribute("fill", "#000000");

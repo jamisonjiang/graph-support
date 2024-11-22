@@ -76,14 +76,6 @@ public class Grid {
     return row * colNum() + col;
   }
 
-  public int getRowFromIdx(int idx) {
-    return idx / colNum();
-  }
-
-  public int getColFromIdx(int idx) {
-    return idx - (idx / colNum()) * colNum();
-  }
-
   public static class GridAxis {
 
     private int idx;

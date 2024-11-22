@@ -26,6 +26,14 @@ import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * {@link PathClip} that handles path clipping using cubic Bezier curves. This class provides
+ * methods to clip paths for arrows, clusters, and nodes, ensuring smooth transitions and accurate
+ * rendering.
+ *
+ * @author Jamison Jiang
+ */
+
 public class CurvePathClip extends PathClip {
 
   public static final CurvePathClip INSTANCE = new CurvePathClip();

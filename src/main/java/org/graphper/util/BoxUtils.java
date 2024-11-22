@@ -20,12 +20,34 @@ import java.util.Objects;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
 
+/**
+ * A utility class for performing operations on {@link Box} objects.
+ *
+ * @author Jamison Jiang
+ */
 public class BoxUtils {
 
   private BoxUtils() {
-
+    // Prevent instantiation of utility class
   }
 
+  /**
+   * Creates a new {@link Box} that represents the combined bounds of the two input boxes.
+   *
+   * <p>The resulting box will have borders that encompass both input boxes:
+   * <ul>
+   *   <li>The left border is the minimum of the two boxes' left borders.</li>
+   *   <li>The right border is the maximum of the two boxes' right borders.</li>
+   *   <li>The upper border is the minimum of the two boxes' upper borders.</li>
+   *   <li>The lower border is the maximum of the two boxes' lower borders.</li>
+   * </ul>
+   * </p>
+   *
+   * @param origin the first box to combine
+   * @param expand the second box to combine
+   * @return a new {@link Box} representing the combined bounds
+   * @throws NullPointerException if either {@code origin} or {@code expand} is {@code null}
+   */
   public static Box newCombineBox(Box origin, Box expand) {
     Objects.requireNonNull(origin);
     Objects.requireNonNull(expand);
@@ -37,3 +59,4 @@ public class BoxUtils {
     );
   }
 }
+

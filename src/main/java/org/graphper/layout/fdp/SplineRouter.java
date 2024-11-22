@@ -29,6 +29,11 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * A specialized {@link AroundLineRouter} implementation for routing edges using spline curves.
+ *
+ * @author Jamison Jiang
+ */
 class SplineRouter extends AroundLineRouter {
 
   public SplineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {

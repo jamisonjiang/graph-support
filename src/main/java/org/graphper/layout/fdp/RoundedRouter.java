@@ -26,6 +26,11 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 
+/**
+ * A specialized {@link AroundLineRouter} implementation for routing edges with rounded corners.
+ *
+ * @author Jamison Jiang
+ */
 class RoundedRouter extends AroundLineRouter {
 
   public RoundedRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
