@@ -41,7 +41,7 @@ This project is available via Maven:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.3.1</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -321,6 +321,10 @@ Graphviz graphviz = Graphviz.digraph()
 ### Edge router example
 
 <img title="" src="picture/line_router.png" alt="" width="617">
+
+### Fdp layout
+
+<img title="" src="picture/fdp.png" alt="" width="617">
 
 ### Edge router debug attribute
 
