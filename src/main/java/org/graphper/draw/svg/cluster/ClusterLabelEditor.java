@@ -16,43 +16,40 @@
 
 package org.graphper.draw.svg.cluster;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.function.Consumer;
-import org.graphper.draw.svg.Element;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.ClusterAttrs;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ClusterEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class ClusterLabelEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterLabelEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
     ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
     String label = clusterAttrs.getLabel();
-
     if (StringUtils.isEmpty(label)) {
       return true;
     }
 
     double fontSize = clusterAttrs.getFontSize();
-
     Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
       Element text = brush.getOrCreateChildElementById(
-          SvgBrush.getId(cluster.id(), SvgConstants.TEXT_ELE)
-              + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo(),
-          SvgConstants.TEXT_ELE
-      );
+          TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo(), TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
-
       text.setTextContent(textLineAttribute.getLine());
     };
 
     text(new TextAttribute(cluster.getLabelCenter(), fontSize, label, clusterAttrs.getFontColor(),
                            clusterAttrs.getFontName(), lineConsumer));
-
     return true;
   }
 

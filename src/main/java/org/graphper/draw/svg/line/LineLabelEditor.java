@@ -16,18 +16,22 @@
 
 package org.graphper.draw.svg.line;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.function.Consumer;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.LineAttrs;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
-import org.graphper.def.FlatPoint;
-import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class LineLabelEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineLabelEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
@@ -43,14 +47,9 @@ public class LineLabelEditor extends SvgEditor implements LineEditor<SvgBrush> {
     FlatPoint labelCenter = lineDrawProp.getLabelCenter();
 
     Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = SvgBrush.getId(
-          brush.lineId(lineDrawProp),
-          SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo()
-      );
-
+      String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
       Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
-
       text.setTextContent(textLineAttribute.getLine());
     };
 

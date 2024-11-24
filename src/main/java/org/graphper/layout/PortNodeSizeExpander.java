@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,12 +28,11 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
 
 public class PortNodeSizeExpander extends NodeSizeExpander {
 
-  public PortNodeSizeExpander(DrawGraph drawGraph, DNode node) {
+  public PortNodeSizeExpander(DrawGraph drawGraph, ANode node) {
     Asserts.nullArgument(node, "node");
     Asserts.illegalArgument(node.isVirtual(), "Node is virtual node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node do not have self lines");
@@ -80,7 +79,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
                                  selfLine.tailPoint.getY())
           );
         }
-        addLabel(selfLine.line, lineDrawProp, 1);
+        addLabel(lineDrawProp, 1);
         continue;
       }
 
@@ -103,7 +102,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
         addPoint(lineDrawProp, selfLine.tailPoint);
         addPoint(lineDrawProp, point);
         addPoint(lineDrawProp, selfLine.headPoint);
-        addLabel(selfLine.line, lineDrawProp, 1);
+        addLabel(lineDrawProp, 1);
         continue;
       }
 
@@ -159,14 +158,14 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
       } while (true);
 
       addPoint(lineDrawProp, selfLine.headPoint);
-      addLabel(selfLine.line, lineDrawProp, labelIdx);
+      addLabel(lineDrawProp, labelIdx);
     }
   }
 
   private TreeSet<SelfLine> sortSelfLine(DrawGraph drawGraph) {
     TreeSet<SelfLine> lines = new TreeSet<>(this::selfLineComparator);
     for (int i = 0; i < node.getSelfLoopCount(); i++) {
-      DLine selfLine = node.selfLine(i);
+      LineDrawProp selfLine = node.selfLine(i);
       LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(selfLine.getLine());
       if (lineDrawProp == null) {
         continue;
@@ -221,7 +220,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     return lines;
   }
 
-  private FlatPoint getAdjPortPoint(DNode node, double len,
+  private FlatPoint getAdjPortPoint(ANode node, double len,
                                     Port tailNearestPort,
                                     Port headNearestPort) {
     double tx = tailNearestPort.horOffset(node);
@@ -326,13 +325,13 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     return drawGraph.getLineDrawProp(line.line.getLine());
   }
 
-  private void addLabel(DLine line, LineDrawProp lineDrawProp, int labelIdx) {
-    if (!line.haveLabel() || labelIdx < 0 || labelIdx >= lineDrawProp.size()) {
+  private void addLabel(LineDrawProp line, int labelIdx) {
+    if (!line.haveLabel() || labelIdx < 0 || labelIdx >= line.size()) {
       return;
     }
 
     FlatPoint labelSize = line.getLabelSize();
-    FlatPoint point = lineDrawProp.get(labelIdx);
+    FlatPoint point = line.get(labelIdx);
 
     FlatPoint labelCenter;
     double halfWidth = labelSize.getWidth() / 2;
@@ -353,7 +352,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
           .multiple(Vectors.sub(point, center), (d + halfHeight) / d));
     }
 
-    lineDrawProp.setLabelCenter(labelCenter);
+    line.setLabelCenter(labelCenter);
     refreshVolume(labelCenter.getX() - halfWidth, labelCenter.getY() - halfHeight);
     refreshVolume(labelCenter.getX() - halfWidth, labelCenter.getY() + halfHeight);
     refreshVolume(labelCenter.getX() + halfWidth, labelCenter.getY() - halfHeight);
@@ -368,7 +367,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
 
     private final int selfLineNo;
 
-    private final DLine line;
+    private final LineDrawProp line;
 
     private final FlatPoint tailPoint;
 
@@ -380,7 +379,7 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
 
     private final Port directionPort;
 
-    public SelfLine(int selfLineNo, DLine line, FlatPoint tailPoint,
+    public SelfLine(int selfLineNo, LineDrawProp line, FlatPoint tailPoint,
                     FlatPoint headPoint, Port tailNearestPort,
                     Port headNearestPort, Port directionPort) {
       this.selfLineNo = selfLineNo;

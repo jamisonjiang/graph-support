@@ -29,8 +29,7 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.Port;
-import org.graphper.def.BiConcatIterable;
-import org.graphper.def.FlatPoint;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -48,35 +47,19 @@ class DotAttachment extends LayoutAttach {
 
   private final Map<Node, DNode> nodeRecord;
 
-  private final DrawGraph drawGraph;
-
-  private boolean haveClusters;
-
   private boolean haveSubgraphs;
 
   private List<DLine> labelLines;
 
   private GeneratePort generatePort;
 
-  private DotLineClip lineClip;
-
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
   public DotAttachment(DotDigraph dotDigraph, DrawGraph drawGraph, Map<Node, DNode> nodeRecord) {
+    super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.dotDigraph = dotDigraph;
-    this.drawGraph = drawGraph;
     this.nodeRecord = nodeRecord;
-  }
-
-  void initLineClip() {
-    lineClip = new DotLineClip(drawGraph, dotDigraph);
-  }
-
-  void clipAllLines() {
-    if (lineClip != null) {
-      lineClip.clipAllLines();
-    }
   }
 
   Iterable<DNode> nodes(GraphContainer graphContainer) {
@@ -89,14 +72,6 @@ class DotAttachment extends LayoutAttach {
 
   DotDigraph getDotDigraph() {
     return dotDigraph;
-  }
-
-  DrawGraph getDrawGraph() {
-    return drawGraph;
-  }
-
-  Graphviz getGraphviz() {
-    return drawGraph.getGraphviz();
   }
 
   DNode get(Node node) {
@@ -153,16 +128,8 @@ class DotAttachment extends LayoutAttach {
     nodeRecord.put(node, dNode);
   }
 
-  void markHaveCluster() {
-    this.haveClusters = true;
-  }
-
   void markHaveSubgraph() {
     this.haveSubgraphs = true;
-  }
-
-  boolean haveClusters() {
-    return haveClusters;
   }
 
   boolean haveSubgraphs() {
@@ -179,25 +146,6 @@ class DotAttachment extends LayoutAttach {
 
   GraphContainer commonParent(DNode v, DNode w) {
     return commonParent(getGraphviz(), v, w);
-  }
-
-  GraphContainer clusterDirectContainer(GraphContainer parent, DNode node) {
-    return clusterDirectContainer(getGraphviz(), parent, node);
-  }
-
-  static GraphContainer clusterDirectContainer(Graphviz graphviz,
-                                               GraphContainer parent, DNode node) {
-    if (node.getContainer() == parent || graphviz == null) {
-      return null;
-    }
-
-    GraphContainer father;
-    GraphContainer current = node.getContainer();
-    while ((father = graphviz.effectiveFather(current)) != parent && father != null) {
-      current = father;
-    }
-
-    return father == parent ? current : null;
   }
 
   void addGeneratePort(DLine line) {
@@ -288,7 +236,7 @@ class DotAttachment extends LayoutAttach {
     }
 
     iterables.add(container.clusters());
-    return new BiConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(iterables);
   }
 
   static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {
@@ -420,42 +368,6 @@ class DotAttachment extends LayoutAttach {
   }
 
   // ----------------------------- private method -----------------------------
-  static class DotLineClip extends LineClip {
-
-    DotLineClip(DrawGraph drawGraph, DotDigraph dotDigraph) {
-      this.drawGraph = drawGraph;
-      this.dotDigraph = dotDigraph;
-    }
-
-    private void clipAllLines() {
-      drawGraph.syncGraphvizBorder();
-
-      for (LineDrawProp line : drawGraph.lines()) {
-        PathClip<LineDrawProp> pathClip;
-        if (line.isBesselCurve()) {
-          pathClip = CurvePathClip.INSTANCE;
-        } else {
-          pathClip = LineDrawPropPathClip.INSTANCE;
-        }
-
-        if (line.isSelfLoop() && CollectionUtils.isNotEmpty(line)) {
-          FlatPoint noPathDirection = line.get(line.size() / 2);
-          clipProcess(line, pathClip, noPathDirection, line);
-        } else {
-          clipProcess(line, pathClip, null, line);
-        }
-        if (CollectionUtils.isEmpty(line)) {
-          continue;
-        }
-
-        line.setStart(line.get(0));
-        line.setEnd(line.get(line.size() - 1));
-        setFloatLabel(line);
-      }
-
-      drawGraph.syncToGraphvizBorder();
-    }
-  }
 
   static class GeneratePort {
 
@@ -494,17 +406,17 @@ class DotAttachment extends LayoutAttach {
       }
 
       Rectangle cellBox = cell.getCellBox(node);
-      if (ValueUtils.approximate(cellBox.getLeftBorder(), node.getLeftBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getLeftBorder(), node.getLeftBorder())) {
         ports = new ArrayList<>(2);
         ports.add(Port.WEST);
       }
-      if (ValueUtils.approximate(cellBox.getRightBorder(), node.getRightBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getRightBorder(), node.getRightBorder())) {
         if (ports == null) {
           ports = new ArrayList<>(2);
         }
         ports.add(Port.EAST);
       }
-      if (ValueUtils.approximate(cellBox.getUpBorder(), node.getUpBorder(), 0.01)) {
+      if (ValueUtils.approximate(cellBox.getUpBorder(), node.getUpBorder())) {
         if (ports == null) {
           ports = new ArrayList<>(2);
         }
@@ -525,11 +437,11 @@ class DotAttachment extends LayoutAttach {
   }
 
   static class GeneratePortLine {
-    private LineDrawProp line;
     private DNode from;
     private DNode to;
     private Cell fromCell;
     private Cell toCell;
+    private final LineDrawProp line;
 
     public GeneratePortLine(LineDrawProp line) {
       Asserts.nullArgument(line, "Line prop");

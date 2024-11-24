@@ -113,8 +113,6 @@ public final class Curves {
 	public static FlatPoint besselEquationCalc(double t, FlatPoint... points) {
 		Asserts.illegalArgument(points == null || points.length < 2,
 		                        "points length can not be lower than 2");
-		Asserts.illegalArgument(t < 0 || t > 1, "t must between 0 and 1");
-
 		if (t == 0) {
 			return points[0];
 		}
@@ -152,9 +150,7 @@ public final class Curves {
 	 */
 	public static ThirdOrderBezierCurve divideThirdBesselCurve(double t, boolean isFirstHalf,
 	                                                           ThirdOrderBezierCurve bezierCurve) {
-		Asserts.illegalArgument(t < 0 || t > 1, "t must between 0 and 1");
 		Asserts.nullArgument(bezierCurve, "bezierCurve");
-
 		FlatPoint dividePoint = besselEquationCalc(t, bezierCurve.v1, bezierCurve.v2,
 		                                           bezierCurve.v3, bezierCurve.v4);
 
@@ -556,6 +552,10 @@ public final class Curves {
 			this.v2 = v2;
 			this.v3 = v3;
 			this.v4 = v4;
+		}
+
+		public ThirdOrderBezierCurve(ThirdOrderBezierCurve curve) {
+			this(curve.v1, curve.v2, curve.v3, curve.v4);
 		}
 
 		public FlatPoint getV1() {

@@ -16,45 +16,44 @@
 
 package org.graphper.draw.svg.graphviz;
 
+import static org.graphper.draw.svg.SvgEditor.pointsToSvgLine;
+
 import java.util.Arrays;
 import java.util.List;
-import org.graphper.layout.OrthoVisGraph.Segment;
-import org.graphper.draw.svg.Element;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.CollectionUtils;
 import org.graphper.api.attributes.Color;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.GraphEditor;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.layout.OrthoVisGraph.Segment;
+import org.graphper.util.CollectionUtils;
 
-public class GraphGridEditor extends SvgEditor implements GraphEditor<SvgBrush> {
+public class GraphGridEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
-	private static final String GRID_SEGMENT = "grid_segment";
+  private static final String GRID_SEGMENT = "grid_segment";
 
-	@Override
-	public boolean edit(GraphvizDrawProp graphvizDrawProp, SvgBrush brush) {
-		List<Segment> grid = graphvizDrawProp.getGrid();
-		if (CollectionUtils.isEmpty(grid)) {
-			return true;
-		}
+  @Override
+  public boolean edit(GraphvizDrawProp graphvizDrawProp, SvgBrush brush) {
+    List<Segment> grid = graphvizDrawProp.getGrid();
+    if (CollectionUtils.isEmpty(grid)) {
+      return true;
+    }
 
-		for (int i = 0; i < grid.size(); i++) {
-			Segment segment = grid.get(i);
-			List<FlatPoint> points = Arrays.asList(segment.getStart(), segment.getEnd());
-			String path = pointsToSvgLine(null, points, false);
+    for (int i = 0; i < grid.size(); i++) {
+      Segment segment = grid.get(i);
+      List<FlatPoint> points = Arrays.asList(segment.getStart(), segment.getEnd());
+      String path = pointsToSvgLine(null, points, false);
 
-			Element pathElement = brush.getOrCreateChildElementById(
-					GRID_SEGMENT + SvgConstants.UNDERSCORE + i,
-					SvgConstants.PATH_ELE
-			);
+      Element pathElement = brush.getOrCreateChildElementById(GRID_SEGMENT + UNDERSCORE + i,
+                                                              PATH_ELE);
 
-			pathElement.setAttribute(SvgConstants.D, path);
-			pathElement.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
-			pathElement.setAttribute(SvgConstants.STROKE, Color.BLACK.value());
-			pathElement.setAttribute(SvgConstants.STROKE_DASHARRAY, "1,5");
-		}
-		return true;
-	}
+      pathElement.setAttribute(D, path);
+      pathElement.setAttribute(FILL, NONE);
+      pathElement.setAttribute(STROKE, Color.BLACK.value());
+      pathElement.setAttribute(STROKE_DASHARRAY, "1,5");
+    }
+    return true;
+  }
 }

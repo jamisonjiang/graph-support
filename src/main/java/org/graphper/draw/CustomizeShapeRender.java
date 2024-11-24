@@ -19,17 +19,29 @@ package org.graphper.draw;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import org.graphper.api.attributes.NodeShape;
+import org.graphper.api.attributes.ClusterShape;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.util.Asserts;
+import org.graphper.draw.svg.SvgConstants;
 
 /**
- * Renderer for custom shapes. No matter how many types of rendering methods are supported in the
- * future, brushes corresponding to the rendering type will be provided for editing in this method.
+ * Renderer for custom shapes. This abstract class allows registering and rendering custom shapes.
+ * Regardless of the number of rendering methods supported in the future, brushes corresponding to
+ * the rendering type can be provided for editing within this class.
  *
- * <p>There are two ways to register a custom shape renderer, the first is to manually call
- * the {@link #register(CustomizeShapeRender)} method, and the second is to register using SPI.
+ * <p>There are two ways to register a custom shape renderer:
+ * <ul>
+ *   <li>Manually calling the {@link #register(CustomizeShapeRender)} method.</li>
+ *   <li>Registering using the Service Provider Interface (SPI).</li>
+ * </ul>
+ *
+ * <p>This pairing of a ({@link NodeShape} or {@link ClusterShape}) and its {@code CustomizeShapeRender}
+ * implementation ensures a complete lifecycle for defining, describing, and rendering the node shape.
  *
  * @author Jamison Jiang
+ * @see NodeShape
+ * @see ClusterShape
  */
 @SuppressWarnings("all")
 public abstract class CustomizeShapeRender {
@@ -45,13 +57,14 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Register a custom shape renderer. If the shape has the same name, the priority
-   * registration will take effect first, you can use {@link #registered(String)} to check whether
-   * the corresponding shape has been registered.
+   * Registers a custom shape renderer. If a shape with the same name already exists, the first
+   * registered shape renderer will take precedence. Use {@link #registered(String)} to check if the
+   * corresponding shape has been registered.
    *
-   * @param customizeShapeRender customize renderer
-   * @throws NullPointerException     null render
-   * @throws IllegalArgumentException null shape name
+   * @param customizeShapeRender the custom shape renderer to register
+   * @throws NullPointerException     if the provided renderer is {@code null}
+   * @throws IllegalArgumentException if the shape name returned by {@link #getShapeName()} is
+   *                                  {@code null}
    */
   public static void register(CustomizeShapeRender customizeShapeRender) {
     Asserts.nullArgument(customizeShapeRender, "custimizeNodeShape");
@@ -64,8 +77,8 @@ public abstract class CustomizeShapeRender {
   /**
    * Returns the registered shape renderer for the specified shape.
    *
-   * @param shapeName shape name
-   * @return the shape renderer
+   * @param shapeName the name of the shape
+   * @return the shape renderer, or {@code null} if no renderer is registered for the given shape
    */
   public static CustomizeShapeRender getCustomizeShapeRender(String shapeName) {
     if (CUSTOMIZE_REGISTER == null) {
@@ -75,10 +88,10 @@ public abstract class CustomizeShapeRender {
   }
 
   /**
-   * Returns the shape whether registered.
+   * Checks whether a shape with the specified name has been registered.
    *
-   * @param shapeName shape name
-   * @return <tt>true</tt> if the shape have been registered
+   * @param shapeName the name of the shape
+   * @return {@code true} if the shape has been registered, {@code false} otherwise
    */
   public static boolean registered(String shapeName) {
     return getCustomizeShapeRender(shapeName) != null;
@@ -87,32 +100,105 @@ public abstract class CustomizeShapeRender {
   // --------------------------------- Customize draw method ---------------------------------
 
   /**
-   * Returns the shape name.
+   * Returns the name of the shape.
    *
-   * @return shape name
+   * @return the shape name
    */
   public abstract String getShapeName();
 
   /**
-   * Draw node shapes under the svg structure.
+   * Draws a node shape within an SVG structure.
    *
-   * @param nodeBrush    svg brush for drawing
-   * @param nodeDrawProp node draw properties
+   * <p>The node shape can consist of multiple {@link org.graphper.draw.svg.Element} objects,
+   * forming a complete SVG structure. Each element represents a distinct part of the shape, such as
+   * the outline, internal details, or decorations. The rendering logic is determined by the
+   * specific implementation of this method.</p>
+   *
+   * <p>This method focuses solely on rendering the outline of the shape. It does not consider
+   * other node attributes such as color, labels, pen width, or style, which will be handled by
+   * other dedicated handlers. The rendered shape is constructed using multiple SVG elements and is
+   * automatically added to the {@link SvgConstants#SHAPE_GROUP_KEY} group via the
+   * {@link SvgBrush#getOrCreateShapeEleById(String, String)} method.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * // Example implementation for drawing a complex node outline with multiple elements
+   * public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
+   *     // Create a rectangle as part of the node outline
+   *     Element rectElement = nodeBrush.getOrCreateShapeEleById("rect", "rect");
+   *     rectElement.setAttribute("x", String.valueOf(nodeDrawProp.getX()));
+   *     rectElement.setAttribute("y", String.valueOf(nodeDrawProp.getY()));
+   *     rectElement.setAttribute("width", String.valueOf(nodeDrawProp.getWidth()));
+   *     rectElement.setAttribute("height", String.valueOf(nodeDrawProp.getHeight()));
+   *
+   *     // Create a border circle as another part of the node outline
+   *     Element circleElement = nodeBrush.getOrCreateShapeEleById("circle", "circle");
+   *     circleElement.setAttribute("cx", String.valueOf(nodeDrawProp.getX() + nodeDrawProp.getWidth() / 2));
+   *     circleElement.setAttribute("cy", String.valueOf(nodeDrawProp.getY() + nodeDrawProp.getHeight() / 2));
+   *     circleElement.setAttribute("r", String.valueOf(Math.min(nodeDrawProp.getWidth(), nodeDrawProp.getHeight()) / 2));
+   * }
+   * }
+   * </pre>
+   *
+   * @param nodeBrush    the SVG brush used for drawing, which provides utility methods for creating
+   *                     and interacting with SVG elements
+   * @param nodeDrawProp the properties of the node to be drawn, such as size, color, position, and
+   *                     styling information
    */
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
   }
 
   /**
-   * Draw cluster shapes under the svg structure.
+   * Draws a cluster shape within an SVG structure.
    *
-   * @param clusterBrush    svg brush for drawing
-   * @param clusterDrawProp cluster draw properties
+   * <p>The cluster shape can consist of multiple {@link org.graphper.draw.svg.Element} objects,
+   * forming a complete SVG structure. Each element represents a distinct part of the cluster, such as
+   * the outline, boundaries, or decorations. The rendering logic is determined by the specific
+   * implementation of this method.</p>
+   *
+   * <p>This method focuses solely on rendering the outline or boundary of the cluster. It does not
+   * handle other cluster attributes such as color, labels, or styles, which will be processed by
+   * other dedicated handlers. The cluster outline is constructed using multiple SVG elements and is
+   * automatically added to the {@link SvgConstants#SHAPE_GROUP_KEY} group via the
+   * {@link SvgBrush#getOrCreateShapeEleById(String, String)} method.</p>
+   *
+   * <p>Example usage:</p>
+   * <pre>
+   * {@code
+   * // Example implementation for drawing a cluster outline with multiple elements
+   * public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
+   *     // Create a rectangle to represent the cluster boundary
+   *     Element rectElement = clusterBrush.getOrCreateShapeEleById("cluster_rect", "rect");
+   *     rectElement.setAttribute("x", String.valueOf(clusterDrawProp.getX()));
+   *     rectElement.setAttribute("y", String.valueOf(clusterDrawProp.getY()));
+   *     rectElement.setAttribute("width", String.valueOf(clusterDrawProp.getWidth()));
+   *     rectElement.setAttribute("height", String.valueOf(clusterDrawProp.getHeight()));
+   *
+   *     // Create a decorative element (e.g., a dashed border) for the cluster
+   *     Element dashedBorder = clusterBrush.getOrCreateShapeEleById("cluster_border", "path");
+   *     dashedBorder.setAttribute("d", "M ..."); // Specify the path data for the dashed border
+   *     dashedBorder.setAttribute("stroke-dasharray", "5,5");
+   * }
+   * }
+   * </pre>
+   *
+   * @param clusterBrush    the SVG brush used for drawing, providing utility methods for creating
+   *                        and grouping SVG elements
+   * @param clusterDrawProp the properties of the cluster to be drawn, such as size, position,
+   *                        and boundaries
    */
   public void drawClusterSvg(SvgBrush clusterBrush, ClusterDrawProp clusterDrawProp) {
   }
 
   // --------------------------------- private method ---------------------------------
 
+  /**
+   * Returns the map containing all registered custom shape renderers. Initializes the map if it has
+   * not been created yet.
+   *
+   * @return the map of custom shape renderers
+   */
   private static Map<String, CustomizeShapeRender> customizeNodeShapeMap() {
     if (CUSTOMIZE_REGISTER == null) {
       synchronized (CustomizeShapeRender.class) {

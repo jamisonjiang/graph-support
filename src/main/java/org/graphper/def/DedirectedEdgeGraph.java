@@ -166,6 +166,18 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
   }
 
   /**
+   * Return next node in current graph and sequence strategy considered by different attribute
+   * graphs, return null if graph iteration finished.
+   *
+   * @param v vertex to be queried
+   * @return next node in current graph
+   */
+  @Override
+  public V next(V v) {
+    return digraph.next(v);
+  }
+
+  /**
    * Removes an edge to the graph. If the graph changes due to removing this edge, return true.
    *
    * @param e edge to be removed to this graph
@@ -309,7 +321,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    */
   @Override
   public Iterable<E> outAdjacent(Object v) {
-    return new BiConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
   }
 
   @Override
@@ -344,7 +356,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
 
   // ------------------------------------------- Subclass -------------------------------------------
 
-  static class ComConcatItr<V, E extends DirectedEdge<V, E>> extends BiConcatIterable<E> {
+  static class ComConcatItr<V, E extends DirectedEdge<V, E>> extends UnaryConcatIterable<E> {
 
     public ComConcatItr(Iterable<? extends E>... iterables) {
       super(iterables);

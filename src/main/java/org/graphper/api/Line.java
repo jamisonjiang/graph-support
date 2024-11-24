@@ -29,6 +29,7 @@ import org.graphper.util.Asserts;
 import org.graphper.api.Cluster.ClusterBuilder;
 import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.attributes.Port;
+import org.graphper.util.FontUtils;
 
 /**
  * Graphviz lines.
@@ -216,6 +217,7 @@ public class Line implements Comparable<Line>, Serializable {
      */
     public LineBuilder label(String label) {
       lineAttrs.label = label;
+      lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
 
@@ -318,6 +320,7 @@ public class Line implements Comparable<Line>, Serializable {
      */
     public LineBuilder fontName(String fontName) {
       lineAttrs.fontName = fontName;
+      lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
 
@@ -348,15 +351,22 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Set the least spanning ranks of the tail and head nodes of the current line in
-     * {@link Layout#DOT}.
+     * Sets the {@code minlen} attribute for the current line, which influences the layout depending
+     * on the selected layout engine.
+     * <ul>
+     *   <li>In the {@link Layout#DOT} layout, {@code minlen} specifies the least spanning ranks
+     *       between the tail and head nodes of the current line.</li>
+     *   <li>In the  fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout,
+     *       {@code minlen} defines the minimum distance between the two connected nodes when set
+     *       {@link org.graphper.api.Graphviz.GraphvizBuilder#overlap(boolean)} to false.</li>
+     * </ul>
      *
-     * @param minlen least spanning ranks
+     * @param minlen the minimum spanning ranks or distance, depending on the layout
      * @return line builder
-     * @throws IllegalArgumentException minlen less than 0
+     * @throws IllegalArgumentException if {@code minlen} is less than 0
      */
     public LineBuilder minlen(int minlen) {
-      Asserts.illegalArgument(minlen < 0, "minlen (" + minlen + ") can not less than 0");
+      Asserts.illegalArgument(minlen < 0, "minlen (" + minlen + ") cannot be less than 0");
       lineAttrs.minlen = minlen;
       return this;
     }
@@ -639,6 +649,17 @@ public class Line implements Comparable<Line>, Serializable {
      */
     public LineBuilder href(String href) {
       lineAttrs.href = href;
+      return this;
+    }
+
+    /**
+     * Sets the tooltip text for the line.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return line builder
+     */
+    public LineBuilder tooltip(String tooltip) {
+      lineAttrs.tooltip = tooltip;
       return this;
     }
 

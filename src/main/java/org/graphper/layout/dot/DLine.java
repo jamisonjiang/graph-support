@@ -16,28 +16,19 @@
 
 package org.graphper.layout.dot;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import org.graphper.def.AbstractDirectedEdge;
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
-import org.graphper.api.attributes.LineStyle;
+import org.graphper.def.FlatPoint;
+import org.graphper.layout.ALine;
+import org.graphper.util.Asserts;
 
-class DLine extends AbstractDirectedEdge<DNode, DLine> {
+class DLine extends ALine<DNode, DLine> {
 
   private static final long serialVersionUID = -4923098199188113451L;
 
-  private final Line line;
-
   // The cut value
   private double cutVal;
-
-  // All parallel lines
-  private List<DLine> parallelLineRecord;
 
   // Limitations of network simplicity method between two vertices of an edge
   private int limit;
@@ -46,8 +37,6 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
 
   // The size of the edge label
   private final FlatPoint labelSize;
-
-  private final LineAttrs lineAttrs;
 
   DLine(DNode left, DNode right, Line line,
         LineAttrs lineAttrs, double weight, int limit) {
@@ -67,32 +56,14 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
   DLine(DNode left, DNode right, Line line,
         LineAttrs lineAttrs, double weight, int limit,
         FlatPoint labelSize, boolean realTimeLimit) {
-    super(left, right, weight);
+    super(left, right, weight, line, lineAttrs);
 
-    this.line = line;
     this.limit = limit;
     this.labelSize = labelSize;
     if (line != null) {
       Asserts.nullArgument(lineAttrs, "lineAttrs");
     }
-    this.lineAttrs = lineAttrs;
     this.realTimeLimit = realTimeLimit;
-  }
-
-  Line getLine() {
-    return line;
-  }
-
-  LineAttrs lineAttrs() {
-    return lineAttrs;
-  }
-
-  DNode getLowRankNode() {
-    return from().getRankIgnoreModel() < to().getRankIgnoreModel() ? from() : to();
-  }
-
-  DNode getLargeRankNode() {
-    return from().getRankIgnoreModel() >= to().getRankIgnoreModel() ? from() : to();
   }
 
   double getCutVal() {
@@ -140,15 +111,6 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
     return slack - limit();
   }
 
-  /**
-   * Returns whether it is a parallel edge aggregation edge, which means that the current edge
-   * replaces multiple parallel edges.
-   *
-   * @return <tt>true</tt> if have parallel edges
-   */
-  boolean isParallelMerge() {
-    return CollectionUtils.isNotEmpty(parallelLineRecord);
-  }
 
   /**
    * Returns whether the two nodes of an edge are at the same rank.
@@ -168,27 +130,6 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
     return isSameRank() && Math.abs(from().getRankIndex() - to().getRankIndex()) == 1;
   }
 
-  int getParallelNums() {
-    return CollectionUtils.isEmpty(parallelLineRecord) ? 1 : parallelLineRecord.size();
-  }
-
-  DLine parallelLine(int no) {
-    return CollectionUtils.isEmpty(parallelLineRecord) ? this : parallelLineRecord.get(no);
-  }
-
-  void addParallelEdge(DLine edge) {
-    if (parallelLineRecord == null) {
-      parallelLineRecord = new ArrayList<>(2);
-      parallelLineRecord.add(this);
-    }
-
-    parallelLineRecord.add(edge);
-  }
-
-  boolean isVirtual() {
-    return line == null;
-  }
-
   FlatPoint getLabelSize() {
     return labelSize;
   }
@@ -196,7 +137,7 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
   boolean haveLabel() {
     if (isParallelMerge()) {
       for (int i = 0; i < getParallelNums(); i++) {
-        DLine l = parallelLine(i);
+        DLine l = (DLine) parallelLine(i);
         if (l == this) {
           if (labelSize != null) {
             return true;
@@ -210,21 +151,6 @@ class DLine extends AbstractDirectedEdge<DNode, DLine> {
     }
 
     return labelSize != null;
-  }
-
-  boolean isReversal() {
-    if (isVirtual()) {
-      return false;
-    }
-    return line.tail() == to().getNode();
-  }
-
-  boolean isHide() {
-    if (isVirtual()) {
-      return false;
-    }
-
-    return lineAttrs().getStyles().contains(LineStyle.INVIS);
   }
 
   @Override

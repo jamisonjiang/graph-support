@@ -17,9 +17,9 @@
 package org.graphper.layout;
 
 /**
- * Default font name dependent on system fonts, should choose by some strategies. Use <a
- * href="https://docs.oracle.com/cd/F32325_01/doc.192/f32328/c_payments_spi.htm#SIMCG-TheSimphonyPaymentInterfaceSPI-DA817CDC">SPI</a>
- * to add strategy.
+ * Interface for selecting system fonts based on specific strategies. The default font selection
+ * depends on system-available fonts and custom strategies that can be implemented and registered
+ * using the SPI.
  *
  * @author Jamison Jiang
  */
@@ -40,5 +40,27 @@ public interface FontSelector extends EnvStrategy {
    */
   default boolean exists(String fontName) {
     return true;
+  }
+
+  /**
+   * Checks whether the specified font supports rendering a given character.
+   *
+   * @param fontName the name of the font to check
+   * @param c        the character to check support for
+   * @return {@code true} if the font supports the character, {@code false} otherwise
+   */
+  default boolean fontSupport(String fontName, char c) {
+    return true;
+  }
+
+  /**
+   * Finds the first font that supports rendering a given character. If no suitable font is found,
+   * this method falls back to the default font.
+   *
+   * @param c the character to check for font support
+   * @return the name of the first font that supports the character
+   */
+  default String findFirstSupportFont(char c) {
+    return defaultFont();
   }
 }

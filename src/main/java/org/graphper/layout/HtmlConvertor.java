@@ -45,9 +45,9 @@ import org.graphper.util.FontUtils;
  *
  * @author Jamison Jiang
  */
-public class HtmlConvert {
+public class HtmlConvertor {
 
-  private HtmlConvert() {
+  private HtmlConvertor() {
   }
 
   /**
@@ -401,6 +401,7 @@ public class HtmlConvert {
         .width(width)
         .height(height)
         .href(table.getHref())
+        .tooltip(table.getTooltip())
         .color(table.getColor())
         .fillColor(table.getBgColor())
         .penWidth(table.getBorder());
@@ -431,7 +432,8 @@ public class HtmlConvert {
             .id(td.getId())
             .width(width)
             .height(height)
-            .href(td.getHref())
+            .href(td.getHref(table))
+            .tooltip(td.getTooltip(table))
             .label(td.getText())
             .shape(td.getShape())
             .labeljust(td.getAlign(table))

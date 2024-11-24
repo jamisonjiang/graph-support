@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,14 +27,21 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
 import org.graphper.util.ValueUtils;
 
+/**
+ * A utility class designed to dynamically expand the area occupied by a graph node in response to
+ * specific layout requirements. This class is particularly useful in scenarios where nodes have
+ * self-loops or other visual elements that require extra clearance to avoid intersection with
+ * other nodes or edges.
+ *
+ * @author Jamison Jiang
+ */
 public class NodeSizeExpander {
 
-  protected DNode node;
+  protected ANode node;
 
   /*
    * Node width/height and center of gravity adjustment
@@ -60,7 +67,7 @@ public class NodeSizeExpander {
     return bottomHeightOffset;
   }
 
-  public static double minSelfInterval(DNode node) {
+  public static double minSelfInterval(ANode node) {
     if (node == null) {
       return 0;
     }
@@ -111,24 +118,18 @@ public class NodeSizeExpander {
     }
   }
 
-  protected Map<GroupKey, List<GroupEntry>> groupSelfLine(DrawGraph drawGraph, DNode node) {
+  protected Map<GroupKey, List<GroupEntry>> groupSelfLine(DrawGraph drawGraph, ANode node) {
     NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node.getNode());
     Asserts.illegalArgument(nodeDrawProp == null, "Not found the node draw properties!");
 
     Map<GroupKey, List<GroupEntry>> selfLineGroup = new LinkedHashMap<>(1);
 
     for (int i = 0; i < node.getSelfLoopCount(); i++) {
-      DLine selfLine = node.selfLine(i);
-      LineDrawProp line = drawGraph.getLineDrawProp(selfLine.getLine());
-      if (line == null) {
-        continue;
-      }
-
+      LineDrawProp line = node.selfLine(i);
       LineAttrs lineAttrs = line.lineAttrs();
       GroupKey key = newGroupKey(lineAttrs.getTailPort(), lineAttrs.getHeadPort(), nodeDrawProp,
                                  drawGraph, lineAttrs.getTailCell(), lineAttrs.getHeadCell());
-
-      addLineToGroup(selfLineGroup, selfLine, key);
+      addLineToGroup(selfLineGroup, line, key);
     }
 
     return selfLineGroup;
@@ -160,7 +161,7 @@ public class NodeSizeExpander {
   }
 
   private static void addLineToGroup(Map<GroupKey, List<GroupEntry>> selfLineGroup,
-                                     DLine selfLine, GroupKey groupKey) {
+                                     LineDrawProp selfLine, GroupKey groupKey) {
     selfLineGroup.compute(groupKey, (g, v) -> {
       if (v == null) {
         v = new ArrayList<>(1);
@@ -182,16 +183,16 @@ public class NodeSizeExpander {
 
     protected final GroupKey groupKey;
 
-    protected final DLine line;
+    protected final LineDrawProp line;
 
-    public GroupEntry(GroupKey groupKey, DLine line) {
+    public GroupEntry(GroupKey groupKey, LineDrawProp line) {
       Asserts.nullArgument(groupKey, "groupKey");
       Asserts.nullArgument(line, "line");
       this.groupKey = groupKey;
       this.line = line;
     }
 
-    public DLine getLine() {
+    public LineDrawProp getLine() {
       return line;
     }
   }
@@ -249,8 +250,8 @@ public class NodeSizeExpander {
         return false;
       }
 
-      return ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1)
-          && !ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1);
+      return ValueUtils.approximate(tailPoint.getY(), headPoint.getY())
+          && !ValueUtils.approximate(tailPoint.getX(), headPoint.getX());
     }
 
     public boolean isOnlySameVer() {
@@ -262,8 +263,8 @@ public class NodeSizeExpander {
         return false;
       }
 
-      return ValueUtils.approximate(tailPoint.getX(), headPoint.getX(), 0.1)
-          && !ValueUtils.approximate(tailPoint.getY(), headPoint.getY(), 0.1);
+      return ValueUtils.approximate(tailPoint.getX(), headPoint.getX())
+          && !ValueUtils.approximate(tailPoint.getY(), headPoint.getY());
     }
 
     public boolean sameCell() {

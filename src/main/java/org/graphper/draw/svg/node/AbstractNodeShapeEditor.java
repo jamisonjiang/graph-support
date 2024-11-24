@@ -22,12 +22,11 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
 
-public abstract class AbstractNodeShapeEditor extends SvgEditor implements NodeEditor<SvgBrush> {
+public abstract class AbstractNodeShapeEditor implements NodeEditor<SvgBrush>, SvgConstants {
 
   protected String getShapeElement(NodeDrawProp nodeDrawProp) {
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
 
     if (nodeShape == NodeShapeEnum.CIRCLE
         || nodeShape == NodeShapeEnum.ELLIPSE

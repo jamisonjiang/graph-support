@@ -20,13 +20,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.layout.LineHelper;
+import org.graphper.layout.LineRouter;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
-import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
 
@@ -35,17 +38,13 @@ import org.graphper.util.CollectionUtils;
  *
  * @author Jamison Jiang
  */
-class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
-
-  @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.LINE && super.needDeal(splines);
-  }
+class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
 
   @Override
   public void route() {
     DNode[] to = {null};
-    ParallelLineRecord parallelLineRecord = new ParallelLineRecord(drawGraph.getNodeNum());
+    // Record parallel lines cross multi ranks, these lines not be able added to DLine#addParallelEdge
+    ParallelLineRecord parallelLineRecord = null;
 
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
       RankNode dNodes = rankContent.get(i);
@@ -91,10 +90,13 @@ class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
           });
 
           lineDrawProp.setIsHeadStart(line.from().getNode());
+          if (parallelLineRecord == null) {
+            parallelLineRecord = new ParallelLineRecord();
+          }
           parallelLineRecord.addLine(node, to[0], line.getLine());
         }
         // Draw self loop
-        selfLoopHandle(node);
+        LineHelper.selfLoopHandle(node);
       }
     }
 
@@ -128,7 +130,8 @@ class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
   }
 
   private void drawParallelLine(ParallelLineRecord parallelLineRecord) {
-    if (CollectionUtils.isEmpty(parallelLineRecord.parallelLineGroup)) {
+    if (Objects.isNull(parallelLineRecord)
+        || CollectionUtils.isEmpty(parallelLineRecord.parallelLineGroup)) {
       return;
     }
 
@@ -143,9 +146,8 @@ class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
 
     private List<DLine> parallelLineGroup;
 
-    public ParallelLineRecord(int cap) {
-      Asserts.illegalArgument(cap <= 0, "ParallelLineRecord cap <= 0");
-      this.lineRecord = new LinkedHashMap<>(cap);
+    ParallelLineRecord() {
+      this.lineRecord = new LinkedHashMap<>();
     }
 
     void addLine(DNode n1, DNode n2, Line line) {
@@ -187,11 +189,16 @@ class LineHandler extends AbstractDotLineRouter implements DotLineRouter {
 
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
 
-  static class LineRouterBuilder extends AbstractDotLineRouterFactory<LineHandler> {
+  static class LineRouterBuilder extends AbstractDotLineRouterFactory<StraightLineRouter> {
 
     @Override
-    protected LineHandler newInstance() {
-      return new LineHandler();
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.LINE && super.needDeal(splines);
+    }
+
+    @Override
+    protected StraightLineRouter newInstance() {
+      return new StraightLineRouter();
     }
   }
 }

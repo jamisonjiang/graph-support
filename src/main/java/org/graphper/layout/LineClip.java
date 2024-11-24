@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
+import static org.graphper.layout.LineHelper.curveGetFloatLabelStart;
+import static org.graphper.layout.LineHelper.straightGetFloatLabelStart;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
@@ -36,36 +36,29 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Tend;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
-import org.graphper.def.Curves;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DefaultShapePosition;
-import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
-import org.graphper.util.FontUtils;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 import org.graphper.util.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class LineClip {
+public abstract class LineClip extends LineHandler {
 
   private static final Logger log = LoggerFactory.getLogger(LineClip.class);
 
   private static final FlatPoint FLOAT_LABEL_LEFT_OFFSET = new UnmodifyFlatPoint(-0.5, -0.5);
   private static final FlatPoint FLOAT_LABEL_RIGHT_OFFSET = new UnmodifyFlatPoint(-0.5, 0.5);
   private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
-
-  protected DrawGraph drawGraph;
-
-  protected DotDigraph dotDigraph;
 
   /**
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis
@@ -104,8 +97,30 @@ public abstract class LineClip {
     }
   }
 
-  protected <P> void clipProcess(P path, PathClip<P> pathClip,
-                                 FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
+  /**
+   * Processes the clipping of a line within a graph layout, handling interactions with nodes,
+   * clusters, and arrowheads. This method ensures that lines are appropriately clipped at their
+   * start and end points based on node or cluster boundaries and handles scenarios like self-loops
+   * and directional lines.
+   *
+   * <p>The clipping process involves the following steps:</p>
+   * <ul>
+   *   <li>Determine whether the line requires clipping at the start or end based on its attributes
+   *       and the nodes it connects.</li>
+   *   <li>Clip the line against the boundaries of the relevant node or cluster.</li>
+   *   <li>Adjust arrow positions and sizes as needed for the clipped path.</li>
+   *   <li>Handle scenarios where no valid path exists, ensuring appropriate arrow handling.</li>
+   * </ul>
+   *
+   * @param path             the current line path to be clipped
+   * @param pathClip         the clipping utility handling node and cluster boundaries
+   * @param noPathDirection  the fallback direction when no valid path exists
+   * @param lineDrawProp     the properties of the line being processed, including start and end nodes
+   * @throws NullPointerException     if {@code pathClip} or {@code lineDrawProp} is {@code null}
+   * @throws IllegalArgumentException if required nodes for the line are missing in the layout
+   */
+  protected void clipProcess(LineDrawProp path, PathClip pathClip,
+                             FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
     Asserts.nullArgument(pathClip, "pathClip");
     Asserts.nullArgument(lineDrawProp, "lineDrawProp");
 
@@ -125,10 +140,10 @@ public abstract class LineClip {
         || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
-        DNode dNode = dotDigraph.getDNode(from);
-        Asserts.illegalArgument(dNode == null, "Can not found from node of line prop");
+        ANode node = layoutGraph.getNode(from);
+        Asserts.illegalArgument(node == null, "Can not found from node of line prop");
         clusterDrawProp = findLineEndPointCluster(
-            dNode.getContainer(),
+            node.getContainer(),
             getCompoundId(lineAttrs, !reversal)
         );
       }
@@ -145,10 +160,10 @@ public abstract class LineClip {
           || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
-          DNode dNode = dotDigraph.getDNode(to);
-          Asserts.illegalArgument(dNode == null, "Can not found to node of line prop");
+          ANode node = layoutGraph.getNode(to);
+          Asserts.illegalArgument(node == null, "Can not found to node of line prop");
           clusterDrawProp = findLineEndPointCluster(
-              dNode.getContainer(),
+              node.getContainer(),
               getCompoundId(lineAttrs, reversal)
           );
         }
@@ -457,7 +472,7 @@ public abstract class LineClip {
   private FlatPoint calcArrowLinkPoint(FlatPoint clip, double arrowSize, FlatPoint point) {
     FlatPoint dirVector = Vectors.sub(clip, point);
     double dist = dirVector.dist();
-    if (ValueUtils.approximate(dist, 0, 0.001)) {
+    if (ValueUtils.approximate(dist, 0)) {
       return point;
     }
     return Vectors.add(
@@ -492,124 +507,6 @@ public abstract class LineClip {
     if ((haveHeadArrow(line) && !reversal) || (haveTailArrow(line) && reversal)) {
       arrowSet(t, noPathDirection == null ? f : noPathDirection, reversal, lineDrawProp);
     }
-  }
-
-  private FlatPoint curveGetFloatLabelStart(double[] labelLength,
-                                            double lengthRatio,
-                                            LineDrawProp lineDrawProp) {
-    if (lineDrawProp.size() < 4) {
-      return null;
-    }
-
-    double len = labelLength != null ? labelLength[0] : -1;
-    if (len < 0) {
-      len = 0;
-      for (int i = 3; i < lineDrawProp.size(); i += 3) {
-        FlatPoint v1 = lineDrawProp.get(i - 3);
-        FlatPoint v2 = lineDrawProp.get(i - 2);
-        FlatPoint v3 = lineDrawProp.get(i - 1);
-        FlatPoint v4 = lineDrawProp.get(i);
-
-        len += FlatPoint.twoFlatPointDistance(v1, v2);
-        len += FlatPoint.twoFlatPointDistance(v2, v3);
-        len += FlatPoint.twoFlatPointDistance(v3, v4);
-      }
-      if (labelLength != null) {
-        labelLength[0] = len;
-      }
-    }
-
-    double beforeLen = 0;
-    double floatLabelInCurveLen = 0;
-    FlatPoint v1 = null;
-    FlatPoint v2 = null;
-    FlatPoint v3 = null;
-    FlatPoint v4 = null;
-
-    double start = len * lengthRatio - 1;
-    double end = len * lengthRatio + 1;
-    for (int i = 3; i < lineDrawProp.size(); i += 3) {
-      v1 = lineDrawProp.get(i - 3);
-      v2 = lineDrawProp.get(i - 2);
-      v3 = lineDrawProp.get(i - 1);
-      v4 = lineDrawProp.get(i);
-
-      floatLabelInCurveLen = 0;
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v2, v3);
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v3, v4);
-      if (beforeLen + floatLabelInCurveLen > end) {
-        break;
-      }
-      beforeLen += floatLabelInCurveLen;
-    }
-
-    if (floatLabelInCurveLen == 0) {
-      return null;
-    }
-
-    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
-      return Curves.besselEquationCalc(t, v1, v2, v3, v4);
-    }
-
-    return lengthRatio == 0 ? v1 : v4;
-  }
-
-  private FlatPoint straightGetFloatLabelStart(double[] labelLength,
-                                               double lengthRatio,
-                                               LineDrawProp lineDrawProp) {
-    double len = labelLength != null ? labelLength[0] : -1;
-    if (len < 0) {
-      len = 0;
-      for (int i = 1; i < lineDrawProp.size(); i++) {
-        FlatPoint v1 = lineDrawProp.get(i - 1);
-        FlatPoint v2 = lineDrawProp.get(i);
-
-        len += FlatPoint.twoFlatPointDistance(v1, v2);
-      }
-      if (labelLength != null) {
-        labelLength[0] = len;
-      }
-    }
-
-    double beforeLen = 0;
-    double floatLabelInCurveLen = 0;
-    FlatPoint v1 = null;
-    FlatPoint v2 = null;
-
-    double start = len * lengthRatio - 1;
-    double end = len * lengthRatio + 1;
-    for (int i = 1; i < lineDrawProp.size(); i++) {
-      v1 = lineDrawProp.get(i - 1);
-      v2 = lineDrawProp.get(i);
-
-      floatLabelInCurveLen = 0;
-      floatLabelInCurveLen += FlatPoint.twoFlatPointDistance(v1, v2);
-      if (beforeLen + floatLabelInCurveLen > end) {
-        break;
-      }
-      beforeLen += floatLabelInCurveLen;
-    }
-
-    if (floatLabelInCurveLen == 0) {
-      return null;
-    }
-
-    if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
-      return Vectors.add(Vectors.multiple(Vectors.sub(v2, v1), t), v1);
-    }
-
-    return lengthRatio == 0 ? v1 : v2;
   }
 
   private FlatPoint floatPointCenter(FlatPoint startPoint, FlatPoint labelSize, FlatPoint offset) {

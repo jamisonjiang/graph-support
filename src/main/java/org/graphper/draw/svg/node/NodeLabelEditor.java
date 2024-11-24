@@ -16,6 +16,9 @@
 
 package org.graphper.draw.svg.node;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.NodeAttrs;
@@ -25,9 +28,10 @@ import org.graphper.draw.NodeEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
+public class NodeLabelEditor implements NodeEditor<SvgBrush> {
 
   @Override
   public boolean edit(NodeDrawProp nodeDrawProp, SvgBrush brush) {
@@ -37,26 +41,20 @@ public class NodeLabelEditor extends SvgEditor implements NodeEditor<SvgBrush> {
     if (StringUtils.isEmpty(label)
         || nodeDrawProp.getCell() != null
         || nodeDrawProp.getLabelCenter() == null
-        || nodeAttrs.getNodeShape().ignoreLabel()) {
+        || nodeAttrs.getShape().ignoreLabel()) {
       return true;
     }
 
     double fontSize = nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize();
-
     Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = SvgBrush.getId(
-          brush.nodeId(nodeDrawProp.getNode()),
-          SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo()
-      );
-
+      String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
       Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
-
       text.setTextContent(textLineAttribute.getLine());
     };
 
     text(new TextAttribute(nodeDrawProp.getLabelCenter(), fontSize, label,
                            nodeAttrs.getFontColor(), nodeAttrs.getFontName(), lineConsumer));
-    return nodeDrawProp.nodeAttrs().getNodeShape() != NodeShapeEnum.PLAIN_TEXT;
+    return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAIN_TEXT;
   }
 }

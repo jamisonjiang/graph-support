@@ -576,6 +576,7 @@ public class PortTest extends GraphvizVisual {
     Graphviz graphviz = Graphviz.digraph()
 //        .rankSep(0.1)
 //        .splines(Splines.SPLINE)
+//        .splines(Splines.ROUNDED)
         .addLine(Line.builder(a, b).tailPort(Port.NORTH_WEST).headPort(Port.SOUTH_EAST).radian(5).build())
         .addLine(Line.builder(a, b).tailPort(Port.NORTH_WEST).headPort(Port.SOUTH_EAST).radian(5).build())
         .addLine(Line.builder(c, d).tailPort(Port.NORTH).build())

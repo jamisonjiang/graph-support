@@ -30,6 +30,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.MinCross.ClusterMerge;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;

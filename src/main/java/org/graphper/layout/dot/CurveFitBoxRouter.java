@@ -22,95 +22,42 @@ import org.graphper.def.Curves;
 import org.graphper.def.Curves.MultiBezierCurve;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.Vectors;
 
 abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
   protected static final int MAX_ITERATORS = 24;
 
-  protected void straightenSpline(ThirdOrderBezierCurve curve) {
-    curve.adjust(0.6, 0.6);
-  }
-
   protected void refineSpline(SplineFitInfo splineFitInfo) {
     splineFitInfo.curve.adjust(0.9, 0.9);
   }
 
-  protected SplineFitInfo splineIsFit(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
-                                      int boxStart, int boxEnd, boolean needOffset) {
-    return splineCheck(curves, lineRouterBoxes, needOffset, true, boxStart, boxEnd);
-  }
-
-  protected SplitInfo splineSplit(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
-                                List<ThroughPoint> throughPoints, int pointStart,
-                                int pointEnd, int boxStart, int boxEnd) {
-    if (pointEnd - pointStart < 2) {
-      return null;
+  protected MultiBezierCurve fixBox(List<RouterBox> lineRouterBoxes, MultiBezierCurve curves) {
+    SplineFitInfo splineFitInfo = splineIsFit(curves, lineRouterBoxes, false);
+    if (splineFitInfo.isFit()) {
+      return curves;
     }
 
-    SplineFitInfo splineFitInfo = splineCheck(curves, lineRouterBoxes, true, false, boxStart, boxEnd);
-
-    // Loop through all current control points, looking for switched control points and guide boxes.
-    for (int i = pointStart; i <= pointEnd; i++) {
-      ThroughPoint point = throughPoints.get(i);
-
-      if (point.getBoxIndex() <= splineFitInfo.boxIndex) {
-        continue;
+    // Always try to adjust the curve so that it fits the box.
+    int count = 0;
+    do {
+      refineSpline(splineFitInfo);
+      splineFitInfo = splineIsFit(curves, lineRouterBoxes, true);
+      if (splineFitInfo.isFit()) {
+        break;
       }
+      count++;
+    } while (count <= MAX_ITERATORS);
 
-      if (i == pointStart) {
-        return null;
-      }
-
-      // Find the boundary control point, the box index of the last control point is smaller
-      // than the longest exceeded box, and the box index of the current control point is
-      // larger than the longest exceeded box.
-      SplitInfo splitInfo = new SplitInfo();
-
-      if (i == pointStart + 1) {
-        splitInfo.pointsSplitIndex = i;
-        splitInfo.boxSplitIndex = point.getBoxIndex();
-      } else if (i == pointEnd) {
-        splitInfo.pointsSplitIndex = i - 1;
-        splitInfo.boxSplitIndex = throughPoints.get(splitInfo.pointsSplitIndex).getBoxIndex();
-      } else {
-        int pointSplitIndex;
-        ThroughPoint pre = throughPoints.get(pointSplitIndex = (i - 1));
-
-        // Select a control point closer to the box.
-        if (splineFitInfo.boxIndex - pre.getBoxIndex()
-            < point.getBoxIndex() - splineFitInfo.boxIndex) {
-          point = pre;
-        } else {
-          pointSplitIndex = i;
-        }
-
-        splitInfo.pointsSplitIndex = pointSplitIndex;
-        splitInfo.boxSplitIndex = point.getBoxIndex();
-      }
-
-      // Compute the isolated tangent vector.
-      splitInfo.splitVector = splitCurveTangent(
-          throughPoints.get(splitInfo.pointsSplitIndex - 1),
-          throughPoints.get(splitInfo.pointsSplitIndex),
-          throughPoints.get(splitInfo.pointsSplitIndex + 1)
-      );
-
-      return splitInfo;
-    }
-
-    return null;
+    return curves;
   }
 
-  private SplineFitInfo splineCheck(MultiBezierCurve curves, List<RouterBox> lineRouterBoxes,
-                                    boolean needOffset, boolean firstOrFurthest,
-                                    int boxStart, int boxEnd) {
-    SplineFitInfo tmp = null;
+
+  private SplineFitInfo splineIsFit(MultiBezierCurve curves, List<RouterBox> boxes, boolean needOffset) {
     SplineFitInfo splineFitInfo = new SplineFitInfo();
     splineFitInfo.needOffset = needOffset;
 
-    RouterBox first = lineRouterBoxes.get(0);
-    RouterBox last = lineRouterBoxes.get(lineRouterBoxes.size() - 1);
+    RouterBox first = boxes.get(0);
+    RouterBox last = boxes.get(boxes.size() - 1);
     double boxMinY = (first.getUpBorder() + first.getDownBorder()) / 2;
     double boxMaxY = (last.getUpBorder() + last.getDownBorder()) / 2;
 
@@ -119,13 +66,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
       // Estimate number of line segments from curve curvature.
       int segmentNum = 2;
-      for (int i = boxStart; i <= boxEnd; i++) {
-
-        if (i < 0 || i >= lineRouterBoxes.size()) {
-          continue;
-        }
-
-        RouterBox lineRouterBox = lineRouterBoxes.get(i);
+      for (int i = 0; i < boxes.size(); i++) {
+        RouterBox lineRouterBox = boxes.get(i);
         double minY = Math.min(curve.getV1().getY(), curve.getV4().getY());
         minY = Math.min(curve.getV2().getY(), minY);
         minY = Math.min(curve.getV3().getY(), minY);
@@ -133,35 +75,26 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
         maxY = Math.max(curve.getV2().getY(), maxY);
         maxY = Math.max(curve.getV3().getY(), maxY);
 
+        double upBorder = lineRouterBox.getUpBorder();
+        double downBorder = lineRouterBox.getDownBorder();
+
         // The Y axis must have common intervals.
-        if (minY != maxY
-            && (minY <= lineRouterBox.getUpBorder() && maxY >= lineRouterBox.getUpBorder())
-            || (minY <= lineRouterBox.getDownBorder() && maxY >= lineRouterBox.getDownBorder())
-        ) {
+        if (minY != maxY && (minY <= upBorder && maxY >= upBorder)
+            || (minY <= downBorder && maxY >= downBorder)) {
 
           double ratio = Math.abs(
-              minY != maxY
-                  ? (Math.abs(lineRouterBox.getUpBorder() + lineRouterBox.getDownBorder()) / 2 - minY) /
-                  (maxY - minY)
-                  : 0.5
-          );
+              minY != maxY ? (Math.abs(upBorder + downBorder) / 2 - minY) / (maxY - minY) : 0.5);
           ratio = ratio > 1 ? 1 : ratio;
 
-          if (!firstOrFurthest) {
-            tmp = new SplineFitInfo(splineFitInfo);
+          if (isInBoxOrStraightenMeaningless(curve, lineRouterBox, (int) (ratio * segmentNum),
+                                              segmentNum, boxMinY, boxMaxY, splineFitInfo)) {
+            continue;
           }
-          if (!isInBox(curve, lineRouterBox, (int) (ratio * segmentNum),
-                       segmentNum, boxMinY, boxMaxY, splineFitInfo)) {
-            splineFitInfo.routerBox = lineRouterBox;
-            splineFitInfo.boxIndex = i;
-            splineFitInfo.curve = curve;
-            if (firstOrFurthest) {
-              return splineFitInfo;
-            }
-            if (tmp.curve != null && tmp.offset > splineFitInfo.offset) {
-              splineFitInfo = tmp;
-            }
-          }
+
+          splineFitInfo.routerBox = lineRouterBox;
+          splineFitInfo.boxIndex = i;
+          splineFitInfo.curve = curve;
+          return splineFitInfo;
         }
 
         if (lineRouterBox.getUpBorder() > curve.getV4().getY()) {
@@ -173,22 +106,30 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
     return splineFitInfo;
   }
 
-  private boolean isInBox(ThirdOrderBezierCurve curve, RouterBox routerBox,
-                          int currentSegment, int segmentNum,
-                          double minY, double maxY,
-                          SplineFitInfo splineFitInfo) {
+  private boolean isInBoxOrStraightenMeaningless(ThirdOrderBezierCurve curve, RouterBox routerBox,
+                                                 int currentSegment, int segmentNum, double minY,
+                                                 double maxY, SplineFitInfo splineFitInfo) {
     double unit = (double) 1 / segmentNum;
-    FlatPoint p1 = Curves.besselEquationCalc(
-        unit * currentSegment,
-        curve.getV1(),
-        curve.getV2(),
-        curve.getV3(),
-        curve.getV4()
-    );
+
+    ThirdOrderBezierCurve detectCurve = new ThirdOrderBezierCurve(curve);
+    detectCurve.adjust(0.1, 0.1);
+    FlatPoint p1 = Curves.besselEquationCalc(unit * currentSegment,
+                                             detectCurve.getV1(), detectCurve.getV2(),
+                                             detectCurve.getV3(), detectCurve.getV4());
+    if (!inBox(detectCurve, p1, routerBox, unit, currentSegment, 1,
+               minY, maxY, c -> c < segmentNum, splineFitInfo)) {
+      // Meaningful to straighten curve because in the extreme case still not work
+      return true;
+    }
+
+    p1 = Curves.besselEquationCalc(unit * currentSegment,
+                                   curve.getV1(), curve.getV2(),
+                                   curve.getV3(), curve.getV4());
 
     // There is at least one vertex whose coordinates are within the y interval,
     // and it is accessed from two directions until it exceeds the y area.
-    if (!inBox(curve, p1, routerBox, unit, currentSegment, -1, minY, maxY, c -> 0 < c, splineFitInfo)
+    if (!inBox(curve, p1, routerBox, unit, currentSegment, -1,
+               minY, maxY, c -> 0 < c, splineFitInfo)
         && !splineFitInfo.needOffset) {
       return false;
     }
@@ -204,13 +145,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
     boolean result = true;
     Integer count = null;
     while (breakCondition.test(currentSegment)) {
-      p2 = Curves.besselEquationCalc(
-          unit * (currentSegment += addNum),
-          curve.getV1(),
-          curve.getV2(),
-          curve.getV3(),
-          curve.getV4()
-      );
+      p2 = Curves.besselEquationCalc(unit * (currentSegment += addNum),
+                                     curve.getV1(), curve.getV2(), curve.getV3(), curve.getV4());
 
       // Any point jumps out of the boundary of the box.
       if (!RouterBox.inRange(minY, maxY, p1.getY()) || !RouterBox.inRange(minY, maxY, p2.getY())) {
@@ -278,34 +214,6 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
         && approximatelyInRange(routerBox.getUpBorder(), routerBox.getDownBorder(), p.getY());
   }
 
-  private double slopToDegree(FlatPoint p) {
-    return Math.toDegrees(Math.atan(p.getX() != 0 ? p.getY() / p.getX() : Double.MAX_VALUE));
-  }
-
-  private FlatPoint splitCurveTangent(FlatPoint up, FlatPoint p, FlatPoint down) {
-    FlatPoint referVector = Vectors.add(
-        Vectors.sub(up, p),
-        Vectors.sub(down, p)
-    );
-
-    if (referVector.getY() == 0) {
-      return Vectors.sub(up, p);
-    }
-
-    double x = Math.sqrt(
-        4 / (1 + Math.pow(referVector.getX(), 2) / Math.pow(referVector.getY(), 2))
-    );
-    double y = -x * referVector.getX() / referVector.getY();
-
-    // If the direction of the vector is downward, the vector at the position is oriented.
-    if (y > 0) {
-      y = -y;
-      x = -x;
-    }
-
-    return new FlatPoint(x, y);
-  }
-
   protected static class SplineFitInfo {
 
     protected ThirdOrderBezierCurve curve;
@@ -321,25 +229,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
     protected SplineFitInfo() {
     }
 
-    private SplineFitInfo(SplineFitInfo splineFitInfo) {
-      this.curve = splineFitInfo.curve;
-      this.routerBox = splineFitInfo.routerBox;
-      this.boxIndex = splineFitInfo.boxIndex;
-      this.offset = splineFitInfo.offset;
-      this.needOffset = splineFitInfo.needOffset;
-    }
-
     protected boolean isFit() {
       return curve == null;
     }
-  }
-
-  protected static class SplitInfo {
-
-    protected int pointsSplitIndex;
-
-    protected int boxSplitIndex;
-
-    protected FlatPoint splitVector;
   }
 }

@@ -22,14 +22,17 @@ import org.graphper.def.Vectors;
 
 public class TrianglePropCalc implements ShapePropCalc, Serializable {
 
+  private final boolean positive;
+
   private static final long serialVersionUID = 5056940900129881225L;
+
+  public TrianglePropCalc(boolean positive) {
+    this.positive = positive;
+  }
 
   @Override
   public FlatPoint minContainerSize(double innerHeight, double innerWidth) {
-    double a = 2 * Math.sqrt(innerWidth * innerWidth + 4 * innerHeight * innerHeight);
-    double h = ((3 * innerHeight * innerWidth) / a) + 1.5 * innerHeight;
-    h = Math.max(h, 2 * innerHeight);
-    return new FlatPoint(h, h * innerWidth / innerHeight);
+    return new FlatPoint(2 * innerHeight, 3 * innerWidth);
   }
 
   @Override
@@ -39,17 +42,32 @@ public class TrianglePropCalc implements ShapePropCalc, Serializable {
     double top = box.getY() - box.getHeight() / 2;
     double bottom = box.getY() + box.getHeight() / 2;
 
-    return Vectors.inAngle(left, bottom, box.getX(),
-                           top, right, bottom, point.getX(), point.getY())
-        && Vectors.inAngle(right, bottom, box.getX(),
-                           top, right, bottom, point.getX(), point.getY());
+    if (positive) {
+      return Vectors.inAngle(left, bottom, box.getX(), top, right, bottom,
+                             point.getX(), point.getY())
+          && Vectors.inAngle(right, bottom, left, bottom, box.getX(), top,
+                             point.getX(), point.getY());
+    }
+
+    return Vectors.inAngle(left, top, box.getX(), bottom, right, top, point.getX(), point.getY())
+        && Vectors.inAngle(right, top, left, top, box.getX(), bottom, point.getX(), point.getY());
   }
 
   @Override
   public FlatPoint labelCenter(FlatPoint labelSize, Box box) {
     box.check();
 
-    double y = box.getUpBorder() + 1.5 * labelSize.getHeight();
+    double y;
+    if (positive) {
+      y = box.getDownBorder() - labelSize.getHeight();
+    } else {
+      y = box.getUpBorder() + labelSize.getHeight();
+    }
+
     return new FlatPoint(box.getX(), y);
+  }
+
+  public boolean isPositive() {
+    return positive;
   }
 }

@@ -19,7 +19,6 @@ package org.graphper.layout.dot;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,6 +45,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.Mark;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
 import org.graphper.util.Asserts;
@@ -142,7 +142,6 @@ class MinCross {
 
         for (DLine e : digraph.adjacent(from)) {
           DNode to = e.to();
-
           DLine edge = lineMap.get(to);
 
           if (edge != null) {
@@ -478,7 +477,6 @@ class MinCross {
         if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
             || optimal.container().haveChildCluster())) {
           BasicCrossRank repl = optimal.clone();
-          new InitSort(repl, repl.container(), dotAttachment.getDrawGraph(), false, false);
 
           tmp = rootCrossRank.getBasicCrossRank();
           rootCrossRank.setBasicCrossRank(repl);
@@ -747,26 +745,16 @@ class MinCross {
 
     private final GraphContainer graphContainer;
 
-    InitSort(CrossRank crossRank, GraphContainer graphContainer,
-             DrawGraph drawGraph, boolean isOutDirection) {
-      this(crossRank, graphContainer, drawGraph, true, isOutDirection);
-    }
-
-    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph,
-             boolean isNormal, boolean isOutDirection) {
+    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph, boolean isOutDirection) {
       this.isOutDirection = isOutDirection;
       this.rankAccessIndex = new HashMap<>();
       this.graphContainer = graphContainer;
       this.crossRank = crossRank;
 
-      if (isNormal) {
-        normalInit(crossRank, drawGraph, isOutDirection);
-      } else {
-        flatInit();
-      }
+      initByNatureDsfOrder(crossRank, drawGraph, isOutDirection);
     }
 
-    private void normalInit(CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
+    private void initByNatureDsfOrder(CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
       int first, addNum, limit;
 
       if (isOutDirection) {
@@ -812,47 +800,6 @@ class MinCross {
 
       if (sameRankAdjacentRecord != null) {
         rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord);
-      }
-    }
-
-    private void flatInit() {
-      Set<DNode> adjNodes = new TreeSet<>(Comparator.comparingInt(crossRank::getRankIndex));
-      Map<DNode, Integer> rankIndexRecord = new HashMap<>();
-      for (int i = crossRank.minRank(); i <= crossRank.maxRank(); i++) {
-        int s = crossRank.rankSize(i);
-        int rankIdx = 0;
-        rankIndexRecord.clear();
-
-        for (int j = 0; j < s; j++) {
-          adjNodes.clear();
-          DNode node = crossRank.getNode(i, j);
-          mark(node);
-
-          for (DLine line : rootCrossRank.getDigraphProxy().outAdjacent(node)) {
-            if (dotAttachment.notContains(graphContainer, line.to().getContainer())) {
-              continue;
-            }
-
-            DNode other = line.other(node);
-            if (other.getRank() == node.getRank() || isMark(other)
-                || node.getContainer() != other.getContainer()) {
-              continue;
-            }
-
-            mark(other);
-            adjNodes.add(other);
-          }
-
-          for (DNode n : adjNodes) {
-            rankIndexRecord.put(n, rankIdx++);
-          }
-        }
-
-        int ri = rankIdx;
-        crossRank.sort(i + 1, Comparator.comparingInt(n -> {
-          Integer idx = rankIndexRecord.get(n);
-          return idx != null ? idx : ri + crossRank.getRankIndex(n);
-        }));
       }
     }
 
@@ -914,14 +861,17 @@ class MinCross {
         return;
       }
 
-      if (isOutDirection && to.getRank() == from.getRank() && dLine != null) {
-        if (sameRankAdjacentRecord == null) {
-          sameRankAdjacentRecord = new SameRankAdjacentRecord();
-        }
+      if (to.getRank() == from.getRank() && dLine != null) {
+        if (isOutDirection) {
+          if (sameRankAdjacentRecord == null) {
+            sameRankAdjacentRecord = new SameRankAdjacentRecord();
+          }
 
-        sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+          sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+        }
         return;
       }
+
 
       if (isMark(to)) {
         return;

@@ -20,10 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
@@ -81,7 +79,7 @@ class ContainerCollapse {
     }
 
     // Make digraph acyclic
-    new Acyclic(digraph);
+    new Acyclic(digraph, dotAttachment.getDrawGraph());
 
     GraphAttrs graphAttrs = dotAttachment.getDrawGraph().getGraphviz().graphAttrs();
     // Hierarchy the nodes using the network simplex method.
@@ -245,7 +243,6 @@ class ContainerCollapse {
 
       // Make the rank of the node inside this cluster align with the rank of the current container
       int r = rankTemp.mergeNode.getRank() - rankTemp.minRank;
-      Set<DNode> nodes = null;
       for (DNode dNode : dotAttachment.nodes(cluster)) {
         GraphContainer c = findCurrentContainerDirectContain(dNode);
 
@@ -253,15 +250,7 @@ class ContainerCollapse {
           continue;
         }
 
-        if (nodes == null || !nodes.contains(dNode)) {
-          dNode.setRank(dNode.getRank() + r);
-
-          if (nodes == null) {
-            nodes = new HashSet<>(cluster.nodeNum());
-          }
-          // Avoid repeating elements
-          nodes.add(dNode);
-        }
+        dNode.setRank(dNode.getRank() + r);
       }
     }
 

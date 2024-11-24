@@ -114,6 +114,23 @@ public class CombineShifter implements Shifter {
     }
   }
 
+  @Override
+  public boolean isMark(FlatPoint point) {
+    if (pointMark == null) {
+      return false;
+    }
+    return pointMark.contains(point);
+  }
+
+  @Override
+  public void markFlatPoint(FlatPoint point) {
+    if (point == null || pointMark == null) {
+      return;
+    }
+
+    pointMark.add(point);
+  }
+
   private void markArrowDrawProp(ArrowDrawProp arrowTail) {
     for (ShifterStrategy shifterStrategy : shifterStrategies) {
       if (isMark(arrowTail.getAxisBegin())) {
@@ -129,20 +146,5 @@ public class CombineShifter implements Shifter {
       shifterStrategy.movePoint(arrowTail.getAxisEnd());
     }
     markFlatPoint(arrowTail.getAxisEnd());
-  }
-
-  private void markFlatPoint(FlatPoint point) {
-    if (point == null || pointMark == null) {
-      return;
-    }
-
-    pointMark.add(point);
-  }
-
-  private boolean isMark(FlatPoint point) {
-    if (pointMark == null) {
-      return false;
-    }
-    return pointMark.contains(point);
   }
 }

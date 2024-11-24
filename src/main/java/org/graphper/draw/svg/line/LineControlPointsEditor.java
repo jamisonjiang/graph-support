@@ -36,10 +36,8 @@ public class LineControlPointsEditor implements LineEditor<SvgBrush> {
     for (int i = 0; i < lineDrawProp.size(); i++) {
       FlatPoint point = lineDrawProp.get(i);
       Element controlPointsEle = brush.getOrCreateChildElementById(
-          SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.ELLIPSE_ELE)
-              + SvgConstants.UNDERSCORE + i,
-          SvgConstants.ELLIPSE_ELE
-      );
+          SvgConstants.ELLIPSE_ELE + SvgConstants.UNDERSCORE + i,
+          SvgConstants.ELLIPSE_ELE);
 
       controlPointsEle.setAttribute(SvgConstants.CX, String.valueOf(point.getX()));
       controlPointsEle.setAttribute(SvgConstants.CY, String.valueOf(point.getY()));

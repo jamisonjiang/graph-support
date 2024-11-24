@@ -73,6 +73,8 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   String href;
 
+  String tooltip;
+
   String image;
 
   FlatPoint imageSize;
@@ -108,7 +110,7 @@ public class NodeAttrs implements Serializable, Cloneable {
     return label;
   }
 
-  public NodeShape getNodeShape() {
+  public NodeShape getShape() {
     return shape == null ? NodeShapeEnum.ELLIPSE : shape;
   }
 
@@ -159,6 +161,10 @@ public class NodeAttrs implements Serializable, Cloneable {
     return href;
   }
 
+  public String getTooltip() {
+    return tooltip;
+  }
+
   public String getImage() {
     return image;
   }
@@ -197,35 +203,27 @@ public class NodeAttrs implements Serializable, Cloneable {
       return false;
     }
     NodeAttrs nodeAttrs = (NodeAttrs) o;
-    return Objects.equals(id, nodeAttrs.id)
-        && Objects.equals(height, nodeAttrs.height)
-        && Objects.equals(width, nodeAttrs.width)
-        && Objects.equals(color, nodeAttrs.color)
+    return Objects.equals(id, nodeAttrs.id) && Objects.equals(height, nodeAttrs.height)
+        && Objects.equals(width, nodeAttrs.width) && Objects.equals(color, nodeAttrs.color)
         && Objects.equals(fillColor, nodeAttrs.fillColor)
         && Objects.equals(fontColor, nodeAttrs.fontColor)
-        && Objects.equals(fontName, nodeAttrs.fontName)
-        && Objects.equals(label, nodeAttrs.label)
-        && labeljust == nodeAttrs.labeljust
-        && labelloc == nodeAttrs.labelloc
+        && Objects.equals(fontName, nodeAttrs.fontName) && Objects.equals(label, nodeAttrs.label)
+        && labeljust == nodeAttrs.labeljust && labelloc == nodeAttrs.labelloc
         && Objects.equals(margin, nodeAttrs.margin)
-        && Objects.equals(shape, nodeAttrs.shape)
-        && Objects.equals(fixedSize, nodeAttrs.fixedSize)
-        && Objects.equals(fontSize, nodeAttrs.fontSize)
-        && Objects.equals(styles, nodeAttrs.styles)
-        && Objects.equals(sides, nodeAttrs.sides)
-        && Objects.equals(href, nodeAttrs.href)
-        && Objects.equals(image, nodeAttrs.image)
+        && Objects.equals(shape, nodeAttrs.shape) && Objects.equals(fixedSize, nodeAttrs.fixedSize)
+        && Objects.equals(fontSize, nodeAttrs.fontSize) && Objects.equals(styles, nodeAttrs.styles)
+        && Objects.equals(sides, nodeAttrs.sides) && Objects.equals(href, nodeAttrs.href)
+        && Objects.equals(tooltip, nodeAttrs.tooltip) && Objects.equals(image, nodeAttrs.image)
         && Objects.equals(imageSize, nodeAttrs.imageSize)
-        && Objects.equals(penWidth, nodeAttrs.penWidth)
-        && Objects.equals(table, nodeAttrs.table)
+        && Objects.equals(penWidth, nodeAttrs.penWidth) && Objects.equals(table, nodeAttrs.table)
         && Objects.equals(assemble, nodeAttrs.assemble);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labeljust,
-                        labelloc, margin, shape, fixedSize, fontSize, styles, sides, href, image,
-                        imageSize, penWidth, table, assemble);
+                        labelloc, margin, shape, fixedSize, fontSize, styles, sides, href, tooltip,
+                        image, imageSize, penWidth, table, assemble);
   }
 
   @Override
@@ -248,6 +246,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", styles=" + styles +
         ", sides=" + sides +
         ", href='" + href + '\'' +
+        ", tooltip='" + tooltip + '\'' +
         ", image='" + image + '\'' +
         ", imageSize=" + imageSize +
         ", penWidth=" + penWidth +

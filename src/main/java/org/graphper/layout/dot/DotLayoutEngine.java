@@ -46,11 +46,11 @@ import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.Cell;
 import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotAttachment.GeneratePort;
 import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
-import org.graphper.layout.dot.DotLineRouter.DotLineRouterFactory;
-import org.graphper.layout.dot.LineHandler.LineRouterBuilder;
+import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;
@@ -142,19 +142,11 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       if (!parentContainer.isTransparent()) {
         dotAttachment.markHaveSubgraph();
       }
-      parentContainer = drawGraph.getGraphviz().effectiveFather(parentContainer);
-    }
-
-    // Set node parent container
-    if (dn.getContainer() == null || dn.getContainer().isGraphviz()) {
-      dn.setContainer(parentContainer);
-    } else if (dn.getContainer().containsContainer(parentContainer)) {
-      dn.setContainer(parentContainer);
     }
 
     dn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
     dotAttachment.put(node, dn);
-    dotAttachment.addNode(dn);
+    parentContainer = dotAttachment.getDotDigraph().add(dn, parentContainer);
 
     if (parentContainer.isCluster()) {
       dotAttachment.markHaveCluster();
@@ -179,6 +171,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       labelSize = lineLabelSizeInit(lineAttrs);
     }
 
+    lineDrawProp.setLabelSize(labelSize);
     if (labelSize != null && drawGraph.needFlip()) {
       labelSize.flip();
     }
@@ -224,8 +217,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     if (assemble != null) {
       setCellNodeOffset(drawGraph, graphvizDrawProp.getLabelCenter(), assemble, true);
     }
-    // Line clip
-    dotAttachment.clipAllLines();
+
+    // Lines clip
+    drawGraph.syncGraphvizBorder();
+    new LineClipProcessor(drawGraph, dotAttachment.getDotDigraph()).clipAllLines();
   }
 
   @Override
@@ -236,7 +231,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     DotDigraph dotDigraph = dotAttachment.getDotDigraph();
     Graphviz graphviz = drawGraph.getGraphviz();
     GraphAttrs graphAttrs = graphviz.graphAttrs();
-    dotAttachment.initLineClip();
 
     // Collapse subgraphs and clusters, then assign the rank for per node
     ContainerCollapse containerCollapse = new ContainerCollapse(dotAttachment, graphviz);
@@ -248,7 +242,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
        * 2. If there is an edge where the rank of from is greater
        * than the rank of to, it needs to be flipped.
        * */
-      handleLegalLine(dotDigraph);
+      handleLegalLine(dotDigraph, dotAttachment.getDrawGraph());
       // Primitive graph RankContent
       rankContent = new RankContent(dotDigraph, graphAttrs.getRankSep(), true, null);
     }
@@ -278,7 +272,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   // --------------------------------------------- private method ---------------------------------------------
 
-  private void handleLegalLine(DotDigraph dotDigraph) {
+  private void handleLegalLine(DotDigraph dotDigraph, DrawGraph drawGraph) {
     List<DLine> reverseLines = null;
     List<DLine> selfLoopLines = null;
     for (DNode node : dotDigraph) {
@@ -310,7 +304,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     if (CollectionUtils.isNotEmpty(selfLoopLines)) {
       for (DLine selfLoopLine : selfLoopLines) {
         if (dotDigraph.removeEdge(selfLoopLine)) {
-          selfLoopLine.from().addSelfLine(selfLoopLine);
+          selfLoopLine.from().addSelfLine(drawGraph.getLineDrawProp(selfLoopLine.getLine()));
         }
       }
     }
@@ -323,7 +317,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     Map<Cell, Box> cellBoxMap = new HashMap<>();
-    Rankdir rankdir = attach.getDrawGraph().rankdir();
+    DrawGraph drawGraph = attach.getDrawGraph();
     for (GeneratePortLine line : generatePort.getLines()) {
       Cell fromCell = line.getFromCell();
       Cell toCell = line.getToCell();
@@ -342,7 +336,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         Port port = closestPort(ports, fromCellBox, line.getTo());
 
         if (port != null) {
-          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, rankdir));
+          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, drawGraph));
         }
       }
       if (toCellBox != null) {
@@ -350,7 +344,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         Port port = closestPort(ports, toCellBox, line.getFrom());
 
         if (port != null) {
-          setLinePort(line.getLine(), line.getTo(), FlipShifterStrategy.backPort(port, rankdir));
+          setLinePort(line.getLine(), line.getTo(), FlipShifterStrategy.backPort(port, drawGraph));
         }
       }
     }
@@ -421,20 +415,19 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
 
-    if (splines == null || splines == Splines.NONE || lineDrawPropMap == null
-        || digraphProxy.vertexNum() == 0) {
+    if (splines == Splines.NONE || lineDrawPropMap == null || digraphProxy.vertexNum() == 0) {
       return;
     }
 
     // spline handler hand out
     for (DotLineRouterFactory<?> linesHandlerFactory : SPLINES_HANDLERS) {
-      DotLineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
-                                                                    rankContent, digraphProxy);
-
-      if (dotLineRouter.needDeal(splines)) {
-        dotLineRouter.route();
-        break;
+      if (!linesHandlerFactory.needDeal(splines)) {
+        continue;
       }
+
+      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
+                                                                 rankContent, digraphProxy);
+      dotLineRouter.route();
     }
   }
 

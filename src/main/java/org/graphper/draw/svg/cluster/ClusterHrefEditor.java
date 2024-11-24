@@ -16,15 +16,16 @@
 
 package org.graphper.draw.svg.cluster;
 
-import org.graphper.api.attributes.ClusterStyle;
-import org.graphper.draw.svg.Element;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.ClusterAttrs;
+import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ClusterEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 
-public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
@@ -38,11 +39,16 @@ public class ClusterHrefEditor extends SvgEditor implements ClusterEditor<SvgBru
 
     String href = clusterAttrs.getHref();
     String id = brush.drawBoard().clusterId(cluster.getCluster());
+    String tooltip = StringUtils.isNotEmpty(clusterAttrs.getTooltip())
+        ? clusterAttrs.getTooltip() : clusterAttrs.getLabel();
+
     Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, clusterAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
+    }
     return true;
   }
 }

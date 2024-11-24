@@ -20,6 +20,9 @@ import org.graphper.api.attributes.Rankdir;
 
 public final class EnvProp {
 
+  // distance deviation tolerance
+  public static final double CLIP_DIST_ERROR = 0.1;
+
   private EnvProp() {
   }
 
@@ -35,10 +38,6 @@ public final class EnvProp {
     return Rankdir.rankdir(System.getProperty("rankdir"));
   }
 
-  public static boolean usePortAxisExpander() {
-    return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("port_axis.node.expander"));
-  }
-
   public static boolean useV1Coordinate() {
     return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("dot.coordinate.v1"));
   }
@@ -46,5 +45,9 @@ public final class EnvProp {
   public static boolean parallelLineDistinction() {
     return Boolean.TRUE.toString()
         .equalsIgnoreCase(System.getProperty("parallel.lines.case.distinction"));
+  }
+
+  public static boolean ignoreBoxCheck() {
+    return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("box.border.check.ignore"));
   }
 }

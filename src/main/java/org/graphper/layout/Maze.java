@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,20 +22,19 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.graphper.api.Line;
 import org.graphper.api.ext.Box;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
-import org.graphper.util.EnvProp;
-import org.graphper.layout.Grid;
 import org.graphper.layout.Grid.GridAxis;
 import org.graphper.layout.Grid.GridBuilder;
-import org.graphper.layout.OrthoVisGraph;
 import org.graphper.layout.OrthoVisGraph.GridVertex;
 import org.graphper.layout.OrthoVisGraph.Segment;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 
 public abstract class Maze {
 
@@ -47,15 +46,23 @@ public abstract class Maze {
   private static final int DOWN_ACCESSED = 0x20;
   private static final int LEFT_UP_CORNET = 0x40;
   private static final double INTERNAL_OFFSET = 0.01;
+  private boolean checkMaze;
   private double minBorderExtendSize = 20;
   private OrthoVisGraph ovg;
   private final DrawGraph drawGraph;
   private final Map<Box, Cell> cellMap;
   private Map<Box, GridVertex> guideVertex;
 
+  protected Map<Line, List<GuideInfo>> guideBoxes;
+
   protected Maze(DrawGraph drawGraph) {
+    this(drawGraph, true);
+  }
+
+  protected Maze(DrawGraph drawGraph, boolean checkMaze) {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
+    this.checkMaze = checkMaze;
     this.cellMap = new LinkedHashMap<>();
     this.minBorderExtendSize = Math.max(this.minBorderExtendSize,
                                         drawGraph.getGraphviz().graphAttrs().getNodeSep());
@@ -71,14 +78,39 @@ public abstract class Maze {
     extendGrid(gridBuilder);
 
     // Add obstacle record for grid
-    createOrthoVisGraph(gridBuilder);
+    if (checkMaze) {
+      createOrthoVisGraph(gridBuilder);
+    }
   }
 
-  Cell getCell(Box cellKey) {
+  public List<GuideInfo> getGuideInfos(Line line) {
+    if (line == null || guideBoxes == null) {
+      return null;
+    }
+    List<GuideInfo> guideInfos = guideBoxes.get(line);
+    if (CollectionUtils.isEmpty(guideInfos)) {
+      return guideInfos;
+    }
+
+    for (GuideInfo guideInfo : guideInfos) {
+      if (guideInfo.getGuideVertex() == null) {
+        guideInfo.setGuideVertex(getGuideVertex(guideInfo.getGuideBox()));
+      }
+      Asserts.illegalArgument(guideInfo.getSignPos() == null,
+                              "Can not found guide sign of label line");
+      Asserts.illegalArgument(guideInfo.getGuideBox() == null,
+                              "Can not found guide box of label line");
+      Asserts.illegalArgument(guideInfo.getGuideVertex() == null,
+                              "Can not found guide vertex of label line");
+    }
+    return guideInfos;
+  }
+
+  public Cell getCell(Box cellKey) {
     return cellMap.get(cellKey);
   }
 
-  GridVertex getGuideVertex(Box sign) {
+  public GridVertex getGuideVertex(Box sign) {
     if (sign == null || guideVertex == null) {
       return null;
     }
@@ -112,7 +144,7 @@ public abstract class Maze {
     if (guideVertex == null) {
       return cellMap.values();
     }
-    return new BiConcatIterable<>(cellMap.values(), guideVertex.keySet());
+    return new UnaryConcatIterable<>(cellMap.values(), guideVertex.keySet());
   }
 
   private void addGuideBox(Box box) {
@@ -852,9 +884,9 @@ public abstract class Maze {
 
   public static class NodeCell extends Cell {
 
-    private final DNode node;
+    private final ANode node;
 
-    public NodeCell(DNode node) {
+    public NodeCell(ANode node) {
       Asserts.nullArgument(node, "node");
       this.node = node;
     }
@@ -939,6 +971,49 @@ public abstract class Maze {
     @Override
     boolean needInternalVertex() {
       return false;
+    }
+  }
+
+  public static class GuideInfo {
+
+    private Box signPos;
+
+    private Box guideBox;
+
+    private GridVertex guideVertex;
+
+    private boolean isLabelSign;
+
+    public void setSignPos(Box signPos) {
+      this.signPos = signPos;
+    }
+
+    public void setGuideBox(Box guideBox) {
+      this.guideBox = guideBox;
+    }
+
+    public void setGuideVertex(GridVertex guideVertex) {
+      this.guideVertex = guideVertex;
+    }
+
+    public void setLabelSign(boolean labelSign) {
+      isLabelSign = labelSign;
+    }
+
+    public Box getSignPos() {
+      return signPos;
+    }
+
+    public Box getGuideBox() {
+      return guideBox;
+    }
+
+    public GridVertex getGuideVertex() {
+      return guideVertex;
+    }
+
+    public boolean isLabelSign() {
+      return isLabelSign;
     }
   }
 }

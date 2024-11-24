@@ -23,19 +23,53 @@ import org.graphper.api.ext.ShapeCenterCalc;
 import org.graphper.api.ext.ShapePropCalc;
 
 /**
- * The description object of the node shape, which describes a series of characteristics of the
- * shape. For some implementations of system default, please check {@link NodeShapeEnum}.
+ * Represents the description object of a node shape, defining its characteristics and properties
+ * such as dimensions, center of gravity, and line-clipping behavior. This interface is essential
+ * for determining the layout and container dimensions of a node shape.
  *
- * <p>Custom node shapes can directly implement this interface and assign values to nodes directly.
- * A series of descriptions of this interface play an important role in the layout of the node
- * container size, center of gravity and line segment clipping, but if you need to render the node,
- * you need to implement {@link CustomizeShapeRender}, and register through SPI or manually call
- * {@link CustomizeShapeRender#register(CustomizeShapeRender)}.
+ * <p>To create and use a custom node shape:</p>
+ * <ol>
+ *   <li>Implement the {@code NodeShape} interface to describe the shape's properties and behaviors.</li>
+ *   <li>Implement the {@link CustomizeShapeRender} abstract class to define the rendering logic for the shape.</li>
+ *   <li>Register the renderer using {@link CustomizeShapeRender#register(CustomizeShapeRender)} or via SPI.</li>
+ * </ol>
+ *
+ * <p>Example of creating and registering a custom node shape:</p>
+ * <pre>
+ * {@code
+ * // Implement the characteristics of the custom shape
+ * public class ArrowNodeShape implements NodeShape {
+ *     // Implement methods to describe node shape properties...
+ * }
+ *
+ * // Implement the rendering logic for the custom shape
+ * public class ArrowNodeShapeRender extends CustomizeShapeRender {
+ *     public String getShapeName() {
+ *         return "arrow";
+ *     }
+ *
+ *     public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
+ *         // Custom rendering logic for the arrow shape...
+ *     }
+ * }
+ *
+ * // Register the custom shape renderer
+ * CustomizeShapeRender.register(new ArrowNodeShapeRender());
+ *
+ * // Use the custom shape
+ * NodeShape shape = new ArrowNodeShape();
+ * Node node = Node.builder().shape(shape).build();
+ * }
+ * </pre>
+ *
+ * <p>This pairing of a {@code NodeShape} and its {@link CustomizeShapeRender} implementation
+ * ensures a complete lifecycle for defining, describing, and rendering the node shape.</p>
  *
  * @author Jamison Jiang
- * @see NodeShapeEnum System supports shapes by default
- * @see CustomizeShapeRender Renderer for custom shapes.
+ * @see CustomizeShapeRender Renderer for custom shapes
+ * @see NodeShapeEnum System-supported default shapes
  */
+
 public interface NodeShape extends ShapeCenterCalc, ShapePropCalc, NodeShapePost, Serializable {
 
   /**

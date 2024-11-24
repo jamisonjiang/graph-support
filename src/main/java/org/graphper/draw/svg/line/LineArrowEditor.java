@@ -16,19 +16,20 @@
 
 package org.graphper.draw.svg.line;
 
+import static org.graphper.draw.svg.SvgEditor.getPathPointStr;
+
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
+import org.graphper.def.FlatPoint;
+import org.graphper.def.Vectors;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
-import org.graphper.def.FlatPoint;
-import org.graphper.def.Vectors;
 
-public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
@@ -49,32 +50,27 @@ public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
                          ArrowDrawProp arrow, String id, ArrowShape shape) {
     switch (shape) {
       case NORMAL:
-        normal(lineDrawProp, brush, arrow, id);
+        normal(brush, arrow, id);
         break;
       case BOX:
-        box(lineDrawProp, brush, arrow, id);
+        box(brush, arrow, id);
         break;
       case DOT:
-        dot(lineDrawProp, brush, arrow, id);
+        dot(brush, arrow, id);
         break;
       case VEE:
-        vee(lineDrawProp, brush, arrow, id);
+        vee(brush, arrow, id);
         break;
       case CURVE:
-        curve(lineDrawProp, brush, arrow, id);
+        curve(brush, arrow, id);
         break;
       default:
         break;
     }
   }
 
-  private void normal(LineDrawProp lineDrawProp, SvgBrush brush,
-                      ArrowDrawProp arrow, String id) {
-    Element arrowElement = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.POLYGON_ELE) + id,
-        SvgConstants.POLYGON_ELE
-    );
-
+  private void normal(SvgBrush brush, ArrowDrawProp arrow, String id) {
+    Element arrowElement = brush.getOrCreateChildElementById(POLYGON_ELE + id, POLYGON_ELE);
     setBasicProp(arrowElement);
 
     FlatPoint axisBegin = arrow.getAxisBegin();
@@ -93,12 +89,8 @@ public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
     brush.addGroup(arrowGroup(arrow), arrowElement);
   }
 
-  private void box(LineDrawProp lineDrawProp, SvgBrush brush,
-                   ArrowDrawProp arrow, String id) {
-    Element arrowElement = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.POLYGON_ELE) + id,
-        SvgConstants.POLYGON_ELE
-    );
+  private void box(SvgBrush brush, ArrowDrawProp arrow, String id) {
+    Element arrowElement = brush.getOrCreateChildElementById(POLYGON_ELE + id, POLYGON_ELE);
 
     setBasicProp(arrowElement);
 
@@ -117,12 +109,8 @@ public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
     brush.addGroup(arrowGroup(arrow), arrowElement);
   }
 
-  private void dot(LineDrawProp lineDrawProp, SvgBrush brush,
-                   ArrowDrawProp arrow, String id) {
-    Element arrowElement = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.ELLIPSE_ELE) + id,
-        SvgConstants.ELLIPSE_ELE
-    );
+  private void dot(SvgBrush brush, ArrowDrawProp arrow, String id) {
+    Element arrowElement = brush.getOrCreateChildElementById(ELLIPSE_ELE + id, ELLIPSE_ELE);
 
     setBasicProp(arrowElement);
 
@@ -141,12 +129,8 @@ public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
     brush.addGroup(arrowGroup(arrow), arrowElement);
   }
 
-  private void vee(LineDrawProp lineDrawProp, SvgBrush brush,
-                   ArrowDrawProp arrow, String id) {
-    Element arrowElement = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.POLYGON_ELE) + id,
-        SvgConstants.POLYGON_ELE
-    );
+  private void vee(SvgBrush brush, ArrowDrawProp arrow, String id) {
+    Element arrowElement = brush.getOrCreateChildElementById(POLYGON_ELE + id, POLYGON_ELE);
 
     setBasicProp(arrowElement);
 
@@ -172,22 +156,10 @@ public class LineArrowEditor extends SvgEditor implements LineEditor<SvgBrush> {
     brush.addGroup(arrowGroup(arrow), arrowElement);
   }
 
-  private void curve(LineDrawProp lineDrawProp, SvgBrush brush,
-                     ArrowDrawProp arrow, String id) {
-    Element arrowEle1 = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.PATH_ELE) + id + "0",
-        SvgConstants.PATH_ELE
-    );
-
-    Element arrowEle2 = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.PATH_ELE) + id + "1",
-        SvgConstants.PATH_ELE
-    );
-
-    Element axisEle = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(lineDrawProp), SvgConstants.PATH_ELE) + id + "2",
-        SvgConstants.PATH_ELE
-    );
+  private void curve(SvgBrush brush, ArrowDrawProp arrow, String id) {
+    Element arrowEle1 = brush.getOrCreateChildElementById(PATH_ELE + id + "0", PATH_ELE);
+    Element arrowEle2 = brush.getOrCreateChildElementById(PATH_ELE + id + "1", PATH_ELE);
+    Element axisEle = brush.getOrCreateChildElementById(PATH_ELE + id + "2", PATH_ELE);
 
     setBasicProp(arrowEle1, false);
     setBasicProp(arrowEle2, false);

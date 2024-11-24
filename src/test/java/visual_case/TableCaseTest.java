@@ -33,6 +33,7 @@ import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
@@ -524,7 +525,7 @@ public class TableCaseTest extends GraphvizVisual {
                     td().valign(Labelloc.CENTER).bgColor(Color.BLUE).text("line 2"),
                     td().width(100).bgColor(Color.GREY).text("line 3"),
                     td().width(100).align(Labeljust.RIGHT).bgColor(Color.YELLOW)
-                        .fontName("ambrosia").text("line 4"),
+                        .fontName("Elephant").text("line 4"),
                     td().table(
                         table().cellPadding(0).border(0).cellSpacing(0)
                             .tr(
@@ -783,6 +784,53 @@ public class TableCaseTest extends GraphvizVisual {
     }
     Assertions.assertTrue(findTd);
     Assertions.assertTrue(findTable);
+    visual(graphviz);
+  }
+
+  @Test
+  public void testIssue6Case() {
+    Color COFFFF = Color.ofRGB("#C0FFFF");
+    Node n1 = Node.builder()
+        .shape(NodeShapeEnum.PLAIN)
+        .table(
+            table()
+                .id("tool_tip_node_id")
+                .border(1)
+                .bgColor(COFFFF)
+                .cellBorder(0)
+                .cellSpacing(0)
+                .cellPadding(6)
+                .href("https://github.com/kovzol/Java-Geometry-Expert/blob/master/src/docs/help/images_a/rectangle.gif")
+                .tooltip("rectangle")
+                .tr(td().color(COFFFF).text("1) FG  ⊥  DE"))
+                .tr(td().color(COFFFF).text("8. sz.").fontSize(10))
+        )
+        .build();
+    Node n2 = Node.builder().label("2) FD = FE").fillColor(Color.ofRGB("#FFA0A0")).build();
+    Node n3 = Node.builder().label("3) CF = DF").build();
+    Node n4 = Node.builder().label("4) CF = EF").build();
+    Node n5 = Node.builder().label("G is the midpoint of DE").build();
+    Node n7 = Node.builder().label("DC  ⊥  DB").build();
+    Node n8 = Node.builder().label("F is the midpoint of CB").build();
+    Node n9 = Node.builder().label("EC  ⊥  EB").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .tempNode(Node.builder().shape(NodeShapeEnum.RECT).color(Color.BLACK).fillColor(Color.ofRGB("#C0FFFF")).build())
+        .tempLine(Line.tempLine().dir(Dir.BACK).build())
+        .addLine(n1, n5)
+        .addLine(n1, n2)
+        .addLine(n2, n3)
+        .addLine(n3, n8)
+        .addLine(n3, n7)
+        .addLine(n2, n4)
+        .addLine(n4, n8)
+        .addLine(n4, n9)
+        .startSub()
+        .tempNode(Node.builder().fillColor(Color.ofRGB("#F7CAC9")).shape(NodeShapeEnum.ELLIPSE).build())
+        .addNode(n5, n7, n8, n9)
+        .endSub()
+        .build();
+
     visual(graphviz);
   }
 }

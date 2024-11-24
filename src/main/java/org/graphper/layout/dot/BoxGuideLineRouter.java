@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,9 +40,11 @@ import org.graphper.def.Vectors;
 import org.graphper.draw.DefaultShapePosition;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.ALine;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.FlatShifterStrategy;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.EnvProp;
@@ -66,7 +70,6 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   protected boolean nodeConsumer(DNode node, Object attach) {
     if (node.isVirtual()) {
       if (node.isLabelNode()) {
@@ -116,34 +119,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     }
   }
 
-  protected void lineDrawPropConnect(LineDrawProp lineDrawProp,
-                                     List<FlatPoint> target, boolean before) {
-    if (Objects.isNull(lineDrawProp) || CollectionUtils.isEmpty(target)) {
-      return;
-    }
-
-    if (before) {
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        target.remove(target.size() - 1);
-      }
-      for (int i = target.size() - 1; i >= 0; i--) {
-        lineDrawProp.add(0, target.get(i));
-      }
-    } else {
-      if (CollectionUtils.isNotEmpty(lineDrawProp)) {
-        target.remove(0);
-      }
-      lineDrawProp.addAll(target);
-    }
-  }
-
   @Override
-  protected void handleSameEndpointParallelLines(List<DLine> parallelLines) {
+  protected void handleSameEndpointParallelLines(List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
     }
 
-    DLine line = parallelLines.get(0);
+    DLine line = (DLine) parallelLines.get(0);
     DNode from = line.from();
     DNode to = line.to();
     Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), line.getLine(), drawGraph);
@@ -159,7 +141,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         symmetryParallelLine(parallelLines);
       }
 
-      lineConsumer(parallelLines.get(0), new ArrayList<Box>());
+      lineConsumer((DLine) parallelLines.get(0), new ArrayList<Box>());
       return;
     }
 
@@ -224,7 +206,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       }
 
       for (int i = 0; i < parallelLines.size(); i++) {
-        DLine parallelLine = parallelLines.get(i);
+        ALine parallelLine = parallelLines.get(i);
         Line edge = parallelLine.getLine();
 
         routerBoxes.add(fromBox);
@@ -250,7 +232,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   private void sameRankParallelLineDraw(ShapePosition shapePosition, boolean isSameRank,
                                         RankNode rank, double minY, double maxY,
-                                        List<DLine> parallelLines) {
+                                        List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
     }
@@ -264,7 +246,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     List<FlatParallelLineParam> flatParallelLineParams = new ArrayList<>(parallelLines.size());
 
     for (int j = 0; j < parallelLines.size(); j++) {
-      DLine line = parallelLines.get(j);
+      DLine line = (DLine) parallelLines.get(j);
       DNode from = line.from();
       DNode to = line.to();
 
@@ -448,9 +430,9 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     minY = Math.min(node.getY() - node.getHeight() * flatLabelLine.getParallelNums(), minY);
     maxY = Math.max(node.getY() + node.getHeight() * flatLabelLine.getParallelNums(), maxY);
 
-    Map<Integer, List<DLine>> parallelLineRecordMap = groupParallelLineByEndpoint(flatLabelLine);
+    Map<Integer, List<ALine>> parallelLineRecordMap = groupParallelLineByEndpoint(flatLabelLine);
 
-    for (Entry<Integer, List<DLine>> entry : parallelLineRecordMap.entrySet()) {
+    for (Entry<Integer, List<ALine>> entry : parallelLineRecordMap.entrySet()) {
       DNode from = flatLabelLine.from();
       sameRankParallelLineDraw(node, node.getRank() == from.getRank(), rankNode,
                                minY, maxY, entry.getValue());

@@ -132,7 +132,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     @Override
     public NodeShape post(NodeAttrs nodeAttrs) {
       Asserts.nullArgument(nodeAttrs, "nodeAttrs");
-      NodeShape nodeShape = nodeAttrs.getNodeShape();
+      NodeShape nodeShape = nodeAttrs.getShape();
       Integer size;
       if (slideSize != null) {
         size = slideSize;

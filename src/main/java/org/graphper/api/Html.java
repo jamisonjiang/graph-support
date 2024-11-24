@@ -30,6 +30,7 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 
 /**
  * Html-related APIs.
@@ -80,6 +81,8 @@ public class Html {
     private double height = 10;
 
     private String href;
+
+    private String tooltip;
 
     private Collection<NodeStyle> styles;
 
@@ -201,6 +204,17 @@ public class Html {
     }
 
     /**
+     * Sets the tooltip text for the Html.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return this element
+     */
+    public T tooltip(String tooltip) {
+      this.tooltip = tooltip;
+      return self();
+    }
+
+    /**
      * Set the style of the element.
      *
      * @param styles element styles
@@ -246,6 +260,10 @@ public class Html {
 
     public String getHref() {
       return href;
+    }
+
+    public String getTooltip() {
+      return tooltip;
     }
 
     public Collection<NodeStyle> getStyles() {
@@ -494,6 +512,7 @@ public class Html {
      */
     public Td text(String text) {
       this.text = text;
+      this.fontName = FontUtils.selectFont(this.text, this.fontName);
       return this;
     }
 
@@ -516,6 +535,7 @@ public class Html {
      */
     public Td fontName(String fontName) {
       this.fontName = fontName;
+      this.fontName = FontUtils.selectFont(this.text, this.fontName);
       return this;
     }
 
@@ -586,6 +606,20 @@ public class Html {
 
     public NodeShape getShape() {
       return shape;
+    }
+
+    public String getHref(Table table) {
+      if (super.getHref() != null) {
+        return super.getHref();
+      }
+      return table.getHref();
+    }
+
+    public String getTooltip(Table table) {
+      if (super.getTooltip() != null) {
+        return super.getTooltip();
+      }
+      return table.getTooltip();
     }
 
     public Labeljust getAlign(Table table) {
