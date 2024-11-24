@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import static org.graphper.layout.dot.AbstractDotLineRouter.besselCurveClipShape;
-import static org.graphper.layout.dot.AbstractDotLineRouter.findInOutPair;
-import static org.graphper.layout.dot.AbstractDotLineRouter.getFirst;
-import static org.graphper.layout.dot.AbstractDotLineRouter.getLast;
 import static org.graphper.layout.dot.AbstractDotLineRouter.newArrowShapePosition;
 
+import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.Curves.ThirdOrderBezierCurve;
 import org.graphper.def.FlatPoint;
-import org.graphper.util.CollectionUtils;
-import org.graphper.api.ext.ShapePosition;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.LineDrawProp;
-import org.graphper.layout.dot.AbstractDotLineRouter.InOutPointPair;
+import org.graphper.util.CollectionUtils;
 
-public class CurvePathClip extends PathClip<LineDrawProp> {
+/**
+ * {@link PathClip} that handles path clipping using cubic Bezier curves. This class provides
+ * methods to clip paths for arrows, clusters, and nodes, ensuring smooth transitions and accurate
+ * rendering.
+ *
+ * @author Jamison Jiang
+ */
+
+public class CurvePathClip extends PathClip {
 
   public static final CurvePathClip INSTANCE = new CurvePathClip();
 
@@ -82,7 +86,6 @@ public class CurvePathClip extends PathClip<LineDrawProp> {
 
     if (inOutPair != null) {
       ThirdOrderBezierCurve curve = getCurve(path, inOutPair);
-
       subPath(path, inOutPair, besselCurveClipShape(clusterDrawProp, curve));
     } else {
       path.clear();
@@ -97,7 +100,6 @@ public class CurvePathClip extends PathClip<LineDrawProp> {
 
     if (inOutPair != null) {
       ThirdOrderBezierCurve curve = getCurve(path, inOutPair);
-
       subPath(path, inOutPair, besselCurveClipShape(node, curve));
     }
 

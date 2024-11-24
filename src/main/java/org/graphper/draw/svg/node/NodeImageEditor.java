@@ -32,8 +32,7 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
       return true;
     }
 
-    String nodeId = brush.nodeId(node.getNode());
-    Element imageEle = brush.getOrCreateShapeEleById(nodeId + IMAGE_ELE, IMAGE_ELE);
+    Element imageEle = brush.getOrCreateShapeEleById(IMAGE_ELE, IMAGE_ELE);
     imageEle.setAttribute(XLINK + COLON + HREF, nodeAttrs.getImage());
 
     if (nodeAttrs.getImageSize() != null) {

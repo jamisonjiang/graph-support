@@ -48,8 +48,21 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.EnvProp;
 import org.graphper.util.FontUtils;
 
+/**
+ * Default implementation of {@link SvgConverter} to convert SVG elements into image files. This
+ * implementation supports multiple image formats, including PNG, JPG, JPEG, and GIF, and uses the
+ * Java AWT library to perform the rendering.
+ *
+ * @author Jamison Jiang
+ */
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
+  /**
+   * Returns the priority order of this converter. If local image converter is used, returns the
+   * lowest priority.
+   *
+   * @return the priority order of this converter
+   */
   @Override
   public int order() {
     if (EnvProp.useLocalImgConverter()) {
@@ -58,6 +71,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     return 1;
   }
 
+  /**
+   * Checks if the current environment supports the image conversion. Specifically, it checks if the
+   * {@link Graphics2D} class is available.
+   *
+   * @return {@code true} if the environment supports image conversion, {@code false} otherwise
+   */
   @Override
   public boolean envSupport() {
     try {
@@ -68,11 +87,26 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Returns the supported file types for the conversion.
+   *
+   * @return an array of supported {@link FileType}
+   */
   @Override
   public FileType[] supportFileTypes() {
     return new FileType[]{FileType.PNG, FileType.JPG, FileType.JPEG, FileType.GIF};
   }
 
+  /**
+   * Converts the given SVG document into an image of the specified type. Processes each element of
+   * the SVG and renders it using {@link Graphics2D}.
+   *
+   * @param document  the SVG document to convert
+   * @param drawGraph the drawing context with graph-related attributes
+   * @param imageType the target image type for conversion
+   * @return a {@link DefaultGraphResource} representing the converted image
+   * @throws FailInitResourceException if the conversion fails or if parameters are missing
+   */
   @Override
   public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType imageType)
       throws FailInitResourceException {
@@ -125,6 +159,14 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
+  /**
+   * Initializes an image based on the provided dimensions and scale.
+   *
+   * @param drawGraph  the drawing context
+   * @param imageType  the target image type
+   * @param imgContext the image context to be initialized
+   * @param ele        the SVG element containing the attributes
+   */
   private void initImage(DrawGraph drawGraph, FileType imageType,
                          ImgContext imgContext, Element ele) {
     int h = toInt(ele.getAttribute(HEIGHT));
@@ -147,6 +189,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     imgContext.g2d.clearRect(0, 0, w, h);
   }
 
+  /**
+   * Draws an ellipse based on the attributes of the given SVG element.
+   *
+   * @param ele the SVG element representing the ellipse
+   * @param g2d the graphics context used to draw the ellipse
+   */
   private void drawEllipse(Element ele, Graphics2D g2d) {
     g2d.setColor(Color.BLACK);
     double x = toDouble(ele.getAttribute(CX));
@@ -157,27 +205,73 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     setShapeCommonAttr(ele, g2d, ellipse);
   }
 
-  private void drawString(Element ele, Graphics2D g2d) {
+  /**
+   * Draws a text string based on the attributes of the given SVG element.
+   *
+   * @param ele the SVG element representing the text
+   * @param g2d the graphics context used to draw the text
+   */
+  public void drawString(Element ele, Graphics2D g2d) {
     String text = ele.textContext();
-    if (StringUtils.isNotEmpty(text)) {
-      text = StringEscapeUtils.unescapeXml(text);
+    if (StringUtils.isEmpty(text)) {
+      return;
     }
+
+    text = StringEscapeUtils.unescapeXml(text);
     int fontSize = toInt(ele.getAttribute(FONT_SIZE));
     double x = toDouble(ele.getAttribute(X));
     double y = toDouble(ele.getAttribute(Y));
-    String fontName = ele.getAttribute(FONT_FAMILY);
-    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
     Color color = toColor(ele.getAttribute(FILL));
     if (color == null) {
       color = Color.BLACK;
     }
     g2d.setColor(color);
+    g2d.setPaint(color);
 
+    String fontName = ele.getAttribute(FONT_FAMILY);
     fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
-    g2d.setFont(new Font(fontName, Font.PLAIN, fontSize));
-    g2d.drawString(text, (float) (x - (size.getWidth() / 2)), (float) y);
+    Font defaultFont = new Font(fontName, Font.PLAIN, fontSize);
+
+    int pre = 0;
+    Font font = null;
+    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
+    x = x - (size.getWidth() / 2);
+
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (font != null && font.canDisplay(c)) {
+        continue;
+      }
+
+      if (font != null) {
+        AWTextRender awTextRender = new AWTextRender(font, text.substring(pre, i), x, y, g2d);
+        x += awTextRender.draw();
+        pre = i;
+      }
+
+      if (defaultFont.canDisplay(c)) {
+        font = defaultFont;
+      } else {
+        String supportFont = FontUtils.findFirstSupportFont(c);
+        if (supportFont == null) {
+          font = null;
+        } else {
+          font = new Font(supportFont, Font.PLAIN, fontSize);
+        }
+      }
+    }
+
+    font = font != null ? font : defaultFont;
+    AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
+    awTextRender.draw();
   }
 
+  /**
+   * Draws a polygon based on the attributes of the given SVG element.
+   *
+   * @param ele the SVG element representing the polygon
+   * @param g2d the graphics context used to draw the polygon
+   */
   private void drawPolygon(Element ele, Graphics2D g2d) {
     Path2D.Double polygon = new Path2D.Double();
     Point2D.Double[] path = toPoints(ele.getAttribute(POINTS));
@@ -195,6 +289,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     setShapeCommonAttr(ele, g2d, polygon);
   }
 
+  /**
+   * Draws a path based on the attributes of the given SVG element.
+   *
+   * @param ele the SVG element representing the path
+   * @param g2d the graphics context used to draw the path
+   */
   private void drawPath(Element ele, Graphics2D g2d) {
     String points = ele.getAttribute(D);
     Point2D.Double[] path = toPoints(points);
@@ -227,6 +327,13 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     setShapeCommonAttr(ele, g2d, path2D);
   }
 
+  /**
+   * Sets the common attributes of a shape such as fill color, stroke color, and stroke width.
+   *
+   * @param ele   the SVG element with attributes to be set
+   * @param g2d   the graphics context used to apply these attributes
+   * @param shape the shape to which the attributes are applied
+   */
   private void setShapeCommonAttr(Element ele, Graphics2D g2d, Shape shape) {
     Color color = toColor(ele.getAttribute(FILL));
     Color borderColor = toColor(ele.getAttribute(STROKE));
@@ -305,7 +412,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     return point2d;
   }
 
-  public Color toColor(String hexColorCode) {
+  private Color toColor(String hexColorCode) {
     if (hexColorCode == null || NONE.equals(hexColorCode)) {
       return null;
     }

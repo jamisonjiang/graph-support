@@ -19,13 +19,12 @@ package org.graphper.api;
 import helper.DocumentUtils;
 import helper.SerialHelper;
 import java.io.IOException;
-import org.graphper.api.Node;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class NodeTest {
 
@@ -48,6 +47,7 @@ public class NodeTest {
         .style(NodeStyle.BOLD)
         .sides(5)
         .href("xxxx")
+        .tooltip("tooltip")
         .image("fffff")
         .imageSize(1, 2)
         .build();
@@ -56,7 +56,7 @@ public class NodeTest {
         DocumentUtils.getTestSerialPath() + "node", node,
         n -> {
           Assertions.assertEquals(node.nodeAttrs(), n.nodeAttrs());
-          Assertions.assertEquals(NodeShapeEnum.REGULAR_POLYLINE, n.nodeAttrs().getNodeShape());
+          Assertions.assertEquals(NodeShapeEnum.REGULAR_POLYLINE, n.nodeAttrs().getShape());
           Assertions.assertEquals("#902924", n.nodeAttrs().getFillColor().value());
         });
   }

@@ -34,7 +34,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
 
   @Override
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
     RegularPolylinePropCalc shapePropCalc =
         (RegularPolylinePropCalc) nodeShape.getShapePropCalc();
     draw(nodeDrawProp, nodeBrush, shapePropCalc);

@@ -16,10 +16,13 @@
 
 package org.graphper.layout;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.ServiceLoader;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.graphper.util.Asserts;
 
 /**
  * Provide the basic font select policy is try best to fount the most popular font from exists fonts
@@ -30,60 +33,27 @@ import java.util.Set;
  */
 public abstract class AbstractFontSelector implements FontSelector {
 
-  private static final String[] TOP_POPULAR_FONTS = {
-      "Arial",
-      "Times New Roman",
-      "Calibri",
-      "Helvetica",
-      "Georgia",
-      "Verdana",
-      "Comic Sans MS",
-      "Trebuchet MS",
-      "Courier New",
-      "Cambria",
-      "Garamond",
-      "Palatino",
-      "Lucida Sans",
-      "Lucida Console",
-      "Futura",
-      "Franklin Gothic",
-      "Myriad",
-      "Roboto",
-      "Open Sans",
-      "Baskerville",
-      "Rockwell",
-      "Century Gothic",
-      "Tahoma",
-      "Gill Sans",
-      "Bodoni",
-      "Copperplate",
-      "Eurostile",
-      "Museo",
-      "Proxima Nova",
-      "Lato",
-      "Ubuntu",
-      "DIN",
-      "Arial Narrow",
-      "Impact",
-      "Book Antiqua",
-      "Optima",
-      "Segoe UI",
-      "Brush Script",
-      "Didot",
-      "Helvetica Neue",
-      "Raleway",
-      "Montserrat",
-      "Oswald",
-      "Avenir",
-      "Roboto Condensed",
-      "PT Sans",
-      "Source Sans Pro",
-      "Merriweather",
-      "Candara",
-      "Courier Prime"
-  };
+  private String defaultFont;
 
-  private Set<String> allAvailableFonts;
+  private FontOrder fontOrder;
+
+  private LinkedHashSet<String> allAvailableFonts;
+
+  protected AbstractFontSelector() {
+    initFontComparator();
+    Asserts.nullArgument(fontOrder, "Cannot found font comparator");
+    initDefaultFont();
+  }
+
+  /**
+   * Return all system available fonts.
+   *
+   * @return all system available fonts
+   */
+  protected abstract String[] listAllSystemFonts();
+
+  @Override
+  public abstract boolean fontSupport(String fontName, char c);
 
   /**
    * Returns default font name when not set fontName attribute.
@@ -92,21 +62,7 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   @Override
   public String defaultFont() {
-    String[] fonts = listAllSystemFonts();
-    if (fonts == null || fonts.length == 0) {
-      return TOP_POPULAR_FONTS[0];
-    }
-
-    allAvailableFonts = new HashSet<>(fonts.length);
-    allAvailableFonts.addAll(Arrays.asList(fonts));
-
-    for (String font : TOP_POPULAR_FONTS) {
-      if (allAvailableFonts.contains(font)) {
-        return font;
-      }
-    }
-
-    return fonts[0];
+   return defaultFont;
   }
 
   /**
@@ -121,17 +77,40 @@ public abstract class AbstractFontSelector implements FontSelector {
       return false;
     }
 
-    if (allAvailableFonts == null) {
-      return true;
-    }
-
     return allAvailableFonts.contains(fontName);
   }
 
-  /**
-   * Return all system available fonts.
-   *
-   * @return all system available fonts
-   */
-  protected abstract String[] listAllSystemFonts();
+  @Override
+  public String findFirstSupportFont(char c) {
+    for (String font : allAvailableFonts) {
+      if (fontSupport(font, c)) {
+        return font;
+      }
+    }
+
+    return null;
+  }
+
+  private void initFontComparator() {
+    ServiceLoader<FontOrder> fontComparatorServiceLoader = ServiceLoader
+        .load(FontOrder.class);
+    for (FontOrder comparator : fontComparatorServiceLoader) {
+      fontOrder = comparator;
+    }
+  }
+
+  private void initDefaultFont() {
+    String[] fonts = listAllSystemFonts();
+    if (fonts == null || fonts.length == 0) {
+      defaultFont = fontOrder.first();
+      Asserts.nullArgument(defaultFont, "Cannot init default Font");
+      allAvailableFonts = new LinkedHashSet<>();
+      return;
+    }
+
+    List<String> orderFonts = Stream.of(fonts).sorted(fontOrder).collect(Collectors.toList());
+    this.allAvailableFonts = new LinkedHashSet<>(orderFonts);
+    this.defaultFont = orderFonts.get(0);
+  }
+
 }

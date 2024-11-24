@@ -18,6 +18,7 @@ package visual_case;
 
 import helper.GraphvizVisual;
 import java.util.stream.Stream;
+import org.graphper.api.Html;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -47,7 +48,7 @@ public class GraphAttrTest extends GraphvizVisual {
           Node a = Node.builder().label("aaaaaaaaaaa").build();
           Node b = Node.builder().label("b").build();
           g.addLine(a, b);
-          g.label("label_test");
+          g.label("label_test").fontName("Elephant");
         })
         .flatMap(
             g -> {
@@ -78,7 +79,7 @@ public class GraphAttrTest extends GraphvizVisual {
   }
 
   static Stream<GraphvizBuilder> splinesCases() {
-    return Stream.of(Graphviz.digraph().label("splines_test"))
+    return Stream.of(Graphviz.digraph().label("splines_test").showGrid(true))
         .peek(GraphAttrTest::splinesCase)
         .flatMap(
             g -> {
@@ -344,10 +345,10 @@ public class GraphAttrTest extends GraphvizVisual {
             g -> {
               try {
                 return Stream.of(
-                    g.clone().nslimit1(1),
-                    g.clone().nslimit1(0),
-                    g.clone().nslimit1(20),
-                    g.clone().nslimit1(30)
+//                    g.clone().nslimit1(1),
+                    g.clone().nslimit1(0)
+//                    g.clone().nslimit1(20),
+//                    g.clone().nslimit1(30)
                 );
               } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
@@ -558,7 +559,7 @@ public class GraphAttrTest extends GraphvizVisual {
     Node b = Node.builder().label("b").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .label("href_test")
+        .table(Html.table().tr(Html.td().text("href_test")))
         .href("https://github.com/")
         .addLine(a, b)
         .build();

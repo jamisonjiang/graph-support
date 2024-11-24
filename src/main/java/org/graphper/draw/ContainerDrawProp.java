@@ -19,12 +19,13 @@ package org.graphper.draw;
 import java.io.Serializable;
 import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
+import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
-import org.graphper.layout.HtmlConvert;
+import org.graphper.layout.HtmlConvertor;
 import org.graphper.util.Asserts;
 
 /**
@@ -152,18 +153,20 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     if (table == null) {
       return;
     }
-    assemble = HtmlConvert.toAssemble(table);
+    assemble = HtmlConvertor.toAssemble(table);
   }
 
   public boolean containsRounded() {
     return false;
   }
 
-  protected abstract Labelloc labelloc();
+  public abstract Labelloc labelloc();
 
-  protected abstract FlatPoint margin();
+  public abstract Labeljust labeljust();
 
-  protected abstract String containerId();
+  public abstract FlatPoint margin();
 
-  protected abstract Assemble assemble();
+  public abstract String containerId();
+
+  public abstract Assemble assemble();
 }

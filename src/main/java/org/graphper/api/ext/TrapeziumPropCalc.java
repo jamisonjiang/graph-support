@@ -24,6 +24,12 @@ public class TrapeziumPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 4151640946566130589L;
 
+  private final boolean positive;
+
+  public TrapeziumPropCalc(boolean positive) {
+    this.positive = positive;
+  }
+
   @Override
   public FlatPoint minContainerSize(double innerHeight, double innerWidth) {
     return new FlatPoint(innerHeight, 2 * innerWidth);
@@ -35,14 +41,17 @@ public class TrapeziumPropCalc implements ShapePropCalc, Serializable {
     double right = box.getRightBorder();
     double up = box.getUpBorder();
     double down = box.getDownBorder();
-    double leftTopX = box.getLeftBorder() + box.getWidth() / 4;
-    double rightTopX = box.getRightBorder() - box.getWidth() / 4;
+    double leftX = box.getLeftBorder() + box.getWidth() / 4;
+    double rightX = box.getRightBorder() - box.getWidth() / 4;
 
-    return Vectors.inAngle(left, down, leftTopX,
-                           up, right, down, point.getX(), point.getY())
-        && Vectors.inAngle(right, down, rightTopX,
-                           up, left, down, point.getX(), point.getY())
-        && Vectors.inAngle(leftTopX, up, left,
-                           down, rightTopX, up, point.getX(), point.getY());
+    if (positive) {
+      return Vectors.inAngle(left, down, leftX, up, right, down, point.getX(), point.getY())
+          && Vectors.inAngle(right, down, rightX, up, left, down, point.getX(), point.getY())
+          && Vectors.inAngle(leftX, up, left, down, rightX, up, point.getX(), point.getY());
+    }
+
+    return Vectors.inAngle(left, up, leftX, down, right, up, point.getX(), point.getY())
+        && Vectors.inAngle(right, up, rightX, down, left, up, point.getX(), point.getY())
+        && Vectors.inAngle(leftX, down, left, up, rightX, down, point.getX(), point.getY());
   }
 }

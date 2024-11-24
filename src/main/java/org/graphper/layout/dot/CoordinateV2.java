@@ -80,15 +80,20 @@ class CoordinateV2 extends AbstractCoordinate {
      * (2) The two clusters are non-inclusive
      * [0, cluster_min_gap]
      * */
+    node.switchNormalModel();
+    boolean normalRank = !rankContent.get(node.getRank()).noNormalNode();
 
     // Mode switch
     node.switchAuxModel();
     // Auxiliary edge addition across hierarchical edges
     crossRankAuxEdge(node);
     // Add auxiliary edges of vertices at the same level
-    sameRankAuxEdge(node);
+    sameRankAuxEdge(node, normalRank);
     // Add cluster boundary edge
-    containerBorderEdge(node);
+    if (normalRank) {
+      containerBorderEdge(node);
+    }
+
     // Avoid separate nodes
     auxDotDigraph.add(node);
   }
@@ -196,7 +201,7 @@ class CoordinateV2 extends AbstractCoordinate {
     }
   }
 
-  private void sameRankAuxEdge(DNode node) {
+  private void sameRankAuxEdge(DNode node, boolean normalRank) {
     node.switchNormalModel();
     DNode other = rankContent.rankNextNode(node);
     node.switchAuxModel();
@@ -213,7 +218,9 @@ class CoordinateV2 extends AbstractCoordinate {
     }
 
     sameRankLine((int) node.getNodeSep(), node, other, 0);
-    adjClusterEdge(node, other);
+    if (normalRank) {
+      adjClusterEdge(node, other);
+    }
   }
 
   private void sameRankLine(int minLen, DNode node, DNode other, double weight) {

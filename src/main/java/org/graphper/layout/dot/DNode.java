@@ -16,26 +16,15 @@
 
 package org.graphper.layout.dot;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
-import org.graphper.api.NodeAttrs;
-import org.graphper.api.attributes.NodeShape;
-import org.graphper.api.attributes.NodeShapeEnum;
-import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.VertexIndex;
-import org.graphper.draw.DrawGraph;
-import org.graphper.util.CollectionUtils;
-import org.graphper.util.EnvProp;
+import org.graphper.layout.ANode;
 
-class DNode extends VertexIndex implements Box, ShapePosition {
+class DNode extends ANode implements Box, ShapePosition {
 
   private static final long serialVersionUID = -7182604069185202045L;
 
@@ -46,8 +35,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   private static final int AUX_MODE = 1;
 
   private static final int NOT_ADJUST_MID = 0x400;
-
-  private final Node node;
 
   private int rank;
 
@@ -67,33 +54,12 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   // Median value, used to sort the same rank.
   private double median;
 
-  private double x;
-
-  private double y;
-
-  private double width;
-
-  private double height;
-
-  // Distance between nodes
-  private double nodeSep;
-
   // Node status
   private int status;
-
-  // Self lines
-  private List<DLine> selfLines;
-
-  // The parent container, if it is null, it means the root container
-  private GraphContainer container;
-
-  private NodeAttrs nodeAttrs;
 
   private Line labelLine;
 
   private final DLine flatLabelLine;
-
-  private NodeSizeExpander nodeSizeExpander;
 
   DNode(Node node, double width, double height, double nodeSep) {
     this(node, width, height, nodeSep, null, null);
@@ -109,7 +75,7 @@ class DNode extends VertexIndex implements Box, ShapePosition {
 
   private DNode(Node node, double width, double height, double nodeSep, Line labelLine,
                 DLine flatLabelLine) {
-    this.node = node;
+    super(node);
     this.width = width;
     this.height = height;
     this.nodeSep = nodeSep;
@@ -143,18 +109,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     DNode node = new DNode(null, 20, 1, nodeSep);
     node.setContainer(container);
     return node;
-  }
-
-  Node getNode() {
-    return node;
-  }
-
-  void setNodeAttrs(NodeAttrs nodeAttrs) {
-    this.nodeAttrs = nodeAttrs;
-  }
-
-  boolean isVirtual() {
-    return node == null;
   }
 
   boolean isLabelNode() {
@@ -230,35 +184,9 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     return x;
   }
 
-  void setX(double x) {
-    this.x = x;
-  }
-
   @Override
   public double getY() {
     return y;
-  }
-
-  void setY(double y) {
-    this.y = y;
-  }
-
-  @Override
-  public double getWidth() {
-    return width;
-  }
-
-  void setWidth(int width) {
-    this.width = width;
-  }
-
-  @Override
-  public double getHeight() {
-    return height;
-  }
-
-  void setHeight(int height) {
-    this.height = height;
   }
 
   boolean isNormalModel() {
@@ -286,121 +214,32 @@ class DNode extends VertexIndex implements Box, ShapePosition {
     status |= NOT_ADJUST_MID;
   }
 
-  int getSelfLoopCount() {
-    return selfLines == null ? 0 : selfLines.size();
-  }
-
-  void addSelfLine(DLine line) {
-    if (line == null) {
-      return;
-    }
-
-    if (selfLines == null) {
-      selfLines = new ArrayList<>(2);
-    }
-    selfLines.add(line);
-  }
-
-  void sortSelfLine(Comparator<DLine> lineComparator) {
-    if (lineComparator == null || CollectionUtils.isEmpty(selfLines)) {
-      return;
-    }
-
-    selfLines.sort(lineComparator);
-  }
-
-  DLine selfLine(int index) {
-    return CollectionUtils.isEmpty(selfLines) ? null : selfLines.get(index);
-  }
-
-  boolean haveSelfLine() {
-    return CollectionUtils.isNotEmpty(selfLines);
-  }
-
-  List<DLine> getSelfLines() {
-    return selfLines == null ? Collections.emptyList() : selfLines;
-  }
-
-  void initNodeSizeExpander(DrawGraph drawGraph) {
-    if (isVirtual() || !haveSelfLine() || nodeSizeExpander != null) {
-      return;
-    }
-
-    Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
-    if (splines == Splines.ORTHO) {
-      nodeSizeExpander = new OrthoNodeSizeExpander(this);
-    } else if (EnvProp.usePortAxisExpander()) {
-      nodeSizeExpander = new PortNodeSizeExpander(drawGraph, this);
-    } else {
-      nodeSizeExpander = new PortNodeSizeExpanderV2(drawGraph, this);
-    }
-  }
-
-  NodeSizeExpander getNodeSizeExpander() {
-    return nodeSizeExpander;
-  }
-
   DLine getFlatLabelLine() {
     return flatLabelLine;
   }
 
-  double leftWidth() {
+  @Override
+  public double leftWidth() {
     if (isLabelNode()) {
       return 0;
     }
-    double lw = shapeProp().leftWidth(width);
-    if (nodeSizeExpander != null) {
-      lw += nodeSizeExpander.getLeftWidthOffset();
-    }
-    return lw;
+    return super.leftWidth();
   }
 
-  double rightWidth() {
+  @Override
+  public double rightWidth() {
     if (isLabelNode()) {
       return width;
     }
-
-    double rw = shapeProp().rightWidth(width);
-    if (nodeSizeExpander != null) {
-      rw += nodeSizeExpander.getRightWidthOffset();
-    }
-    return rw;
+    return super.rightWidth();
   }
 
-  double topHeight() {
-    double th = shapeProp().topHeight(height);
-    if (nodeSizeExpander != null) {
-      th += nodeSizeExpander.getTopHeightOffset();
-    }
-    return th;
-  }
-
-  double bottomHeight() {
-    double bh = shapeProp().bottomHeight(height);
-    if (nodeSizeExpander != null) {
-      bh += nodeSizeExpander.getBottomHeightOffset();
-    }
-    return bh;
-  }
-
-  double realLeftWidth() {
-    return shapeProp().leftWidth(width);
-  }
-
-  double realRightWidth() {
+  @Override
+  public double realRightWidth() {
     if (isLabelNode()) {
       return width;
-    } else {
-      return shapeProp().rightWidth(width);
     }
-  }
-
-  double realTopHeight() {
-    return shapeProp().topHeight(height);
-  }
-
-  double realBottomHeight() {
-    return shapeProp().bottomHeight(height);
+    return super.realRightWidth();
   }
 
   @Override
@@ -427,10 +266,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
   @Override
   public double getDownBorder() {
     return getY() + realBottomHeight();
-  }
-
-  double getNodeSep() {
-    return nodeSep;
   }
 
   void nodeSepHalving() {
@@ -467,23 +302,6 @@ class DNode extends VertexIndex implements Box, ShapePosition {
 
   Line getLabelLine() {
     return labelLine;
-  }
-
-  @Override
-  public NodeShape shapeProp() {
-   if (isVirtual() || nodeAttrs == null) {
-      return NodeShapeEnum.CIRCLE;
-    }
-
-    return nodeAttrs.getNodeShape();
-  }
-
-  GraphContainer getContainer() {
-    return container;
-  }
-
-  void setContainer(GraphContainer container) {
-    this.container = container;
   }
 
   boolean isTail(DLine line) {

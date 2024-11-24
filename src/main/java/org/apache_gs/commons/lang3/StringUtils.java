@@ -157,6 +157,32 @@ public class StringUtils {
      */
     public static final int INDEX_NOT_FOUND = -1;
 
+    // Define a table of RTL Unicode ranges as an array of [start, end] pairs
+    private static final int[][] RTL_RANGES = {
+        {0x0590, 0x05FF},   // Hebrew
+        {0x0600, 0x06FF},   // Arabic (includes Persian, Urdu, etc.)
+        {0x0750, 0x077F},   // Arabic Supplement
+        {0x08A0, 0x08FF},   // Arabic Extended-A
+        {0x0700, 0x074F},   // Syriac
+        {0x0780, 0x07BF},   // Thaana (Maldivian)
+        {0x07C0, 0x07FF},   // N’Ko
+        {0x0800, 0x083F},   // Samaritan
+        {0x0840, 0x085F},   // Mandaic
+        {0x0860, 0x086F},   // Syriac Supplement
+        {0xFB1D, 0xFB4F},   // Hebrew Presentation Forms
+        {0xFB50, 0xFDFF},   // Arabic Presentation Forms-A
+        {0xFE70, 0xFEFF},   // Arabic Presentation Forms-B
+        {0x10800, 0x1083F}, // Cypriot Syllabary
+        {0x10A00, 0x10A5F}, // Kharoshthi
+        {0x10B00, 0x10B3F}, // Avestan
+        {0x10B40, 0x10B5F}, // Inscriptional Parthian
+        {0x10B60, 0x10B7F}, // Inscriptional Pahlavi
+        {0x10B80, 0x10BAF}, // Psalter Pahlavi
+        {0x10C00, 0x10C4F}, // Old Turkic
+        {0x1E800, 0x1E8DF}, // Mende Kikakui
+        {0x1E900, 0x1E95F}  // Adlam
+    };
+
     /**
      * Gets a CharSequence length or {@code 0} if the CharSequence is
      * {@code null}.
@@ -251,6 +277,28 @@ public class StringUtils {
     }
 
     /**
+     * Checks if a given string contains any character from a right-to-left (RTL) language.
+     *
+     * This method iterates through each character in the input string to determine if
+     * any of them falls within known Unicode ranges for RTL languages. RTL languages
+     * include Arabic, Hebrew, Persian, Urdu, and several others.
+     *
+     * @param text the string to check for RTL language characters
+     * @return {@code true} if the string contains at least one RTL language character; {@code false} otherwise
+     */
+    public static boolean containsRTL(String text) {
+        if (text == null) {
+            return false;
+        }
+        for (char c : text.toCharArray()) {
+            if (isRightToLeft(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Determine whether a character is a Chinese character.
      *
      * @param c the character need determined
@@ -258,6 +306,23 @@ public class StringUtils {
      */
     public static boolean isChineseChar(char c) {
         return c >= 0x4E00 && c <= 0x9FA5;
+    }
+
+    /**
+     * Checks if a character belongs to a right-to-left (RTL) language by checking
+     * if it falls within any of the predefined RTL Unicode ranges.
+     *
+     * @param c the character to check
+     * @return {@code true} if the character belongs to an RTL language; {@code false} otherwise
+     */
+    public static boolean isRightToLeft(char c) {
+        // Check each range in the RTL_RANGES table
+        for (int[] range : RTL_RANGES) {
+            if ((int) c >= range[0] && (int) c <= range[1]) {
+                return true; // Character falls within an RTL range
+            }
+        }
+        return false;
     }
 
     /**

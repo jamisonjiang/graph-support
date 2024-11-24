@@ -29,7 +29,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
-public class LineStyleEditor implements LineEditor<SvgBrush> {
+public class LineStyleEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp line, SvgBrush brush) {
@@ -40,10 +40,7 @@ public class LineStyleEditor implements LineEditor<SvgBrush> {
       return true;
     }
 
-    Element pathEle = brush.getOrCreateChildElementById(
-        SvgBrush.getId(brush.lineId(line), SvgConstants.PATH_ELE),
-        SvgConstants.PATH_ELE
-    );
+    Element pathEle = brush.getOrCreateChildElementById(PATH_ELE, PATH_ELE);
 
     for (LineStyle style : styles) {
       if (style == LineStyle.DASHED) {

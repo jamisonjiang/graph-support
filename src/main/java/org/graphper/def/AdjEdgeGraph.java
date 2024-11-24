@@ -186,22 +186,8 @@ abstract class AdjEdgeGraph<V, E extends BaseEdge<V, E>> extends
    * @return all adjacent edges
    */
   @Override
-  @SuppressWarnings("unchecked")
   public Iterable<E> adjacent(Object v) {
-    if (v == null) {
-      return (EdgeBag<V, E>) EdgeBag.EMPTY;
-    }
-    if (v instanceof VertexIndex) {
-      Integer index;
-      index = ((VertexIndex) v).getGraphIndex().get(checkAndReturnGraphRef());
-      if (index == null) {
-        return (EdgeBag<V, E>) EdgeBag.EMPTY;
-      }
-      if (index >= 0 && index < vertexNum && v.equals(bags[index].vertex)) {
-        return bags[index];
-      }
-    }
-    return position(v);
+    return adjacent(v, false);
   }
 
   /**
@@ -264,6 +250,23 @@ abstract class AdjEdgeGraph<V, E extends BaseEdge<V, E>> extends
   @Override
   public int selfLoops(V v) {
     return ((EdgeBag<V, E>) adjacent(v)).loopNum;
+  }
+
+  /**
+   * Return next node in current graph and sequence strategy considered by different attribute
+   * graphs, return null if graph iteration finished.
+   *
+   * @param v vertex to be queried
+   * @return next node in current graph
+   */
+  @Override
+  public V next(V v) {
+    if (v == null) {
+      return null;
+    }
+
+    EdgeBag<V, E> bag = (EdgeBag<V, E>) adjacent(v, true);
+    return bag.vertex;
   }
 
   /**
@@ -371,12 +374,40 @@ abstract class AdjEdgeGraph<V, E extends BaseEdge<V, E>> extends
     return graphRef;
   }
 
+  @SuppressWarnings("unchecked")
+  private Iterable<E> adjacent(Object v, boolean next) {
+    if (v == null) {
+      return (EdgeBag<V, E>) EdgeBag.EMPTY;
+    }
+    if (v instanceof VertexIndex) {
+      Integer index;
+      index = ((VertexIndex) v).getGraphIndex().get(checkAndReturnGraphRef());
+      if (index == null) {
+        return (EdgeBag<V, E>) EdgeBag.EMPTY;
+      }
+      if (index >= 0 && index < vertexNum && v.equals(bags[index].vertex)) {
+        if (!next) {
+          return bags[index];
+        }
+
+        return index < vertexNum - 1 ? bags[index + 1] : (EdgeBag<V, E>) EdgeBag.EMPTY;
+      }
+    }
+    return position(v, next);
+  }
+
   // O(n) find
   @SuppressWarnings("unchecked")
-  private EdgeBag<V, E> position(Object v) {
+  private EdgeBag<V, E> position(Object v, boolean next) {
     for (int i = 0; i < vertexNum; i++) {
       if (v.equals(bags[i].vertex)) {
-        return bags[i];
+        if (!next) {
+          return bags[i];
+        }
+
+        if (i < vertexNum - 1) {
+          return bags[i + 1];
+        }
       }
     }
     return (EdgeBag<V, E>) EdgeBag.EMPTY;

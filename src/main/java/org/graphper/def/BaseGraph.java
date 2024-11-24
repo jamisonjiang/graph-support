@@ -84,6 +84,23 @@ public interface BaseGraph<V> extends Iterable<V> {
   int selfLoops(V v);
 
   /**
+   * Return a start node by specific strategy, and use this api bound with {@link #next(Object)} to
+   * iterated graph rather than {@link #iterator()}, return null if graph is empty.
+   *
+   * @return start node
+   */
+  V start();
+
+  /**
+   * Return next node in current graph and sequence strategy considered by different attribute
+   * graphs, return null if graph iteration finished.
+   *
+   * @param v vertex to be queried
+   * @return next node in current graph
+   */
+  V next(V v);
+
+  /**
    * Returns the maximum of all degrees of all vertices in the graph.
    *
    * @return maximum degree in current graph

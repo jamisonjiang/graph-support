@@ -19,7 +19,7 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,9 +28,10 @@ import java.util.Queue;
 import java.util.Set;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
-import org.graphper.util.CollectionUtils;
+import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.SameRankAdjacentRecord.SameRankAdjacentInfo;
+import org.graphper.util.CollectionUtils;
 
 /**
  * Handle all kinds of line labels, insert the label as a node into the {@link RankContent}, and
@@ -54,21 +55,25 @@ class LabelSupplement {
     this.dotAttachment = dotAttachment;
     this.digraphProxy = digraphProxy;
 
+    boolean needInsertLabelNodeRank = CollectionUtils.isNotEmpty(dotAttachment.getLabelLines());
+    boolean needInsertFlatEdges = dotAttachment.getSameRankAdjacentRecord() != null
+        && dotAttachment.getSameRankAdjacentRecord().haveSameRank();
+
     // If graph have any label line, may be need create some relay rank.
-    insertLabelNodeRank();
+    if (needInsertLabelNodeRank) {
+      insertLabelNodeRank();
+    }
 
     // Flat parallel edge handle
-    flatParallelEdge();
+    if (needInsertFlatEdges) {
+      flatParallelEdge();
+    }
   }
 
   /*
    * Insert the internal rank where the label node is located.
    */
   private void insertLabelNodeRank() {
-    if (CollectionUtils.isEmpty(dotAttachment.getLabelLines())) {
-      return;
-    }
-
     Set<Integer> needInsertLabelRankIdxs = null;
 
     for (DLine labelLine : dotAttachment.getLabelLines()) {
@@ -81,7 +86,7 @@ class LabelSupplement {
       DNode minRankNode = labelLine.to();
       minRankNode = minRankNode.getRank() > from.getRank() ? from : minRankNode;
       if (needInsertLabelRankIdxs == null) {
-        needInsertLabelRankIdxs = new HashSet<>();
+        needInsertLabelRankIdxs = new LinkedHashSet<>();
       }
       needInsertLabelRankIdxs.add(minRankNode.getRank());
     }
@@ -217,7 +222,7 @@ class LabelSupplement {
       return 0;
     }
 
-    int r = Double.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
+    int r = Integer.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
                            rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
 
     if (r != 0) {
@@ -230,29 +235,12 @@ class LabelSupplement {
       double rightPrePoint = getPortPoint(rightLine, rightPreNode);
       double rightNextPoint = getPortPoint(rightLine, rightNextNode);
       r = Double.compare(leftPrePoint + leftNextPoint, rightPrePoint + rightNextPoint);
-      if (r != 0) {
-        return r;
-      }
     }
 
-    if (left.name() == null && right.name() == null) {
-      return 0;
-    }
-    if (left.name() == null && right.name() != null) {
-      return -1;
-    }
-    if (left.name() != null && right.name() == null) {
-      return 1;
-    }
-    return left.name().compareTo(right.name());
+    return r;
   }
 
   private void flatParallelEdge() {
-    if (dotAttachment.getSameRankAdjacentRecord() == null
-        || !dotAttachment.getSameRankAdjacentRecord().haveSameRank()) {
-      return;
-    }
-
     SameRankAdjacentRecord sameRankAdjacentRecord = dotAttachment.getSameRankAdjacentRecord();
     dotAttachment.releaseSameRankAdj();
 
@@ -266,7 +254,6 @@ class LabelSupplement {
      * }
      * */
     Map<DNode, Map<DNode, DLine>> parallelEdgeRecord = null;
-    Map<DLine, DNode> flatLabelNodeRecord = null;
 
     for (Entry<DNode, SameRankAdjacentInfo> rankAdjacentInfoEntry :
         sameRankAdjacentRecord.getOutSameRankAdjacent().entrySet()) {
@@ -320,30 +307,34 @@ class LabelSupplement {
       return;
     }
 
+    Map<DLine, DNode> flatLabelNodeRecord = null;
+
     for (Map<DNode, DLine> value : parallelEdgeRecord.values()) {
       for (DLine line : value.values()) {
         // If the merged FlatEdge contains a labelLine, the current mergeLine will become a Label Node.
-        if (line.haveLabel()) {
-          if (flatLabelNodeRecord == null) {
-            flatLabelNodeRecord = new HashMap<>();
-          }
+        if (!line.haveLabel()) {
+          continue;
+        }
 
-          DNode flatLabelNode = flatLabelNodeRecord.computeIfAbsent(
-              line,
-              ml -> new DNode(
-                  null, 0, 0,
-                  ml.isSameRankAdj()
-                      ? ml.from().getNodeSep() / 2
-                      : ml.from().getNodeSep(),
-                  ml
-              )
-          );
+        if (flatLabelNodeRecord == null) {
+          flatLabelNodeRecord = new HashMap<>();
+        }
 
-          flatLabelNode.setContainer(dotAttachment.commonParent(line.from(), line.to()));
+        DNode flatLabelNode = flatLabelNodeRecord.computeIfAbsent(
+            line,
+            ml -> new DNode(
+                null, 0, 0,
+                ml.isSameRankAdj()
+                    ? ml.from().getNodeSep() / 2
+                    : ml.from().getNodeSep(),
+                ml
+            )
+        );
 
-          if (line.isSameRankAdj()) {
-            line.from().nodeSepHalving();
-          }
+        flatLabelNode.setContainer(dotAttachment.commonParent(line.from(), line.to()));
+
+        if (line.isSameRankAdj()) {
+          line.from().nodeSepHalving();
         }
       }
     }
@@ -358,23 +349,14 @@ class LabelSupplement {
 
     // The rank at which a new virtual node needs to be inserted at the next rank.
     List<RankNode> needInsertVirtualRank = null;
-    // The rank index of the newly inserted rank, which is the median value between the original two rank.
-    Map<RankNode, Double> newRankNodeIndex = null;
     // The priority queue mapping of the label node that needs to be inserted at the rank.
     Map<RankNode, Queue<DNode>> rankLabelNodeQueue = null;
-    double minRankIndex = Double.MAX_VALUE;
-    RankNode minRankNode = null;
 
     for (DNode flatLabelNode : flatLabelNodeRecord.values()) {
       DLine labelLine = flatLabelNode.getFlatLabelLine();
-      if (labelLine == null) {
-        continue;
-      }
-
       flatLabelNode.setMedian(
           (double) (labelLine.from().getRankIndex() + labelLine.to().getRankIndex()) / 2
       );
-
       RankNode rankNode = rankContent.get(labelLine.from().getRank());
 
       if (!labelLine.isSameRankAdj()) {
@@ -388,14 +370,7 @@ class LabelSupplement {
             needInsertVirtualRank.add(rankNode.pre());
           }
 
-          double ri = rankNode.pre() != null
-              ? (double) (rankNode.pre().rankIndex() + rankNode.rankIndex()) / 2
-              : rankNode.rankIndex() - 1;
           rankNode = rankContent.insertLabelRankNode(rankNode.rankIndex());
-          if (newRankNodeIndex == null) {
-            newRankNodeIndex = new HashMap<>(1);
-          }
-          newRankNodeIndex.put(rankNode, ri);
         } else {
           rankNode = rankNode.pre();
         }
@@ -403,25 +378,6 @@ class LabelSupplement {
 
       if (rankNode == null) {
         continue;
-      }
-
-      Double ri;
-      if (minRankNode == null
-          || (newRankNodeIndex != null && (ri = newRankNodeIndex.get(rankNode)) != null
-          && ri < minRankIndex)
-          || rankNode.rankIndex() < minRankIndex
-      ) {
-        minRankNode = rankNode;
-        if (newRankNodeIndex != null) {
-          ri = newRankNodeIndex.get(rankNode);
-          if (ri != null) {
-            minRankIndex = ri;
-          } else {
-            minRankIndex = rankNode.rankIndex();
-          }
-        } else {
-          minRankIndex = rankNode.rankIndex();
-        }
       }
 
       if (rankLabelNodeQueue == null) {
@@ -438,8 +394,13 @@ class LabelSupplement {
     // The previous rank of the newly inserted rank, if it exists, a new virtual node needs to be inserted.
     newRankAddVirtualNode(needInsertVirtualRank);
 
+    RankNode rankNode = rankContent.get(rankContent.minRank());
+    while (rankNode != null && rankNode.pre() != null) {
+      rankNode = rankNode.pre();
+    }
+
     // Synchronize rank and rankIndex of nodes in rank.
-    syncNodeProp(minRankNode, rankLabelNodeQueue);
+    syncNodeProp(rankNode, rankLabelNodeQueue);
   }
 
   private void newRankAddVirtualNode(List<RankNode> needInsertVirtualRank) {
@@ -449,7 +410,6 @@ class LabelSupplement {
 
     List<DLine> removeLines = new ArrayList<>();
     for (RankNode rankNode : needInsertVirtualRank) {
-
       for (int i = 0; i < rankNode.size(); i++) {
         DNode node = rankNode.get(i);
 
@@ -462,7 +422,6 @@ class LabelSupplement {
       }
 
       RankNode next = rankNode.next();
-
       for (DLine removeLine : removeLines) {
         if (removeLine.isParallelMerge()) {
           for (int i = 0; i < removeLine.getParallelNums(); i++) {
@@ -495,7 +454,7 @@ class LabelSupplement {
 
         // Find the first node whose median value is smaller than the current node and insert
         // it in front of the current node
-        while (labelNodes != null && !labelNodes.isEmpty()) {
+        while (CollectionUtils.isNotEmpty(labelNodes)) {
           DNode peek = labelNodes.peek();
           if (peek.getMedian() > median) {
             break;
@@ -512,7 +471,7 @@ class LabelSupplement {
         node.setRankIndex(i);
       }
 
-      while (labelNodes != null && !labelNodes.isEmpty()) {
+      while (CollectionUtils.isNotEmpty(labelNodes)) {
         DNode poll = labelNodes.poll();
         poll.setRank(rankNode.rankIndex());
         poll.setRankIndex(i++);
@@ -551,9 +510,16 @@ class LabelSupplement {
     }
 
     DLine flatLabelLine = flatLabelNode.getFlatLabelLine();
+    DNode pre = rankNode.get(flatLabelNode.getRankIndex() - 1);
     DNode next = rankNode.get(flatLabelNode.getRankIndex() + 1);
-    if (next != null && (flatLabelLine.from() == next || flatLabelLine.to() == next)) {
-      return;
+    if (pre != null) {
+      flatLabelNode.setContainer(pre.getContainer());
+    }
+    if (next != null) {
+      flatLabelNode.setContainer(next.getContainer());
+      if ((flatLabelLine.from() == next || flatLabelLine.to() == next)) {
+        return;
+      }
     }
 
     digraphProxy.addEdge(

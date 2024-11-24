@@ -16,15 +16,16 @@
 
 package org.graphper.draw.svg.line;
 
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgConstants;
 
-public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineHrefEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp line, SvgBrush brush) {
@@ -37,12 +38,16 @@ public class LineHrefEditor extends SvgEditor implements LineEditor<SvgBrush> {
     }
 
     String href = lineAttrs.getHref();
-    String id = brush.lineId(line);
-    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
+    String tooltip = StringUtils.isNotEmpty(lineAttrs.getTooltip())
+        ? lineAttrs.getTooltip() : lineAttrs.getLabel();
+
+    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, lineAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
+    }
     return true;
   }
 }

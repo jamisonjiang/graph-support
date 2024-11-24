@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
+
+import static org.graphper.layout.StraightPathClip.straightLineClipShape;
 
 import java.util.Objects;
 import org.graphper.api.Line;
@@ -31,17 +33,20 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.Rectangle;
-import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
-import org.graphper.layout.FlipShifterStrategy;
 import org.graphper.util.Asserts;
 
+/**
+ * Helper to handle various case of {@link Port} feature.
+ *
+ * @author Jamison Jiang
+ */
 public class PortHelper {
 
   private PortHelper() {
   }
 
-  public static FlatPoint getPortPoint(DNode node, Port port) {
+  public static FlatPoint getPortPoint(ANode node, Port port) {
     if (port == null) {
       return new FlatPoint(node.getX(), node.getY());
     }
@@ -77,21 +82,21 @@ public class PortHelper {
     return null;
   }
 
-  public static PortPoint getPortPoint(Line line, DNode node,
+  public static PortPoint getPortPoint(Line line, ANode node,
                                        DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, true);
   }
 
-  public static PortPoint getPortPointWithoutClip(Line line, DNode node,
+  public static PortPoint getPortPointWithoutClip(Line line, ANode node,
                                                   DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, false);
   }
 
-  public static PortPoint getPortPoint(DNode node, String cellId, Port port, DrawGraph drawGraph) {
+  public static PortPoint getPortPoint(ANode node, String cellId, Port port, DrawGraph drawGraph) {
     return endPoint(true, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static PortPoint getPortPoint(Line line, DNode node, DrawGraph drawGraph,
+  public static PortPoint getPortPoint(Line line, ANode node, DrawGraph drawGraph,
                                        boolean portClipNode) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
@@ -111,7 +116,7 @@ public class PortHelper {
     return endPoint(portClipNode, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static String getCellId(Line line, DNode node, LineDrawProp lineDrawProp) {
+  public static String getCellId(Line line, ANode node, LineDrawProp lineDrawProp) {
     String cellId = null;
     if (node.getNode() == line.tail()) {
       cellId = lineDrawProp.lineAttrs().getTailCell();
@@ -179,7 +184,7 @@ public class PortHelper {
     }
 
     if (nodeCenter(portPoint, rectangle) || !portClipNode || shapeProp.in(rectangle, portPoint)) {
-      FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, portPoint);
+      FlipShifterStrategy.movePointOpposite(drawGraph, shapePosition, portPoint);
       return portPoint;
     }
 
@@ -197,9 +202,8 @@ public class PortHelper {
     FlatPoint center = new FlatPoint(rectangle.getLeftBorder() + leftWidth,
                                      rectangle.getUpBorder() + topHeight);
 
-    FlatPoint p = AbstractDotLineRouter.straightLineClipShape(rectangle, shapeProp,
-                                                              center, portPoint);
-    FlipShifterStrategy.movePointOpposite(drawGraph.rankdir(), shapePosition, p);
+    FlatPoint p = straightLineClipShape(rectangle, shapeProp, center, portPoint);
+    FlipShifterStrategy.movePointOpposite(drawGraph, shapePosition, p);
     return new PortPoint(p.getX(), p.getY(), true, port);
   }
 
@@ -223,7 +227,7 @@ public class PortHelper {
     rectangle.setRightBorder(shapePosition.getRightBorder());
 
     // Rotation the rectangle to original position
-    FlipShifterStrategy.moveRectangle(drawGraph.rankdir(), maxX, maxY, rectangle);
+    FlipShifterStrategy.moveRectangle(drawGraph, maxX, maxY, rectangle);
     return rectangle;
   }
 
@@ -267,10 +271,10 @@ public class PortHelper {
     }
 
     FlatPoint point = new FlatPoint(shapePosition.getX(), shapePosition.getY());
-    return AbstractDotLineRouter.straightLineClipShape(shapePosition, point, portPoint);
+    return straightLineClipShape(shapePosition, point, portPoint);
   }
 
-  public static double portCompareNo(Line line, DNode node, DrawGraph drawGraph) {
+  public static double portCompareNo(Line line, ANode node, DrawGraph drawGraph) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 

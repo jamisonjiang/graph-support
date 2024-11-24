@@ -54,6 +54,22 @@ public abstract class AbstractBaseGraph<V> implements BaseGraph<V> {
     return vertexNum() != 0 ? (double) 2 * edgeNum() / vertexNum() : 0;
   }
 
+  /**
+   * Return a start node by specific strategy, and use this api bound with {@link #next(Object)} to
+   * iterated graph rather than {@link #iterator()}.
+   *
+   * @return start node
+   */
+  @Override
+  public V start() {
+    V v = null;
+    for (V n : this) {
+      v = n;
+      break;
+    }
+    return v;
+  }
+
   public abstract static class AbstractVertexOpBase<V> extends AbstractBaseGraph<V>
       implements VertexOpGraph<V> {
 

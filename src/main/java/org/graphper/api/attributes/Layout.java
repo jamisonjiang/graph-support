@@ -17,8 +17,11 @@
 package org.graphper.api.attributes;
 
 import org.graphper.layout.LayoutEngine;
-import org.graphper.util.Asserts;
 import org.graphper.layout.dot.DotLayoutEngine;
+import org.graphper.layout.fdp.FdpLayoutEngine;
+import org.graphper.layout.fdp.GFdpLayoutEngine;
+import org.graphper.layout.fdp.JFdpLayoutEngine;
+import org.graphper.util.Asserts;
 
 /**
  * Layout engine enumeration.
@@ -32,7 +35,34 @@ public enum Layout {
    * same direction (top to bottom, or left to right) and then attempts to avoid edge crossings and
    * reduce edge length.
    */
-  DOT(new DotLayoutEngine());
+  DOT(new DotLayoutEngine()),
+
+  /**
+   * A standard force-directed placement (FDP) layout engine.
+   */
+  FDP(new FdpLayoutEngine()),
+
+  /**
+   * A specialized force-directed placement (JFDP) layout engine.
+   * <ul>
+   *   <li>Reduced node displacement for better stability.</li>
+   *   <li>Degree-based scaling of attractive forces.</li>
+   *   <li>Efficient repulsive force calculation to avoid overlaps.</li>
+   *   <li>Bounding node positions within the graph area.</li>
+   * </ul>
+   */
+  JFDP(new JFdpLayoutEngine()),
+
+  /**
+   * A specialized force-directed placement (GFDP) layout engine.
+   * <p>
+   * This algorithm is another variant of FDP that focuses on localized node interactions,
+   * considering only the forces within the cell area of a node. This optimization reduces
+   * computational complexity and is particularly effective for dense graphs with limited
+   * interaction ranges.
+   * </p>
+   */
+  GFDP(new GFdpLayoutEngine());
 
   private final LayoutEngine layoutEngine;
 

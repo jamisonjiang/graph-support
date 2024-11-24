@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.graphper.layout.dot;
+package org.graphper.layout;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +26,7 @@ import org.graphper.util.Asserts;
 
 public class OrthoNodeSizeExpander extends NodeSizeExpander {
 
-  public OrthoNodeSizeExpander(DNode node) {
+  public OrthoNodeSizeExpander(ANode node) {
     Asserts.nullArgument(node, "Self line node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node not have any self line");
 
@@ -34,7 +34,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     init(node);
   }
 
-  private void init(DNode node) {
+  private void init(ANode node) {
     node.sortSelfLine(this::lineComparator);
 
     OffsetConsumer consumer = (lineNo, line, topOffset, bottomOffset, rightOffset) -> {
@@ -45,7 +45,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     linePos(node, consumer);
   }
 
-  public static void linePos(DNode node, OffsetConsumer consumer) {
+  public static void linePos(ANode node, OffsetConsumer consumer) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(consumer, "consumer");
     Asserts.illegalArgument( node.getSelfLoopCount()  < 1,"node do not have any self line");
@@ -58,7 +58,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     double rightWidthOffset = 0;
 
     for (int i = 0; i < node.getSelfLoopCount(); i++) {
-      DLine line = node.selfLine(i);
+      LineDrawProp line = node.selfLine(i);
       FlatPoint labelSize = line.getLabelSize();
       double height = 0;
       double width = 0;
@@ -94,7 +94,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
 
       for (int lineNo = 0; lineNo < groupLines.size(); lineNo++) {
         GroupEntry groupEntry = groupLines.get(lineNo);
-        DLine line = groupEntry.getLine();
+        LineDrawProp line = groupEntry.getLine();
 
         LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line.getLine());
         if (lineDrawProp == null || lineDrawProp.isInit()) {
@@ -146,7 +146,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     }
   }
 
-  private int lineComparator(DLine left, DLine right) {
+  private int lineComparator(LineDrawProp left, LineDrawProp right) {
     FlatPoint ls = left.getLabelSize();
     FlatPoint rs = right.getLabelSize();
 
@@ -166,7 +166,7 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
 
   public interface OffsetConsumer {
 
-    void consumeSelfLine(int lineNo, DLine line, double topOffset,
+    void consumeSelfLine(int lineNo, LineDrawProp line, double topOffset,
                          double bottomOffset, double rightOffset);
   }
 }

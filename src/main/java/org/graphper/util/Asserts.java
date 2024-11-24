@@ -18,18 +18,24 @@ package org.graphper.util;
 
 import java.util.Objects;
 
+/**
+ * A utility class for common assertion checks to validate method parameters and ensure invariants.
+ *
+ * @author Jamison Jiang
+ */
 public final class Asserts {
 
   private Asserts() {
+    // Utility class, no instances allowed
   }
 
   /**
-   * When the condition is not met and the {@code predicate} is <tt>false</tt>, use {@code errorMsg}
-   * as the error message and throw {@link IllegalArgumentException} error.
+   * Validates a condition and throws an {@link IllegalArgumentException} if the condition is not
+   * met.
    *
-   * @param predicate condition to be checked
-   * @param errorMsg  error message when parameters are abnormal
-   * @throws IllegalArgumentException predicate is false
+   * @param predicate the condition to validate
+   * @param errorMsg  the error message to include in the exception if the condition is not met
+   * @throws IllegalArgumentException if {@code predicate} is {@code false}
    */
   public static void illegalArgument(boolean predicate, String errorMsg) {
     if (predicate) {
@@ -38,23 +44,37 @@ public final class Asserts {
   }
 
   /**
-   * When the specified parameter is <tt>null</tt>, a {@link NullPointerException} is thrown with
-   * the specified parameter name.
+   * Validates that the specified object is not {@code null}.
    *
-   * @param obj       condition to be checked
-   * @param paramName error message when parameters are abnormal
-   * @throws IllegalArgumentException predicate is false
+   * @param obj the object to check
+   * @throws NullPointerException if {@code obj} is {@code null}
+   */
+  public static void nullArgument(Object obj) {
+    Objects.requireNonNull(obj);
+  }
+
+  /**
+   * Validates that the specified object is not {@code null}, throwing a
+   * {@link NullPointerException} with a customized error message if the check fails.
+   *
+   * @param obj       the object to check
+   * @param paramName the name of the parameter to include in the exception message
+   * @throws NullPointerException if {@code obj} is {@code null}
    */
   public static void nullArgument(Object obj, String paramName) {
     Objects.requireNonNull(obj, paramName + " can not be null");
   }
 
   /**
-   * Check array not be null or empty or contains null element.
+   * Validates that the specified array is not {@code null}, not empty, and does not contain any
+   * {@code null} elements.
    *
-   * @param arrays object arrays
-   * @throws IllegalArgumentException array is empty or contains null element
+   * @param arrays the array to check
+   * @param <T>    the type of the elements in the array
+   * @throws IllegalArgumentException if the array is {@code null}, empty, or contains {@code null}
+   *                                  elements
    */
+  @SafeVarargs
   public static <T> void nullOrContainsNull(T... arrays) {
     illegalArgument(arrays == null || arrays.length == 0, "Array is empty");
     for (T ele : arrays) {

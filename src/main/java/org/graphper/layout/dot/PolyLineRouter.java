@@ -16,6 +16,8 @@
 
 package org.graphper.layout.dot;
 
+import static org.graphper.layout.LineHelper.lineDrawPropConnect;
+
 import org.graphper.api.attributes.Splines;
 
 /**
@@ -26,11 +28,6 @@ import org.graphper.api.attributes.Splines;
 class PolyLineRouter extends BoxGuideLineRouter {
 
   private PolyLineRouter() {
-  }
-
-  @Override
-  public boolean needDeal(Splines splines) {
-    return splines == Splines.POLYLINE && super.needDeal(splines);
   }
 
   @Override
@@ -47,6 +44,11 @@ class PolyLineRouter extends BoxGuideLineRouter {
   }
 
   static class PolyLineRouterFactory extends AbstractDotLineRouterFactory<PolyLineRouter> {
+
+    @Override
+    public boolean needDeal(Splines splines) {
+      return splines == Splines.POLYLINE && super.needDeal(splines);
+    }
 
     @Override
     protected PolyLineRouter newInstance() {

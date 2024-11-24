@@ -16,5 +16,51 @@
 
 package org.graphper.layout;
 
+import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
+import org.graphper.draw.DrawGraph;
+
 public class LayoutAttach {
+  private boolean haveClusters;
+
+  protected final DrawGraph drawGraph;
+
+  public LayoutAttach(DrawGraph drawGraph) {
+    this.drawGraph = drawGraph;
+  }
+
+  public void markHaveCluster() {
+    this.haveClusters = true;
+  }
+
+  public boolean haveClusters() {
+    return haveClusters;
+  }
+
+  public GraphContainer clusterDirectContainer(GraphContainer parent, ANode node) {
+    return clusterDirectContainer(getGraphviz(), parent, node);
+  }
+
+  public static GraphContainer clusterDirectContainer(Graphviz graphviz,
+                                               GraphContainer parent, ANode node) {
+    if (node.getContainer() == parent || graphviz == null) {
+      return null;
+    }
+
+    GraphContainer father;
+    GraphContainer current = node.getContainer();
+    while ((father = graphviz.effectiveFather(current)) != parent && father != null) {
+      current = father;
+    }
+
+    return father == parent ? current : null;
+  }
+
+  public DrawGraph getDrawGraph() {
+    return drawGraph;
+  }
+
+  public Graphviz getGraphviz() {
+    return drawGraph.getGraphviz();
+  }
 }

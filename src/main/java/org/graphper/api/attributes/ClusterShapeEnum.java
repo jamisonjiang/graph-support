@@ -60,7 +60,9 @@ public enum ClusterShapeEnum implements ClusterShape {
 
   RECT("rect", new RectanglePropCalc()),
 
-  TRAPEZIUM("trapezium", new TrapeziumPropCalc()),
+  TRAPEZIUM("trapezium", new TrapeziumPropCalc(true)),
+
+  INVTRAPEZIUM("invtrapezium", new TrapeziumPropCalc(false)),
 
   PARALLELOGRAM("parallelogram", new ParallelogramPropCalc()),
 

@@ -16,18 +16,17 @@
 
 package org.graphper.api.ext;
 
-import org.graphper.api.ext.TrianglePropCalc;
+import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.def.FlatPoint;
+import org.graphper.draw.DefaultShapePosition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.graphper.def.FlatPoint;
-import org.graphper.api.attributes.NodeShapeEnum;
-import org.graphper.draw.DefaultShapePosition;
 
 public class TrianglePropCalcTest {
 
   @Test
   public void testIn() {
-    TrianglePropCalc calc = new TrianglePropCalc();
+    TrianglePropCalc calc = new TrianglePropCalc(true);
 
     DefaultShapePosition shapePosition = new DefaultShapePosition(0, 1, 2, 4, NodeShapeEnum.TRIANGLE);
     Assertions.assertTrue(calc.in(shapePosition, new FlatPoint(0, 0.1)));

@@ -16,27 +16,38 @@
 
 package org.graphper.util;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.FontSelector;
 import org.graphper.layout.MeasureText;
 
+/**
+ * Utility class for font-related operations. Provides methods to measure text dimensions, check
+ * font existence, and select fonts that support specific characters or text content.
+ *
+ * @author Jamison Jiang
+ */
 public class FontUtils {
 
   private FontUtils() {
+    // Private constructor to prevent instantiation
   }
 
-  public static final String DEFAULT_FONT;
+  private static final MeasureText MEASURE_TEXT = selectMeasureText();
+  private static final FontSelector FONT_SELECTOR = selectFontSelector();
 
-  private static final MeasureText MEASURE_TEXT;
-  private static final FontSelector FONT_SELECTOR;
+  /**
+   * Default font to use when no suitable font is specified or found.
+   */
+  public static final String DEFAULT_FONT = defaultFont();
 
-  static {
-    MEASURE_TEXT = selectMeasureText();
-    FONT_SELECTOR = selectFontSelector();
-    String defaultFont = FONT_SELECTOR != null ? FONT_SELECTOR.defaultFont() : null;
-    DEFAULT_FONT = StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
+  private static String defaultFont() {
+    String defaultFont = FONT_SELECTOR.defaultFont();
+    return StringUtils.isEmpty(defaultFont) ? "Times New Roman" : defaultFont;
   }
 
   private static MeasureText selectMeasureText() {
@@ -79,26 +90,99 @@ public class FontUtils {
   }
 
   /**
-   * Calculate the actual size of the label container based on the font and size of the label.
+   * Measures the actual size of a label's bounding box based on its content, font, and size.
    *
-   * @param label     label content
-   * @param fontName  font name
-   * @param fontSize  font size
-   * @param widthIncr increased width for fault tolerance
-   * @return label size
+   * @param label     the label content to measure
+   * @param fontName  the name of the font used for the label
+   * @param fontSize  the size of the font
+   * @param widthIncr additional width added for fault tolerance
+   * @return a {@link FlatPoint} representing the width and height of the label
+   * @throws RuntimeException if the measurement operation fails or returns null
    */
-  public static FlatPoint measure(String label, String fontName,
-                                  double fontSize, double widthIncr) {
+  public static FlatPoint measure(String label, String fontName, double fontSize,
+                                  double widthIncr) {
     FlatPoint size = MEASURE_TEXT.measure(label, fontName, fontSize);
     if (size == null) {
       throw new RuntimeException(
-          "Occurred unexpected error, MeasureText can not work and return null label size");
+          "Unexpected error: MeasureText returned null for label size");
     }
     size.setWidth(size.getWidth() + widthIncr);
     return size;
   }
 
+  /**
+   * Checks if a specific font exists in the current environment.
+   *
+   * @param fontName the name of the font to check
+   * @return {@code true} if the font exists, {@code false} otherwise
+   */
   public static boolean fontExists(String fontName) {
     return FONT_SELECTOR.exists(fontName);
+  }
+
+  /**
+   * Finds the first font that supports a given character.
+   *
+   * @param c the character to check
+   * @return the name of the first font that supports the character, or {@code null} if none is
+   * found
+   */
+  public static String findFirstSupportFont(char c) {
+    return FONT_SELECTOR.findFirstSupportFont(c);
+  }
+
+  /**
+   * Selects an appropriate font for the given text. If the specified font supports all characters
+   * in the text, it is returned. Otherwise, the font that supports the most characters in the text
+   * is selected.
+   *
+   * @param text     the text to be rendered
+   * @param fontName the preferred font name
+   * @return the selected font name
+   */
+  public static String selectFont(String text, String fontName) {
+    if (StringUtils.isEmpty(text)) {
+      return fontName;
+    }
+
+    /*
+     * 1. Return manual set fontName if fontName supports all characters;
+     * 2. Otherwise, return the font that supports the most characters.
+     */
+    boolean supportAll = true;
+    Map<String, Integer> fontCount = null;
+    for (int i = 0; i < text.length(); i++) {
+      char c = text.charAt(i);
+      if (!FONT_SELECTOR.fontSupport(fontName, c)) {
+        supportAll = false;
+      }
+
+      String font = findFirstSupportFont(c);
+      if (font == null) {
+        continue;
+      }
+      if (fontCount == null) {
+        fontCount = new HashMap<>(1);
+      }
+      fontCount.compute(font, (f, n) -> n == null ? 1 : n + 1);
+    }
+
+    if (supportAll) {
+      return fontName;
+    }
+    if (fontCount == null) {
+      return DEFAULT_FONT;
+    }
+
+    int max = Integer.MIN_VALUE;
+    String maxSupportFont = null;
+    for (Entry<String, Integer> entry : fontCount.entrySet()) {
+      if (entry.getValue() > max) {
+        max = entry.getValue();
+        maxSupportFont = entry.getKey();
+      }
+    }
+
+    return maxSupportFont == null ? DEFAULT_FONT : maxSupportFont;
   }
 }

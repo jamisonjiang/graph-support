@@ -245,8 +245,6 @@ public class Vectors {
     Asserts.illegalArgument(
         line1P1 == null || line1P2 == null || line2P1 == null || line2P2 == null,
         "The line segment description is incomplete and there are null points");
-    Asserts.illegalArgument(Objects.equals(line1P1, line1P2) || Objects.equals(line2P1, line2P2),
-                            "Two points must form a line segment");
 
     double m1 = line1P1.getX() - line1P2.getX();
     double d1 = line1P1.getY() - line1P2.getY();
@@ -257,26 +255,26 @@ public class Vectors {
       throw new UnfeasibleException("No intersection between two line segments");
     }
 
-    if (ValueUtils.approximate(m1, 0, 0.001)) {
+    if (ValueUtils.approximate(m1, 0)) {
       return new FlatPoint(line1P1.getX(), linerFuncGetY(line2P1, line2P2, line1P1.getX()));
     }
 
-    if (ValueUtils.approximate(m2, 0, 0.001)) {
+    if (ValueUtils.approximate(m2, 0)) {
       return new FlatPoint(line2P1.getX(), linerFuncGetY(line1P1, line1P2, line2P1.getX()));
     }
 
-    if (ValueUtils.approximate(d1, 0, 0.001)) {
+    if (ValueUtils.approximate(d1, 0)) {
       return new FlatPoint(linerFuncGetX(line2P1, line2P2, line1P1.getY()), line1P1.getY());
     }
 
-    if (ValueUtils.approximate(d2, 0, 0.001)) {
+    if (ValueUtils.approximate(d2, 0)) {
       return new FlatPoint(linerFuncGetX(line1P1, line1P2, line2P1.getY()), line2P1.getY());
     }
 
     double slope1 = d1 / m1;
     double slope2 = d2 / m2;
 
-    if (ValueUtils.approximate(slope1, slope2, 0.001)) {
+    if (ValueUtils.approximate(slope1, slope2)) {
       throw new UnfeasibleException("No intersection between two line segments");
     }
 
@@ -285,6 +283,49 @@ public class Vectors {
     double x = (constant1 - constant2) / (slope2 - slope1);
 
     return new FlatPoint(x, slope1 * x + constant1);
+  }
+
+  /**
+   * Calculates the shortest distance from a given point to a line defined by two points.
+   *
+   * @param point  the point from which to calculate the distance, not null
+   * @param lineP1 the first point defining the line, not null
+   * @param lineP2 the second point defining the line, not null
+   * @return the shortest distance from {@code point} to the line defined by {@code lineP1} and
+   * {@code lineP2}
+   * @throws NullPointerException if {@code point}, {@code lineP1}, or {@code lineP2} is null
+   *                              <p>
+   *                              This method checks if the line is approximately vertical or
+   *                              horizontal, simplifying the calculation of the distance. If
+   *                              neither case applies, the method calculates the perpendicular line
+   *                              from the point to the line and computes the intersection to find
+   *                              the shortest distance. If an intersection cannot be determined, it
+   *                              returns 0.
+   */
+  public static double disToLine(FlatPoint point, FlatPoint lineP1, FlatPoint lineP2) {
+    Objects.requireNonNull(point);
+    Objects.requireNonNull(lineP1);
+    Objects.requireNonNull(lineP2);
+
+    if (ValueUtils.approximate(lineP1.getX(), lineP2.getX())) {
+      return Math.abs(point.getX() - lineP1.getX());
+    }
+
+    if (ValueUtils.approximate(lineP1.getY(), lineP2.getY())) {
+      return Math.abs(point.getY() - lineP1.getY());
+    }
+
+    FlatPoint direction = sub(lineP1, lineP2);
+    double slop = direction.getY() / direction.getX();
+    slop = -1 / slop;
+    double cons = point.getY() - slop * point.getX();
+    FlatPoint endPoint = new FlatPoint(point.getX() + 2, slop * (point.getX() + 2) + cons);
+    try {
+      FlatPoint intersect = lineInters(point, endPoint, lineP1, lineP2);
+      return sub(intersect, point).dist();
+    } catch (UnfeasibleException e) {
+      return Double.MAX_VALUE;
+    }
   }
 
   /**
@@ -370,6 +411,6 @@ public class Vectors {
     }
 
     double val = linerFuncGetY(startX, startY, endX, endY, targetX);
-    return val > targetY && !ValueUtils.approximate(val, targetY, 0.01);
+    return val > targetY && !ValueUtils.approximate(val, targetY);
   }
 }

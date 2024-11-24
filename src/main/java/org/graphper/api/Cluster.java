@@ -28,6 +28,7 @@ import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.util.Asserts;
+import org.graphper.util.FontUtils;
 
 /**
  * Gather nodes and lines together and use a single border to enclose them as a sub-graph.
@@ -88,6 +89,7 @@ public class Cluster extends GraphContainer implements Serializable {
      */
     public B label(String label) {
       clusterAttrs.label = label;
+      clusterAttrs.fontName = FontUtils.selectFont(clusterAttrs.label, clusterAttrs.fontName);
       return self();
     }
 
@@ -206,6 +208,7 @@ public class Cluster extends GraphContainer implements Serializable {
     public B fontName(String fontName) {
       Asserts.nullArgument(fontName, "fontName");
       clusterAttrs.fontName = fontName;
+      clusterAttrs.fontName = FontUtils.selectFont(clusterAttrs.label, clusterAttrs.fontName);
       return self();
     }
 
@@ -259,6 +262,17 @@ public class Cluster extends GraphContainer implements Serializable {
      */
     public B href(String href) {
       clusterAttrs.href = href;
+      return self();
+    }
+
+    /**
+     * Sets the tooltip text for the cluster.
+     *
+     * @param tooltip the text to be displayed as the tooltip
+     * @return cluster builder
+     */
+    public B tooltip(String tooltip) {
+      clusterAttrs.tooltip = tooltip;
       return self();
     }
 

@@ -19,9 +19,10 @@ package org.graphper.layout.dot;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.graphper.draw.DrawGraph;
+import org.graphper.layout.Mark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.graphper.layout.Mark;
 
 class Acyclic extends Mark<DNode> {
 
@@ -29,11 +30,13 @@ class Acyclic extends Mark<DNode> {
 
   private final DotDigraph digraph;
 
+  private final DrawGraph drawGraph;
+
   private Set<DNode> accessStack;
 
-  Acyclic(DotDigraph digraph) {
+  Acyclic(DotDigraph digraph, DrawGraph drawGraph) {
     this.digraph = digraph;
-
+    this.drawGraph = drawGraph;
     acyclic();
   }
 
@@ -49,7 +52,7 @@ class Acyclic extends Mark<DNode> {
       if (Objects.equals(line.from(), line.to())) {
         digraph.removeEdge(line);
         if (!line.isVirtual()) {
-          line.from().addSelfLine(line);
+          line.from().addSelfLine(drawGraph.getLineDrawProp(line.getLine()));
         }
       } else {
         // Reverse loop line

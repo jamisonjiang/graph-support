@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
@@ -55,4 +56,8 @@ public interface Shifter {
    * @param lineDrawProp line properties object
    */
   void line(LineDrawProp lineDrawProp);
+
+  boolean isMark(FlatPoint point);
+
+  void markFlatPoint(FlatPoint point);
 }

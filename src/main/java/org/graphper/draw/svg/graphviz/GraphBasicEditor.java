@@ -16,17 +16,16 @@
 
 package org.graphper.draw.svg.graphviz;
 
-import org.graphper.draw.svg.Element;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.attributes.Color;
 import org.graphper.draw.GraphEditor;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgDrawBoard;
-import org.graphper.draw.svg.SvgEditor;
 
-public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush> {
+public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(GraphvizDrawProp graphvizDrawProp, SvgBrush brush) {
@@ -34,9 +33,7 @@ public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush>
 
     setHref(graphvizDrawProp, brush);
 
-    Element background = brush.getOrCreateChildElementById(
-        SvgBrush.getId(SvgDrawBoard.GRAPH_ROOT, POLYGON_ELE), POLYGON_ELE
-    );
+    Element background = brush.getOrCreateChildElementById(POLYGON_ELE, POLYGON_ELE);
 
     double leftBorder = graphvizDrawProp.getLeftBorder();
     double rightBorder = graphvizDrawProp.getRightBorder();
@@ -62,11 +59,15 @@ public class GraphBasicEditor extends SvgEditor implements GraphEditor<SvgBrush>
 
     String href = graphAttrs.getHref();
     String id = SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0";
+    String tooltip = StringUtils.isNotEmpty(graphAttrs.getTooltip())
+        ? graphAttrs.getTooltip() : graphAttrs.getLabel();
+
     Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
-
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, graphAttrs.getLabel());
+    if (StringUtils.isNotEmpty(tooltip)) {
+      wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);
+    }
   }
 
   private void setBgColor(GraphAttrs graphAttrs, Element background) {

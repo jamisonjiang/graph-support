@@ -97,7 +97,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
       return;
     }
 
-    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getNodeShape();
+    NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
     FlatPoint labelCenter;
     if (Boolean.TRUE.equals(nodeDrawProp.nodeAttrs().getFixedSize())) {
       labelCenter = new FlatPoint(nodeDrawProp.getX(), nodeDrawProp.getY());
@@ -273,18 +273,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    */
   protected void containerLabelPos(DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
-    if (graphvizDrawProp.getLabelSize() != null) {
-      GraphAttrs graphAttrs = graphvizDrawProp.getGraphviz().graphAttrs();
-      containerLabelPos(graphvizDrawProp, graphAttrs.getLabelloc(), graphAttrs.getLabeljust());
-    }
+    containerLabelPos(graphvizDrawProp);
 
     for (ClusterDrawProp cluster : drawGraph.clusters()) {
-      if (cluster.getLabelSize() == null) {
-        continue;
-      }
-
-      ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
-      containerLabelPos(cluster, clusterAttrs.getLabelloc(), clusterAttrs.getLabeljust());
+      containerLabelPos(cluster);
     }
   }
 
@@ -329,8 +321,14 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     graphvizDrawProp.setLabelSize(labelSize);
   }
 
-  private void containerLabelPos(ContainerDrawProp containerDrawProp,
-                                 Labelloc labelloc, Labeljust labeljust) {
+  protected void containerLabelPos(ContainerDrawProp containerDrawProp) {
+    FlatPoint labelSize = containerDrawProp.getLabelSize();
+    if (labelSize == null) {
+      return;
+    }
+
+    Labelloc labelloc = containerDrawProp.labelloc();
+    Labeljust labeljust = containerDrawProp.labeljust();
     FlatPoint upperLeft = new FlatPoint(containerDrawProp.getLeftBorder(),
                                         containerDrawProp.getUpBorder());
     FlatPoint lowerRight = new FlatPoint(containerDrawProp.getRightBorder(),
@@ -338,8 +336,8 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // Adjust the position by Labelloc and Labeljust
     FlatPoint labelPoint = new FlatPoint(
-        labeljust.getX(upperLeft, lowerRight, containerDrawProp.getLabelSize()),
-        labelloc.getY(upperLeft, lowerRight, containerDrawProp.getLabelSize())
+        labeljust.getX(upperLeft, lowerRight, labelSize),
+        labelloc.getY(upperLeft, lowerRight, labelSize)
     );
     containerDrawProp.setLabelCenter(labelPoint);
   }
@@ -450,7 +448,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         }
 
         if (cell != null) {
-          cell.setShape(nodeAttrs.getNodeShape());
+          cell.setShape(nodeAttrs.getShape());
           cell.setWidth(nodeDrawProp.getWidth());
           cell.setHeight(nodeDrawProp.getHeight());
           cell.setOffset(offset);
@@ -609,7 +607,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   }
 
   private void nodeContainerSet(NodeDrawProp nodeDrawProp, NodeAttrs nodeAttrs, boolean needFlip) {
-    NodeShape nodeShape = nodeAttrs.getNodeShape();
+    NodeShape nodeShape = nodeAttrs.getShape();
 
     // Set node box size
     double height = nodeAttrs.getHeight() == null
@@ -836,10 +834,59 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     shifter.graph(drawGraph.getGraphvizDrawProp());
     drawGraph.clusters().forEach(shifter::cluster);
     drawGraph.nodes().forEach(shifter::node);
-    drawGraph.lines().forEach(shifter::line);
+    drawGraph.lines().forEach(line -> {
+      shifter.line(line);
+      if (!drawGraph.needFlip()) {
+        return;
+      }
+      FlatPoint labelSize = line.getLabelSize();
+      if (labelSize == null || shifter.isMark(labelSize)) {
+        return;
+      }
+      labelSize.flip();
+      shifter.markFlatPoint(labelSize);
+    });
   }
 
   private boolean isRecordShape(NodeShape nodeShape) {
     return nodeShape == NodeShapeEnum.RECORD || nodeShape == NodeShapeEnum.M_RECORD;
+  }
+
+  public static class LineClipProcessor extends LineClip {
+
+    public LineClipProcessor(DrawGraph drawGraph, LayoutGraph<?, ?> layoutGraph) {
+      Objects.requireNonNull(drawGraph);
+      Objects.requireNonNull(layoutGraph);
+      this.drawGraph = drawGraph;
+      this.layoutGraph = layoutGraph;
+    }
+
+    public void clipAllLines() {
+      for (LineDrawProp line : drawGraph.lines()) {
+        PathClip pathClip;
+        if (line.isBesselCurve()) {
+          pathClip = CurvePathClip.INSTANCE;
+        } else {
+          pathClip = StraightPathClip.INSTANCE;
+        }
+
+        if (line.isSelfLoop() && CollectionUtils.isNotEmpty(line)) {
+          FlatPoint noPathDirection = line.get(line.size() / 2);
+          clipProcess(line, pathClip, noPathDirection, line);
+        } else {
+          clipProcess(line, pathClip, null, line);
+        }
+
+        if (CollectionUtils.isEmpty(line)) {
+          continue;
+        }
+
+        line.setStart(line.get(0));
+        line.setEnd(line.get(line.size() - 1));
+        setFloatLabel(line);
+      }
+
+      drawGraph.syncToGraphvizBorder();
+    }
   }
 }

@@ -178,4 +178,11 @@ public class VectorsTest {
     Assertions.assertTrue(Vectors.inAngle(0, 0, 1, 1, 1, 0, 40, 39));
     Assertions.assertFalse(Vectors.inAngle(0, 0, 1, 1, 1, 0, 40, 41));
   }
+
+  @Test
+  public void test() {
+    Assertions.assertEquals(1, Vectors.disToLine(new FlatPoint(1, 1), new FlatPoint(2, 2), new FlatPoint(2, 3)));
+    Assertions.assertEquals(1, Vectors.disToLine(new FlatPoint(1, 1), new FlatPoint(2, 2), new FlatPoint(3, 2)));
+    Assertions.assertEquals(1.41, Vectors.disToLine(new FlatPoint(1, 1), new FlatPoint(2, 2), new FlatPoint(4, 0)), 0.01);
+  }
 }

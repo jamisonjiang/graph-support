@@ -18,6 +18,7 @@ package org.graphper.api.ext;
 
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
+import org.graphper.util.EnvProp;
 
 /**
  * Public interface with Box traits.
@@ -29,6 +30,8 @@ public interface Box {
   String HORIZONTAL_ERROR = "Box's right wall must be greater than left wall";
 
   String VERTICAL_ERROR = "Box's down wall must be greater than up wall";
+
+  String NOT_POSITIVE_BOX = "Box don't have positive area";
 
   /**
    * Returns the left border.
@@ -104,6 +107,24 @@ public interface Box {
   }
 
   /**
+   * Returns the left-down corner coordinate.
+   *
+   * @return left-down corner coordinate
+   */
+  default FlatPoint getLeftDown() {
+    return new FlatPoint(getLeftBorder(), getDownBorder());
+  }
+
+  /**
+   * Returns the right-up corner coordinate.
+   *
+   * @return right-up corner coordinate
+   */
+  default FlatPoint getRightUp() {
+    return new FlatPoint(getRightBorder(), getUpBorder());
+  }
+
+  /**
    * Returns the right-down corner coordinate.
    *
    * @return right-down corner coordinate
@@ -123,20 +144,104 @@ public interface Box {
    *                                  </ul>
    */
   default void check() {
-    Asserts.illegalArgument(getLeftBorder() > getRightBorder(), HORIZONTAL_ERROR);
-    Asserts.illegalArgument(getUpBorder() > getDownBorder(), VERTICAL_ERROR);
+    if (EnvProp.ignoreBoxCheck()) {
+      return;
+    }
+
+    Asserts.illegalArgument(!positive(), NOT_POSITIVE_BOX);
   }
 
   /**
-   * Returns coordinate whether in box area.
+   * Returns true if box have positive area.
+   *
+   * @return true if box have positive area
+   */
+  default boolean positive() {
+    return getLeftBorder() <= getRightBorder() && getUpBorder() <= getDownBorder();
+  }
+
+  /**
+   * Returns true if point in box area.
+   *
+   * @param point flat point
+   * @return true - point in box area false - point not in box area
+   */
+  default boolean in(FlatPoint point) {
+    if (point == null) {
+      return false;
+    }
+    return in(point.getX(), point.getY());
+  }
+
+  /**
+   * Returns true if coordinate in box area.
    *
    * @param x x-coordinate
    * @param y y-coordinate
-   * @return true - in box area
-   *         false - not in box area
+   * @return true - in box area false - not in box area
    */
   default boolean in(double x, double y) {
-    return x >= getLeftBorder() - 0.1 && x <= getRightBorder() + 0.1
-        && y >= getUpBorder() - 0.1 && y <= getDownBorder() + 0.1;
+    if (!positive()) {
+      return false;
+    }
+    return x >= getLeftBorder() + 0.01 && x <= getRightBorder() - 0.01
+        && y >= getUpBorder() + 0.01 && y <= getDownBorder() - 0.01;
+  }
+
+  /**
+   * Calculates the area of the box.
+   *
+   * @return the area of the box
+   */
+  default double getArea() {
+    return getWidth() * getHeight();
+  }
+
+  /**
+   * Calculates the distance between the centers of this box and another box.
+   *
+   * @param box the other box
+   * @return the distance between the centers of the two boxes
+   * @throws IllegalArgumentException if the other box is null
+   */
+  default double distanceTo(Box box) {
+    Asserts.illegalArgument(box == null, "The other box must not be null");
+
+    double deltaX = getX() - box.getX();
+    double deltaY = getY() - box.getY();
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  }
+
+  /**
+   * Checks if this box overlaps with another box.
+   *
+   * @param box the box to check for overlap
+   * @return {@code true} if the boxes overlap, {@code false} otherwise
+   */
+  default boolean isOverlap(Box box) {
+    if (box == null) {
+      return false;
+    }
+    double deltaX = Math.abs(getX() - box.getX());
+    double deltaY = Math.abs(getY() - box.getY());
+    return deltaX <= wd2() + box.wd2() && deltaY <= ht2() + box.ht2();
+  }
+
+  /**
+   * Returns half the width of the box.
+   *
+   * @return half the width of the box
+   */
+  default double wd2() {
+    return getWidth() / 2;
+  }
+
+  /**
+   * Returns half the height of the box.
+   *
+   * @return half the height of the box
+   */
+  default double ht2() {
+    return getHeight() / 2;
   }
 }

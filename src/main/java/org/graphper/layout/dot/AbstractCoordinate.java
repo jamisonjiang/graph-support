@@ -33,7 +33,9 @@ import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.PortHelper;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.layout.dot.RankContent.RankNode;
@@ -130,7 +132,7 @@ abstract class AbstractCoordinate {
             rankMaxHeight);
 
         if (node.haveSelfLine()) {
-          for (DLine selfLine : node.getSelfLines()) {
+          for (LineDrawProp selfLine : node.getSelfLines()) {
             if (!selfLine.haveLabel()) {
               continue;
             }
@@ -161,7 +163,9 @@ abstract class AbstractCoordinate {
         DNode preNode = rankContent.rankPreNode(flatNode);
         DNode nextNode = rankContent.rankNextNode(flatNode);
 
-        if (preNode != null && nextNode != null) {
+     if (preNode != null && nextNode != null
+         && preNode.getContainer() == nextNode.getContainer()
+         && preNode.getContainer() == flatNode.getContainer()) {
           flatNode.setX(
               (preNode.getX() + preNode.rightWidth() + nextNode.getX() - nextNode.leftWidth()) / 2);
         }
@@ -487,7 +491,7 @@ abstract class AbstractCoordinate {
             ((nextRankY - preRankY - rankNode.getRankSep()) / 2) - (node.getHeight() / 2);
         node.setY(preRankY + node.realTopHeight() + offset);
 
-        containerAdjust(node);
+        containerAdjust(node, !rankNode.noNormalNode());
         if (!node.isVirtual()) {
           updateNodeContainer(node, drawGraph.getNodeDrawProp(node.getNode()));
         }
@@ -502,7 +506,7 @@ abstract class AbstractCoordinate {
     refreshGraphBorder(drawGraph);
   }
 
-  private void containerAdjust(DNode node) {
+  private void containerAdjust(DNode node, boolean normalRank) {
     if (!node.getContainer().isCluster()) {
       return;
     }
@@ -520,7 +524,7 @@ abstract class AbstractCoordinate {
         continue;
       }
 
-      if (EnvProp.qualityCheck()) {
+      if (normalRank && EnvProp.qualityCheck()) {
         double leftBorder = containerLeftBorder(container);
         double rightBorder = containerRightBorder(container);
         Asserts.illegalArgument(node.getX() < leftBorder || node.getX() > rightBorder,
@@ -546,7 +550,7 @@ abstract class AbstractCoordinate {
     double bottom = node.getY() + node.bottomHeight();
 
     if (node.haveSelfLine()) {
-      for (DLine selfLine : node.getSelfLines()) {
+      for (LineDrawProp selfLine : node.getSelfLines()) {
         if (!selfLine.haveLabel()) {
           continue;
         }
@@ -592,7 +596,6 @@ abstract class AbstractCoordinate {
 
     DotLayoutEngine.nodeLabelSet(nodeDrawProp, dotAttachment.getDrawGraph(), false);
   }
-
 
   private void refreshGraphBorder(DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();

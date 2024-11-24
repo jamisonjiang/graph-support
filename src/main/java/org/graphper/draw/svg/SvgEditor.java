@@ -26,21 +26,22 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.ext.Box;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
-import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
-import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
 
 /**
- * Svg editor for graph element.
+ * Svg edit help methods for graph element.
  *
  * @author Jamison Jiang
  */
 public class SvgEditor implements SvgConstants {
 
   private static final int MAX_ROUNDED = 30;
+
+  private SvgEditor() {
+  }
 
   /**
    * Set each line text to svg.
@@ -64,7 +65,8 @@ public class SvgEditor implements SvgConstants {
     }
 
     if (attribute.fontName != null) {
-      String fontName = FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
+      String fontName =
+          FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
       text.setAttribute(FONT_FAMILY, fontName);
     }
   }
@@ -110,6 +112,7 @@ public class SvgEditor implements SvgConstants {
    * @param drawProp draw container needs drawing
    * @param brush    svg brush need to generate element
    * @param points   polygon points
+   * @return polygon shape element
    * @throws NullPointerException     null container or null brush
    * @throws IllegalArgumentException wrong size radius or wrong close path points or wrong
    *                                  container type
@@ -121,18 +124,16 @@ public class SvgEditor implements SvgConstants {
     Element shapeEle;
     boolean isRound = drawProp.containsRounded();
     if (drawProp.isNodeProp()) {
-      NodeDrawProp nodeDrawProp = ((NodeDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getShapeElement(nodeDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(PATH_ELE);
       } else {
-        shapeEle = brush.getShapeElement(nodeDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(POLYGON_ELE);
       }
     } else if (drawProp.isClusterProp()) {
-      ClusterDrawProp clusterDrawProp = ((ClusterDrawProp) drawProp);
       if (isRound) {
-        shapeEle = brush.getShapeElement(clusterDrawProp, PATH_ELE);
+        shapeEle = brush.getOrCreateChildElement(PATH_ELE);
       } else {
-        shapeEle = brush.getShapeElement(clusterDrawProp, POLYGON_ELE);
+        shapeEle = brush.getOrCreateChildElement(POLYGON_ELE);
       }
     } else {
       throw new IllegalArgumentException("Unsupport container draw properties");
@@ -272,32 +273,22 @@ public class SvgEditor implements SvgConstants {
     cornerLen = Math.min(cornerLen, (int) box.getHeight() / 2);
     return pointsToSvgPath(true, leftBorder, upBorder + cornerLen, leftBorder, upBorder + cornerLen,
                            leftBorder, downBorder - cornerLen, leftBorder, downBorder - cornerLen,
-
                            leftBorder, downBorder, leftBorder, downBorder, leftBorder + cornerLen,
-                           downBorder,
-
-                           leftBorder + cornerLen, downBorder, rightBorder - cornerLen, downBorder,
-                           rightBorder - cornerLen, downBorder,
-
-                           rightBorder, downBorder, rightBorder, downBorder, rightBorder,
-                           downBorder - cornerLen,
-
+                           downBorder, leftBorder + cornerLen, downBorder, rightBorder - cornerLen,
+                           downBorder, rightBorder - cornerLen, downBorder, rightBorder, downBorder,
+                           rightBorder, downBorder, rightBorder, downBorder - cornerLen,
                            rightBorder, downBorder - cornerLen, rightBorder, upBorder + cornerLen,
-                           rightBorder, upBorder + cornerLen,
-
-                           rightBorder, upBorder, rightBorder, upBorder, rightBorder - cornerLen,
-                           upBorder,
-
-                           rightBorder - cornerLen, upBorder, leftBorder + cornerLen, upBorder,
-                           leftBorder + cornerLen, upBorder,
-
-                           leftBorder, upBorder, leftBorder, upBorder, leftBorder,
+                           rightBorder, upBorder + cornerLen, rightBorder, upBorder, rightBorder,
+                           upBorder, rightBorder - cornerLen, upBorder, rightBorder - cornerLen,
+                           upBorder, leftBorder + cornerLen, upBorder, leftBorder + cornerLen,
+                           upBorder, leftBorder, upBorder, leftBorder, upBorder, leftBorder,
                            upBorder + cornerLen);
   }
 
   /**
    * Returns a rounded shape points according to the close path points.
    *
+   * @param path path points coordinate
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
    * @throws IllegalArgumentException wrong size radius or wrong close path points
    */
@@ -446,11 +437,6 @@ public class SvgEditor implements SvgConstants {
     private final Consumer<TextLineAttribute> lineAttributeConsumer;
 
     public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
-                         Consumer<TextLineAttribute> lineAttributeConsumer) {
-      this(centerPoint, fontsize, label, fontColor, DEFAULT_FONT, lineAttributeConsumer);
-    }
-
-    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
                          String fontName, Consumer<TextLineAttribute> lineAttributeConsumer) {
       Asserts.nullArgument(centerPoint, "centerPoint");
       Asserts.illegalArgument(StringUtils.isEmpty(label), "label can not be empty");
@@ -458,7 +444,7 @@ public class SvgEditor implements SvgConstants {
       this.fontsize = fontsize;
       this.label = label;
       this.fontColor = fontColor;
-      this.fontName = fontName;
+      this.fontName = StringUtils.isNotEmpty(fontName) ? fontName : DEFAULT_FONT;
       this.lineAttributeConsumer = lineAttributeConsumer;
     }
   }

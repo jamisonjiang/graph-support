@@ -19,6 +19,7 @@ org.graphper.draw.svg.shape.CircleShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender
 org.graphper.draw.svg.shape.EllipseShapeRender
 org.graphper.draw.svg.shape.TrapeziumShapeRender
+org.graphper.draw.svg.shape.InvtrapeziumShapeRender
 org.graphper.draw.svg.shape.ParallelogramShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender$PentagonShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender$HexagonShapeRender

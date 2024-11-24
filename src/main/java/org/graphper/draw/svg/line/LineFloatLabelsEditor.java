@@ -16,18 +16,22 @@
 
 package org.graphper.draw.svg.line;
 
+import static org.graphper.draw.svg.SvgEditor.setText;
+import static org.graphper.draw.svg.SvgEditor.text;
+
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import org.graphper.draw.svg.Element;
-import org.graphper.def.FlatPoint;
 import org.graphper.api.FloatLabel;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
+import org.graphper.draw.svg.SvgEditor.TextAttribute;
+import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
-public class LineFloatLabelsEditor extends SvgEditor implements LineEditor<SvgBrush> {
+public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   private static final String FLOAT_LABEL = "float_label";
 
@@ -45,21 +49,18 @@ public class LineFloatLabelsEditor extends SvgEditor implements LineEditor<SvgBr
 
       final int n = i;
       Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-        String id = SvgBrush.getId(
-            brush.lineId(lineDrawProp),
-            SvgConstants.TEXT_ELE
-                + SvgConstants.UNDERSCORE + FLOAT_LABEL
-                + n + textLineAttribute.getLineNo()
-        );
+        String id = SvgConstants.TEXT_ELE
+            + SvgConstants.UNDERSCORE + FLOAT_LABEL
+            + n + textLineAttribute.getLineNo();
 
         Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
         setText(text, floatLabel.getFontSize(), textLineAttribute);
-
         text.setTextContent(textLineAttribute.getLine());
       };
 
       text(new TextAttribute(flatPointCenter, floatLabel.getFontSize(), floatLabel.getLabel(),
-                             lineDrawProp.lineAttrs().getFontColor(), lineConsumer));
+                             lineDrawProp.lineAttrs().getFontColor(), floatLabel.getFontName(),
+                             lineConsumer));
       i++;
     }
 

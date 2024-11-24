@@ -29,7 +29,8 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
-import org.graphper.def.BiConcatIterable;
+import org.graphper.def.UnaryConcatIterable;
+import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 
 /**
@@ -88,10 +89,21 @@ public class DrawGraph extends Rectangle implements Serializable {
     clusterDrawPropMap.put(cluster, clusterDrawProp);
   }
 
-  public boolean needFlip() {
+  public boolean ignoreRankdir() {
     Layout layout = getGraphviz().graphAttrs().getLayout();
+    return layout != Layout.DOT;
+  }
+
+  public boolean notNeedFlip() {
+    return !needFlip();
+  }
+
+  public boolean needFlip() {
+    if (ignoreRankdir()) {
+      return false;
+    }
     Rankdir rankdir = getGraphviz().graphAttrs().getRankdir();
-    return layout == Layout.DOT && rankdir != Rankdir.TB && rankdir != Rankdir.BT;
+    return rankdir != Rankdir.TB && rankdir != Rankdir.BT;
   }
 
   public Graphviz getGraphviz() {
@@ -100,6 +112,10 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public Rankdir rankdir() {
     return getGraphviz().graphAttrs().getRankdir();
+  }
+
+  public Layout layout() {
+    return getGraphviz().graphAttrs().getLayout();
   }
 
   public GraphvizDrawProp getGraphvizDrawProp() {
@@ -112,7 +128,7 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public Iterable<NodeDrawProp> nodes(boolean filterCell) {
     if (filterCell) {
-      return new BiConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());
+      return new UnaryConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());
     }
     return nodeDrawPropMap.values();
   }
@@ -228,12 +244,23 @@ public class DrawGraph extends Rectangle implements Serializable {
     graphvizDrawProp.setDownBorder(downBorder);
   }
 
+  public void updateRange(FlatPoint point) {
+    if (point == null) {
+      return;
+    }
+
+    updateXAxisRange(point.getX());
+    updateYAxisRange(point.getY());
+  }
+
   public void updateXAxisRange(double x) {
-    super.updateXAxisRange(x);
+    super.updateXAxisRange(x - 10);
+    super.updateXAxisRange(x + 10);
   }
 
   public void updateYAxisRange(double y) {
-    super.updateYAxisRange(y);
+    super.updateYAxisRange(y - 10);
+    super.updateYAxisRange(y + 10);
   }
 
   public double getMinX() {

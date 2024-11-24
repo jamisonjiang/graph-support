@@ -24,11 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
 import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
-import org.graphper.layout.HtmlConvert;
+import org.graphper.layout.HtmlConvertor;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -55,6 +56,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
   private FlatPoint start;
 
   private FlatPoint end;
+
+  private FlatPoint labelSize;
 
   // label container center
   private FlatPoint labelCenter;
@@ -234,6 +237,14 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return labelCenter;
   }
 
+  public FlatPoint getLabelSize() {
+    return labelSize;
+  }
+
+  public void setLabelSize(FlatPoint labelSize) {
+    this.labelSize = labelSize;
+  }
+
   public void setLabelCenter(FlatPoint labelCenter) {
     this.labelCenter = labelCenter;
   }
@@ -311,10 +322,14 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return floatAssembles.get(floatLabel);
   }
 
+  public boolean haveLabel() {
+    return StringUtils.isNotEmpty(lineAttrs.getLabel()) || assemble != null;
+  }
+
   private void convertTables() {
     Table table = lineAttrs.getTable();
     if (table != null) {
-      assemble = HtmlConvert.toAssemble(table);
+      assemble = HtmlConvertor.toAssemble(table);
     }
 
     FloatLabel[] floatLabels = lineAttrs.getFloatLabels();
@@ -325,7 +340,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     for (FloatLabel floatLabel : floatLabels) {
       Assemble floatLabelAssemble = floatLabel.getAssemble();
       if (floatLabelAssemble == null && floatLabel.getTable() != null) {
-        floatLabelAssemble = HtmlConvert.toAssemble(floatLabel.getTable());
+        floatLabelAssemble = HtmlConvertor.toAssemble(floatLabel.getTable());
       }
 
       if (floatLabelAssemble == null) {

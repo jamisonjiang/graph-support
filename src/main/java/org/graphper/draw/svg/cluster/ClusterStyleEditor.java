@@ -16,6 +16,8 @@
 
 package org.graphper.draw.svg.cluster;
 
+import static org.graphper.draw.svg.SvgConstants.SHAPE_GROUP_KEY;
+
 import java.util.Collection;
 import org.graphper.api.ClusterAttrs;
 import org.graphper.api.attributes.ClusterStyle;
@@ -24,10 +26,9 @@ import org.graphper.draw.ClusterEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
-public class ClusterStyleEditor extends SvgEditor implements ClusterEditor<SvgBrush> {
+public class ClusterStyleEditor  implements ClusterEditor<SvgBrush> {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {
