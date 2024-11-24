@@ -198,6 +198,21 @@ public interface Box {
   }
 
   /**
+   * Calculates the distance between the centers of this box and another box.
+   *
+   * @param box the other box
+   * @return the distance between the centers of the two boxes
+   * @throws IllegalArgumentException if the other box is null
+   */
+  default double distanceTo(Box box) {
+    Asserts.illegalArgument(box == null, "The other box must not be null");
+
+    double deltaX = getX() - box.getX();
+    double deltaY = getY() - box.getY();
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  }
+
+  /**
    * Checks if this box overlaps with another box.
    *
    * @param box the box to check for overlap

@@ -62,6 +62,10 @@ public class FdpLayoutEngine extends AbstractFdpLayout {
         }
       }
 
+      if (k == 0) {
+        continue;
+      }
+
       for (FNode n : graph) {
         for (FLine edge : graph.outAdjacent(n)) {
           if (edge.isSelf()) {
@@ -73,10 +77,9 @@ public class FdpLayoutEngine extends AbstractFdpLayout {
           double deltaX = from.getX() - to.getX();
           double deltaY = from.getY() - to.getY();
           double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-          double localK = k / Math.max(edge.weight(), 1);
 
-          if (distance > 0 && localK > 0) {
-            double attractiveForce = (distance * distance) / localK;
+          if (distance > 0) {
+            double attractiveForce = (distance * distance) / k;
             double dispX = (deltaX / distance) * attractiveForce;
             double dispY = (deltaY / distance) * attractiveForce;
             from.setRepulsionX(from.getRepulsionX() - dispX);

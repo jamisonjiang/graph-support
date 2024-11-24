@@ -622,7 +622,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     int overlap = 0;
     for (FNode n = graph.start(); n != null; n = graph.next(n)) {
       for (FNode w = graph.next(n); w != null; w = graph.next(w)) {
-        overlap += applyRepulsive(n, w, xOv, xNonov);
+        overlap += applyRepulsive(n, w, xOv, xNonov, graph);
       }
 
       for (FLine edge : graph.outAdjacent(n)) {
@@ -630,7 +630,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
           continue;
         }
 
-        applyAttractive(n, edge.other(n), k);
+        applyAttractive(n, edge.other(n), k, graph);
       }
     }
 
@@ -656,7 +656,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     return overlap;
   }
 
-  private double applyRepulsive(FNode p, FNode q, double xOv, double xNonov) {
+  private double applyRepulsive(FNode p, FNode q, double xOv, double xNonov, AreaGraph areaGraph) {
     double deltaX = q.getX() - p.getX();
     double deltaY = q.getY() - p.getY();
     double dist2 = deltaX * deltaX + deltaY * deltaY;
@@ -666,7 +666,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     }
 
     double force;
-    boolean overlap = p.isOverlap(q);
+    boolean overlap = isOverlapOrNotFixMineLen(p, q, areaGraph);
     if (overlap) {
       force = xOv / dist2;
     } else {
@@ -681,8 +681,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     return overlap ? 1 : 0;
   }
 
-  private void applyAttractive(FNode p, FNode q, double k) {
-    if (p.isOverlap(q)) {
+  private void applyAttractive(FNode p, FNode q, double k, AreaGraph areaGraph) {
+    if (isOverlapOrNotFixMineLen(p, q, areaGraph)) {
       return;
     }
 
@@ -709,7 +709,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       overlapResolved = true;
       for (FNode v : graph) {
         for (FNode u : graph) {
-          if (u == v || !v.isOverlap(u)) {
+          if (u == v || !isOverlapOrNotFixMineLen(v, u, graph)) {
             continue;
           }
 
@@ -724,7 +724,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
           graph.setNodeLocation(v, v.getX() + dx, v.getY() + dy);
           graph.setNodeLocation(u, u.getX() - dx, u.getY() - dy);
 
-          if (v.isOverlap(u)) {
+          if (isOverlapOrNotFixMineLen(v, u, graph)) {
             overlapResolved = false;
           }
         }
@@ -741,13 +741,30 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
 
     for (FNode n = graph.start(); n != null; n = graph.next(n)) {
       for (FNode w = graph.next(n); w != null; w = graph.next(w)) {
-        if (n.isOverlap(w)) {
+        if (isOverlapOrNotFixMineLen(n, w, graph)) {
           overlap++;
         }
       }
     }
 
     return overlap;
+  }
+
+  private boolean isOverlapOrNotFixMineLen(FNode n, FNode w, AreaGraph areaGraph) {
+    if (n.isOverlap(w)) {
+      return true;
+    }
+
+    FdpGraph fdpGraph = areaGraph.getFdpGraph();
+    if (fdpGraph == null) {
+      return false;
+    }
+
+    Integer minlen = fdpGraph.maxMinLen(n, w);
+    if (minlen == null) {
+      return false;
+    }
+    return n.distanceTo(w) < minlen * Graphviz.PIXEL;
   }
 
   private static void refreshGraph(AreaGraph graph) {

@@ -560,7 +560,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Sets the spring constant for the layout algorithm.
+     * Sets the spring constant for the
+     * fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
      *
      * <p>The spring constant determines the "stiffness" of the virtual springs connecting the
      * nodes. Higher values can result in tighter node placement, while lower values allow for more
@@ -577,7 +578,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Configures whether node overlaps are allowed in the layout.
+     * Configures whether node overlaps are allowed in the fdp
+     * ({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
      *
      * <p>If set to {@code true}, nodes may overlap in the final layout. If set to {@code false},
      * the algorithm will attempt to adjust the layout to prevent node overlaps.
@@ -591,7 +593,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Sets the initial positioning strategy for the graph layout.
+     * Sets the initial positioning strategy for the fdp
+     * ({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
      *
      * <p>The initial position can influence the final layout, particularly in iterative layout
      * algorithms. Use this to specify how the layout should initialize node positions.

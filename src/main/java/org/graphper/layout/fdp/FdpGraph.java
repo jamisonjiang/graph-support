@@ -39,7 +39,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
   @Override
   protected AreaGraph newGraph(int capacity) {
-    return new AreaGraph(capacity);
+    return new AreaGraph(capacity, this);
   }
 
   @Override
@@ -68,6 +68,39 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
     super.addEdge(edge);
     recordAdj(edge);
+  }
+
+  public Integer maxMinLen(FNode n, FNode w) {
+    if (n.isVirtual() || w.isVirtual() || adjRecord == null) {
+      return null;
+    }
+    FLine line = lineBetweenTwoNodes(n, w);
+    if (line == null) {
+      line = lineBetweenTwoNodes(w, n);
+    }
+    if (line == null) {
+      return null;
+    }
+    if (!line.isParallelMerge()) {
+      return line.lineAttrs().getMinlen();
+    }
+
+    Integer maxMinLen = null;
+    for (int i = 0; i < line.getParallelNums(); i++) {
+      FLine l = line.parallelLine(i);
+      Integer minlen = l.lineAttrs().getMinlen();
+      if (minlen == null) {
+        continue;
+      }
+
+      if (maxMinLen == null) {
+        maxMinLen = minlen;
+      } else {
+        maxMinLen = Math.max(maxMinLen,  minlen);
+      }
+    }
+
+    return maxMinLen;
   }
 
   public boolean adjAlreadyExists(FNode n, FNode w) {
@@ -114,11 +147,22 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
     private boolean initStatus;
 
+    private FdpGraph fdpGraph;
+
     private final Rectangle area;
 
     public AreaGraph(int capacity) {
+      this(capacity, null);
+    }
+
+    public AreaGraph(int capacity, FdpGraph fdpGraph) {
       super(capacity);
       this.area = new Rectangle();
+      this.fdpGraph = fdpGraph;
+    }
+
+    public FdpGraph getFdpGraph() {
+      return fdpGraph;
     }
 
     public void updateXAxisRange(double x) {
