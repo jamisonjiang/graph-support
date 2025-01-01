@@ -56,6 +56,7 @@
         <junit-param-version>5.8.2</junit-param-version>
         <assembly-version>2.4.1</assembly-version>
         <log4j-version>1.8.0-alpha2</log4j-version>
+        <org.antlr-version>4.13.0</org.antlr-version>
     </properties>
 
     <dependencies>
@@ -101,6 +102,11 @@
             <version>${junit-param-version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>${org.antlr-version}</version> <!-- Use the same version as the plugin -->
+        </dependency>
     </dependencies>
 
     <build>
@@ -124,6 +130,10 @@
                     <charset>${encoder-type}</charset>
                     <encoding>${encoder-type}</encoding>
                     <docencoding>${encoder-type}</docencoding>
+                    <additionalOptions>
+                        <additionalOption>-Xdoclint:none</additionalOption>
+                        <additionalOption>-quiet</additionalOption> <!-- Optional: Suppress other warnings -->
+                    </additionalOptions>
                 </configuration>
                 <executions>
                     <execution>
@@ -179,6 +189,23 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${org.antlr-version}</version> <!-- Use the latest version -->
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase> <!-- Hook into Maven's lifecycle -->
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <!-- <arguments>-visitor -listener</arguments> Optional: generate visitor and listener classes -->
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -1,0 +1,33 @@
+digraph cluster {
+    // Node attribute template
+    node [shape=rect];
+
+    // Node definition
+    nd_1   [label = "Node 1"];
+    nd_2   [label = "Node 2"];
+    nd_3_a [label = "Above Right Node 3"];
+    nd_3_l [label = "Left of Node 3"];
+    nd_3   [label = "Node 3"];
+    nd_3_r [label = "Right of Node 3"];
+    nd_4   [label = "Node 4"];
+
+    // Edges in root graph
+    nd_3_a -> nd_3_r;
+    nd_1 -> nd_2 -> nd_3 -> nd_4;
+
+    // Use Cluster to wrap the corresponding nodes and edges
+    subgraph cluster_R {
+        // Edge attribute template
+        edge[color=grey arrowhead=none]
+        // Use Subgraph to limit nodes to the same level
+        {
+            rank=same
+            nd_3_l
+            nd_3
+            nd_3_r
+        }
+
+        // Edges in cluster
+        nd_3_l -> nd_3 -> nd_3_r;
+    }
+}
