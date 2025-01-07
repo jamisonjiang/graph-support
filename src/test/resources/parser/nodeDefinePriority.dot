@@ -1,0 +1,14 @@
+digraph G {
+  a[label="111"]
+  subgraph cluster_A {
+
+      a[label="222"]
+
+      subgraph cluster_B {
+          subgraph cluster_C {
+              a[label="333"]
+          }
+          a->b
+      }
+  }
+}

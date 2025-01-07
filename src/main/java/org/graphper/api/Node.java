@@ -73,6 +73,11 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     if (o == this) {
       return 0;
     }
+
+    if (nodeAttrs.id != null && o.nodeAttrs.id != null) {
+      return nodeAttrs.id.compareTo(o.nodeAttrs.id);
+    }
+
     if (o == null || o.nodeAttrs.label == null) {
       return 1;
     }
@@ -83,11 +88,32 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
 
     int c = this.nodeAttrs.label.compareTo(o.nodeAttrs.label);
 
-    if (c == 0 && nodeAttrs.id != null) {
-      c = nodeAttrs.id.compareTo(o.nodeAttrs.id);
+    return c != 0 ? c : this.hashCode() - o.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (nodeAttrs.id != null && Objects.equals(nodeAttrs.id, ((Node) o).nodeAttrs.id)) {
+      return true;
     }
 
-    return c != 0 ? c : this.hashCode() - o.hashCode();
+    Node node = (Node) o;
+    return Objects.equals(nodeAttrs, node.nodeAttrs);
+  }
+
+  @Override
+  public int hashCode() {
+    if (nodeAttrs.id != null) {
+      return nodeAttrs.id.hashCode();
+    }
+
+    return super.hashCode();
   }
 
   // ------------------------------------------ Node Builder ---------------------------------------

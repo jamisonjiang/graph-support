@@ -45,7 +45,7 @@ import org.graphper.util.GraphvizUtils;
  */
 public class Graphviz extends GraphContainer implements Serializable {
 
-  public static final long serialVersionUID = 7386714074818676956L;
+  private static final long serialVersionUID = 7386714074818676956L;
 
   /**
    * Measurement unit.

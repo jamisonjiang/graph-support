@@ -1,16 +1,19 @@
 package org.graphper.parser;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.grapher.parser.grammar.DOTLexer;
-import org.grapher.parser.grammar.DOTParser;
 import org.graphper.api.Graphviz;
-
-
-import java.io.*;
-import java.nio.charset.Charset;
+import org.graphper.parser.grammar.DOTLexer;
+import org.graphper.parser.grammar.DOTParser;
 
 public class DotParser {
 

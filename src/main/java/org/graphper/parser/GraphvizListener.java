@@ -1,14 +1,25 @@
 package org.graphper.parser;
 
+import static org.graphper.parser.ParserUtils.clusterAttributes;
+import static org.graphper.parser.ParserUtils.lineAttributes;
+import static org.graphper.parser.ParserUtils.nodeAttributes;
+import static org.graphper.parser.ParserUtils.subgraphAttribute;
+import static org.graphper.parser.ParserUtils.subgraphAttributes;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.grapher.parser.grammar.DOTBaseListener;
-import org.grapher.parser.grammar.DOTParser;
-import org.graphper.api.*;
-import org.graphper.api.attributes.Rank;
-
-import java.util.*;
-
-import static org.graphper.parser.ParserUtils.*;
+import org.graphper.api.Cluster;
+import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
+import org.graphper.api.Line;
+import org.graphper.api.Node;
+import org.graphper.api.Subgraph;
+import org.graphper.parser.grammar.DOTBaseListener;
+import org.graphper.parser.grammar.DOTParser;
 
 public class GraphvizListener extends DOTBaseListener {
 
@@ -110,6 +121,16 @@ public class GraphvizListener extends DOTBaseListener {
             ParseTree edgeop = ctx.edgeRHS().children.get(2 * c);
             ParseTree second = ctx.edgeRHS().children.get(2 * c + 1);
 
+            if (first instanceof DOTParser.Node_idContext) {
+                String leftId = ((DOTParser.Node_idContext) first).id_().getText();
+                nodeMap.putIfAbsent(leftId, Node.builder().id(leftId).label(leftId).build());
+            }
+
+            if (second instanceof DOTParser.Node_idContext) {
+                String rightId = ((DOTParser.Node_idContext) second).id_().getText();
+                nodeMap.putIfAbsent(rightId, Node.builder().id(rightId).label(rightId).build());
+            }
+
             edge(edgeop, first, second, ctx.attr_list());
             first = second;
         }
@@ -191,18 +212,15 @@ public class GraphvizListener extends DOTBaseListener {
 
     @Override
     public void enterNode_stmt(DOTParser.Node_stmtContext ctx) {
-
         String id = ctx.node_id().id_().getText();
-        Node n = nodeMap.get(id);
-        if (n == null) {
-            Node.NodeBuilder builder = Node.builder();
-            builder.id(id);
+        Node.NodeBuilder builder = Node.builder();
+        builder.id(id);
+        builder.label(id);
 
-            nodeAttributes(ctx.attr_list(), builder);
+        nodeAttributes(ctx.attr_list(), builder);
 
-            n = builder.build();
-            nodeMap.put(id, n);
-        }
+        Node n = builder.build();
+        nodeMap.put(id, n);
 
         containerStack.peek().addNode(n);
     }

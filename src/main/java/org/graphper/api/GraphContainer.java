@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.graphper.api.Cluster.IntegrationClusterBuilder;
+import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Subgraph.IntegrationSubgraphBuilder;
 import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
-import org.graphper.api.Graphviz.GraphvizBuilder;
-import org.graphper.api.Cluster.IntegrationClusterBuilder;
 
 /**
  * A common container for graphs, clusters, and subgraphs. {@code GraphContainer} has a hierarchical
@@ -185,9 +185,10 @@ public abstract class GraphContainer extends VertexIndex {
     }
 
     List<Iterable<Node>> iterables = null;
-    if (CollectionUtils.isNotEmpty(nodes)) {
+    Set<Node> directNodes = directNodes();
+    if (CollectionUtils.isNotEmpty(directNodes)) {
       iterables = new ArrayList<>(1);
-      iterables.add(nodes);
+      iterables.add(directNodes);
     }
     for (Subgraph subgraph : subgraphs()) {
       if (iterables == null) {
@@ -215,9 +216,17 @@ public abstract class GraphContainer extends VertexIndex {
    * @return all directly nodes
    */
   public Set<Node> directNodes() {
-    return CollectionUtils.isEmpty(nodes)
-        ? Collections.emptySet()
-        : Collections.unmodifiableSet(nodes);
+    if (CollectionUtils.isEmpty(nodes)) {
+      return Collections.emptySet();
+    }
+    Set<Node> nodeSet = new TreeSet<>();
+    for (Node node : nodes) {
+      if (subContains(node)) {
+        continue;
+      }
+      nodeSet.add(node);
+    }
+    return nodeSet;
   }
 
   /**
@@ -316,16 +325,8 @@ public abstract class GraphContainer extends VertexIndex {
       return true;
     }
 
-    for (Subgraph subgraph : subgraphs()) {
-      if (subgraph.containsNode(node)) {
-        return true;
-      }
-    }
-
-    for (Cluster cluster : clusters()) {
-      if (cluster.containsNode(node)) {
-        return true;
-      }
+    if (subContains(node)) {
+      return true;
     }
 
     return false;
@@ -448,6 +449,22 @@ public abstract class GraphContainer extends VertexIndex {
     return CollectionUtils.isNotEmpty(clusters);
   }
 
+
+  public boolean subContains(Node node) {
+    for (Subgraph subgraph : subgraphs()) {
+      if (subgraph.containsNode(node)) {
+        return true;
+      }
+    }
+
+    for (Cluster cluster : clusters()) {
+      if (cluster.containsNode(node)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // ---------------------------------- methods provided to builders ----------------------------------
 
   synchronized void addSubgraph(Subgraph subgraph) {
@@ -479,10 +496,17 @@ public abstract class GraphContainer extends VertexIndex {
 
   synchronized void addNode(Node node) {
     Asserts.nullArgument(node, "node");
+    if (subContains(node)) {
+      return;
+    }
+
     if (nodes == null) {
       nodes = new TreeSet<>();
     }
 
+    if (nodes.contains(node)) {
+      nodes.remove(node);
+    }
     nodes.add(node);
   }
 
