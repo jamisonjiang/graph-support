@@ -1,5 +1,6 @@
 package org.graphper.parser;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -40,26 +41,46 @@ public class ParserUtils {
     }
 
     public static Map<String, String> getAttrMap(DOTParser.Attr_listContext attr_list) {
-        Map<String, String> attrMap = new HashMap<>();
+        if (attr_list == null) {
+            return Collections.emptyMap();
+        }
 
-        if (attr_list != null) {
-            for (DOTParser.A_listContext al : attr_list.a_list()) {
-                int acount = al.id_().size() / 2;
-                for (int c = 0; c < acount; c++) {
-                    String left = al.id_().get(2 * c).getText();
-                    String right = al.id_().get(2 * c + 1).getText();
-                    attrMap.put(left, right);
-                }
+        Map<String, String> attrMap = new HashMap<>();
+        for (DOTParser.A_listContext al : attr_list.a_list()) {
+            int acount = al.id_().size() / 2;
+            for (int c = 0; c < acount; c++) {
+                String left = al.id_().get(2 * c).getText();
+                String right = al.id_().get(2 * c + 1).getText();
+                attrMap.put(left, right);
             }
         }
         return attrMap;
     }
 
+    public static Map<String, String> getAttrMap(DOTParser.A_listContext a_list) {
+        if (a_list == null) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> attrMap = new HashMap<>();
+        int acount = a_list.id_().size() / 2;
+        for (int c = 0; c < acount; c++) {
+            String left = a_list.id_().get(2 * c).getText();
+            String right = a_list.id_().get(2 * c + 1).getText();
+            attrMap.put(left, right);
+        }
+
+        return attrMap;
+    }
+
     public static void subgraphAttributes(DOTParser.Attr_listContext attr_list, Subgraph.SubgraphBuilder l) {
         Map<String, String> attrMap = getAttrMap(attr_list);
-        attrMap.entrySet().forEach(e -> {
-            subgraphAttribute(e.getKey(), e.getValue(), l);
-        });
+        attrMap.forEach((key, value) -> subgraphAttribute(key, value, l));
+    }
+
+    public static void subgraphAttributes(DOTParser.A_listContext a_list, Subgraph.SubgraphBuilder l) {
+        Map<String, String> attrMap = getAttrMap(a_list);
+        attrMap.forEach((key, value) -> subgraphAttribute(key, value, l));
     }
 
     public static void subgraphAttribute(String key, String value, Subgraph.SubgraphBuilder sb) {
@@ -74,9 +95,12 @@ public class ParserUtils {
 
     public static void clusterAttributes(DOTParser.Attr_listContext attr_list, Cluster.ClusterBuilder l) {
         Map<String, String> attrMap = getAttrMap(attr_list);
-        attrMap.entrySet().forEach(e -> {
-            clusterAttribute(e.getKey(), e.getValue(), l);
-        });
+        attrMap.forEach((key, value) -> clusterAttribute(key, value, l));
+    }
+
+    public static void clusterAttributes(DOTParser.A_listContext a_list, Cluster.ClusterBuilder l) {
+        Map<String, String> attrMap = getAttrMap(a_list);
+        attrMap.forEach((key, value) -> clusterAttribute(key, value, l));
     }
 
     public static void clusterAttribute(String key, String value, Cluster.ClusterBuilder sb) {
@@ -318,8 +342,14 @@ public class ParserUtils {
                 return Color.GOLD;
             case "grey":
                 return Color.GREY;
-            case "pink":
-                return Color.PINK;
+            case "bisque":
+                return Color.BISQUE;
+            case "lightgrey":
+                return Color.LIGHT_GREY;
+            case "lightblue":
+                return Color.LIGHT_BLUE;
+            case "chartreuse":
+                return Color.CHARTREUSE;
             default:
                 try {
                     return Color.ofRGB(color);

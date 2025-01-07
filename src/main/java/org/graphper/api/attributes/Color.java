@@ -56,6 +56,14 @@ public abstract class Color implements Serializable {
 
   public static final Color PINK = Color.ofRGB("#ffc0cb");
 
+  public static final Color BISQUE = Color.ofRGB("#ffe4c4");
+
+  public static final Color LIGHT_GREY = Color.ofRGB("#d3d3d3");
+
+  public static final Color LIGHT_BLUE = Color.ofRGB("#ffff00");
+
+  public static final Color CHARTREUSE = Color.ofRGB("#7fff00");
+
   /**
    * Returns a string describing current color.
    *

@@ -52,6 +52,7 @@ stmt
 
 attr_stmt
     : (GRAPH | NODE | EDGE) attr_list
+    | a_list
     ;
 
 attr_list

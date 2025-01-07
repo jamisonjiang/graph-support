@@ -97,14 +97,22 @@ public class GraphvizListener extends DOTBaseListener {
             nodeAttributes(ctx.attr_list(), l);
             containerStack.peek().tempNode(l.build());
 
-        } else if (ctx.GRAPH() != null) {
+        } else if (ctx.GRAPH() != null || ctx.a_list() != null) {
 
             if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
                 Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-                subgraphAttributes(ctx.attr_list(), sb);
+                if (ctx.a_list() != null) {
+                    subgraphAttributes(ctx.a_list(), sb);
+                } else {
+                    subgraphAttributes(ctx.attr_list(), sb);
+                }
             } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
                 Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
-                clusterAttributes(ctx.attr_list(), sb);
+                if (ctx.a_list() != null) {
+                    clusterAttributes(ctx.a_list(), sb);
+                } else {
+                    clusterAttributes(ctx.attr_list(), sb);
+                }
             }
         } else {
             throw new ParseException("invalid attr_stmt");
@@ -131,12 +139,12 @@ public class GraphvizListener extends DOTBaseListener {
                 nodeMap.putIfAbsent(rightId, Node.builder().id(rightId).label(rightId).build());
             }
 
-            edge(edgeop, first, second, ctx.attr_list());
+            edge(first, second, ctx.attr_list());
             first = second;
         }
     }
 
-    private void edge(ParseTree edgeop, ParseTree first, ParseTree second, DOTParser. Attr_listContext attr_list) {
+    private void edge(ParseTree first, ParseTree second, DOTParser. Attr_listContext attr_list) {
 
         if (first instanceof DOTParser.Node_idContext && second instanceof DOTParser.Node_idContext) {
 
