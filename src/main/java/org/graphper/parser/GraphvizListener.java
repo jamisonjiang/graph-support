@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
@@ -22,6 +23,7 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.parser.grammar.DOTParser.PortContext;
 
 public class GraphvizListener extends DOTBaseListener {
 
@@ -273,6 +275,11 @@ public class GraphvizListener extends DOTBaseListener {
         } else if (gc.isSubgraph()) {
             parent.subgraph((Subgraph) gc);
         }
+    }
+
+    @Override
+    public void enterPort(PortContext ctx) {
+       ParserRuleContext parent = ctx.getParent();
     }
 
     public Graphviz getGraphviz() {

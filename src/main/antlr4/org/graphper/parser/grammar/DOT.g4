@@ -214,20 +214,8 @@ fragment DIGIT
 STRING
     : '"' ( ESC_SEQ | ~["\\] )* '"'
         {
-            // Remove the surrounding double quotes
             String content = getText().substring(1, getText().length() - 1);
-
-            // Replace escape sequences with actual characters
-            content = content.replace("\\n", "\n")
-                             .replace("\\r", "\r")
-                             .replace("\\t", "\t")
-                             .replace("\\b", "\b")
-                             .replace("\\f", "\f")
-                             .replace("\\\"", "\"")
-                             .replace("\\\'", "\'")
-                             .replace("\\\\", "\\");
-
-            // Set the processed content as the token's text
+            content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
             setText(content);
         }
     ;
