@@ -135,7 +135,7 @@ fragment DIGIT
 
 /** "any double-quoted string ("...") possibly containing escaped quotes" */
 STRING
-    : '"' ('\\"' | .)*? '"'
+    : '"' (~["\\])* '"' { setText(getText().substring(1, getText().length() - 1)); }
     ;
 
 /** "Any string of alphabetic ([a-zA-Z\200-\377]) characters, underscores

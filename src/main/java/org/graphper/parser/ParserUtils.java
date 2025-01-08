@@ -29,17 +29,6 @@ import org.graphper.parser.grammar.DOTParser;
 
 public class ParserUtils {
 
-    public static String label(String l) {
-        if (l.startsWith("\"")) {
-            l = l.substring(1);
-        }
-        if (l.endsWith("\"")) {
-            l = l.substring(0, l.length() - 1);
-        }
-
-        return l;
-    }
-
     public static Map<String, String> getAttrMap(DOTParser.Attr_listContext attr_list) {
         if (attr_list == null) {
             return Collections.emptyMap();
@@ -124,7 +113,7 @@ public class ParserUtils {
                 sb.href(value);
                 break;
             case "label":
-                sb.label(label(value));
+                sb.label(value);
                 break;
             case "labeljust":
                 setEnum(sb::labeljust, Labeljust.class, value.toUpperCase());
@@ -190,7 +179,7 @@ public class ParserUtils {
                     l.image(e.getValue());
                     break;
                 case "label":
-                    l.label(label(e.getValue()));
+                    l.label(e.getValue());
                     break;
                 case "labelloc":
                     setEnum(l::labelloc, Labelloc.class, e.getValue().toUpperCase());
@@ -273,7 +262,7 @@ public class ParserUtils {
                     builder.href(e.getValue());
                     break;
                 case "label":
-                    builder.label(ParserUtils.label(e.getValue()));
+                    builder.label(e.getValue());
                     break;
                 case "lhead":
                     builder.lhead(e.getValue());
