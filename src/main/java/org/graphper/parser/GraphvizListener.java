@@ -99,8 +99,7 @@ public class GraphvizListener extends DOTBaseListener {
             nodeAttributes(ctx.attr_list(), l);
             containerStack.peek().tempNode(l.build());
 
-        }
-        else if (ctx.GRAPH() != null) {
+        } else if (ctx.GRAPH() != null) {
             if (containerStack.peek() instanceof GraphvizBuilder) {
                 GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
                 graphAttributes(ctx.attr_list(), gb);
