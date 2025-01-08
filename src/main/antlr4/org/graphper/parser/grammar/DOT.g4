@@ -46,13 +46,13 @@ stmt
     : node_stmt
     | edge_stmt
     | attr_stmt
+    | a_list
     | id_ '=' id_
     | subgraph
     ;
 
 attr_stmt
     : (GRAPH | NODE | EDGE) attr_list
-    | a_list
     ;
 
 attr_list
@@ -60,7 +60,7 @@ attr_list
     ;
 
 a_list
-    : (id_ ( '=' id_)? (';' | ',')?)+
+    : (id_ '=' id_ (';' | ',')?)+
     ;
 
 edge_stmt
@@ -99,8 +99,7 @@ id_
     | NUMBER
     ;
 
-// "The keywords node, edge, graph, digraph, subgraph, and strict are
-// case-independent"
+// Keywords are case-insensitive
 STRICT
     : [Ss] [Tt] [Rr] [Ii] [Cc] [Tt]
     ;

@@ -20,6 +20,7 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.parser.grammar.DOTParser.A_listContext;
 
 public class GraphvizListener extends DOTBaseListener {
 
@@ -97,25 +98,30 @@ public class GraphvizListener extends DOTBaseListener {
             nodeAttributes(ctx.attr_list(), l);
             containerStack.peek().tempNode(l.build());
 
-        } else if (ctx.GRAPH() != null || ctx.a_list() != null) {
+        }
+        else if (ctx.GRAPH() != null) {
 
             if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
                 Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-                if (ctx.a_list() != null) {
-                    subgraphAttributes(ctx.a_list(), sb);
-                } else {
-                    subgraphAttributes(ctx.attr_list(), sb);
-                }
+                subgraphAttributes(ctx.attr_list(), sb);
             } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
                 Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
-                if (ctx.a_list() != null) {
-                    clusterAttributes(ctx.a_list(), sb);
-                } else {
-                    clusterAttributes(ctx.attr_list(), sb);
-                }
+                clusterAttributes(ctx.attr_list(), sb);
             }
-        } else {
+        }
+        else {
             throw new ParseException("invalid attr_stmt");
+        }
+    }
+
+    @Override
+    public void enterA_list(A_listContext ctx) {
+        if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+            Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+            subgraphAttributes(ctx, sb);
+        } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
+            Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
+            clusterAttributes(ctx, sb);
         }
     }
 
@@ -257,9 +263,9 @@ public class GraphvizListener extends DOTBaseListener {
         GraphContainer.GraphContainerBuilder parent = containerStack.peek();
 
         GraphContainer gc = child.build();
-        if (gc instanceof Cluster) {
+        if (gc.isCluster()) {
             parent.cluster((Cluster) gc);
-        } else if (gc instanceof Subgraph) {
+        } else if (gc.isSubgraph()) {
             parent.subgraph((Subgraph) gc);
         }
     }
