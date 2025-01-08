@@ -34,14 +34,32 @@
 
 grammar DOT;
 
+@parser::members {
+    // Variable to track if the current graph is directed
+    boolean directed = false;
+}
+
+/*
+ * Entry point for the grammar.
+ */
 graph
-    : STRICT? (GRAPH | DIGRAPH) id_? '{' stmt_list '}' EOF
+    : STRICT?
+      (GRAPH { directed = false; }
+       | DIGRAPH { directed = true; }
+      )
+      id_? '{' stmt_list '}' EOF
     ;
 
+/*
+ * List of statements within the graph.
+ */
 stmt_list
     : (stmt ';'?)*
     ;
 
+/*
+ * A single statement which can be a node, edge, attribute, etc.
+ */
 stmt
     : node_stmt
     | edge_stmt
@@ -51,47 +69,96 @@ stmt
     | subgraph
     ;
 
+/*
+ * Attribute statement for graph, node, or edge.
+ */
 attr_stmt
     : (GRAPH | NODE | EDGE) attr_list
     ;
 
+/*
+ * List of attributes enclosed in square brackets.
+ */
 attr_list
     : ('[' a_list? ']')+
     ;
 
+/*
+ * A list of key-value attribute pairs.
+ */
 a_list
     : (id_ '=' id_ (';' | ',')?)+
     ;
 
+/*
+ * Edge statement connecting nodes or subgraphs.
+ */
 edge_stmt
     : (node_id | subgraph) edgeRHS attr_list?
     ;
 
+/*
+ * Right-hand side of an edge, consisting of edge operators and targets.
+ */
 edgeRHS
     : (edgeop ( node_id | subgraph))+
     ;
 
+/*
+ * Edge operators: '->' for directed and '--' for undirected edges.
+ */
 edgeop
-    : '->' # directedEdge
-    | '--' # undirectedEdge
+    : {directed}? '->'
+        # directedEdge
+    | { !directed }? '--'
+        # undirectedEdge
+    | '->'
+        {
+            if (!directed) {
+                throw new RuntimeException("Cannot use '->' in an undirected graph.");
+            }
+        }
+        # invalidDirectedEdge
+    | '--'
+        {
+            if (directed) {
+                throw new RuntimeException("Cannot use '--' in a directed graph.");
+            }
+        }
+        # invalidUndirectedEdge
     ;
 
+/*
+ * Node statement with optional attributes.
+ */
 node_stmt
     : node_id attr_list?
     ;
 
+/*
+ * Node identifier with optional port.
+ */
 node_id
     : id_ port?
     ;
 
+/*
+ * Port specification for a node.
+ */
 port
     : ':' id_ (':' id_)?
     ;
 
+/*
+ * Subgraph definition.
+ */
 subgraph
     : (SUBGRAPH id_?)? '{' stmt_list '}'
     ;
 
+/*
+ * Identifier which can be ID, STRING, HTML_STRING, or NUMBER.
+ */
 id_
     : ID
     | STRING
@@ -99,7 +166,9 @@ id_
     | NUMBER
     ;
 
-// Keywords are case-insensitive
+/*
+ * Lexer rules for keywords (case-insensitive).
+ */
 STRICT
     : [Ss] [Tt] [Rr] [Ii] [Cc] [Tt]
     ;
@@ -124,7 +193,9 @@ SUBGRAPH
     : [Ss] [Uu] [Bb] [Gg] [Rr] [Aa] [Pp] [Hh]
     ;
 
-/** "a numeral [-]?(.[0-9]+ | [0-9]+(.[0-9]*)? )" */
+/*
+ * Lexer rule for numbers, including integers and decimals.
+ */
 NUMBER
     : '-'? ('.' DIGIT+ | DIGIT+ ( '.' DIGIT*)?)
     ;
@@ -133,22 +204,39 @@ fragment DIGIT
     : [0-9]
     ;
 
-/** "any double-quoted string ("...") possibly containing escaped quotes" */
+/*
+ * Lexer rule for double-quoted strings with escape sequences.
+ */
 STRING
     : '"' ( ESC_SEQ | ~["\\] )* '"'
         {
+            // Remove the surrounding double quotes
             String content = getText().substring(1, getText().length() - 1);
-            content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
+
+            // Replace escape sequences with actual characters
+            content = content.replace("\\n", "\n")
+                             .replace("\\r", "\r")
+                             .replace("\\t", "\t")
+                             .replace("\\b", "\b")
+                             .replace("\\f", "\f")
+                             .replace("\\\"", "\"")
+                             .replace("\\\'", "\'")
+                             .replace("\\\\", "\\");
+
+            // Set the processed content as the token's text
             setText(content);
         }
     ;
 
+/*
+ * Fragment for escape sequences within strings.
+ */
 fragment ESC_SEQ
     : '\\' [nrt"\\bf]
     ;
 
-/** "Any string of alphabetic ([a-zA-Z\200-\377]) characters, underscores
- *  ('_') or digits ([0-9]), not beginning with a digit"
+/*
+ * Lexer rule for identifiers.
  */
 ID
     : LETTER (LETTER | DIGIT)*
@@ -158,8 +246,8 @@ fragment LETTER
     : [a-zA-Z\u0080-\u00FF_]
     ;
 
-/** "HTML strings, angle brackets must occur in matched pairs, and
- *  unescaped newlines are allowed."
+/*
+ * Lexer rule for HTML strings enclosed in angle brackets.
  */
 HTML_STRING
     : '<' (TAG | ~ [<>])* '>'
@@ -169,6 +257,9 @@ fragment TAG
     : '<' .*? '>'
     ;
 
+/*
+ * Lexer rules for comments to be skipped.
+ */
 COMMENT
     : '/*' .*? '*/' -> skip
     ;
@@ -177,13 +268,16 @@ LINE_COMMENT
     : '//' .*? '\r'? '\n' -> skip
     ;
 
-/** "a '#' character is considered a line output from a C preprocessor (e.g.,
- *  # 34 to indicate line 34 ) and discarded"
+/*
+ * Lexer rule for preprocessor lines to be skipped.
  */
 PREPROC
     : '#' ~[\r\n]* -> skip
     ;
 
+/*
+ * Lexer rule for whitespace to be skipped.
+ */
 WS
     : [ \t\n\r]+ -> skip
     ;
