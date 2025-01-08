@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg;
 
+import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.util.List;
@@ -85,7 +86,7 @@ public class SvgEditor implements SvgConstants {
     }
 
     double halfHeight = textAttribute.fontsize / 2;
-    String[] lines = textAttribute.label.split("\n");
+    String[] lines = textAttribute.label.split(NEW_LINE_SYMBOL);
     int midIndex = (lines.length - 1) / 2;
     boolean oddLen = (lines.length & 1) == 1;
     double xc = textAttribute.centerPoint.getX();

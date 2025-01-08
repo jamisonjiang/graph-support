@@ -1,0 +1,14 @@
+digraph G {
+    "a"[label="\\\\\\\\\\\\\\\\\\\\\\\\\\\"a\"\\"]
+    "b"[label="'b'\\nbb"]
+    "c"[label="c\ncdd\"d"]
+    "d"[label="d\rd"]
+    "e"[label="e\r\ne"]
+    "f"[label="f\n\rf"]
+    "node1" [label="Line1\nLine2"];
+    "node2" [label="Tab\tCharacter"];
+    "node3" [label="Quote:\"Inside Quote\""];
+    "node4" [label="Backslash:\\Path\\"];
+    "node5" [label="Backspace:\b"];
+    "node6" [label="FormFeed:\f"];
+}

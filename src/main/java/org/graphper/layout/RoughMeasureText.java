@@ -16,6 +16,8 @@
 
 package org.graphper.layout;
 
+import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
+
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 
@@ -37,7 +39,7 @@ public class RoughMeasureText implements MeasureText {
       return new FlatPoint(0, 0);
     }
 
-    String[] lines = text.split("\n");
+    String[] lines = text.split(NEW_LINE_SYMBOL);
     int ll = lines.length;
     double height = ll * fontSize;
     double width = 0;

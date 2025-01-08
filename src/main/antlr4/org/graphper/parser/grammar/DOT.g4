@@ -135,7 +135,16 @@ fragment DIGIT
 
 /** "any double-quoted string ("...") possibly containing escaped quotes" */
 STRING
-    : '"' (~["\\])* '"' { setText(getText().substring(1, getText().length() - 1)); }
+    : '"' ( ESC_SEQ | ~["\\] )* '"'
+        {
+            String content = getText().substring(1, getText().length() - 1);
+            content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
+            setText(content);
+        }
+    ;
+
+fragment ESC_SEQ
+    : '\\' [nrt"\\bf]
     ;
 
 /** "Any string of alphabetic ([a-zA-Z\200-\377]) characters, underscores

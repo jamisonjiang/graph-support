@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.awt.Font;
@@ -96,7 +97,7 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
     Font font = new Font(fontName, Font.PLAIN, (int) fontSize);
     FontRenderContext renderContext = new FontRenderContext(null, true, true);
 
-    String[] lines = text.split("\n");
+    String[] lines = text.split(NEW_LINE_SYMBOL);
     double maxWidth = 0;
     double totalHeight = 0;
 

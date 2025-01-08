@@ -151,6 +151,8 @@ public class StringUtils {
      */
     public static final String CR = "\r";
 
+    public static final String NEW_LINE_SYMBOL = "\\r|\\n";
+
     /**
      * Represents a failed index search.
      * @since 2.1
