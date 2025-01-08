@@ -64,7 +64,7 @@ stmt
     : node_stmt
     | edge_stmt
     | attr_stmt
-    | a_list
+    | graph_a_list
     | id_ '=' id_
     | subgraph
     ;
@@ -88,6 +88,10 @@ attr_list
  */
 a_list
     : (id_ '=' id_ (';' | ',')?)+
+    ;
+
+graph_a_list
+    : a_list
     ;
 
 /*

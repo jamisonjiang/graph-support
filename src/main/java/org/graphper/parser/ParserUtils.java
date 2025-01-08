@@ -8,8 +8,10 @@ import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.stream.Stream;
+import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
+import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
@@ -92,6 +94,73 @@ public class ParserUtils {
         attrMap.forEach((key, value) -> clusterAttribute(key, value, l));
     }
 
+    public static void graphAttributes(DOTParser.Attr_listContext attr_list, Graphviz.GraphvizBuilder gb) {
+        Map<String, String> attrMap = getAttrMap(attr_list);
+        attrMap.forEach((key, value) -> graphAttribute(key, value, gb));
+    }
+
+    public static void graphAttributes(DOTParser.A_listContext a_list,Graphviz.GraphvizBuilder gb) {
+        Map<String, String> attrMap = getAttrMap(a_list);
+        attrMap.forEach((key, value) -> graphAttribute(key, value, gb));
+    }
+
+    public static void graphAttribute(String key, String value, Graphviz.GraphvizBuilder gb) {
+        switch (key.toLowerCase()) {
+            case "bgcolor":
+                gb.bgColor(colorOf(value));
+                break;
+            case "fontcolor":
+                gb.fontColor(colorOf(value));
+                break;
+            case "fontname":
+                gb.fontName(value);
+                break;
+            case "fontsize":
+                setDouble(gb::fontSize, value);
+                break;
+            case "href":
+                gb.href(value);
+                break;
+            case "label":
+                gb.label(value);
+                break;
+            case "labeljust":
+                setEnum(gb::labeljust, Labeljust.class, value.toUpperCase());
+                break;
+            case "labelloc":
+                setEnum(gb::labelloc, Labelloc.class, value.toUpperCase());
+                break;
+            case "tooltip":
+                gb.tooltip(value);
+                break;
+            case "url":
+                gb.href(value);
+                break;
+            case "size":
+                Double[] size = arrayConvert(value, Double::parseDouble, Double.class);
+                if (!ArrayUtils.isEmpty(size)) {
+                    if (size.length == 1) {
+                        gb.scale(size[0]);
+                    } else {
+                        gb.scale(size[0], size[1]);
+                    }
+                }
+                break;
+            case "margin":
+                Double[] margin = arrayConvert(value, Double::parseDouble, Double.class);
+                if (!ArrayUtils.isEmpty(margin)) {
+                    if (margin.length == 1) {
+                        gb.margin(margin[0]);
+                    } else {
+                        gb.margin(margin[0], margin[1]);
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
     public static void clusterAttribute(String key, String value, Cluster.ClusterBuilder sb) {
         switch (key.toLowerCase()) {
             case "bgcolor":
@@ -122,7 +191,14 @@ public class ParserUtils {
                 setEnum(sb::labelloc, Labelloc.class, value.toUpperCase());
                 break;
             case "margin":
-                setDouble(sb::margin, value);
+                Double[] margin = arrayConvert(value, Double::parseDouble, Double.class);
+                if (!ArrayUtils.isEmpty(margin)) {
+                    if (margin.length == 1) {
+                        sb.margin(margin[0]);
+                    } else {
+                        sb.margin(margin[0], margin[1]);
+                    }
+                }
                 break;
             case "penwidth":
                 setDouble(sb::penWidth, value);
@@ -185,7 +261,14 @@ public class ParserUtils {
                     setEnum(l::labelloc, Labelloc.class, e.getValue().toUpperCase());
                     break;
                 case "margin":
-                    setDouble(l::margin, e.getValue());
+                    Double[] margin = arrayConvert(e.getValue(), Double::parseDouble, Double.class);
+                    if (!ArrayUtils.isEmpty(margin)) {
+                        if (margin.length == 1) {
+                            l.margin(margin[0]);
+                        } else {
+                            l.margin(margin[0], margin[1]);
+                        }
+                    }
                     break;
                 case "penwidth":
                     setDouble(l::penWidth, e.getValue());
@@ -378,7 +461,7 @@ public class ParserUtils {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T[] arrayConvert(String val, Function<String, T> eleConsumer, Class<T> clazz) {
+    private static <T> T[] arrayConvert(String val, Function<String, T> eleMapFunc, Class<T> clazz) {
         if (StringUtils.isEmpty(val)) {
             return null;
         }
@@ -386,7 +469,7 @@ public class ParserUtils {
         try {
             // Use the class type to create an array of the correct type.
             return Stream.of(val.split(SvgConstants.COMMA))
-                .map(eleConsumer)
+                .map(eleMapFunc)
                 .toArray(size -> (T[]) java.lang.reflect.Array.newInstance(clazz, size));
         } catch (Exception e) {
             return null;

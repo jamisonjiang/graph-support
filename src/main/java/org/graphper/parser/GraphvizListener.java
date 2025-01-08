@@ -1,6 +1,7 @@
 package org.graphper.parser;
 
 import static org.graphper.parser.ParserUtils.clusterAttributes;
+import static org.graphper.parser.ParserUtils.graphAttributes;
 import static org.graphper.parser.ParserUtils.lineAttributes;
 import static org.graphper.parser.ParserUtils.nodeAttributes;
 import static org.graphper.parser.ParserUtils.subgraphAttribute;
@@ -15,12 +16,12 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
-import org.graphper.parser.grammar.DOTParser.A_listContext;
 
 public class GraphvizListener extends DOTBaseListener {
 
@@ -100,8 +101,10 @@ public class GraphvizListener extends DOTBaseListener {
 
         }
         else if (ctx.GRAPH() != null) {
-
-            if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+            if (containerStack.peek() instanceof GraphvizBuilder) {
+                GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
+                graphAttributes(ctx.attr_list(), gb);
+            } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
                 Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
                 subgraphAttributes(ctx.attr_list(), sb);
             } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
@@ -115,13 +118,16 @@ public class GraphvizListener extends DOTBaseListener {
     }
 
     @Override
-    public void enterA_list(A_listContext ctx) {
-        if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+    public void enterGraph_a_list(DOTParser.Graph_a_listContext ctx) {
+        if (containerStack.peek() instanceof GraphvizBuilder) {
+            GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
+            graphAttributes(ctx.a_list(), gb);
+        } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
             Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-            subgraphAttributes(ctx, sb);
+            subgraphAttributes(ctx.a_list(), sb);
         } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
             Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
-            clusterAttributes(ctx, sb);
+            clusterAttributes(ctx.a_list(), sb);
         }
     }
 
