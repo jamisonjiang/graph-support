@@ -119,18 +119,12 @@ edgeop
     | '->'
         {
             if (!directed) {
-                throw new RuntimeException("Cannot use '->' in an undirected graph.");
+                notifyErrorListeners("Cannot use '->' in an undirected graph.");
             }
         }
         # invalidDirectedEdge
-    | '--'
-        {
-            if (directed) {
-                throw new RuntimeException("Cannot use '--' in a directed graph.");
-            }
-        }
-        # invalidUndirectedEdge
-    ;
+     ;
+
 
 /*
  * Node statement with optional attributes.
