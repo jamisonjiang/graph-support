@@ -13,6 +13,7 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
+import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
@@ -38,8 +39,8 @@ public class ParserUtils {
 
         Map<String, String> attrMap = new HashMap<>();
         for (DOTParser.A_listContext al : attr_list.a_list()) {
-            int acount = al.id_().size() / 2;
-            for (int c = 0; c < acount; c++) {
+            int amount = al.id_().size() / 2;
+            for (int c = 0; c < amount; c++) {
                 String left = al.id_().get(2 * c).getText();
                 String right = al.id_().get(2 * c + 1).getText();
                 attrMap.put(left, right);
@@ -388,6 +389,38 @@ public class ParserUtils {
                     break;
             }
         });
+    }
+
+    public static void setLinePort(LineBuilder lineBuilder, String p1, String p2, boolean isTail) {
+        if (StringUtils.isEmpty(p1) && StringUtils.isEmpty(p2)) {
+            return;
+        }
+
+        if (StringUtils.isEmpty(p2)) {
+            Port port = Port.valueOfCode(p1);
+            if (isTail) {
+                if (port == null) {
+                    lineBuilder.tailCell(p1);
+                } else {
+                    lineBuilder.tailPort(port);
+                }
+            } else {
+                if (port == null) {
+                    lineBuilder.headCell(p1);
+                } else {
+                    lineBuilder.headPort(port);
+                }
+            }
+            return;
+        }
+
+        if (isTail) {
+            lineBuilder.tailCell(p1);
+            lineBuilder.tailPort(Port.valueOfCode(p2));
+        } else {
+            lineBuilder.headCell(p1);
+            lineBuilder.headPort(Port.valueOfCode(p2));
+        }
     }
 
     private static Color colorOf(String color) {

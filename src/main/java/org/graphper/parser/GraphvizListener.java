@@ -4,6 +4,7 @@ import static org.graphper.parser.ParserUtils.clusterAttributes;
 import static org.graphper.parser.ParserUtils.graphAttributes;
 import static org.graphper.parser.ParserUtils.lineAttributes;
 import static org.graphper.parser.ParserUtils.nodeAttributes;
+import static org.graphper.parser.ParserUtils.setLinePort;
 import static org.graphper.parser.ParserUtils.subgraphAttribute;
 import static org.graphper.parser.ParserUtils.subgraphAttributes;
 
@@ -23,6 +24,7 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
 
 public class GraphvizListener extends DOTBaseListener {
@@ -170,7 +172,7 @@ public class GraphvizListener extends DOTBaseListener {
             Node leftNode = nodeMap.get(leftId);
             Node rightNode = nodeMap.get(rightId);
 
-            buildLine(attr_list, leftNode, rightNode);
+            buildLine(attr_list, leftNode, rightNode, left, right);
 
         } else if (first instanceof DOTParser.SubgraphContext && second instanceof DOTParser.Node_idContext) {
 
@@ -180,7 +182,7 @@ public class GraphvizListener extends DOTBaseListener {
             String rightId = right.id_().getText();
             Node rightNode = nodeMap.get(rightId);
 
-            subgraphNodes(left).forEach(l -> buildLine(attr_list, l, rightNode));
+            subgraphNodes(left).forEach(l -> buildLine(attr_list, l, rightNode, null, right));
 
         } else if (first instanceof DOTParser.Node_idContext && second instanceof DOTParser.SubgraphContext) {
 
@@ -190,7 +192,7 @@ public class GraphvizListener extends DOTBaseListener {
             String leftId = left.id_().getText();
             Node leftNode = nodeMap.get(leftId);
 
-            subgraphNodes(right).forEach(r -> buildLine(attr_list, leftNode, r));
+            subgraphNodes(right).forEach(r -> buildLine(attr_list, leftNode, r, left, null));
 
         } else if (first instanceof DOTParser.SubgraphContext && second instanceof DOTParser.SubgraphContext) {
 
@@ -199,7 +201,7 @@ public class GraphvizListener extends DOTBaseListener {
 
             subgraphNodes(left).forEach(l ->
                 subgraphNodes(right).forEach(r ->
-                    buildLine(attr_list, l, r)));
+                    buildLine(attr_list, l, r, null, null)));
 
         }
     }
@@ -224,11 +226,35 @@ public class GraphvizListener extends DOTBaseListener {
         return nodes;
     }
 
-    private void buildLine(DOTParser.Attr_listContext attr_list, Node leftNode, Node rightNode) {
+    private void buildLine(DOTParser.Attr_listContext attr_list, Node leftNode, Node rightNode,
+                           Node_idContext leftCtx, Node_idContext rightCtx) {
         Line.LineBuilder builder = Line.builder(leftNode, rightNode);
         lineAttributes(attr_list, builder);
+        setLinePort(builder, port(leftCtx, true), port(leftCtx, false), true);
+        setLinePort(builder, port(rightCtx, true), port(rightCtx, false), false);
         Line line = builder.build();
         containerStack.peek().addLine(line);
+    }
+
+    private String port(Node_idContext node, boolean first) {
+        if (node == null) {
+            return null;
+        }
+
+        PortContext port = node.port();
+        if (port == null || port.getChildCount() < 2) {
+            return null;
+        }
+        if (first) {
+            ParseTree p = port.getChild(1);
+            return p != null ? p.getText() : null;
+        }
+
+        if (port.getChildCount() < 4) {
+            return null;
+        }
+        ParseTree p = port.getChild(3);
+        return p != null ? p.getText() : null;
     }
 
     @Override

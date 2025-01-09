@@ -1,0 +1,7 @@
+digraph G {
+a[shape=record label="||{<p1>p1|{|<p2>p2}||}||"]
+
+a:p1:se->b:k1:s
+
+b[shape=record label="|||{|||{||<k1>k1||}|||||{<t1>t1||}|}||"]
+}

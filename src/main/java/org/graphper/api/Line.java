@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
@@ -91,10 +92,10 @@ public class Line implements Comparable<Line>, Serializable {
    * @return line another node
    */
   public Node other(Node node) {
-    if (node == head) {
+    if (Objects.equals(node, head)) {
       return tail;
     }
-    if (node == tail) {
+    if (Objects.equals(node, tail)) {
       return head;
     }
     return null;

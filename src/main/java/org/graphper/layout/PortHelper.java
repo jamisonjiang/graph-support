@@ -65,14 +65,14 @@ public class PortHelper {
 
     LineAttrs lineAttrs = drawGraph.lineAttrs(line);
     Asserts.illegalArgument(lineAttrs == null, "can not find lineAttrs");
-    if (node == line.tail()) {
+    if (Objects.equals(node, line.tail())) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getTailPort());
       }
 
       return lineAttrs.getTailPort();
     }
-    if (node == line.head()) {
+    if (Objects.equals(node, line.head())) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getHeadPort());
       }
@@ -118,10 +118,10 @@ public class PortHelper {
 
   public static String getCellId(Line line, ANode node, LineDrawProp lineDrawProp) {
     String cellId = null;
-    if (node.getNode() == line.tail()) {
+    if (Objects.equals(node.getNode(), line.tail())) {
       cellId = lineDrawProp.lineAttrs().getTailCell();
     }
-    if (node.getNode() == line.head()) {
+    if (Objects.equals(node.getNode(), line.head())) {
       cellId = lineDrawProp.lineAttrs().getHeadCell();
     }
     return cellId;
