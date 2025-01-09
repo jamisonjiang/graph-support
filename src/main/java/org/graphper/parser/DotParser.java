@@ -63,11 +63,6 @@ public class DotParser {
         } catch (ParseException pe) {
             pe.setSourceName(charStream.getSourceName());
             throw pe;
-        } catch (RuntimeException re) {
-            // wrap other RuntimeExceptions
-            ParseException parseException = new ParseException("failed to parse", re);
-            parseException.setSourceName(charStream.getSourceName());
-            throw parseException;
         }
     }
 }

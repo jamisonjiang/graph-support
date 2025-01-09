@@ -262,7 +262,6 @@ public class GraphvizListener extends DOTBaseListener {
         String id = ctx.node_id().id_().getText();
         Node.NodeBuilder builder = Node.builder();
         builder.id(id);
-        builder.label(id);
 
         nodeAttributes(ctx.attr_list(), builder);
 
