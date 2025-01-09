@@ -235,7 +235,8 @@ public class ANode extends VertexIndex implements Box, ShapePosition {
     return selfLines == null ? 0 : selfLines.size();
   }
 
-  public void addSelfLine(LineDrawProp line) {if (line == null) {
+  public void addSelfLine(LineDrawProp line) {
+    if (line == null) {
       return;
     }
 

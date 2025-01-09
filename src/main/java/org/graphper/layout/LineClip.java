@@ -126,7 +126,7 @@ public abstract class LineClip extends LineHandler {
 
     Line line = lineDrawProp.getLine();
     LineAttrs lineAttrs = lineDrawProp.lineAttrs();
-    boolean isSelfLine = line.head() == line.tail();
+    boolean isSelfLine = Objects.equals(line.head(), line.tail());
     boolean reversal = !isSelfLine && lineDrawProp.isHeadStart();
 
     Node from = lineDrawProp.isHeadStart() ? line.head() : line.tail();
@@ -321,11 +321,11 @@ public abstract class LineClip extends LineHandler {
   protected boolean needClip(Line line, LineAttrs lineAttrs,
                              Node node, Boolean isHead) {
     if (isHead == null) {
-      if (line.head() == node && !needClip(true, lineAttrs)) {
+      if (Objects.equals(line.head() , node) && !needClip(true, lineAttrs)) {
         return false;
       }
 
-      return line.tail() != node || needClip(false, lineAttrs);
+      return !Objects.equals(line.tail(), node) || needClip(false, lineAttrs);
     }
 
     return needClip(isHead, lineAttrs);

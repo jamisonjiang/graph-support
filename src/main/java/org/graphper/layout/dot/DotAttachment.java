@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -187,7 +188,7 @@ class DotAttachment extends LayoutAttach {
                        GeneratePortLine generatePortLine, boolean isFrom) {
     Cell cell = null;
     NodeDrawProp nodeDrawProp;
-    if (tail == node) {
+    if (Objects.equals(tail, node)) {
       nodeDrawProp = drawGraph.getNodeDrawProp(tail);
       RootCell root = nodeDrawProp.getCell();
       if (root != null) {

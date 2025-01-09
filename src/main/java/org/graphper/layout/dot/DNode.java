@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import java.util.Objects;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
@@ -308,7 +309,7 @@ class DNode extends ANode implements Box, ShapePosition {
     if (line == null || line.isVirtual() || isVirtual()) {
       return false;
     }
-    return node == line.getLine().tail();
+    return Objects.equals(node, line.getLine().tail());
   }
 
   @Override

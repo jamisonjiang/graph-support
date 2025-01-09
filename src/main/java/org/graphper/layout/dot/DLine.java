@@ -137,7 +137,7 @@ class DLine extends ALine<DNode, DLine> {
   boolean haveLabel() {
     if (isParallelMerge()) {
       for (int i = 0; i < getParallelNums(); i++) {
-        DLine l = (DLine) parallelLine(i);
+        DLine l = parallelLine(i);
         if (l == this) {
           if (labelSize != null) {
             return true;
