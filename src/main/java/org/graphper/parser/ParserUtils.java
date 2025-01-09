@@ -37,11 +37,13 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
+import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
+import org.graphper.api.attributes.Splines;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
 
@@ -122,6 +124,12 @@ public class ParserUtils {
 
     public static void graphAttribute(String key, String value, Graphviz.GraphvizBuilder gb) {
         switch (key.toLowerCase()) {
+            case "layout":
+                setEnum(gb::layout, Layout.class, value);
+                break;
+            case "splines":
+                setEnum(gb::splines, Splines.class, value);
+                break;
             case "bgcolor":
                 gb.bgColor(colorOf(value));
                 break;
@@ -502,7 +510,7 @@ public class ParserUtils {
 
     private static <T extends Enum<T>> void setEnum(Consumer<T> consumer, Class<T> enumClass, String name) {
         for (T enumConstant : enumClass.getEnumConstants()) {
-            if (enumConstant.name().equals(name)) {
+            if (enumConstant.name().equalsIgnoreCase(name)) {
                 consumer.accept(enumConstant);
             }
         }
