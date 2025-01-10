@@ -18,12 +18,12 @@ package org.graphper.parser;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.stream.Stream;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
@@ -47,7 +47,6 @@ import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
-import org.graphper.parser.grammar.DOTParser.TableContext;
 
 public class ParserUtils {
 
@@ -61,47 +60,47 @@ public class ParserUtils {
 
         Map<String, String> attrMap = new HashMap<>(attr_list.getChildCount());
         for (DOTParser.A_listContext al : attr_list.a_list()) {
-            int amount = al.getChildCount();
-            if (amount != 3) {
-                continue;
-            }
-
-            String left = al.getChild(0).getText();
-            ParseTree rightCtx = al.getChild(2);
-
-            if (rightCtx instanceof TableContext) {
-                continue;
-            }
-
-            attrMap.put(left, rightCtx.getText());
-//            for (int c = 0; c < amount; c++) {
-//                String left = al.getChild(2 * c).getText();
-//                String right = al.getChild(2 * (c + 1)).getText();
-//            }
+            parseAttrs(al, attrMap::put);
         }
         return attrMap;
     }
 
-    public static Map<String, String> getAttrMap(DOTParser.A_listContext a_list) {
+    private static void parseAttrs(DOTParser.A_listContext a_list, BiConsumer<String, String> pairConsumer) {
         if (a_list == null) {
-            return Collections.emptyMap();
+            return;
         }
+        // Iterate through the id_ and value lists to extract key-value pairs
+        for (int i = 0; i < a_list.id_().size(); i++) {
+            // Get the key (id_)
+            String key = getKey(a_list.id_(i));
 
-        int amount = a_list.getChildCount();
-        if (amount != 3) {
-            return Collections.emptyMap();
+            // Get the value associated with the key
+            String value = getValue(a_list.value(i));
+
+            pairConsumer.accept(key, value);
         }
+    }
 
-       String left = a_list.getChild(0).getText();
-       ParseTree rightCtx = a_list.getChild(2);
+    private static String getKey(DOTParser.Id_Context idCtx) {
+        // Depending on the type of the ID, return the appropriate text
+        if (idCtx.ID() != null) {
+            return idCtx.ID().getText(); // For standard IDs like 'label'
+        } else if (idCtx.STRING() != null) {
+            return idCtx.STRING().getText(); // For string values
+        } else if (idCtx.NUMBER() != null) {
+            return idCtx.NUMBER().getText(); // For numeric values
+        }
+        return "";
+    }
 
-       if (rightCtx instanceof TableContext) {
-           return Collections.emptyMap();
-       }
-
-       return new HashMap<String, String>(1) {{
-           put(left, rightCtx.getText());
-       }};
+    private static String getValue(DOTParser.ValueContext valueCtx) {
+        if (valueCtx.table_wrapper() != null) {
+            return null;
+        }
+        if (valueCtx.id_() != null) {
+            return valueCtx.id_().getText();
+        }
+        return null;
     }
 
     public static void subgraphAttributes(DOTParser.Attr_listContext attr_list, Subgraph.SubgraphBuilder l) {
@@ -110,8 +109,7 @@ public class ParserUtils {
     }
 
     public static void subgraphAttributes(DOTParser.A_listContext a_list, Subgraph.SubgraphBuilder l) {
-        Map<String, String> attrMap = getAttrMap(a_list);
-        attrMap.forEach((key, value) -> subgraphAttribute(key, value, l));
+        parseAttrs(a_list, (key, value) -> subgraphAttribute(key, value, l));
     }
 
     public static void subgraphAttribute(String key, String value, Subgraph.SubgraphBuilder sb) {
@@ -130,8 +128,7 @@ public class ParserUtils {
     }
 
     public static void clusterAttributes(DOTParser.A_listContext a_list, Cluster.ClusterBuilder l) {
-        Map<String, String> attrMap = getAttrMap(a_list);
-        attrMap.forEach((key, value) -> clusterAttribute(key, value, l));
+        parseAttrs(a_list, (key, value) -> clusterAttribute(key, value, l));
     }
 
     public static void graphAttributes(DOTParser.Attr_listContext attr_list, Graphviz.GraphvizBuilder gb) {
@@ -140,8 +137,7 @@ public class ParserUtils {
     }
 
     public static void graphAttributes(DOTParser.A_listContext a_list,Graphviz.GraphvizBuilder gb) {
-        Map<String, String> attrMap = getAttrMap(a_list);
-        attrMap.forEach((key, value) -> graphAttribute(key, value, gb));
+        parseAttrs(a_list, (key, value) -> graphAttribute(key, value, gb));
     }
 
     public static void graphAttribute(String key, String value, Graphviz.GraphvizBuilder gb) {

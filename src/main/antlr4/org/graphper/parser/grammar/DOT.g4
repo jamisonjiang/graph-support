@@ -83,14 +83,70 @@ attr_list
     : ('[' a_list? ']')+
     ;
 
+graph_a_list
+    : a_list
+    ;
+
 /*
  * A list of key-value attribute pairs.
  */
 a_list
-    : (id_ '=' id_ (';' | ',')?)+
+    : (id_ '=' value (',' | ';')?)+
     ;
 
-graph_a_list
+value
+    : table_wrapper
+    | id_
+    ;
+
+table_wrapper
+    : LT table_attrs GT
+    ;
+
+/*
+ * table structure.
+ */
+table
+    : LT 'table' table_attrs? GT table_rows LT '/' 'table' GT
+    ;
+
+/*
+ * Table attributes (like border, cellspacing).
+ */
+table_attrs
+    : a_list
+    ;
+
+/*
+ * Rows inside a table.
+ */
+table_rows
+    : table_row+
+    ;
+
+/*
+ * A row inside a table.
+ */
+table_row
+    : LT 'tr' GT table_td+ LT '/' 'tr' GT
+    ;
+
+/*
+ * Table data (e.g., <td>...</td>).
+ */
+table_td
+    : LT 'td' td_attrs? GT td_data? LT '/' 'td' GT
+    ;
+
+td_data
+    : table
+    | id_
+    ;
+
+/*
+ * Table data attributes (like colspan, rowspan).
+ */
+td_attrs
     : a_list
     ;
 
@@ -123,8 +179,14 @@ edgeop
             }
         }
         # invalidDirectedEdge
-     ;
-
+    | '--'
+        {
+            if (directed) {
+                notifyErrorListeners("Cannot use '--' in a directed graph.");
+            }
+        }
+        # invalidUndirectedEdge
+    ;
 
 /*
  * Node statement with optional attributes.
@@ -160,7 +222,6 @@ subgraph
 id_
     : ID
     | STRING
-    | HTML_STRING
     | NUMBER
     ;
 
@@ -232,16 +293,6 @@ fragment LETTER
     : [a-zA-Z\u0080-\u00FF_]
     ;
 
-/*
- * Lexer rule for HTML strings enclosed in angle brackets.
- */
-HTML_STRING
-    : '<' (TAG | ~ [<>])* '>'
-    ;
-
-fragment TAG
-    : '<' .*? '>'
-    ;
 
 /*
  * Lexer rules for comments to be skipped.
@@ -267,3 +318,6 @@ PREPROC
 WS
     : [ \t\n\r]+ -> skip
     ;
+
+LT: '<';
+GT: '>';
