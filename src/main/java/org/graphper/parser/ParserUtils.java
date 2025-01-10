@@ -23,6 +23,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.stream.Stream;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
@@ -46,22 +47,37 @@ import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.parser.grammar.DOTParser.TableContext;
 
 public class ParserUtils {
+
+    private ParserUtils() {
+    }
 
     public static Map<String, String> getAttrMap(DOTParser.Attr_listContext attr_list) {
         if (attr_list == null) {
             return Collections.emptyMap();
         }
 
-        Map<String, String> attrMap = new HashMap<>();
+        Map<String, String> attrMap = new HashMap<>(attr_list.getChildCount());
         for (DOTParser.A_listContext al : attr_list.a_list()) {
-            int amount = al.id_().size() / 2;
-            for (int c = 0; c < amount; c++) {
-                String left = al.id_().get(2 * c).getText();
-                String right = al.id_().get(2 * c + 1).getText();
-                attrMap.put(left, right);
+            int amount = al.getChildCount();
+            if (amount != 3) {
+                continue;
             }
+
+            String left = al.getChild(0).getText();
+            ParseTree rightCtx = al.getChild(2);
+
+            if (rightCtx instanceof TableContext) {
+                continue;
+            }
+
+            attrMap.put(left, rightCtx.getText());
+//            for (int c = 0; c < amount; c++) {
+//                String left = al.getChild(2 * c).getText();
+//                String right = al.getChild(2 * (c + 1)).getText();
+//            }
         }
         return attrMap;
     }
@@ -71,15 +87,21 @@ public class ParserUtils {
             return Collections.emptyMap();
         }
 
-        Map<String, String> attrMap = new HashMap<>();
-        int acount = a_list.id_().size() / 2;
-        for (int c = 0; c < acount; c++) {
-            String left = a_list.id_().get(2 * c).getText();
-            String right = a_list.id_().get(2 * c + 1).getText();
-            attrMap.put(left, right);
+        int amount = a_list.getChildCount();
+        if (amount != 3) {
+            return Collections.emptyMap();
         }
 
-        return attrMap;
+       String left = a_list.getChild(0).getText();
+       ParseTree rightCtx = a_list.getChild(2);
+
+       if (rightCtx instanceof TableContext) {
+           return Collections.emptyMap();
+       }
+
+       return new HashMap<String, String>(1) {{
+           put(left, rightCtx.getText());
+       }};
     }
 
     public static void subgraphAttributes(DOTParser.Attr_listContext attr_list, Subgraph.SubgraphBuilder l) {
