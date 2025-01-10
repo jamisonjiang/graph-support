@@ -365,6 +365,12 @@ public class ParserUtils {
                 case "headclip":
                     setBoolean(builder::headclip, e.getValue());
                     break;
+                case "headcell":
+                    builder.headCell(e.getValue());
+                    break;
+                case "headport":
+                    builder.headPort(Port.valueOfCode(e.getValue().toLowerCase()));
+                    break;
                 case "href":
                     builder.href(e.getValue());
                     break;
@@ -380,7 +386,7 @@ public class ParserUtils {
                 case "minlen":
                     setInteger(builder::minlen, e.getValue());
                     break;
-                case "penWidth":
+                case "penwidth":
                     setDouble(builder::penWidth, e.getValue());
                     break;
                 case "showboxes":
@@ -396,8 +402,11 @@ public class ParserUtils {
                 case "tailclip":
                     setBoolean(builder::tailclip, e.getValue());
                     break;
-                case "tailPort":
-                    setEnum(builder::tailPort, Port.class, e.getValue().toUpperCase());
+                case "tailport":
+                    builder.tailPort(Port.valueOfCode(e.getValue().toLowerCase()));
+                    break;
+                case "tailcell":
+                    builder.tailCell(e.getValue());
                     break;
                 case "tooltip":
                     builder.tooltip(e.getValue());

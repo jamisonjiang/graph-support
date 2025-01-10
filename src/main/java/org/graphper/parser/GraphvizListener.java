@@ -24,9 +24,7 @@ import static org.graphper.parser.ParserUtils.setLinePort;
 import static org.graphper.parser.ParserUtils.subgraphAttribute;
 import static org.graphper.parser.ParserUtils.subgraphAttributes;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -41,12 +39,15 @@ import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
+import org.graphper.parser.grammar.DOTParser.SubgraphContext;
 
 public class GraphvizListener extends DOTBaseListener {
 
     private Stack<GraphContainer.GraphContainerBuilder> containerStack = new Stack();
 
     private Map<String, Node> nodeMap = new HashMap<>();
+
+    private Map<SubgraphContext, GraphContainer> subGraphMap = null;
 
     private Graphviz graphviz;
 
@@ -156,7 +157,6 @@ public class GraphvizListener extends DOTBaseListener {
 
         int edgecount = ctx.edgeRHS().children.size() / 2;
         for (int c = 0; c < edgecount; c++) {
-            ParseTree edgeop = ctx.edgeRHS().children.get(2 * c);
             ParseTree second = ctx.edgeRHS().children.get(2 * c + 1);
 
             if (first instanceof DOTParser.Node_idContext) {
@@ -221,24 +221,47 @@ public class GraphvizListener extends DOTBaseListener {
         }
     }
 
-    private List<Node> subgraphNodes(DOTParser.SubgraphContext sg) {
-
-        List<Node> nodes = new ArrayList<>();
-
-        if (sg.stmt_list() != null) {
-            for (DOTParser.StmtContext stmt : sg.stmt_list().stmt()) {
-
-                if (stmt.node_stmt() != null) {
-                    String rightId = stmt.node_stmt().node_id().id_().getText();
-                    nodes.add(nodeMap.get(rightId));
-                }
-                if (stmt.subgraph() != null) {
-                    nodes.addAll(subgraphNodes(stmt.subgraph()));
-                }
-            }
+    private Iterable<Node> subgraphNodes(DOTParser.SubgraphContext sg) {
+        if (subGraphMap == null) {
+            throw new IllegalStateException("Cannot found subgraph when edge endpoints are subgraph/cluster");
         }
 
-        return nodes;
+        GraphContainer container = subGraphMap.get(sg);
+        if (container == null) {
+            throw new IllegalStateException("Cannot found subgraph container");
+        }
+        return container.nodes();
+//        Set<Node> nodes = new LinkedHashSet<>();
+
+
+//        if (sg.stmt_list() != null) {
+//            for (DOTParser.StmtContext stmt : sg.stmt_list().stmt()) {
+//                if (first instanceof DOTParser.Node_idContext) {
+//                    String leftId = ((DOTParser.Node_idContext) first).id_().getText();
+//                    nodeMap.putIfAbsent(leftId, Node.builder().id(leftId).label(leftId).build());
+//                }
+//
+//                if (second instanceof DOTParser.Node_idContext) {
+//                    String rightId = ((DOTParser.Node_idContext) second).id_().getText();
+//                    nodeMap.putIfAbsent(rightId, Node.builder().id(rightId).label(rightId).build());
+//                }
+//
+//                if (stmt.edge_stmt() != null) {
+//                    Edge_stmtContext ctx = stmt.edge_stmt();
+//                    ParseTree first = ctx.node_id() != null ? ctx.node_id() : ctx.subgraph();
+//                }
+//
+//                if (stmt.node_stmt() != null) {
+//                    String rightId = stmt.node_stmt().node_id().id_().getText();
+//                    nodes.add(nodeMap.get(rightId));
+//                }
+//                if (stmt.subgraph() != null) {
+//                    nodes.addAll(subgraphNodes(stmt.subgraph()));
+//                }
+//            }
+//        }
+
+//        return nodes;
     }
 
     private void buildLine(DOTParser.Attr_listContext attr_list, Node leftNode, Node rightNode,
@@ -315,6 +338,11 @@ public class GraphvizListener extends DOTBaseListener {
         } else if (gc.isSubgraph()) {
             parent.subgraph((Subgraph) gc);
         }
+
+        if (subGraphMap == null) {
+            subGraphMap = new HashMap<>();
+        }
+        subGraphMap.put(ctx, gc);
     }
 
     public Graphviz getGraphviz() {

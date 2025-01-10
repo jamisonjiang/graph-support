@@ -54,7 +54,7 @@ graph
  * List of statements within the graph.
  */
 stmt_list
-    : (stmt ';'?)*
+    : (stmt (',' | ';')?)*
     ;
 
 /*
