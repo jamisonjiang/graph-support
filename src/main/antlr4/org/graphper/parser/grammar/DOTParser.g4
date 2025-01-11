@@ -123,20 +123,12 @@ table_tr
  * Table data (e.g., <td>...</td>).
  */
 table_td
-//    : LT TD td_attrs? GT td_data? TD_CLOSE
-    : TD_OPEN td_data? TD_CLOSE
+    : TD_OPEN td_data TD_CLOSE
     ;
 
 td_data
     : table
-    | TD_TEXT
-    ;
-
-/*
- * Table data attributes (like colspan, rowspan).
- */
-td_attrs
-    : a_list
+    | TAG_TEXT
     ;
 
 /*

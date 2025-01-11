@@ -169,7 +169,7 @@ lexer grammar DOTLexer;
     ;
 
  TD_OPEN
-    : TD_ATTR_OPEN WS? HTML_ATTRS* WS? GT -> pushMode(TD_MODE)
+    : TD_ATTR_OPEN WS? HTML_ATTRS* WS? GT -> pushMode(TAG_TEXT_MODE)
     ;
 
  TD_CLOSE
@@ -182,9 +182,9 @@ lexer grammar DOTLexer;
 
 mode ATTR_MODE;
 
-HTML_ATTRS
-    : ID WS? EQUAL WS? VALUE (WS? COMMA? SEMI_COLON? WS? ID WS? EQUAL WS? VALUE)*
-      -> popMode ;
+ HTML_ATTRS
+    : ID WS? EQUAL WS? VALUE (WS? COMMA? SEMI_COLON? WS? ID WS? EQUAL WS? VALUE)* -> popMode
+    ;
 
  VALUE
     : ID
@@ -192,8 +192,9 @@ HTML_ATTRS
     | NUMBER
     ;
 
-mode TD_MODE;
+mode TAG_TEXT_MODE;
 
-  TD_TEXT
+  TAG_TEXT
     : ~('<'|'>')+ -> popMode
     ;
+

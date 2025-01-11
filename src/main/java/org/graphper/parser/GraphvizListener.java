@@ -353,16 +353,16 @@ public class GraphvizListener extends DOTParserBaseListener {
                     continue;
                 }
 
-                if (tdData.TD_TEXT() != null) {
-                    td.text(tdData.TD_TEXT().getText());
+                if (tdData.TAG_TEXT() != null) {
+                    td.text(tdData.TAG_TEXT().getText());
                     continue;
                 }
-
-                if (tdData.table() != null) {
-                    tableConsumerStack.push(td::table);
-                    enterTable(tdData.table());
-                    tableConsumerStack.pop();
-                }
+//
+//                if (tdData.table() != null) {
+//                    tableConsumerStack.push(td::table);
+//                    enterTable(tdData.table());
+//                    tableConsumerStack.pop();
+//                }
             }
 
             table.tr(tds);
