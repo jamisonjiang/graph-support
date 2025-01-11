@@ -29,7 +29,7 @@
 // $antlr-format alignTrailingComments true, columnLimit 150, maxEmptyLinesToKeep 1, reflowComments false, useTab false
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
 // $antlr-format alignColons trailing, singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
-// HTMLLexer.g4
+
 lexer grammar HTMLLexer;
 
 HTML_COMMENT: '<!--' .*? '-->';
@@ -40,11 +40,11 @@ XML: '<?xml' .*? '>';
 
 CDATA: '<![CDATA[' .*? ']]>';
 
-DTD: '<!DOCTYPE' .*? '>';
+DTD: '<!' .*? '>';
 
-SCRIPTLET: '<%' .*? '%>';
+SCRIPTLET: '<?' .*? '?>' | '<%' .*? '%>';
 
-SEA_WS: [ \t\r\n]+ -> skip;
+SEA_WS: (' ' | '\t' | '\r'? '\n')+;
 
 SCRIPT_OPEN: '<script' .*? '>' -> pushMode(SCRIPT);
 
@@ -52,7 +52,9 @@ STYLE_OPEN: '<style' .*? '>' -> pushMode(STYLE);
 
 TAG_OPEN: '<' -> pushMode(TAG);
 
-HTML_TEXT: ~'<' + ;
+HTML_TEXT: ~'<'+;
+
+// tag declarations
 
 mode TAG;
 
@@ -62,11 +64,13 @@ TAG_SLASH_CLOSE: '/>' -> popMode;
 
 TAG_SLASH: '/';
 
+// lexing mode for attribute values
+
 TAG_EQUALS: '=' -> pushMode(ATTVALUE);
 
 TAG_NAME: TAG_NameStartChar TAG_NameChar*;
 
-TAG_WHITESPACE: [ \t\r\n]+ -> channel(HIDDEN);
+TAG_WHITESPACE: [ \t\r\n] -> channel(HIDDEN);
 
 fragment HEXDIGIT: [a-fA-F0-9];
 
@@ -84,7 +88,7 @@ fragment TAG_NameChar:
 ;
 
 fragment TAG_NameStartChar:
-    [a-zA-Z]
+    [:a-zA-Z]
     | '\u2070' ..'\u218F'
     | '\u2C00' ..'\u2FEF'
     | '\u3001' ..'\uD7FF'
@@ -93,6 +97,7 @@ fragment TAG_NameStartChar:
 ;
 
 // <scripts>
+
 mode SCRIPT;
 
 SCRIPT_BODY: .*? '</script>' -> popMode;
@@ -100,6 +105,7 @@ SCRIPT_BODY: .*? '</script>' -> popMode;
 SCRIPT_SHORT_BODY: .*? '</>' -> popMode;
 
 // <styles>
+
 mode STYLE;
 
 STYLE_BODY: .*? '</style>' -> popMode;
@@ -107,11 +113,15 @@ STYLE_BODY: .*? '</style>' -> popMode;
 STYLE_SHORT_BODY: .*? '</>' -> popMode;
 
 // attribute values
+
 mode ATTVALUE;
 
-ATTVALUE_VALUE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS -> popMode;
+// an attribute value may have spaces b/t the '=' and the value
+ATTVALUE_VALUE: ' '* ATTRIBUTE -> popMode;
 
-fragment ATTCHARS: ATTCHAR+ ;
+ATTRIBUTE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS;
+
+fragment ATTCHARS: ATTCHAR+ ' '?;
 
 fragment ATTCHAR: '-' | '_' | '.' | '/' | '+' | ',' | '?' | '=' | ':' | ';' | '#' | [0-9a-zA-Z];
 
@@ -119,6 +129,6 @@ fragment HEXCHARS: '#' [0-9a-fA-F]+;
 
 fragment DECCHARS: [0-9]+ '%'?;
 
-fragment DOUBLE_QUOTE_STRING: '"' ~["]* '"' ;
+fragment DOUBLE_QUOTE_STRING: '"' ~[<"]* '"';
 
-fragment SINGLE_QUOTE_STRING: '\'' ~[']* '\'' ;
+fragment SINGLE_QUOTE_STRING: '\'' ~[<']* '\'';
