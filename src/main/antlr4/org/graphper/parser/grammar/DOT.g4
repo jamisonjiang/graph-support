@@ -100,14 +100,14 @@ value
     ;
 
 table_wrapper
-    : LT table_attrs GT
+    : LT table GT
     ;
 
 /*
  * table structure.
  */
 table
-    : LT 'table' table_attrs? GT table_rows LT '/' 'table' GT
+    : LT 'table' table_attrs? GT table_tr+ LT '/' 'table' GT
     ;
 
 /*
@@ -118,16 +118,9 @@ table_attrs
     ;
 
 /*
- * Rows inside a table.
- */
-table_rows
-    : table_row+
-    ;
-
-/*
  * A row inside a table.
  */
-table_row
+table_tr
     : LT 'tr' GT table_td+ LT '/' 'tr' GT
     ;
 
@@ -139,8 +132,8 @@ table_td
     ;
 
 td_data
-    : table
-    | id_
+    : (id_)*
+    | table
     ;
 
 /*
@@ -319,5 +312,9 @@ WS
     : [ \t\n\r]+ -> skip
     ;
 
-LT: '<';
-GT: '>';
+LT
+   : '<'
+   ;
+GT
+   : '>'
+   ;
