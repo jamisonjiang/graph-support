@@ -109,7 +109,6 @@ table_wrapper
  * table structure.
  */
 table
-//    : TABLE_OPEN GT table_tr+ TABLE_CLOSE
     : TABLE_OPEN table_tr+ TABLE_CLOSE
     ;
 
@@ -131,7 +130,6 @@ table_td
 td_data
     : table
     | TD_TEXT
-//    | STRING
     ;
 
 /*

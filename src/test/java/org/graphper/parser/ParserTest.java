@@ -1,12 +1,13 @@
 package org.graphper.parser;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import org.graphper.api.FileType;
 import org.graphper.api.Graphviz;
 import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Visual tests for DotParser
@@ -59,32 +60,4 @@ public class ParserTest {
         graphviz.toFile(FileType.SVG).save("./target/graphviz", graphviz.id());
     }
 
-    @Test
-    public void testT() throws IOException {
-        String s = "digraph G {\n"
-            + "   k [label=<\n"
-            + "<table border=\"5\" color=\"black\">\n"
-            + "  <tr>\n"
-            + "    <td>\"First_Colume\"                  1 2 \\n \\r </td>\n"
-            + "  </tr>\n"
-            + "</table>\n"
-            + ">];\n"
-            + "\n"
-            + "}";
-
-        new DotParser(s);
-
-//        HtmlTableLexer lexer = new HtmlTableLexer(CharStreams.fromString(s));
-//        HtmlTableParser p = new HtmlTableParser(new CommonTokenStream(lexer));
-//
-//        p.removeErrorListeners();
-//        lexer.removeErrorListeners();
-//
-//        DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
-//        p.addErrorListener(dotSyntaxErrorListener);
-//        lexer.addErrorListener(dotSyntaxErrorListener);
-//
-//        HtmlTableListener listener = new HtmlTableBaseListener();
-//        new ParseTreeWalker().walk(listener, p.document());
-    }
 }

@@ -157,27 +157,34 @@ lexer grammar DOTLexer;
     ;
 
  TABLE_OPEN
-    : LT TABLE GT
+    : TABLE_ATTR_OPEN WS? HTML_ATTRS* WS? GT
+    ;
+
+ TABLE_ATTR_OPEN
+    : LT WS? TABLE -> pushMode(ATTR_MODE)
     ;
 
  TABLE_CLOSE
-    : LT SLASH TABLE GT
+    : LT WS? SLASH WS? TABLE WS? GT
     ;
 
-//mode HTML_MODE;
-
  TD_OPEN
-    : TD_ATTR_OPEN WS? HTML_ATTRS? GT -> pushMode(TD_MODE)
+    : TD_ATTR_OPEN WS? HTML_ATTRS* WS? GT -> pushMode(TD_MODE)
+    ;
+
+ TD_CLOSE
+    : LT WS? SLASH WS? TD WS? GT
     ;
 
  TD_ATTR_OPEN
-    : LT TD -> pushMode(ATTR_MODE)
+    : LT WS? TD -> pushMode(ATTR_MODE)
     ;
 
 mode ATTR_MODE;
 
- HTML_ATTRS
-     : (ID EQUAL VALUE)+ -> popMode;
+HTML_ATTRS
+    : ID WS? EQUAL WS? VALUE (WS? COMMA? SEMI_COLON? WS? ID WS? EQUAL WS? VALUE)*
+      -> popMode ;
 
  VALUE
     : ID
@@ -188,9 +195,5 @@ mode ATTR_MODE;
 mode TD_MODE;
 
   TD_TEXT
-    : ~('<'|'>')+
-    ;
-
-  TD_CLOSE
-    : LT SLASH TD GT -> popMode
+    : ~('<'|'>')+ -> popMode
     ;

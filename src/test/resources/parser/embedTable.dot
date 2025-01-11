@@ -35,4 +35,13 @@ digraph G {
              <td>second 333</td>
          </tr>
      </table>>];
+
+    t [label=<
+     < table border = 1 , color = red >
+       < tr >
+         < td    color = red  ;
+          fontsize = "1"  colspan=1 > 1 2 3 4 5678              \n \r < / td >
+       < / tr >
+     < / table >
+     >];
 }
