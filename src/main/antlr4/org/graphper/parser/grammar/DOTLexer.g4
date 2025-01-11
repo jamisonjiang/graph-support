@@ -27,6 +27,18 @@ lexer grammar DOTLexer;
      : [Ss] [Uu] [Bb] [Gg] [Rr] [Aa] [Pp] [Hh]
      ;
 
+ TABLE
+    : [Tt] [Aa] [Bb] [Ll] [Ee]
+    ;
+
+ TR
+    : [Tt] [Rr]
+    ;
+
+ TD
+    : [Tt] [Dd]
+    ;
+
  /*
   * Lexer rule for numbers, including integers and decimals.
   */
@@ -67,7 +79,6 @@ lexer grammar DOTLexer;
  fragment LETTER
      : [a-zA-Z\u0080-\u00FF_]
      ;
-
 
  /*
   * Lexer rules for comments to be skipped.
@@ -133,20 +144,8 @@ lexer grammar DOTLexer;
     : '='
     ;
 
- TABLE
-    : 'table'
-    ;
-
  SLASH
     : '/'
-    ;
-
- TR
-    : 'tr'
-    ;
-
- TD
-    : 'td'
     ;
 
  DA
@@ -157,8 +156,41 @@ lexer grammar DOTLexer;
     : '--'
     ;
 
+ TABLE_OPEN
+    : LT TABLE GT
+    ;
+
+ TABLE_CLOSE
+    : LT SLASH TABLE GT
+    ;
+
+//mode HTML_MODE;
+
+ TD_OPEN
+    : TD_ATTR_OPEN WS? HTML_ATTRS? GT -> pushMode(TD_MODE)
+    ;
+
+ TD_ATTR_OPEN
+    : LT TD -> pushMode(ATTR_MODE)
+    ;
+
+mode ATTR_MODE;
+
+ HTML_ATTRS
+     : (ID EQUAL VALUE)+ -> popMode;
+
+ VALUE
+    : ID
+    | STRING
+    | NUMBER
+    ;
+
 mode TD_MODE;
 
-TD_TEXT
-    : ~[<]+
+  TD_TEXT
+    : ~('<'|'>')+
+    ;
+
+  TD_CLOSE
+    : LT SLASH TD GT -> popMode
     ;

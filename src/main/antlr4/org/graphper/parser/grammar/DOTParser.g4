@@ -109,14 +109,8 @@ table_wrapper
  * table structure.
  */
 table
-    : LT TABLE table_attrs? GT table_tr+ LT SLASH TABLE GT
-    ;
-
-/*
- * Table attributes (like border, cellspacing).
- */
-table_attrs
-    : a_list
+//    : TABLE_OPEN GT table_tr+ TABLE_CLOSE
+    : TABLE_OPEN table_tr+ TABLE_CLOSE
     ;
 
 /*
@@ -130,12 +124,14 @@ table_tr
  * Table data (e.g., <td>...</td>).
  */
 table_td
-    : LT TD td_attrs? GT td_data? LT SLASH TD GT
+//    : LT TD td_attrs? GT td_data? TD_CLOSE
+    : TD_OPEN td_data? TD_CLOSE
     ;
 
 td_data
     : table
-    | (id_)*
+    | TD_TEXT
+//    | STRING
     ;
 
 /*

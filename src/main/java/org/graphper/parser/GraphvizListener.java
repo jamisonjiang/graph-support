@@ -353,12 +353,10 @@ public class GraphvizListener extends DOTParserBaseListener {
                     continue;
                 }
 
-//                if (tdData.id_() != null) {
-//                    String text = tdData.id_().stream().map(RuleContext::getText)
-//                        .collect(Collectors.joining());
-//                    td.text(text);
-//                    continue;
-//                }
+                if (tdData.TD_TEXT() != null) {
+                    td.text(tdData.TD_TEXT().getText());
+                    continue;
+                }
 
                 if (tdData.table() != null) {
                     tableConsumerStack.push(td::table);
