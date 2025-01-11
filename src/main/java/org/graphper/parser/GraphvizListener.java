@@ -24,34 +24,48 @@ import static org.graphper.parser.ParserUtils.setLinePort;
 import static org.graphper.parser.ParserUtils.subgraphAttribute;
 import static org.graphper.parser.ParserUtils.subgraphAttributes;
 
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
-import java.util.Stack;
-import org.antlr.v4.runtime.ParserRuleContext;
+import java.util.function.Consumer;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
+import org.graphper.api.GraphContainer.GraphContainerBuilder;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
+import org.graphper.api.Html;
+import org.graphper.api.Html.Table;
+import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
+import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.Subgraph;
-import org.graphper.parser.grammar.DOTBaseListener;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
+import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
 import org.graphper.parser.grammar.DOTParser.SubgraphContext;
 import org.graphper.parser.grammar.DOTParser.TableContext;
+import org.graphper.parser.grammar.DOTParser.Table_tdContext;
+import org.graphper.parser.grammar.DOTParser.Table_trContext;
+import org.graphper.parser.grammar.DOTParser.Td_dataContext;
+import org.graphper.parser.grammar.DOTParserBaseListener;
 
-public class GraphvizListener extends DOTBaseListener {
+public class GraphvizListener extends DOTParserBaseListener {
 
-    private Stack<GraphContainer.GraphContainerBuilder> containerStack = new Stack();
+    private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();
+
+    private final Deque<Consumer<Table>> tableConsumerStack = new LinkedList<>();
 
     private Map<String, Node> nodeMap = new HashMap<>();
 
     private Map<SubgraphContext, GraphContainer> subGraphMap = null;
 
     private Graphviz graphviz;
+
+    private NodeBuilder currentNodeBuilder;
 
     @Override
     public void enterGraph(DOTParser.GraphContext ctx) {
@@ -271,13 +285,19 @@ public class GraphvizListener extends DOTBaseListener {
         String id = ctx.node_id().id_().getText();
         Node.NodeBuilder builder = Node.builder();
         builder.id(id);
-
         nodeAttributes(ctx.attr_list(), builder);
+        currentNodeBuilder = builder;
+        tableConsumerStack.push(builder::table);
+    }
 
-        Node n = builder.build();
+    @Override
+    public void exitNode_stmt(Node_stmtContext ctx) {
+        String id = ctx.node_id().id_().getText();
+        Node n = currentNodeBuilder.build();
         nodeMap.put(id, n);
-
         containerStack.peek().addNode(n);
+        currentNodeBuilder = null;
+        tableConsumerStack.pop();
     }
 
     @Override
@@ -318,9 +338,36 @@ public class GraphvizListener extends DOTBaseListener {
 
     @Override
     public void enterTable(TableContext ctx) {
-        ParserRuleContext parent = ctx.getParent();
-        if (parent instanceof Node_idContext) {
-            System.out.println(parent);
+        Table table = Html.table();
+        tableConsumerStack.peek().accept(table);
+
+        for (Table_trContext tr : ctx.table_tr()) {
+            Td[] tds = new Td[tr.table_td().size()];
+            for (int i = 0; i < tr.table_td().size(); i++) {
+                Td td = Html.td();
+                tds[i] = td;
+
+                Table_tdContext tdCtx = tr.table_td(i);
+                Td_dataContext tdData = tdCtx.td_data();
+                if (tdData == null) {
+                    continue;
+                }
+
+//                if (tdData.id_() != null) {
+//                    String text = tdData.id_().stream().map(RuleContext::getText)
+//                        .collect(Collectors.joining());
+//                    td.text(text);
+//                    continue;
+//                }
+
+                if (tdData.table() != null) {
+                    tableConsumerStack.push(td::table);
+                    enterTable(tdData.table());
+                    tableConsumerStack.pop();
+                }
+            }
+
+            table.tr(tds);
         }
     }
 

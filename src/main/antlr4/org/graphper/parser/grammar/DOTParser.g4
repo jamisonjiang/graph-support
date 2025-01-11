@@ -32,7 +32,9 @@
 // $antlr-format alignTrailingComments true, columnLimit 150, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments false, useTab false
 // $antlr-format allowShortRulesOnASingleLine false, allowShortBlocksOnASingleLine true, alignSemicolons hanging, alignColons hanging
 
-grammar DOT;
+parser grammar DOTParser;
+
+options { tokenVocab=DOTLexer; }
 
 @parser::members {
     // Variable to track if the current graph is directed
@@ -47,14 +49,14 @@ graph
       (GRAPH { directed = false; }
        | DIGRAPH { directed = true; }
       )
-      id_? '{' stmt_list '}' EOF
+      id_? LB stmt_list RB EOF
     ;
 
 /*
  * List of statements within the graph.
  */
 stmt_list
-    : (stmt (',' | ';')?)*
+    : (stmt (COMMA | SEMI_COLON)?)*
     ;
 
 /*
@@ -65,7 +67,7 @@ stmt
     | edge_stmt
     | attr_stmt
     | graph_a_list
-    | id_ '=' id_
+    | id_ EQUAL id_
     | subgraph
     ;
 
@@ -80,7 +82,7 @@ attr_stmt
  * List of attributes enclosed in square brackets.
  */
 attr_list
-    : ('[' a_list? ']')+
+    : (LSB a_list? RSB)+
     ;
 
 graph_a_list
@@ -91,7 +93,7 @@ graph_a_list
  * A list of key-value attribute pairs.
  */
 a_list
-    : (id_ '=' value (',' | ';')?)+
+    : (id_ EQUAL value (COMMA | SEMI_COLON)?)+
     ;
 
 value
@@ -107,7 +109,7 @@ table_wrapper
  * table structure.
  */
 table
-    : LT 'table' table_attrs? GT table_tr+ LT '/' 'table' GT
+    : LT TABLE table_attrs? GT table_tr+ LT SLASH TABLE GT
     ;
 
 /*
@@ -121,19 +123,19 @@ table_attrs
  * A row inside a table.
  */
 table_tr
-    : LT 'tr' GT table_td+ LT '/' 'tr' GT
+    : LT TR GT table_td+ LT SLASH TR GT
     ;
 
 /*
  * Table data (e.g., <td>...</td>).
  */
 table_td
-    : LT 'td' td_attrs? GT td_data? LT '/' 'td' GT
+    : LT TD td_attrs? GT td_data? LT SLASH TD GT
     ;
 
 td_data
-    : (id_)*
-    | table
+    : table
+    | (id_)*
     ;
 
 /*
@@ -161,18 +163,18 @@ edgeRHS
  * Edge operators: '->' for directed and '--' for undirected edges.
  */
 edgeop
-    : {directed}? '->'
+    : {directed}? DA
         # directedEdge
-    | { !directed }? '--'
+    | { !directed }? UDA
         # undirectedEdge
-    | '->'
+    | DA
         {
             if (!directed) {
                 notifyErrorListeners("Cannot use '->' in an undirected graph.");
             }
         }
         # invalidDirectedEdge
-    | '--'
+    | UDA
         {
             if (directed) {
                 notifyErrorListeners("Cannot use '--' in a directed graph.");
@@ -199,14 +201,14 @@ node_id
  * Port specification for a node.
  */
 port
-    : ':' id_ (':' id_)?
+    : COLON id_ (COLON id_)?
     ;
 
 /*
  * Subgraph definition.
  */
 subgraph
-    : (SUBGRAPH id_?)? '{' stmt_list '}'
+    : (SUBGRAPH id_?)? LB stmt_list RB
     ;
 
 /*
@@ -217,104 +219,3 @@ id_
     | STRING
     | NUMBER
     ;
-
-/*
- * Lexer rules for keywords (case-insensitive).
- */
-STRICT
-    : [Ss] [Tt] [Rr] [Ii] [Cc] [Tt]
-    ;
-
-GRAPH
-    : [Gg] [Rr] [Aa] [Pp] [Hh]
-    ;
-
-DIGRAPH
-    : [Dd] [Ii] [Gg] [Rr] [Aa] [Pp] [Hh]
-    ;
-
-NODE
-    : [Nn] [Oo] [Dd] [Ee]
-    ;
-
-EDGE
-    : [Ee] [Dd] [Gg] [Ee]
-    ;
-
-SUBGRAPH
-    : [Ss] [Uu] [Bb] [Gg] [Rr] [Aa] [Pp] [Hh]
-    ;
-
-/*
- * Lexer rule for numbers, including integers and decimals.
- */
-NUMBER
-    : '-'? ('.' DIGIT+ | DIGIT+ ( '.' DIGIT*)?)
-    ;
-
-fragment DIGIT
-    : [0-9]
-    ;
-
-/*
- * Lexer rule for double-quoted strings with escape sequences.
- */
-STRING
-    : '"' ( ESC_SEQ | ~["\\] )* '"'
-        {
-            String content = getText().substring(1, getText().length() - 1);
-            content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
-            setText(content);
-        }
-    ;
-
-/*
- * Fragment for escape sequences within strings.
- */
-fragment ESC_SEQ
-    : '\\' [nrt"\\bf]
-    ;
-
-/*
- * Lexer rule for identifiers.
- */
-ID
-    : LETTER (LETTER | DIGIT)*
-    ;
-
-fragment LETTER
-    : [a-zA-Z\u0080-\u00FF_]
-    ;
-
-
-/*
- * Lexer rules for comments to be skipped.
- */
-COMMENT
-    : '/*' .*? '*/' -> skip
-    ;
-
-LINE_COMMENT
-    : '//' .*? '\r'? '\n' -> skip
-    ;
-
-/*
- * Lexer rule for preprocessor lines to be skipped.
- */
-PREPROC
-    : '#' ~[\r\n]* -> skip
-    ;
-
-/*
- * Lexer rule for whitespace to be skipped.
- */
-WS
-    : [ \t\n\r]+ -> skip
-    ;
-
-LT
-   : '<'
-   ;
-GT
-   : '>'
-   ;

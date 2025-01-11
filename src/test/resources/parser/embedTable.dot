@@ -1,0 +1,38 @@
+digraph G {
+
+    b [label=<<table>
+               <tr><td>foo</td><td>bar</td><td>baz</td></tr>
+               <tr><td>qux</td><td>quux</td><td>
+
+               <table>
+               <tr><td>foo</td><td>bar</td><td>baz</td></tr>
+               <tr><td>qux</td><td>quux</td><td>corge</td></tr>
+             </table>
+               </td></tr>
+
+             </table>>];
+
+    a [label=<<table><tr><td></td><td></td></tr></table>>];
+
+    c [label=<<table>
+               <tr><td>
+               <table>
+               <tr><td>foo</td><td>bar</td><td>baz</td></tr>
+               <tr><td>qux</td><td>quux</td><td>corge</td></tr>
+             </table>
+               </td></tr>
+             </table>>];
+
+     k [label=<
+     <table>
+         <tr>
+             <td>
+                 <table>
+                     <tr><td>111</td></tr>
+                     <tr><td>222</td></tr>
+                 </table>
+             </td>
+             <td>second 333</td>
+         </tr>
+     </table>>];
+}
