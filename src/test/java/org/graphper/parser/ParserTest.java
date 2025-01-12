@@ -12,6 +12,7 @@ import org.graphper.draw.ExecuteException;
 import org.graphper.parser.grammar.HTMLLexer;
 import org.graphper.parser.grammar.HTMLParser;
 import org.graphper.parser.grammar.HTMLParser.HtmlAttributeContext;
+import org.graphper.parser.grammar.HTMLParser.HtmlCommentContext;
 import org.graphper.parser.grammar.HTMLParser.HtmlContentContext;
 import org.graphper.parser.grammar.HTMLParser.HtmlElementContext;
 import org.graphper.parser.grammar.HTMLParserBaseListener;
@@ -73,6 +74,7 @@ public class ParserTest {
     public void testHtml() {
         String html = "<table color=\"red\" border=\"1\">\n"
             + "         <tr>\n"
+            + "         <!-- sss -->"
             + "             <td color=\"red\" border=\"1\">\n"
             + "                 <table color=\"blue\" border=\"1\">\n"
             + "                     <tr><td>111</td></tr>\n"
@@ -102,8 +104,13 @@ public class ParserTest {
             }
 
             @Override
+            public void enterHtmlComment(HtmlCommentContext ctx) {
+                System.out.println(ctx.HTML_COMMENT().getText());
+            }
+
+            @Override
             public void enterHtmlAttribute(HtmlAttributeContext ctx) {
-//                System.out.println(ctx.getText());
+                System.out.println(ctx.getText());
             }
 
             @Override
@@ -113,7 +120,7 @@ public class ParserTest {
                 }
             }
         };
-        new ParseTreeWalker().walk(listener, p.htmlDocument());
+        new ParseTreeWalker().walk(listener, p.htmlElement());
 
 
     }

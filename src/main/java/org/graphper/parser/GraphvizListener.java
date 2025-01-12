@@ -35,9 +35,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.GraphContainer.GraphContainerBuilder;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
-import org.graphper.api.Html;
 import org.graphper.api.Html.Table;
-import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
@@ -47,10 +45,6 @@ import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
 import org.graphper.parser.grammar.DOTParser.SubgraphContext;
-import org.graphper.parser.grammar.DOTParser.TableContext;
-import org.graphper.parser.grammar.DOTParser.Table_tdContext;
-import org.graphper.parser.grammar.DOTParser.Table_trContext;
-import org.graphper.parser.grammar.DOTParser.Td_dataContext;
 import org.graphper.parser.grammar.DOTParserBaseListener;
 
 public class GraphvizListener extends DOTParserBaseListener {
@@ -336,38 +330,43 @@ public class GraphvizListener extends DOTParserBaseListener {
         subGraphMap.put(ctx, gc);
     }
 
-    @Override
-    public void enterTable(TableContext ctx) {
-        Table table = Html.table();
-        tableConsumerStack.peek().accept(table);
-
-        for (Table_trContext tr : ctx.table_tr()) {
-            Td[] tds = new Td[tr.table_td().size()];
-            for (int i = 0; i < tr.table_td().size(); i++) {
-                Td td = Html.td();
-                tds[i] = td;
-
-                Table_tdContext tdCtx = tr.table_td(i);
-                Td_dataContext tdData = tdCtx.td_data();
-                if (tdData == null) {
-                    continue;
-                }
-
-                if (tdData.TAG_TEXT() != null) {
-                    td.text(tdData.TAG_TEXT().getText());
-                    continue;
-                }
+//    @Override
+//    public void enterTable(TableContext ctx) {
+//        Table table = Html.table();
+//        tableConsumerStack.peek().accept(table);
 //
-//                if (tdData.table() != null) {
-//                    tableConsumerStack.push(td::table);
-//                    enterTable(tdData.table());
-//                    tableConsumerStack.pop();
-//                }
-            }
-
-            table.tr(tds);
-        }
-    }
+//        for (Table_trContext tr : ctx.table_tr()) {
+//            Td[] tds = new Td[tr.table_td().size()];
+//            for (int i = 0; i < tr.table_td().size(); i++) {
+//                Td td = Html.td();
+//                tds[i] = td;
+//
+//                Table_tdContext tdCtx = tr.table_td(i);
+//
+////                String text = tdCtx.TD_TAG().getText();
+////
+////                System.out.println(text);
+//
+////                Td_dataContext tdData = tdCtx.td_data();
+////                if (tdData == null) {
+////                    continue;
+////                }
+////
+////                if (tdData.TAG_TEXT() != null) {
+////                    td.text(tdData.TAG_TEXT().getText());
+////                    continue;
+////                }
+////
+////                if (tdData.table() != null) {
+////                    tableConsumerStack.push(td::table);
+////                    enterTable(tdData.table());
+////                    tableConsumerStack.pop();
+////                }
+//            }
+//
+//            table.tr(tds);
+//        }
+//    }
 
     public Graphviz getGraphviz() {
         return graphviz;

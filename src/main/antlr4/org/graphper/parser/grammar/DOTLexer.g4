@@ -105,12 +105,12 @@ lexer grammar DOTLexer;
      : [ \t\n\r]+ -> skip
      ;
 
- LT
-    : '<'
-    ;
- GT
-    : '>'
-    ;
+// LT
+//    : '<'
+//    ;
+// GT
+//    : '>'
+//    ;
 
  LB
     : '{'
@@ -156,45 +156,75 @@ lexer grammar DOTLexer;
     : '--'
     ;
 
- TABLE_OPEN
-    : TABLE_ATTR_OPEN WS? HTML_ATTRS* WS? GT
-    ;
+HTML_COMMENT: '<!--' .*? '-->';
 
- TABLE_ATTR_OPEN
-    : LT WS? TABLE -> pushMode(ATTR_MODE)
-    ;
+HTML_CONDITIONAL_COMMENT: '<![' .*? ']>';
 
- TABLE_CLOSE
-    : LT WS? SLASH WS? TABLE WS? GT
-    ;
+SEA_WS: (' ' | '\t' | '\r'? '\n')+;
 
- TD_OPEN
-    : TD_ATTR_OPEN WS? HTML_ATTRS* WS? GT -> pushMode(TAG_TEXT_MODE)
-    ;
+TAG_OPEN: '<' -> pushMode(TAG);
+//TAG_OPEN: '<' -> mode(TAG);
 
- TD_CLOSE
-    : LT WS? SLASH WS? TD WS? GT
-    ;
+// tag declarations
 
- TD_ATTR_OPEN
-    : LT WS? TD -> pushMode(ATTR_MODE)
-    ;
+mode TAG;
 
-mode ATTR_MODE;
+HTML_TEXT: ~'<'+;
 
- HTML_ATTRS
-    : ID WS? EQUAL WS? VALUE (WS? COMMA? SEMI_COLON? WS? ID WS? EQUAL WS? VALUE)* -> popMode
-    ;
+//TAG_CLOSE: '>' -> mode(DEFAULT_MODE);
+TAG_CLOSE: '>' -> popMode;
 
- VALUE
-    : ID
-    | STRING
-    | NUMBER
-    ;
+TAG_SLASH_CLOSE: '/>' -> mode(DEFAULT_MODE);
 
-mode TAG_TEXT_MODE;
+TAG_SLASH: '/';
 
-  TAG_TEXT
-    : ~('<'|'>')+ -> popMode
-    ;
+// lexing mode for attribute values
 
+TAG_EQUALS: '=' -> pushMode(ATTVALUE);
+
+TAG_NAME: TAG_NameStartChar TAG_NameChar*;
+
+TAG_WHITESPACE: [ \t\r\n] -> channel(HIDDEN);
+
+fragment HEXDIGIT: [a-fA-F0-9];
+
+fragment TAG_NameChar:
+    TAG_NameStartChar
+    | '-'
+    | '_'
+    | '.'
+    | DIGIT
+    | '\u00B7'
+    | '\u0300' ..'\u036F'
+    | '\u203F' ..'\u2040'
+;
+
+fragment TAG_NameStartChar:
+    [:a-zA-Z]
+    | '\u2070' ..'\u218F'
+    | '\u2C00' ..'\u2FEF'
+    | '\u3001' ..'\uD7FF'
+    | '\uF900' ..'\uFDCF'
+    | '\uFDF0' ..'\uFFFD'
+;
+
+// attribute values
+
+mode ATTVALUE;
+
+// an attribute value may have spaces b/t the '=' and the value
+ATTVALUE_VALUE: ' '* ATTRIBUTE -> popMode;
+
+ATTRIBUTE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS;
+
+fragment ATTCHARS: ATTCHAR+ ' '?;
+
+fragment ATTCHAR: '-' | '_' | '.' | '/' | '+' | ',' | '?' | '=' | ':' | ';' | '#' | [0-9a-zA-Z];
+
+fragment HEXCHARS: '#' [0-9a-fA-F]+;
+
+fragment DECCHARS: [0-9]+ '%'?;
+
+fragment DOUBLE_QUOTE_STRING: '"' ~[<"]* '"';
+
+fragment SINGLE_QUOTE_STRING: '\'' ~[<']* '\'';

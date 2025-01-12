@@ -94,9 +94,9 @@ public class ParserUtils {
     }
 
     private static String getValue(DOTParser.ValueContext valueCtx) {
-        if (valueCtx.table_wrapper() != null) {
-            return null;
-        }
+//        if (valueCtx.table_wrapper() != null) {
+//            return null;
+//        }
         if (valueCtx.id_() != null) {
             return valueCtx.id_().getText();
         }

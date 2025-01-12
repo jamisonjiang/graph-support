@@ -97,39 +97,14 @@ a_list
     ;
 
 value
-    : table_wrapper
-    | id_
+//    : table_wrapper
+    : id_
     ;
 
-table_wrapper
-    : LT table GT
-    ;
-
-/*
- * table structure.
- */
-table
-    : TABLE_OPEN table_tr+ TABLE_CLOSE
-    ;
-
-/*
- * A row inside a table.
- */
-table_tr
-    : LT TR GT table_td+ LT SLASH TR GT
-    ;
-
-/*
- * Table data (e.g., <td>...</td>).
- */
-table_td
-    : TD_OPEN td_data TD_CLOSE
-    ;
-
-td_data
-    : table
-    | TAG_TEXT
-    ;
+//table_wrapper
+////    : TAG_OPEN htmlElement TAG_CLOSE
+//    : LT STRING GT
+//    ;
 
 /*
  * Edge statement connecting nodes or subgraphs.
@@ -204,4 +179,34 @@ id_
     : ID
     | STRING
     | NUMBER
+    ;
+
+htmlElement
+    : TAG_OPEN TAG_NAME htmlAttribute* (
+        TAG_CLOSE (htmlContent TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE)?
+        | TAG_SLASH_CLOSE
+    )
+    ;
+
+htmlContent
+    : htmlChardata? ((htmlElement | htmlComment) htmlChardata?)*
+    ;
+
+htmlAttribute
+    : TAG_NAME (TAG_EQUALS ATTVALUE_VALUE)?
+    ;
+
+htmlChardata
+    : HTML_TEXT
+    | SEA_WS
+    ;
+
+htmlMisc
+    : htmlComment
+    | SEA_WS
+    ;
+
+htmlComment
+    : HTML_COMMENT
+    | HTML_CONDITIONAL_COMMENT
     ;
