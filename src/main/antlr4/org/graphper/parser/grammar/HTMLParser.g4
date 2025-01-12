@@ -37,7 +37,7 @@ options {
 }
 
 table
-    : TAG_OPEN TABLE htmlAttributes? TAG_CLOSE WS? (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
+    : TAG_OPEN TABLE htmlAttribute* TAG_CLOSE WS? (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
     ;
 
 tr
@@ -45,15 +45,11 @@ tr
     ;
 
 td
-    : TAG_OPEN TD htmlAttributes? TAG_CLOSE htmlContent TAG_OPEN TAG_SLASH TD TAG_CLOSE
+    : TAG_OPEN TD htmlAttribute* TAG_CLOSE htmlContent TAG_OPEN TAG_SLASH TD TAG_CLOSE
     ;
 
 htmlContent
     : htmlChardata? ((table | htmlComment) htmlChardata?)*
-    ;
-
-htmlAttributes
-    : htmlAttribute ( (COMMA | SEMI_COLON | WS) htmlAttribute )*
     ;
 
 htmlAttribute
@@ -62,11 +58,6 @@ htmlAttribute
 
 htmlChardata
     : HTML_TEXT
-    | WS
-    ;
-
-htmlMisc
-    : htmlComment
     | WS
     ;
 

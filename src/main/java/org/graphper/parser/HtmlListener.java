@@ -16,36 +16,79 @@
 
 package org.graphper.parser;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.Html;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
 import org.graphper.parser.grammar.HTMLParser.HtmlAttributeContext;
+import org.graphper.parser.grammar.HTMLParser.HtmlContentContext;
 import org.graphper.parser.grammar.HTMLParser.TableContext;
 import org.graphper.parser.grammar.HTMLParser.TdContext;
 import org.graphper.parser.grammar.HTMLParser.TrContext;
 import org.graphper.parser.grammar.HTMLParserBaseListener;
+import org.graphper.util.CollectionUtils;
 
 public class HtmlListener extends HTMLParserBaseListener {
 
   private Table table;
 
-  private Deque<Td> tdDeque = new LinkedList<>();
+  private final Deque<Table> tableQueue = new LinkedList<>();
+
+  private final Deque<List<Td>> tdQueue = new LinkedList<>();
 
   @Override
   public void enterTable(TableContext ctx) {
-//    System.out.println(ctx.TABLE());
+    Table t = Html.table();
+    List<Td> tds = tdQueue.peek();
+    if (CollectionUtils.isNotEmpty(tds)) {
+      Td td = tds.get(tds.size() - 1);
+      td.table(t);
+    }
+
+    pushTable(t);
+    if (table == null) {
+      table = t;
+    }
+  }
+
+  @Override
+  public void exitTable(TableContext ctx) {
+    popCurrentTable();
   }
 
   @Override
   public void enterTr(TrContext ctx) {
-//    System.out.println(ctx.TR());
+    tdQueue.push(new ArrayList<>());
+  }
+
+  @Override
+  public void exitTr(TrContext ctx) {
+    List<Td> tds = tdQueue.peek();
+    if (CollectionUtils.isEmpty(tds)) {
+      throw new ParseException("<tr> not contains any <td>");
+    }
+    curretTable().tr(tds.toArray(new Td[0]));
+    tdQueue.poll();
   }
 
   @Override
   public void enterTd(TdContext ctx) {
-//    System.out.println(ctx.TD());
+    List<Td> tds = tdQueue.peek();
+    if (tds == null) {
+      throw new ParseException("<td> not belong to any <tr>");
+    }
+
+    Td td = Html.td();
+    tds.add(td);
+
+    HtmlContentContext content = ctx.htmlContent();
+    if (content != null && CollectionUtils.isEmpty(content.table())) {
+      td.text(content.getText());
+    }
   }
 
   @Override
@@ -66,5 +109,21 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   public Table getTable() {
     return table;
+  }
+
+  private Table curretTable() {
+    Table t = tableQueue.peek();
+    if (t == null) {
+      throw new ParseException("Cannot found current table");
+    }
+    return t;
+  }
+
+  private void popCurrentTable() {
+    tableQueue.pop();
+  }
+
+  private void pushTable(Table table) {
+    tableQueue.push(table);
   }
 }

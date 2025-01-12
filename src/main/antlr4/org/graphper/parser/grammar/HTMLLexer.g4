@@ -101,7 +101,7 @@ ATTVALUE_VALUE: ' '* ATTRIBUTE -> popMode;
 
 ATTRIBUTE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS;
 
-fragment ATTCHARS: ATTCHAR+;
+fragment ATTCHARS: ATTCHAR+ ' '?;
 
 fragment ATTCHAR: '-' | '_' | '.' | '/' | '+' | '?' | '=' | ':' | '#' | [0-9a-zA-Z];
 
