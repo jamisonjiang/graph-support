@@ -42,8 +42,6 @@ TAG_OPEN: '<' -> pushMode(TAG);
 
 HTML_TEXT: ~'<'+;
 
-//COMMA : ',';
-
 // tag declarations
 
 mode TAG;
@@ -51,6 +49,10 @@ mode TAG;
 TABLE: [Tt][Aa][Bb][Ll][Ee];
 TR: [Tt][Rr];
 TD: [Tt][Dd];
+
+COMMA : ',';
+
+SEMI_COLON: ';';
 
 TAG_CLOSE: '>' -> popMode;
 
@@ -99,9 +101,9 @@ ATTVALUE_VALUE: ' '* ATTRIBUTE -> popMode;
 
 ATTRIBUTE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS;
 
-fragment ATTCHARS: ATTCHAR+ ' '?;
+fragment ATTCHARS: ATTCHAR+;
 
-fragment ATTCHAR: '-' | '_' | '.' | '/' | '+' | ',' | '?' | '=' | ':' | ';' | '#' | [0-9a-zA-Z];
+fragment ATTCHAR: '-' | '_' | '.' | '/' | '+' | '?' | '=' | ':' | '#' | [0-9a-zA-Z];
 
 fragment HEXCHARS: '#' [0-9a-fA-F]+;
 

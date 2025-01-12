@@ -18,6 +18,7 @@ package org.graphper.parser;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
 import org.graphper.parser.grammar.HTMLParser.HtmlAttributeContext;
@@ -49,7 +50,18 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   @Override
   public void enterHtmlAttribute(HtmlAttributeContext ctx) {
-    System.out.println(ctx.TAG_NAME().getText() + "=" + ctx.ATTVALUE_VALUE().getText());
+    String attributeValue = ctx.ATTVALUE_VALUE().getText();
+    if (StringUtils.isEmpty(attributeValue)) {
+      return;
+    }
+
+    attributeValue = attributeValue.trim();
+    if ((attributeValue.startsWith("'") && attributeValue.endsWith("'"))
+        || (attributeValue.startsWith("\"") && attributeValue.endsWith("\""))) {
+      attributeValue = attributeValue.substring(1, attributeValue.length() - 1).trim();
+    }
+
+    System.out.println(ctx.TAG_NAME().getText() + "=" + attributeValue);
   }
 
   public Table getTable() {
