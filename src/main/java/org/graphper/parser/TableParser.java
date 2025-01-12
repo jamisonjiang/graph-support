@@ -24,8 +24,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html.Table;
-import org.graphper.parser.grammar.HTMLLexer;
-import org.graphper.parser.grammar.HTMLParser;
+import org.graphper.parser.grammar.TABLELexer;
+import org.graphper.parser.grammar.TABLEParser;
 
 public class TableParser {
 
@@ -39,21 +39,25 @@ public class TableParser {
     }
 
     htmlStr = htmlStr.trim();
+    if (!htmlStr.startsWith("<") || !htmlStr.endsWith(">")) {
+      return null;
+    }
+
     htmlStr = htmlStr.substring(1);
     htmlStr = htmlStr.substring(0, htmlStr.length() - 1);
     htmlStr = htmlStr.trim();
 
-    HTMLLexer lexer = new HTMLLexer(CharStreams.fromString(htmlStr));
-    HTMLParser p = new HTMLParser(new CommonTokenStream(lexer));
+    TABLELexer lexer = new TABLELexer(CharStreams.fromString(htmlStr));
+    TABLEParser p = new TABLEParser(new CommonTokenStream(lexer));
 
     p.removeErrorListeners();
     lexer.removeErrorListeners();
 
-    DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
-    p.addErrorListener(dotSyntaxErrorListener);
-    lexer.addErrorListener(dotSyntaxErrorListener);
+    TableSyntaxErrorListener tableSyntaxErrorListener = new TableSyntaxErrorListener();
+    p.addErrorListener(tableSyntaxErrorListener);
+    lexer.addErrorListener(tableSyntaxErrorListener);
 
-    HtmlListener listener = new HtmlListener();
+    TableListener listener = new TableListener();
     new ParseTreeWalker().walk(listener, p.table());
 
     return listener.getTable();

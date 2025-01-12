@@ -115,8 +115,8 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
     StringBuilder attrVal = new StringBuilder();
     for (Entry<String, String> entry : attr.entrySet()) {
       attrVal.append(SPACE).append(entry.getKey())
-          .append(EQUAL_SIGN).append(SEMICOLON)
-          .append(entry.getValue()).append(SEMICOLON);
+          .append(EQUAL_SIGN).append(QUOTATION_MARK)
+          .append(entry.getValue()).append(QUOTATION_MARK);
     }
     return attrVal.toString();
   }

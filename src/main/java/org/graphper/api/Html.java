@@ -60,7 +60,7 @@ public class Html {
     return new Td();
   }
 
-  protected abstract static class Attrs<T> {
+  public abstract static class Attrs<T> {
 
     private String id;
 

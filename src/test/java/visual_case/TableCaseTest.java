@@ -360,7 +360,7 @@ public class TableCaseTest extends GraphvizVisual {
   @Test
   public void testHtml3() {
     Node node = Node.builder()
-        .shape(NodeShapeEnum.PLAIN_TEXT)
+        .shape(NodeShapeEnum.PLAINTEXT)
         .table(
             table()
                 .cellSpacing(30)

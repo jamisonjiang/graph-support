@@ -53,7 +53,7 @@ public enum NodeShapeEnum implements NodeShape {
 
   PLAIN("plain", 0.1, 0.1, new PlainPropCalc()),
 
-  PLAIN_TEXT("plaintext", new EllipsePropCalc()),
+  PLAINTEXT("plaintext", new EllipsePropCalc()),
 
   UNDERLINE("underline", new RectanglePropCalc()),
 

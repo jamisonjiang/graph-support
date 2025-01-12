@@ -17,8 +17,6 @@
 package regression;
 
 import helper.GraphvizVisual;
-import java.io.IOException;
-import org.apache.batik.transcoder.TranscoderException;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
@@ -31,7 +29,6 @@ import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
-import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -840,7 +837,7 @@ Hello World"
     visual(builder.build());
     visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.CIRCLE).build()).build());
     visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.PLAIN).build()).build());
-    visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.PLAIN_TEXT).build()).build());
+    visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.PLAINTEXT).build()).build());
     visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.RECT).build()).build());
     visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build()).build());
     visual(builder.tempNode(Node.builder().shape(NodeShapeEnum.DIAMOND).build()).build());

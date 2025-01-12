@@ -55,6 +55,6 @@ public class NodeLabelEditor implements NodeEditor<SvgBrush> {
 
     text(new TextAttribute(nodeDrawProp.getLabelCenter(), fontSize, label,
                            nodeAttrs.getFontColor(), nodeAttrs.getFontName(), lineConsumer));
-    return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAIN_TEXT;
+    return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAINTEXT;
   }
 }

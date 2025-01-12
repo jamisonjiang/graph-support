@@ -330,44 +330,6 @@ public class GraphvizListener extends DOTParserBaseListener {
         subGraphMap.put(ctx, gc);
     }
 
-//    @Override
-//    public void enterTable(TableContext ctx) {
-//        Table table = Html.table();
-//        tableConsumerStack.peek().accept(table);
-//
-//        for (Table_trContext tr : ctx.table_tr()) {
-//            Td[] tds = new Td[tr.table_td().size()];
-//            for (int i = 0; i < tr.table_td().size(); i++) {
-//                Td td = Html.td();
-//                tds[i] = td;
-//
-//                Table_tdContext tdCtx = tr.table_td(i);
-//
-////                String text = tdCtx.TD_TAG().getText();
-////
-////                System.out.println(text);
-//
-////                Td_dataContext tdData = tdCtx.td_data();
-////                if (tdData == null) {
-////                    continue;
-////                }
-////
-////                if (tdData.TAG_TEXT() != null) {
-////                    td.text(tdData.TAG_TEXT().getText());
-////                    continue;
-////                }
-////
-////                if (tdData.table() != null) {
-////                    tableConsumerStack.push(td::table);
-////                    enterTable(tdData.table());
-////                    tableConsumerStack.pop();
-////                }
-//            }
-//
-//            table.tr(tds);
-//        }
-//    }
-
     public Graphviz getGraphviz() {
         return graphviz;
     }

@@ -16,23 +16,27 @@
 
 package org.graphper.parser;
 
+import static org.graphper.parser.ParserUtils.setTableAttributes;
+import static org.graphper.parser.ParserUtils.setTdAttributes;
+
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
-import org.graphper.parser.grammar.HTMLParser.HtmlAttributeContext;
-import org.graphper.parser.grammar.HTMLParser.HtmlContentContext;
-import org.graphper.parser.grammar.HTMLParser.TableContext;
-import org.graphper.parser.grammar.HTMLParser.TdContext;
-import org.graphper.parser.grammar.HTMLParser.TrContext;
-import org.graphper.parser.grammar.HTMLParserBaseListener;
+import org.graphper.parser.grammar.TABLEParser.HtmlAttributeContext;
+import org.graphper.parser.grammar.TABLEParser.HtmlContentContext;
+import org.graphper.parser.grammar.TABLEParser.TableContext;
+import org.graphper.parser.grammar.TABLEParser.TdContext;
+import org.graphper.parser.grammar.TABLEParser.TrContext;
+import org.graphper.parser.grammar.TABLEParserBaseListener;
 import org.graphper.util.CollectionUtils;
 
-public class HtmlListener extends HTMLParserBaseListener {
+public class TableListener extends TABLEParserBaseListener {
 
   private Table table;
 
@@ -93,6 +97,10 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   @Override
   public void enterHtmlAttribute(HtmlAttributeContext ctx) {
+    if (ctx.TAG_NAME() == null || ctx.ATTVALUE_VALUE() == null) {
+      return;
+    }
+
     String attributeValue = ctx.ATTVALUE_VALUE().getText();
     if (StringUtils.isEmpty(attributeValue)) {
       return;
@@ -104,11 +112,25 @@ public class HtmlListener extends HTMLParserBaseListener {
       attributeValue = attributeValue.substring(1, attributeValue.length() - 1).trim();
     }
 
-    System.out.println(ctx.TAG_NAME().getText() + "=" + attributeValue);
+    ParserRuleContext parent = ctx.getParent();
+    if (parent instanceof TdContext) {
+      setTdAttributes(currentTd(), ctx.TAG_NAME().getText(), attributeValue);
+    }
+    if (parent instanceof TableContext) {
+      setTableAttributes(curretTable(), ctx.TAG_NAME().getText(), attributeValue);
+    }
   }
 
   public Table getTable() {
     return table;
+  }
+
+  private Td currentTd() {
+    List<Td> tds = tdQueue.peek();
+    if (CollectionUtils.isEmpty(tds)) {
+      throw new ParseException("Cannot found current td");
+    }
+    return tds.get(tds.size() - 1);
   }
 
   private Table curretTable() {

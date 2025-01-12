@@ -28,7 +28,9 @@ import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Html.Attrs;
 import org.graphper.api.Html.Table;
+import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.Node;
@@ -45,6 +47,7 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
+import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
@@ -73,24 +76,27 @@ public class ParserUtils {
         // Iterate through the id_ and value lists to extract key-value pairs
         for (int i = 0; i < a_list.id_().size(); i++) {
             // Get the key (id_)
-            String key = parseId(a_list.id_(i));
+            String key = parseId(a_list.id_(i), false);
 
             if (i == a_list.id_().size() - 1) {
                 continue;
             }
 
             // Get the value associated with the key
-            String value = parseId(a_list.id_(i + 1));
+            String value = parseId(a_list.id_(i + 1), isLabel(key));
 
             pairConsumer.accept(key, value);
         }
     }
 
-    private static String parseId(DOTParser.Id_Context idCtx) {
+    private static String parseId(DOTParser.Id_Context idCtx, boolean isLabel) {
         // Depending on the type of the ID, return the appropriate text
         if (idCtx.ID() != null) {
             return idCtx.ID().getText(); // For standard IDs like 'label'
         } else if (idCtx.STRING() != null) {
+            if (isLabel) {
+                return "\"" + idCtx.STRING().getText() + "\"";
+            }
             return idCtx.STRING().getText(); // For string values
         } else if (idCtx.NUMBER() != null) {
             return idCtx.NUMBER().getText(); // For numeric values
@@ -142,6 +148,9 @@ public class ParserUtils {
             case "layout":
                 setEnum(gb::layout, Layout.class, value);
                 break;
+            case "rankdir":
+                setEnum(gb::rankdir, Rankdir.class, value);
+                break;
             case "splines":
                 setEnum(gb::splines, Splines.class, value);
                 break;
@@ -161,7 +170,7 @@ public class ParserUtils {
                 gb.href(value);
                 break;
             case "label":
-                gb.label(value);
+                labelHandle(gb::label, gb::table, value);
                 break;
             case "labeljust":
                 setEnum(gb::labeljust, Labeljust.class, value.toUpperCase());
@@ -221,7 +230,7 @@ public class ParserUtils {
                 sb.href(value);
                 break;
             case "label":
-                sb.label(value);
+                labelHandle(sb::label, sb::table, value);
                 break;
             case "labeljust":
                 setEnum(sb::labeljust, Labeljust.class, value.toUpperCase());
@@ -294,11 +303,7 @@ public class ParserUtils {
                     l.image(e.getValue());
                     break;
                 case "label":
-                    l.label(e.getValue());
-                    Table table = TableParser.parse(e.getValue());
-                    if (table != null) {
-                        l.table(table);
-                    }
+                    labelHandle(l::label, l::table, e.getValue());
                     break;
                 case "labelloc":
                     setEnum(l::labelloc, Labelloc.class, e.getValue().toUpperCase());
@@ -323,11 +328,7 @@ public class ParserUtils {
                     setInteger(l::sides, e.getValue().toUpperCase());
                     break;
                 case "style":
-                    NodeStyle[] nodeStyles = arrayConvert(e.getValue().toUpperCase(),
-                                                          NodeStyle::valueOf, NodeStyle.class);
-                    if (nodeStyles != null) {
-                        l.style(nodeStyles);
-                    }
+                    setNodeStyle(l::style, e.getValue());
                     break;
                 case "tooltip":
                     l.tooltip(e.getValue());
@@ -394,7 +395,7 @@ public class ParserUtils {
                     builder.href(e.getValue());
                     break;
                 case "label":
-                    builder.label(e.getValue());
+                    labelHandle(builder::label, builder::table, e.getValue());
                     break;
                 case "lhead":
                     builder.lhead(e.getValue());
@@ -473,6 +474,112 @@ public class ParserUtils {
             lineBuilder.headPort(Port.valueOfCode(p2));
         }
     }
+
+    public static void setTableAttributes(Table table, String key, String value) {
+        if (table == null || StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
+            return;
+        }
+
+        setCommonAttributes(table, key, value);
+
+        switch (key.toLowerCase()) {
+            case "cellborder":
+                setInteger(table::cellBorder, value);
+                break;
+            case "cellspacing":
+                setInteger(table::cellSpacing, value);
+                break;
+            case "border":
+                setInteger(table::border, value);
+                break;
+            default:
+                break;
+        }
+    }
+    public static void setTdAttributes(Td td, String key, String value) {
+        if (td == null || StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
+            return;
+        }
+
+        setCommonAttributes(td, key, value);
+
+        switch (key.toLowerCase()) {
+            case "border":
+                setInteger(td::border, value);
+                break;
+            case "rowspan":
+                setInteger(td::rowSpan, value);
+                break;
+            case "colspan":
+                setInteger(td::colSpan, value);
+                break;
+            case "text":
+                td.text(value);
+                break;
+            case "fontcolor":
+                td.fontColor(colorOf(value));
+                break;
+            case "fontname":
+                td.fontName(value);
+                break;
+            case "fontsize":
+                setInteger(td::fontSize, value);
+                break;
+            case "shape":
+                setEnum(td::shape, NodeShapeEnum.class, value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static void setCommonAttributes(Attrs attrs, String key, String value) {
+        if (attrs == null || StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
+            return;
+        }
+
+        switch (key.toLowerCase()) {
+            case "id":
+                attrs.id(value);
+                break;
+            case "align":
+                setEnum(attrs::align, Labeljust.class, value);
+                break;
+            case "valign":
+                setEnum(attrs::valign, Labelloc.class, value);
+                break;
+            case "bgcolor":
+                attrs.bgColor(colorOf(value));
+                break;
+            case "cellpadding":
+                setInteger(attrs::cellPadding, value);
+                break;
+            case "color":
+                attrs.color(colorOf(value));
+                break;
+            case "fixedsize":
+                setBoolean(attrs::fixedSize, value);
+                break;
+            case "width":
+                setInteger(attrs::width, value);
+                break;
+            case "height":
+                setInteger(attrs::height, value);
+                break;
+            case "href":
+                attrs.href(value);
+                break;
+            case "tooltip":
+                attrs.tooltip(value);
+                break;
+            case "style":
+                setNodeStyle(attrs::style, value);
+                break;
+            default:
+                break;
+        }
+    }
+
 
     private static Color colorOf(String color) {
         switch (color.toLowerCase()) {
@@ -557,6 +664,34 @@ public class ParserUtils {
                 .toArray(size -> (T[]) java.lang.reflect.Array.newInstance(clazz, size));
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private static boolean isLabel(String key) {
+        key = key.trim();
+        return "label".equalsIgnoreCase(key) || "taillabel".equalsIgnoreCase(key)
+            || "headlabel".equalsIgnoreCase(key);
+    }
+
+    private static void labelHandle(Consumer<String> labelConsumer,
+                                    Consumer<Table> tableConsumer, String label) {
+        Table table = TableParser.parse(label);
+        if (table != null) {
+            tableConsumer.accept(table);
+        } else {
+            if (label.startsWith("\"") && label.endsWith("\"")) {
+                label = label.substring(1, label.length() - 1);
+            }
+            labelConsumer.accept(label);
+        }
+    }
+
+    private static void setNodeStyle(Consumer<NodeStyle[]> styleConsumer, String style) {
+        NodeStyle[] nodeStyles = arrayConvert(style.toUpperCase(),
+                                              NodeStyle::valueOf,
+                                              NodeStyle.class);
+        if (nodeStyles != null) {
+            styleConsumer.accept(nodeStyles);
         }
     }
 }

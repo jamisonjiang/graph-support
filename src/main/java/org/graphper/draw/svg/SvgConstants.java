@@ -18,7 +18,7 @@ package org.graphper.draw.svg;
 
 public interface SvgConstants {
 
-  String SEMICOLON = "\"";
+  String QUOTATION_MARK = "\"";
 
   String SLASH = "/";
 

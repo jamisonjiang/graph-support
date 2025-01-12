@@ -225,7 +225,7 @@ public class CoordinateTest extends GraphvizVisual {
         .addLine(System_V, POSIX)
 
         .startSub()
-        .tempNode(Node.builder().shape(NodeShapeEnum.PLAIN_TEXT).build())
+        .tempNode(Node.builder().shape(NodeShapeEnum.PLAINTEXT).build())
         .addLine(n_1972, n_1976)
         .addLine(n_1976, n_1978)
         .addLine(n_1978, n_1980)
