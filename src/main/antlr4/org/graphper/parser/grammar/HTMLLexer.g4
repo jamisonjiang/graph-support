@@ -36,15 +36,21 @@ HTML_COMMENT: '<!--' .*? '-->';
 
 HTML_CONDITIONAL_COMMENT: '<![' .*? ']>';
 
-SEA_WS: (' ' | '\t' | '\r'? '\n')+;
+WS: (' ' | '\t' | '\r'? '\n')+;
 
 TAG_OPEN: '<' -> pushMode(TAG);
 
 HTML_TEXT: ~'<'+;
 
+//COMMA : ',';
+
 // tag declarations
 
 mode TAG;
+
+TABLE: [Tt][Aa][Bb][Ll][Ee];
+TR: [Tt][Rr];
+TD: [Tt][Dd];
 
 TAG_CLOSE: '>' -> popMode;
 

@@ -54,7 +54,7 @@ public class DotParser {
         this(in, "anonymous String");
     }
 
-    public DotParser(String in, String sourceName) throws IOException {
+    public DotParser(String in, String sourceName) {
 
         charStream = CharStreams.fromString(in, sourceName);
     }

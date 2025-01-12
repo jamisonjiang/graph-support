@@ -93,17 +93,7 @@ graph_a_list
  * A list of key-value attribute pairs.
  */
 a_list
-    : (id_ EQUAL value (COMMA | SEMI_COLON)?)+
-    ;
-
-value
-    : table_wrapper
-    | id_
-    ;
-
-table_wrapper
-    : TAG_OPEN htmlElement TAG_CLOSE
-//    : LT STRING GT
+    : (id_ EQUAL id_ (COMMA | SEMI_COLON)?)+
     ;
 
 /*
@@ -179,34 +169,5 @@ id_
     : ID
     | STRING
     | NUMBER
-    ;
-
-htmlElement
-    : TAG_OPEN TAG_NAME htmlAttribute* (
-        TAG_CLOSE (htmlContent TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE)?
-        | TAG_SLASH_CLOSE
-    )
-    ;
-
-htmlContent
-    : htmlChardata? ((htmlElement | htmlComment) htmlChardata?)*
-    ;
-
-htmlAttribute
-    : TAG_NAME (TAG_EQUALS ATTVALUE_VALUE)?
-    ;
-
-htmlChardata
-    : HTML_TEXT
-    | WS
-    ;
-
-htmlMisc
-    : htmlComment
-    | WS
-    ;
-
-htmlComment
-    : HTML_COMMENT
-    | HTML_CONDITIONAL_COMMENT
+    | HTML_STRING
     ;

@@ -28,6 +28,7 @@ import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Html.Table;
 import org.graphper.api.Line;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.Node;
@@ -72,16 +73,20 @@ public class ParserUtils {
         // Iterate through the id_ and value lists to extract key-value pairs
         for (int i = 0; i < a_list.id_().size(); i++) {
             // Get the key (id_)
-            String key = getKey(a_list.id_(i));
+            String key = parseId(a_list.id_(i));
+
+            if (i == a_list.id_().size() - 1) {
+                continue;
+            }
 
             // Get the value associated with the key
-            String value = getValue(a_list.value(i));
+            String value = parseId(a_list.id_(i + 1));
 
             pairConsumer.accept(key, value);
         }
     }
 
-    private static String getKey(DOTParser.Id_Context idCtx) {
+    private static String parseId(DOTParser.Id_Context idCtx) {
         // Depending on the type of the ID, return the appropriate text
         if (idCtx.ID() != null) {
             return idCtx.ID().getText(); // For standard IDs like 'label'
@@ -89,18 +94,10 @@ public class ParserUtils {
             return idCtx.STRING().getText(); // For string values
         } else if (idCtx.NUMBER() != null) {
             return idCtx.NUMBER().getText(); // For numeric values
+        } else if (idCtx.HTML_STRING() != null) {
+            return idCtx.HTML_STRING().getText();
         }
         return "";
-    }
-
-    private static String getValue(DOTParser.ValueContext valueCtx) {
-//        if (valueCtx.table_wrapper() != null) {
-//            return null;
-//        }
-        if (valueCtx.id_() != null) {
-            return valueCtx.id_().getText();
-        }
-        return null;
     }
 
     public static void subgraphAttributes(DOTParser.Attr_listContext attr_list, Subgraph.SubgraphBuilder l) {
@@ -298,6 +295,10 @@ public class ParserUtils {
                     break;
                 case "label":
                     l.label(e.getValue());
+                    Table table = TableParser.parse(e.getValue());
+                    if (table != null) {
+                        l.table(table);
+                    }
                     break;
                 case "labelloc":
                     setEnum(l::labelloc, Labelloc.class, e.getValue().toUpperCase());

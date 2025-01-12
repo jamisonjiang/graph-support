@@ -36,29 +36,38 @@ options {
     tokenVocab = HTMLLexer;
 }
 
-htmlElement
-    : TAG_OPEN TAG_NAME htmlAttribute* (
-        TAG_CLOSE (htmlContent TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE)?
-        | TAG_SLASH_CLOSE
-    )
+table
+    : TAG_OPEN TABLE htmlAttribute* TAG_CLOSE WS? (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
+    ;
+
+tr
+    : TAG_OPEN TR TAG_CLOSE WS? (td WS?)+ TAG_OPEN TAG_SLASH TR TAG_CLOSE
+    ;
+
+td
+    : TAG_OPEN TD htmlAttribute* TAG_CLOSE htmlContent TAG_OPEN TAG_SLASH TD TAG_CLOSE
     ;
 
 htmlContent
-    : htmlChardata? ((htmlElement | htmlComment) htmlChardata?)*
+    : htmlChardata? ((table | htmlComment) htmlChardata?)*
     ;
 
+//htmlAttributes
+//    : htmlAttribute (COMMA WS? htmlAttribute)*
+//    ;
+//
 htmlAttribute
     : TAG_NAME (TAG_EQUALS ATTVALUE_VALUE)?
     ;
 
 htmlChardata
     : HTML_TEXT
-    | SEA_WS
+    | WS
     ;
 
 htmlMisc
     : htmlComment
-    | SEA_WS
+    | WS
     ;
 
 htmlComment
