@@ -97,14 +97,14 @@ a_list
     ;
 
 value
-//    : table_wrapper
-    : id_
+    : table_wrapper
+    | id_
     ;
 
-//table_wrapper
-////    : TAG_OPEN htmlElement TAG_CLOSE
+table_wrapper
+    : TAG_OPEN htmlElement TAG_CLOSE
 //    : LT STRING GT
-//    ;
+    ;
 
 /*
  * Edge statement connecting nodes or subgraphs.
@@ -198,12 +198,12 @@ htmlAttribute
 
 htmlChardata
     : HTML_TEXT
-    | SEA_WS
+    | WS
     ;
 
 htmlMisc
     : htmlComment
-    | SEA_WS
+    | WS
     ;
 
 htmlComment
