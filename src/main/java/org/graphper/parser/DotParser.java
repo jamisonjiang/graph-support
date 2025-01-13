@@ -78,9 +78,13 @@ public class DotParser {
             lexer.addErrorListener(dotSyntaxErrorListener);
 
             DOTParser.GraphContext graphCtx = p.graph();
-            GraphvizListener gl = new GraphvizListener();
 
-            new ParseTreeWalker().walk(gl, graphCtx);
+            ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
+            NodeExtractor nodeExtractor = new NodeExtractor();
+            parseTreeWalker.walk(nodeExtractor, graphCtx);
+
+            GraphvizListener gl = new GraphvizListener(nodeExtractor);
+            parseTreeWalker.walk(gl, graphCtx);
             return gl.getGraphviz();
         } catch (ParseException pe) {
             pe.setSourceName(charStream.getSourceName());

@@ -19,7 +19,6 @@ package org.graphper.parser;
 import static org.graphper.parser.ParserUtils.clusterAttributes;
 import static org.graphper.parser.ParserUtils.graphAttributes;
 import static org.graphper.parser.ParserUtils.lineAttributes;
-import static org.graphper.parser.ParserUtils.nodeAttributes;
 import static org.graphper.parser.ParserUtils.setLinePort;
 import static org.graphper.parser.ParserUtils.subgraphAttribute;
 import static org.graphper.parser.ParserUtils.subgraphAttributes;
@@ -28,17 +27,15 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Objects;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.GraphContainer.GraphContainerBuilder;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
-import org.graphper.api.Html.Table;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
-import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
@@ -51,15 +48,16 @@ public class GraphvizListener extends DOTParserBaseListener {
 
     private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();
 
-    private final Deque<Consumer<Table>> tableConsumerStack = new LinkedList<>();
-
-    private Map<String, Node> nodeMap = new HashMap<>();
-
     private Map<SubgraphContext, GraphContainer> subGraphMap = null;
 
     private Graphviz graphviz;
 
-    private NodeBuilder currentNodeBuilder;
+    private final NodeExtractor nodeExtractor;
+
+    public GraphvizListener(NodeExtractor nodeExtractor) {
+        Objects.requireNonNull(nodeExtractor);
+        this.nodeExtractor = nodeExtractor;
+    }
 
     @Override
     public void enterGraph(DOTParser.GraphContext ctx) {
@@ -123,13 +121,8 @@ public class GraphvizListener extends DOTParserBaseListener {
             lineAttributes(ctx.attr_list(), l);
             containerStack.peek().tempLine(l.build());
 
-        } else if (ctx.NODE() != null) {
-
-            Node.NodeBuilder l = Node.builder();
-            nodeAttributes(ctx.attr_list(), l);
-            containerStack.peek().tempNode(l.build());
-
-        } else if (ctx.GRAPH() != null) {
+        }
+        if (ctx.GRAPH() != null) {
             if (containerStack.peek() instanceof GraphvizBuilder) {
                 GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
                 graphAttributes(ctx.attr_list(), gb);
@@ -140,9 +133,6 @@ public class GraphvizListener extends DOTParserBaseListener {
                 Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
                 clusterAttributes(ctx.attr_list(), sb);
             }
-        }
-        else {
-            throw new ParseException("invalid attr_stmt");
         }
     }
 
@@ -168,17 +158,6 @@ public class GraphvizListener extends DOTParserBaseListener {
         int edgecount = ctx.edgeRHS().children.size() / 2;
         for (int c = 0; c < edgecount; c++) {
             ParseTree second = ctx.edgeRHS().children.get(2 * c + 1);
-
-            if (first instanceof DOTParser.Node_idContext) {
-                String leftId = ((DOTParser.Node_idContext) first).id_().getText();
-                nodeMap.putIfAbsent(leftId, Node.builder().id(leftId).label(leftId).build());
-            }
-
-            if (second instanceof DOTParser.Node_idContext) {
-                String rightId = ((DOTParser.Node_idContext) second).id_().getText();
-                nodeMap.putIfAbsent(rightId, Node.builder().id(rightId).label(rightId).build());
-            }
-
             edge(first, second, ctx.attr_list());
             first = second;
         }
@@ -194,8 +173,8 @@ public class GraphvizListener extends DOTParserBaseListener {
             String leftId = left.id_().getText();
             String rightId = right.id_().getText();
 
-            Node leftNode = nodeMap.get(leftId);
-            Node rightNode = nodeMap.get(rightId);
+            Node leftNode = getNode(leftId);
+            Node rightNode = getNode(rightId);
 
             buildLine(attr_list, leftNode, rightNode, left, right);
 
@@ -205,7 +184,7 @@ public class GraphvizListener extends DOTParserBaseListener {
             DOTParser.Node_idContext right = (DOTParser.Node_idContext)second;
 
             String rightId = right.id_().getText();
-            Node rightNode = nodeMap.get(rightId);
+            Node rightNode = getNode(rightId);
 
             subgraphNodes(left).forEach(l -> buildLine(attr_list, l, rightNode, null, right));
 
@@ -215,7 +194,7 @@ public class GraphvizListener extends DOTParserBaseListener {
             DOTParser.SubgraphContext right = (DOTParser.SubgraphContext)second;
 
             String leftId = left.id_().getText();
-            Node leftNode = nodeMap.get(leftId);
+            Node leftNode = getNode(leftId);
 
             subgraphNodes(right).forEach(r -> buildLine(attr_list, leftNode, r, left, null));
 
@@ -275,23 +254,9 @@ public class GraphvizListener extends DOTParserBaseListener {
     }
 
     @Override
-    public void enterNode_stmt(DOTParser.Node_stmtContext ctx) {
-        String id = ctx.node_id().id_().getText();
-        Node.NodeBuilder builder = Node.builder();
-        builder.id(id);
-        nodeAttributes(ctx.attr_list(), builder);
-        currentNodeBuilder = builder;
-        tableConsumerStack.push(builder::table);
-    }
-
-    @Override
     public void exitNode_stmt(Node_stmtContext ctx) {
         String id = ctx.node_id().id_().getText();
-        Node n = currentNodeBuilder.build();
-        nodeMap.put(id, n);
-        containerStack.peek().addNode(n);
-        currentNodeBuilder = null;
-        tableConsumerStack.pop();
+        containerStack.peek().addNode(getNode(id));
     }
 
     @Override
@@ -332,5 +297,9 @@ public class GraphvizListener extends DOTParserBaseListener {
 
     public Graphviz getGraphviz() {
         return graphviz;
+    }
+
+    private Node getNode(String nodeId) {
+        return nodeExtractor.getNode(nodeId);
     }
 }

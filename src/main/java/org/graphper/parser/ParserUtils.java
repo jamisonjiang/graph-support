@@ -34,6 +34,7 @@ import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.Node;
+import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.ClusterStyle;
@@ -74,7 +75,7 @@ public class ParserUtils {
             return;
         }
         // Iterate through the id_ and value lists to extract key-value pairs
-        for (int i = 0; i < a_list.id_().size(); i++) {
+        for (int i = 0; i < a_list.id_().size(); i+=2) {
             // Get the key (id_)
             String key = parseId(a_list.id_(i), false);
 
@@ -272,72 +273,79 @@ public class ParserUtils {
 
     public static void nodeAttributes(DOTParser.Attr_listContext attr_list, Node.NodeBuilder l) {
         Map<String, String> attrMap = getAttrMap(attr_list);
+        nodeAttributes(l, attrMap);
+    }
 
-        attrMap.entrySet().forEach(e -> {
-            switch (e.getKey().toLowerCase()) {
+    public static void nodeAttributes(NodeBuilder nodeBuilder, Map<String, String> attrMap) {
+        if (nodeBuilder == null || attrMap == null) {
+            return;
+        }
+
+        attrMap.forEach((key, value) -> {
+            switch (key.toLowerCase()) {
                 case "color":
-                    l.color(colorOf(e.getValue()));
+                    nodeBuilder.color(colorOf(value));
                     break;
                 case "fillcolor":
-                    l.fillColor(colorOf(e.getValue()));
+                    nodeBuilder.fillColor(colorOf(value));
                     break;
                 case "fixedsize":
-                    setBoolean(l::fixedSize, e.getValue());
+                    setBoolean(nodeBuilder::fixedSize, value);
                     break;
                 case "fontcolor":
-                    l.fontColor(colorOf(e.getValue()));
+                    nodeBuilder.fontColor(colorOf(value));
                     break;
                 case "fontname":
-                    l.fontName(e.getValue());
+                    nodeBuilder.fontName(value);
                     break;
                 case "fontsize":
-                    setDouble(l::fontSize, e.getValue());
+                    setDouble(nodeBuilder::fontSize, value);
                     break;
                 case "height":
-                    setDouble(l::height, e.getValue());
+                    setDouble(nodeBuilder::height, value);
                     break;
                 case "href":
-                    l.href(e.getValue());
+                    nodeBuilder.href(value);
                     break;
                 case "image":
-                    l.image(e.getValue());
+                    nodeBuilder.image(value);
                     break;
                 case "label":
-                    labelHandle(l::label, l::table, e.getValue());
+                    labelHandle(nodeBuilder::label, nodeBuilder::table, value);
                     break;
                 case "labelloc":
-                    setEnum(l::labelloc, Labelloc.class, e.getValue().toUpperCase());
+                    setEnum(nodeBuilder::labelloc, Labelloc.class, value.toUpperCase());
                     break;
                 case "margin":
-                    Double[] margin = arrayConvert(e.getValue(), Double::parseDouble, Double.class);
+                    Double[] margin = arrayConvert(value, Double::parseDouble, Double.class);
                     if (!ArrayUtils.isEmpty(margin)) {
                         if (margin.length == 1) {
-                            l.margin(margin[0]);
+                            nodeBuilder.margin(margin[0]);
                         } else {
-                            l.margin(margin[0], margin[1]);
+                            nodeBuilder.margin(margin[0], margin[1]);
                         }
                     }
                     break;
                 case "penwidth":
-                    setDouble(l::penWidth, e.getValue());
+                    setDouble(nodeBuilder::penWidth, value);
                     break;
                 case "shape":
-                    setEnum(l::shape, NodeShapeEnum.class, e.getValue().toUpperCase());
+                    setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
                     break;
                 case "sides":
-                    setInteger(l::sides, e.getValue().toUpperCase());
+                    setInteger(nodeBuilder::sides, value.toUpperCase());
                     break;
                 case "style":
-                    setNodeStyle(l::style, e.getValue());
+                    setNodeStyle(nodeBuilder::style, value);
                     break;
                 case "tooltip":
-                    l.tooltip(e.getValue());
+                    nodeBuilder.tooltip(value);
                     break;
                 case "url":
-                    l.href(e.getValue());
+                    nodeBuilder.href(value);
                     break;
                 case "width":
-                    setDouble(l::width, e.getValue());
+                    setDouble(nodeBuilder::width, value);
                     break;
                 default:
                     break;
@@ -348,7 +356,7 @@ public class ParserUtils {
         String imageWidth = attrMap.get("imageWidth");
         if (imageHeight != null && imageWidth != null) {
             try {
-                l.imageSize(Double.valueOf(imageHeight), Double.valueOf(imageWidth));
+                nodeBuilder.imageSize(Double.valueOf(imageHeight), Double.valueOf(imageWidth));
             } catch (NumberFormatException e) {
             }
         }
