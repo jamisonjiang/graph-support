@@ -1,0 +1,21 @@
+digraph G {
+node[shape=rect]
+node[fontsize=57]
+a0[fontcolor=yellow]
+
+subgraph cluster_0 {
+    node[style=dashed fontcolor=red]
+
+    a0[fontcolor=blue]
+}
+a0[style=dashed]
+a0[color=red]
+
+edge[color=red]
+edge[dir=both]
+
+subgraph cluster_1 {
+edge[style=dashed]
+a->b[penwidth=3 minlen=2]
+}
+}

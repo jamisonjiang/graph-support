@@ -147,19 +147,25 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
   private void triangle(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean positive) {
     if (positive) {
-      SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getX(),
+      SvgEditor.polygonShape(nodeDrawProp, brush,
+                             nodeDrawProp.getX(),
                              nodeDrawProp.getUpBorder(),
                              nodeDrawProp.getLeftBorder(),
                              nodeDrawProp.getDownBorder(),
                              nodeDrawProp.getRightBorder(),
-                             nodeDrawProp.getDownBorder());
-    } else {
-      SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getX(),
                              nodeDrawProp.getDownBorder(),
-                             nodeDrawProp.getLeftBorder(),
-                             nodeDrawProp.getUpBorder(),
-                             nodeDrawProp.getRightBorder(),
+                             nodeDrawProp.getX(),
                              nodeDrawProp.getUpBorder());
+    } else {
+      SvgEditor.polygonShape(nodeDrawProp, brush,
+                             nodeDrawProp.getX(),
+                             nodeDrawProp.getDownBorder(),
+                             nodeDrawProp.getLeftBorder(),
+                             nodeDrawProp.getUpBorder(),
+                             nodeDrawProp.getRightBorder(),
+                             nodeDrawProp.getUpBorder(),
+                             nodeDrawProp.getX(),
+                             nodeDrawProp.getDownBorder());
     }
   }
 

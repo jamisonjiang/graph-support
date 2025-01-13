@@ -22,9 +22,9 @@ import static org.graphper.parser.ParserUtils.nodeAttributes;
 
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Objects;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache_gs.commons.lang3.StringUtils;
@@ -48,17 +48,22 @@ public class NodeExtractor extends DOTParserBaseListener {
       return;
     }
 
-    ParserRuleContext parent = ctx.getParent();
-    if (parent instanceof SubgraphContext) {
-      pushTempNodeAttrs((SubgraphContext) parent, getAttrMap(ctx.attr_list()));
-    } else {
+    GraphTempAttrs graphTempAttrs = peekGraphTempAttrs();
+    if (graphTempAttrs == null) {
       pushTempNodeAttrs(null, getAttrMap(ctx.attr_list()));
+    } else {
+      pushTempNodeAttrs(graphTempAttrs.graphContext, getAttrMap(ctx.attr_list()));
     }
   }
 
   @Override
+  public void enterSubgraph(SubgraphContext ctx) {
+    pushTempNodeAttrs(ctx, null);
+  }
+
+  @Override
   public void exitSubgraph(SubgraphContext ctx) {
-    pollTempNodeAttrs(ctx.getParent());
+    pollTempNodeAttrs(ctx);
   }
 
   @Override
@@ -144,12 +149,8 @@ public class NodeExtractor extends DOTParserBaseListener {
   }
 
   private void pushTempNodeAttrs(SubgraphContext subgraphContext, Map<String, String> tempAttrs) {
-    if (tempAttrs == null || tempAttrs.isEmpty()) {
-      return;
-    }
-    tempAttrs.remove(ID);
-    if (tempAttrs.isEmpty()) {
-      return;
+    if (tempAttrs != null && !tempAttrs.isEmpty()) {
+      tempAttrs.remove(ID);
     }
 
     if (tempNodeAttrsDeque == null) {
@@ -159,18 +160,25 @@ public class NodeExtractor extends DOTParserBaseListener {
     GraphTempAttrs currentTempAttr = tempNodeAttrsDeque.peek();
     if (currentTempAttr != null && currentTempAttr.graphContext == subgraphContext) {
       // Same graph node template attributes are combined
-      tempAttrs = combineAttrs(tempAttrs, currentTempAttr.tempNodeAttrs);
+      tempAttrs = combineAttrs(currentTempAttr.tempNodeAttrs, tempAttrs);
       tempNodeAttrsDeque.poll();
+    } else {
+      Iterator<GraphTempAttrs> iterator = tempNodeAttrsDeque.iterator();
+      while (iterator.hasNext()) {
+        currentTempAttr = iterator.next();
+        tempAttrs = combineAttrs(currentTempAttr.tempNodeAttrs, tempAttrs);
+      }
     }
 
     tempNodeAttrsDeque.push(new GraphTempAttrs(subgraphContext, tempAttrs));
   }
 
+  private GraphTempAttrs peekGraphTempAttrs() {
+    return tempNodeAttrsDeque == null ? null : tempNodeAttrsDeque.peek();
+  }
+
   private Map<String, String> peekTempNodeAttrs() {
-    if (tempNodeAttrsDeque == null) {
-      return null;
-    }
-    GraphTempAttrs graphTempAttrs = tempNodeAttrsDeque.peek();
+    GraphTempAttrs graphTempAttrs = peekGraphTempAttrs();
     return graphTempAttrs == null ? null : graphTempAttrs.tempNodeAttrs;
   }
 
@@ -192,7 +200,6 @@ public class NodeExtractor extends DOTParserBaseListener {
     private final Map<String, String> tempNodeAttrs;
 
     GraphTempAttrs(SubgraphContext graphContext, Map<String, String> tempNodeAttrs) {
-      Objects.requireNonNull(tempNodeAttrs);
       this.graphContext = graphContext;
       this.tempNodeAttrs = tempNodeAttrs;
     }
