@@ -362,88 +362,91 @@ public class ParserUtils {
         }
     }
 
-    public static void lineAttributes(DOTParser.Attr_listContext attr_list, Line.LineBuilder builder) {
-        Map<String, String> attrMap = getAttrMap(attr_list);
-        attrMap.entrySet().forEach(e -> {
-            switch (e.getKey().toLowerCase()) {
+    public static void lineAttributes(Map<String, String> attrMap, Line.LineBuilder builder) {
+        if (attrMap == null || builder == null) {
+            return;
+        }
+
+        attrMap.forEach((key, value) -> {
+            switch (key.toLowerCase()) {
                 case "arrowhead":
-                    setEnum(builder::arrowHead, ArrowShape.class, e.getValue().toUpperCase());
+                    setEnum(builder::arrowHead, ArrowShape.class, value.toUpperCase());
                     break;
                 case "arrowsize":
-                    setDouble(builder::arrowSize, e.getValue());
+                    setDouble(builder::arrowSize, value);
                     break;
                 case "arrowtail":
-                    setEnum(builder::arrowTail, ArrowShape.class, e.getValue().toUpperCase());
+                    setEnum(builder::arrowTail, ArrowShape.class, value.toUpperCase());
                     break;
                 case "color":
-                    builder.color(colorOf(e.getValue()));
+                    builder.color(colorOf(value));
                     break;
                 case "dir":
-                    setEnum(builder::dir, Dir.class, e.getValue().toUpperCase());
+                    setEnum(builder::dir, Dir.class, value.toUpperCase());
                     break;
                 case "fontcolor":
-                    builder.fontColor(colorOf(e.getValue()));
+                    builder.fontColor(colorOf(value));
                     break;
                 case "fontname":
-                    builder.fontName(e.getValue());
+                    builder.fontName(value);
                     break;
                 case "fontsize":
-                    setDouble(builder::fontSize, e.getValue());
+                    setDouble(builder::fontSize, value);
                     break;
                 case "headclip":
-                    setBoolean(builder::headclip, e.getValue());
+                    setBoolean(builder::headclip, value);
                     break;
                 case "headcell":
-                    builder.headCell(e.getValue());
+                    builder.headCell(value);
                     break;
                 case "headport":
-                    builder.headPort(Port.valueOfCode(e.getValue().toLowerCase()));
+                    builder.headPort(Port.valueOfCode(value.toLowerCase()));
                     break;
                 case "href":
-                    builder.href(e.getValue());
+                    builder.href(value);
                     break;
                 case "label":
-                    labelHandle(builder::label, builder::table, e.getValue());
+                    labelHandle(builder::label, builder::table, value);
                     break;
                 case "lhead":
-                    builder.lhead(e.getValue());
+                    builder.lhead(value);
                     break;
                 case "ltail":
-                    builder.ltail(e.getValue());
+                    builder.ltail(value);
                     break;
                 case "minlen":
-                    setInteger(builder::minlen, e.getValue());
+                    setInteger(builder::minlen, value);
                     break;
                 case "penwidth":
-                    setDouble(builder::penWidth, e.getValue());
+                    setDouble(builder::penWidth, value);
                     break;
                 case "showboxes":
-                    setBoolean(builder::showboxes, e.getValue());
+                    setBoolean(builder::showboxes, value);
                     break;
                 case "style":
-                    LineStyle[] lineStyles = arrayConvert(e.getValue().toUpperCase(),
+                    LineStyle[] lineStyles = arrayConvert(value.toUpperCase(),
                                                           LineStyle::valueOf, LineStyle.class);
                     if (lineStyles != null) {
                         builder.style(lineStyles);
                     }
                     break;
                 case "tailclip":
-                    setBoolean(builder::tailclip, e.getValue());
+                    setBoolean(builder::tailclip, value);
                     break;
                 case "tailport":
-                    builder.tailPort(Port.valueOfCode(e.getValue().toLowerCase()));
+                    builder.tailPort(Port.valueOfCode(value.toLowerCase()));
                     break;
                 case "tailcell":
-                    builder.tailCell(e.getValue());
+                    builder.tailCell(value);
                     break;
                 case "tooltip":
-                    builder.tooltip(e.getValue());
+                    builder.tooltip(value);
                     break;
                 case "url":
-                    builder.href(e.getValue());
+                    builder.href(value);
                     break;
                 case "weight":
-                    setDouble(builder::weight, e.getValue());
+                    setDouble(builder::weight, value);
                     break;
                 default:
                     break;

@@ -17,6 +17,7 @@
 package org.graphper.parser;
 
 import static org.graphper.parser.ParserUtils.clusterAttributes;
+import static org.graphper.parser.ParserUtils.getAttrMap;
 import static org.graphper.parser.ParserUtils.graphAttributes;
 import static org.graphper.parser.ParserUtils.lineAttributes;
 import static org.graphper.parser.ParserUtils.setLinePort;
@@ -38,13 +39,13 @@ import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.parser.grammar.DOTParser.Attr_stmtContext;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
 import org.graphper.parser.grammar.DOTParser.SubgraphContext;
-import org.graphper.parser.grammar.DOTParserBaseListener;
 
-public class GraphvizListener extends DOTParserBaseListener {
+public class GraphvizListener extends DotTempAttrListener {
 
     private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();
 
@@ -57,6 +58,11 @@ public class GraphvizListener extends DOTParserBaseListener {
     public GraphvizListener(NodeExtractor nodeExtractor) {
         Objects.requireNonNull(nodeExtractor);
         this.nodeExtractor = nodeExtractor;
+    }
+
+    @Override
+    protected boolean isFocusStmtType(Attr_stmtContext ctx) {
+        return ctx.EDGE() != null;
     }
 
     @Override
@@ -113,15 +119,8 @@ public class GraphvizListener extends DOTParserBaseListener {
 
     @Override
     public void enterAttr_stmt(DOTParser.Attr_stmtContext ctx) {
+        super.enterAttr_stmt(ctx);
 
-        if (ctx.EDGE() != null) {
-
-            Line.LineBuilder l = Line.tempLine();
-
-            lineAttributes(ctx.attr_list(), l);
-            containerStack.peek().tempLine(l.build());
-
-        }
         if (ctx.GRAPH() != null) {
             if (containerStack.peek() instanceof GraphvizBuilder) {
                 GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
@@ -224,8 +223,12 @@ public class GraphvizListener extends DOTParserBaseListener {
 
     private void buildLine(DOTParser.Attr_listContext attr_list, Node leftNode, Node rightNode,
                            Node_idContext leftCtx, Node_idContext rightCtx) {
+        Map<String, String> lineAttrs = getAttrMap(attr_list);
+        Map<String, String> tempLineAttrs = currentTempAttrs();
+        lineAttrs = combineAttrs(tempLineAttrs, lineAttrs);
+
         Line.LineBuilder builder = Line.builder(leftNode, rightNode);
-        lineAttributes(attr_list, builder);
+        lineAttributes(lineAttrs, builder);
         setLinePort(builder, port(leftCtx, true), port(leftCtx, false), true);
         setLinePort(builder, port(rightCtx, true), port(rightCtx, false), false);
         Line line = builder.build();
@@ -261,6 +264,7 @@ public class GraphvizListener extends DOTParserBaseListener {
 
     @Override
     public void enterSubgraph(DOTParser.SubgraphContext ctx) {
+        super.enterSubgraph(ctx);
 
         String id = ctx.id_() != null ? ctx.id_().getText() : null;
 
@@ -293,6 +297,7 @@ public class GraphvizListener extends DOTParserBaseListener {
             subGraphMap = new HashMap<>();
         }
         subGraphMap.put(ctx, gc);
+        super.exitSubgraph(ctx);
     }
 
     public Graphviz getGraphviz() {

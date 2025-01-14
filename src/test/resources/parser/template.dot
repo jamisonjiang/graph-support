@@ -18,4 +18,24 @@ subgraph cluster_1 {
 edge[style=dashed]
 a->b[penwidth=3 minlen=2]
 }
+
+node[fontsize=20]
+edge[color=red]
+a->b
+
+edge[color=blue]
+c->d
+
+edge[style=dashed]
+e->f
+
+subgraph cluster_3 {
+    edge[dir=both]
+    g->h
+
+    subgraph cluster_1 {
+        edge[arrowhead=vee color=GREEN]
+        i->j
+    }
+}
 }
