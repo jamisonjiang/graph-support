@@ -598,9 +598,6 @@ public class ParserUtils {
             case "colspan":
                 setInteger(td::colSpan, value);
                 break;
-            case "text":
-                td.text(value);
-                break;
             case "fontcolor":
                 td.fontColor(colorOf(value));
                 break;
@@ -646,11 +643,12 @@ public class ParserUtils {
                 setBoolean(attrs::fixedSize, value);
                 break;
             case "width":
-                setInteger(attrs::width, value);
+                setDouble(attrs::width, value);
                 break;
             case "height":
-                setInteger(attrs::height, value);
+                setDouble(attrs::height, value);
                 break;
+            case "url":
             case "href":
                 attrs.href(value);
                 break;
