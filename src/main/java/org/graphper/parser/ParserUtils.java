@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Html.Attrs;
 import org.graphper.api.Html.Table;
@@ -37,9 +38,11 @@ import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
+import org.graphper.api.attributes.ClusterShapeEnum;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
+import org.graphper.api.attributes.InitPos;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
@@ -50,6 +53,7 @@ import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
+import org.graphper.api.attributes.Tend;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
 
@@ -146,14 +150,23 @@ public class ParserUtils {
 
     public static void graphAttribute(String key, String value, Graphviz.GraphvizBuilder gb) {
         switch (key.toLowerCase()) {
-            case "layout":
-                setEnum(gb::layout, Layout.class, value);
+            case "label":
+                labelHandle(gb::label, gb::table, value);
                 break;
-            case "rankdir":
-                setEnum(gb::rankdir, Rankdir.class, value);
+            case "labelloc":
+                setEnum(gb::labelloc, Labelloc.class, value.toUpperCase());
+                break;
+            case "labeljust":
+                setEnum(gb::labeljust, Labeljust.class, value.toUpperCase());
+                break;
+            case "fontname":
+                gb.fontName(value);
                 break;
             case "splines":
                 setEnum(gb::splines, Splines.class, value);
+                break;
+            case "rankdir":
+                setEnum(gb::rankdir, Rankdir.class, value);
                 break;
             case "bgcolor":
                 gb.bgColor(colorOf(value));
@@ -161,29 +174,20 @@ public class ParserUtils {
             case "fontcolor":
                 gb.fontColor(colorOf(value));
                 break;
-            case "fontname":
-                gb.fontName(value);
+            case "layout":
+                setEnum(gb::layout, Layout.class, value);
                 break;
-            case "fontsize":
-                setDouble(gb::fontSize, value);
+            case "nodesep":
+                setDouble(gb::nodeSep, value);
                 break;
-            case "href":
-                gb.href(value);
+            case "nslimit":
+                setInteger(gb::nslimit, value);
                 break;
-            case "label":
-                labelHandle(gb::label, gb::table, value);
+            case "nslimit1":
+                setInteger(gb::nslimit1, value);
                 break;
-            case "labeljust":
-                setEnum(gb::labeljust, Labeljust.class, value.toUpperCase());
-                break;
-            case "labelloc":
-                setEnum(gb::labelloc, Labelloc.class, value.toUpperCase());
-                break;
-            case "tooltip":
-                gb.tooltip(value);
-                break;
-            case "url":
-                gb.href(value);
+            case "ranksep":
+                setDouble(gb::rankSep, value);
                 break;
             case "size":
                 Double[] size = arrayConvert(value, Double::parseDouble, Double.class);
@@ -205,6 +209,37 @@ public class ParserUtils {
                     }
                 }
                 break;
+            case "mclimit":
+                setInteger(gb::mclimit, value);
+                break;
+            case "fontsize":
+                setDouble(gb::fontSize, value);
+                break;
+            case "compound":
+                setBoolean(gb::compound, value);
+                break;
+            case "showgrid":
+                setBoolean(gb::showGrid, value);
+                break;
+            case "url":
+            case "href":
+                gb.href(value);
+                break;
+            case "tooltip":
+                gb.tooltip(value);
+                break;
+            case "maxiter":
+                setInteger(gb::maxiter, value);
+                break;
+            case "k":
+                setDouble(gb::k, value);
+                break;
+            case "overlap":
+                setBoolean(gb::overlap, value);
+                break;
+            case "initpos":
+                setEnum(gb::initPos, InitPos.class, value);
+                break;
             default:
                 break;
         }
@@ -212,6 +247,26 @@ public class ParserUtils {
 
     public static void clusterAttribute(String key, String value, Cluster.ClusterBuilder sb) {
         switch (key.toLowerCase()) {
+            case "label":
+                labelHandle(sb::label, sb::table, value);
+                break;
+            case "labelloc":
+                setEnum(sb::labelloc, Labelloc.class, value);
+                break;
+            case "labeljust":
+                setEnum(sb::labeljust, Labeljust.class, value);
+                break;
+            case "shape":
+                setEnum(sb::shape, ClusterShapeEnum.class, value);
+                break;
+            case "style":
+                ClusterStyle[] clusterStyles = arrayConvert(value.toUpperCase(),
+                                                            ClusterStyle::valueOf,
+                                                            ClusterStyle.class);
+                if (clusterStyles != null) {
+                    sb.style(clusterStyles);
+                }
+                break;
             case "bgcolor":
                 sb.bgColor(colorOf(value));
                 break;
@@ -224,21 +279,6 @@ public class ParserUtils {
             case "fontname":
                 sb.fontName(value);
                 break;
-            case "fontsize":
-                setDouble(sb::fontSize, value);
-                break;
-            case "href":
-                sb.href(value);
-                break;
-            case "label":
-                labelHandle(sb::label, sb::table, value);
-                break;
-            case "labeljust":
-                setEnum(sb::labeljust, Labeljust.class, value.toUpperCase());
-                break;
-            case "labelloc":
-                setEnum(sb::labelloc, Labelloc.class, value.toUpperCase());
-                break;
             case "margin":
                 Double[] margin = arrayConvert(value, Double::parseDouble, Double.class);
                 if (!ArrayUtils.isEmpty(margin)) {
@@ -249,22 +289,18 @@ public class ParserUtils {
                     }
                 }
                 break;
-            case "penwidth":
-                setDouble(sb::penWidth, value);
+            case "fontsize":
+                setDouble(sb::fontSize, value);
                 break;
-            case "style":
-                ClusterStyle[] clusterStyles = arrayConvert(value.toUpperCase(),
-                                                            ClusterStyle::valueOf,
-                                                            ClusterStyle.class);
-                if (clusterStyles != null) {
-                    sb.style(clusterStyles);
-                }
+            case "href":
+            case "url":
+                sb.href(value);
                 break;
             case "tooltip":
                 sb.tooltip(value);
                 break;
-            case "url":
-                sb.href(value);
+            case "penwidth":
+                setDouble(sb::penWidth, value);
                 break;
             default:
                 break;
@@ -283,14 +319,26 @@ public class ParserUtils {
 
         attrMap.forEach((key, value) -> {
             switch (key.toLowerCase()) {
+                case "id":
+                    nodeBuilder.id(value);
+                    break;
+                case "label":
+                    labelHandle(nodeBuilder::label, nodeBuilder::table, value);
+                    break;
+                case "height":
+                    setDouble(nodeBuilder::height, value);
+                    break;
+                case "width":
+                    setDouble(nodeBuilder::width, value);
+                    break;
+                case "shape":
+                    setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
+                    break;
                 case "color":
                     nodeBuilder.color(colorOf(value));
                     break;
                 case "fillcolor":
                     nodeBuilder.fillColor(colorOf(value));
-                    break;
-                case "fixedsize":
-                    setBoolean(nodeBuilder::fixedSize, value);
                     break;
                 case "fontcolor":
                     nodeBuilder.fontColor(colorOf(value));
@@ -298,20 +346,8 @@ public class ParserUtils {
                 case "fontname":
                     nodeBuilder.fontName(value);
                     break;
-                case "fontsize":
-                    setDouble(nodeBuilder::fontSize, value);
-                    break;
-                case "height":
-                    setDouble(nodeBuilder::height, value);
-                    break;
-                case "href":
-                    nodeBuilder.href(value);
-                    break;
-                case "image":
-                    nodeBuilder.image(value);
-                    break;
-                case "label":
-                    labelHandle(nodeBuilder::label, nodeBuilder::table, value);
+                case "labeljust":
+                    setEnum(nodeBuilder::labeljust, Labeljust.class, value);
                     break;
                 case "labelloc":
                     setEnum(nodeBuilder::labelloc, Labelloc.class, value.toUpperCase());
@@ -326,26 +362,30 @@ public class ParserUtils {
                         }
                     }
                     break;
-                case "penwidth":
-                    setDouble(nodeBuilder::penWidth, value);
+                case "fixedsize":
+                    setBoolean(nodeBuilder::fixedSize, value);
                     break;
-                case "shape":
-                    setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
-                    break;
-                case "sides":
-                    setInteger(nodeBuilder::sides, value.toUpperCase());
+                case "fontsize":
+                    setDouble(nodeBuilder::fontSize, value);
                     break;
                 case "style":
                     setNodeStyle(nodeBuilder::style, value);
                     break;
+                case "sides":
+                    setInteger(nodeBuilder::sides, value.toUpperCase());
+                    break;
+                case "url":
+                case "href":
+                    nodeBuilder.href(value);
+                    break;
                 case "tooltip":
                     nodeBuilder.tooltip(value);
                     break;
-                case "url":
-                    nodeBuilder.href(value);
+                case "image":
+                    nodeBuilder.image(value);
                     break;
-                case "width":
-                    setDouble(nodeBuilder::width, value);
+                case "penwidth":
+                    setDouble(nodeBuilder::penWidth, value);
                     break;
                 default:
                     break;
@@ -356,7 +396,7 @@ public class ParserUtils {
         String imageWidth = attrMap.get("imageWidth");
         if (imageHeight != null && imageWidth != null) {
             try {
-                nodeBuilder.imageSize(Double.valueOf(imageHeight), Double.valueOf(imageWidth));
+                nodeBuilder.imageSize(Double.parseDouble(imageHeight), Double.parseDouble(imageWidth));
             } catch (NumberFormatException e) {
             }
         }
@@ -369,59 +409,44 @@ public class ParserUtils {
 
         attrMap.forEach((key, value) -> {
             switch (key.toLowerCase()) {
-                case "arrowhead":
-                    setEnum(builder::arrowHead, ArrowShape.class, value.toUpperCase());
-                    break;
-                case "arrowsize":
-                    setDouble(builder::arrowSize, value);
-                    break;
-                case "arrowtail":
-                    setEnum(builder::arrowTail, ArrowShape.class, value.toUpperCase());
-                    break;
-                case "color":
-                    builder.color(colorOf(value));
-                    break;
-                case "dir":
-                    setEnum(builder::dir, Dir.class, value.toUpperCase());
-                    break;
-                case "fontcolor":
-                    builder.fontColor(colorOf(value));
-                    break;
-                case "fontname":
-                    builder.fontName(value);
-                    break;
-                case "fontsize":
-                    setDouble(builder::fontSize, value);
-                    break;
-                case "headclip":
-                    setBoolean(builder::headclip, value);
-                    break;
-                case "headcell":
-                    builder.headCell(value);
-                    break;
-                case "headport":
-                    builder.headPort(Port.valueOfCode(value.toLowerCase()));
-                    break;
-                case "href":
-                    builder.href(value);
+                case "id":
+                    builder.id(value);
                     break;
                 case "label":
                     labelHandle(builder::label, builder::table, value);
                     break;
-                case "lhead":
-                    builder.lhead(value);
-                    break;
-                case "ltail":
-                    builder.ltail(value);
-                    break;
-                case "minlen":
-                    setInteger(builder::minlen, value);
-                    break;
-                case "penwidth":
-                    setDouble(builder::penWidth, value);
+                case "controlpoints":
+                    setBoolean(builder::controlPoints, value);
                     break;
                 case "showboxes":
                     setBoolean(builder::showboxes, value);
+                    break;
+                case "radian":
+                    setDouble(builder::radian, value);
+                    break;
+                case "color":
+                    builder.color(colorOf(value));
+                    break;
+                case "weight":
+                    setDouble(builder::weight, value);
+                    break;
+                case "fontcolor":
+                    builder.fontColor(colorOf(value));
+                    break;
+                case "fontsize":
+                    setDouble(builder::fontSize, value);
+                    break;
+                case "fontname":
+                    builder.fontName(value);
+                    break;
+                case "headclip":
+                    setBoolean(builder::headclip, value);
+                    break;
+                case "tailclip":
+                    setBoolean(builder::tailclip, value);
+                    break;
+                case "minlen":
+                    setInteger(builder::minlen, value);
                     break;
                 case "style":
                     LineStyle[] lineStyles = arrayConvert(value.toUpperCase(),
@@ -430,28 +455,77 @@ public class ParserUtils {
                         builder.style(lineStyles);
                     }
                     break;
-                case "tailclip":
-                    setBoolean(builder::tailclip, value);
+                case "arrowhead":
+                    setEnum(builder::arrowHead, ArrowShape.class, value.toUpperCase());
+                    break;
+                case "arrowtail":
+                    setEnum(builder::arrowTail, ArrowShape.class, value.toUpperCase());
+                    break;
+                case "arrowsize":
+                    setDouble(builder::arrowSize, value);
+                    break;
+                case "dir":
+                    setEnum(builder::dir, Dir.class, value.toUpperCase());
+                    break;
+                case "lhead":
+                    builder.lhead(value);
+                    break;
+                case "ltail":
+                    builder.ltail(value);
                     break;
                 case "tailport":
                     builder.tailPort(Port.valueOfCode(value.toLowerCase()));
                     break;
+                case "headport":
+                    builder.headPort(Port.valueOfCode(value.toLowerCase()));
+                    break;
                 case "tailcell":
                     builder.tailCell(value);
+                    break;
+                case "headcell":
+                    builder.headCell(value);
+                    break;
+                case "url":
+                case "href":
+                    builder.href(value);
                     break;
                 case "tooltip":
                     builder.tooltip(value);
                     break;
-                case "url":
-                    builder.href(value);
-                    break;
-                case "weight":
-                    setDouble(builder::weight, value);
+                case "penwidth":
+                    setDouble(builder::penWidth, value);
                     break;
                 default:
                     break;
             }
         });
+
+        String taillabel = attrMap.get("taillabel");
+        String headlabel = attrMap.get("headlabel");
+        if (StringUtils.isEmpty(taillabel) || StringUtils.isEmpty(headlabel)) {
+            return;
+        }
+
+        FloatLabel tailFloatLabel = null;
+        FloatLabel headFloatLabel = null;
+
+        if (StringUtils.isNotEmpty(taillabel)) {
+            tailFloatLabel = FloatLabel.builder().label(taillabel).tend(Tend.TAIL).build();
+        }
+
+        if (StringUtils.isNotEmpty(headlabel)) {
+            headFloatLabel = FloatLabel.builder().label(headlabel).tend(Tend.HEAD).build();
+        }
+
+        if (tailFloatLabel == null) {
+            builder.floatLabels(headFloatLabel);
+            return;
+        }
+        if (headFloatLabel == null) {
+            builder.floatLabels(tailFloatLabel);
+            return;
+        }
+        builder.floatLabels(tailFloatLabel, headFloatLabel);
     }
 
     public static void setLinePort(LineBuilder lineBuilder, String p1, String p2, boolean isTail) {

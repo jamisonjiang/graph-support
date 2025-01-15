@@ -75,6 +75,7 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
 
     svgDocument = new SvgDocument();
     Element svg = svgDocument.createElement(SvgConstants.SVG_ELE);
+    svg.setId(GRAPH_ROOT + System.currentTimeMillis());
     svg.setAttribute(SvgConstants.XMLNS, XMLNS_VAL);
     svg.setAttribute(SvgConstants.XMLNS_XLINK, XMLNS_XLINK_VAL);
     svg.setAttribute(SvgConstants.HEIGHT, height + SvgConstants.PT);
@@ -100,7 +101,6 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     transform = String.format(transform, "0");
     graphElement.setAttribute(SvgConstants.TRANSFORM, transform);
 
-    ;
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
     element.setAttribute(SvgConstants.ID, GRAPH_ID);
     element.setAttribute(SvgConstants.CLASS, SvgConstants.GRAPH);

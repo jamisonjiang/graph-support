@@ -32,8 +32,6 @@
 
 lexer grammar TABLELexer;
 
-HTML_COMMENT: '<!--' .*? '-->';
-
 HTML_CONDITIONAL_COMMENT: '<![' .*? ']>';
 
 WS: (' ' | '\t' | '\r'? '\n')+;
