@@ -61,6 +61,8 @@ public enum NodeShapeEnum implements NodeShape {
 
   CIRCLE("circle", 0.75, 0.75, new CirclePropCalc()),
 
+  BOX ("box", new RectanglePropCalc()),
+
   RECT("rect", new RectanglePropCalc()),
 
   POINT("point", 0.1, 0.1, new PointPropCalc()),

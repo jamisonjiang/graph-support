@@ -67,6 +67,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       case UNDERLINE:
         underline(nodeDrawProp, singleElement(nodeDrawProp, brush));
         break;
+      case BOX:
       case RECT:
         rect(nodeDrawProp, brush);
         break;
