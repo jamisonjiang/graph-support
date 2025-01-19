@@ -169,6 +169,7 @@ public class ParserUtils {
             case "rankdir":
                 setEnum(gb::rankdir, Rankdir.class, value);
                 break;
+            case "fillcolor":
             case "bgcolor":
                 gb.bgColor(colorOf(value));
                 break;
@@ -268,6 +269,7 @@ public class ParserUtils {
                     sb.style(clusterStyles);
                 }
                 break;
+            case "fillcolor":
             case "bgcolor":
                 sb.bgColor(colorOf(value));
                 break;
@@ -339,6 +341,7 @@ public class ParserUtils {
                     nodeBuilder.color(colorOf(value));
                     break;
                 case "fillcolor":
+                case "bgcolor":
                     nodeBuilder.fillColor(colorOf(value));
                     break;
                 case "fontcolor":
@@ -631,6 +634,7 @@ public class ParserUtils {
             case "valign":
                 setEnum(attrs::valign, Labelloc.class, value);
                 break;
+            case "fillcolor":
             case "bgcolor":
                 attrs.bgColor(colorOf(value));
                 break;
