@@ -40,6 +40,7 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Attr_stmtContext;
+import org.graphper.parser.grammar.DOTParser.Id_Context;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
@@ -286,6 +287,10 @@ public class GraphvizListener extends DotTempAttrListener {
         GraphContainer.GraphContainerBuilder child = containerStack.pop();
         GraphContainer.GraphContainerBuilder parent = containerStack.peek();
 
+        Id_Context id = ctx.id_();
+        if (id != null) {
+            child.id(id.getText());
+        }
         GraphContainer gc = child.build();
         if (gc.isCluster()) {
             parent.cluster((Cluster) gc);

@@ -66,7 +66,7 @@ STRING
  * Fragment for escape sequences within strings.
  */
 fragment ESC_SEQ
-    : '\\' [nrt"\\bf]
+    : '\\' [nrt"\\bf.\n]
     ;
 
 /** "HTML strings, angle brackets must occur in matched pairs, and

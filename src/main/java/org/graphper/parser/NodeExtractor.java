@@ -87,8 +87,8 @@ public class NodeExtractor extends DotTempAttrListener {
     if (ctx != null) {
       id = ctx.node_id().id_().getText();
     }
-    Map<String, String> attrs = combineAttrs(currentTempAttrs(), ctx);
-    attrs = combineAttrs(nodeStmtContextMap.get(id), attrs);
+    Map<String, String> attrs = combineAttrs(nodeStmtContextMap.get(id), ctx);
+    attrs = combineAttrs(currentTempAttrs(), attrs);
     nodeStmtContextMap.put(id, attrs);
   }
 

@@ -56,7 +56,7 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
     Asserts.nullArgument(tagName, "tagName is null");
     SvgElement ele = new SvgElement(tagName, this);
     int size = elementMap.size();
-    ele.setId(String.valueOf(size));
+    ele.setId(tagName + UNDERSCORE + size);
     return ele;
   }
 
