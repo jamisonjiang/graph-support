@@ -111,6 +111,10 @@ public class NodeAttrs implements Serializable, Cloneable {
     return StringUtils.isNotEmpty(label) ? label : id;
   }
 
+  public String getRealLabel() {
+    return label;
+  }
+
   public NodeShape getShape() {
     return shape == null ? NodeShapeEnum.ELLIPSE : shape;
   }

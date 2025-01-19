@@ -36,7 +36,7 @@ public class NodeLabelEditor implements NodeEditor<SvgBrush> {
   @Override
   public boolean edit(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     NodeAttrs nodeAttrs = nodeDrawProp.nodeAttrs();
-    String label = nodeAttrs.getLabel();
+    String label = nodeDrawProp.isCellProp() ? nodeAttrs.getRealLabel() : nodeAttrs.getLabel();
 
     if (StringUtils.isEmpty(label)
         || nodeDrawProp.getCell() != null
