@@ -57,6 +57,7 @@ import org.graphper.api.attributes.Tend;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
 
+@SuppressWarnings("unchecked")
 public class ParserUtils {
 
     private ParserUtils() {
@@ -732,9 +733,35 @@ public class ParserUtils {
                 consumer.accept(enumConstant);
             }
         }
+
+        if (enumClass == Labeljust.class) {
+            switch (name.toUpperCase()) {
+                case "l":
+                    consumer.accept((T) Labeljust.LEFT);
+                    break;
+                case "c":
+                    consumer.accept((T) Labeljust.CENTER);
+                    break;
+                case "r":
+                    consumer.accept((T) Labeljust.RIGHT);
+                    break;
+            }
+        }
+        if (enumClass == Labelloc.class) {
+            switch (name.toUpperCase()) {
+                case "t":
+                    consumer.accept((T) Labelloc.TOP);
+                    break;
+                case "c":
+                    consumer.accept((T) Labelloc.CENTER);
+                    break;
+                case "b":
+                    consumer.accept((T) Labelloc.BOTTOM);
+                    break;
+            }
+        }
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> T[] arrayConvert(String val, Function<String, T> eleMapFunc, Class<T> clazz) {
         if (StringUtils.isEmpty(val)) {
             return null;

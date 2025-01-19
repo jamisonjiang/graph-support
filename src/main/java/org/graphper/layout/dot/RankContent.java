@@ -365,6 +365,10 @@ class RankContent implements Iterable<RankNode> {
       return endY;
     }
 
+    double getY() {
+      return (getStartY() + getEndY()) / 2;
+    }
+
     double getHeight() {
       return endY - startY;
     }

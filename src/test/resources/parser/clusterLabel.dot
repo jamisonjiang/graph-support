@@ -1,16 +1,29 @@
 digraph axionalterm {
     rankdir="LR"
+    size="0.7"
     subgraph cluster_backend {
-        style="filled"
-        fillcolor="#EEEEEE"
-        label="Backend Server uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
-        newrank="true"
-        soap
-        jdbc
-        k
+         margin="1,0.5"
+        subgraph cluster_0 {
+            style="filled"
+            fillcolor="#EEEEEE"
+            label="Bauuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu\nddddddddddddddddddd\nfffffffffffffffffffffffffffffffffffffff\nkkkkkkkkkkkkkkkkkkkkkk\nggggggggggggggggg\nkkkkkkkkkkkkkkkkkklllllllllllllllllllllllllllllllll\n11111111111111111111111111111111111111111111111111\n888888888888"
+            soap
+            jdbc
+            k
+            m
+        }
     }
+
     jdbc [label="JDBC", shape="cylinder", style="filled", fillcolor="#0277BD", fontcolor="#FFFFFF"]
     LOCAL [label="LOCAL/JAVA-UEL"]
-    a->jdbc->k->e
+    a->jdbc->k->m->e
     t->LOCAL->p->f
+
+    subgraph cluster_1 {
+        label="sssssssssssssssssssssssssssssssssssssssssssssssssssssssss\nkkkkkkkkkkkkkkkkkkkkkkkkkkk\nooooooooooooooooooo"
+        subgraph cluster_2 {
+            label="sssssssssssssssssssssssssssssss"
+            p,t
+        }
+    }
 }
