@@ -735,7 +735,7 @@ public class ParserUtils {
         }
 
         if (enumClass == Labeljust.class) {
-            switch (name.toUpperCase()) {
+            switch (name.toLowerCase()) {
                 case "l":
                     consumer.accept((T) Labeljust.LEFT);
                     break;
@@ -745,10 +745,12 @@ public class ParserUtils {
                 case "r":
                     consumer.accept((T) Labeljust.RIGHT);
                     break;
+                default:
+                    break;
             }
         }
         if (enumClass == Labelloc.class) {
-            switch (name.toUpperCase()) {
+            switch (name.toLowerCase()) {
                 case "t":
                     consumer.accept((T) Labelloc.TOP);
                     break;
@@ -757,6 +759,8 @@ public class ParserUtils {
                     break;
                 case "b":
                     consumer.accept((T) Labelloc.BOTTOM);
+                    break;
+                default:
                     break;
             }
         }
