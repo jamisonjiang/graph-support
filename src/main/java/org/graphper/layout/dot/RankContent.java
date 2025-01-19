@@ -283,14 +283,6 @@ class RankContent implements Iterable<RankNode> {
       this.labelRank = isLabelRank;
     }
 
-    public boolean havePreRank() {
-      return pre != null;
-    }
-
-    public boolean haveNextRank() {
-      return next != null;
-    }
-
     public boolean isLabelRank() {
       return labelRank;
     }
@@ -345,26 +337,6 @@ class RankContent implements Iterable<RankNode> {
       return normalNodeNum <= 0;
     }
 
-    int normalNodeNum() {
-      return normalNodeNum;
-    }
-
-    DNode first() {
-      if (size() == 0) {
-        return null;
-      }
-
-      return get(0);
-    }
-
-    DNode last() {
-      if (size() == 0) {
-        return null;
-      }
-
-      return get(size() - 1);
-    }
-
     void setRankIndex(int rankIndex) {
       this.rankIndex = rankIndex;
     }
@@ -379,24 +351,6 @@ class RankContent implements Iterable<RankNode> {
 
     RankNode next() {
       return next;
-    }
-
-    double getStartX() {
-      if (nodes.isEmpty()) {
-        throw new IllegalStateException("empty rank");
-      }
-
-      DNode first = nodes.get(0);
-      return (int) (first.getX() - first.leftWidth());
-    }
-
-    double getEndX() {
-      if (nodes.isEmpty()) {
-        throw new IllegalStateException("empty rank");
-      }
-
-      DNode last = nodes.get(size() - 1);
-      return (last.getX() + last.rightWidth());
     }
 
     double getStartY() {

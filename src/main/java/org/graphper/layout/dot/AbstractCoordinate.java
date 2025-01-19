@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.TreeMap;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -36,9 +35,9 @@ import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.PortHelper;
+import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.EnvProp;
 
 abstract class AbstractCoordinate {
@@ -111,7 +110,7 @@ abstract class AbstractCoordinate {
     if (dotAttachment.haveClusters()) {
       double maxTopHeight = 0;
       for (ClusterDrawProp cluster : drawGraph.clusters()) {
-        maxTopHeight = Math.max(getVerTopMargin(cluster.getCluster()) + 4, maxTopHeight);
+        maxTopHeight = Math.max(getVerTopMargin(null, cluster.getCluster()) + 4, maxTopHeight);
       }
       rankY += maxTopHeight;
     }
@@ -121,15 +120,13 @@ abstract class AbstractCoordinate {
 
       for (int j = 0; j < rankNode.size(); j++) {
         DNode node = rankNode.get(j);
-
         node.switchNormalModel();
         node.setX(node.getAuxRank());
 
         minX = Math.min(node.getX() - node.leftWidth(), minX);
         maxX = Math.max(node.getX() + node.rightWidth(), maxX);
-        rankMaxHeight = Math.max(
-            (int) node.topHeight() + node.bottomHeight(),
-            rankMaxHeight);
+        rankMaxHeight = Math
+            .max((int) node.topHeight() + node.bottomHeight(), rankMaxHeight);
 
         if (node.haveSelfLine()) {
           for (LineDrawProp selfLine : node.getSelfLines()) {
@@ -163,20 +160,37 @@ abstract class AbstractCoordinate {
         DNode preNode = rankContent.rankPreNode(flatNode);
         DNode nextNode = rankContent.rankNextNode(flatNode);
 
-     if (preNode != null && nextNode != null
-         && preNode.getContainer() == nextNode.getContainer()
-         && preNode.getContainer() == flatNode.getContainer()) {
+        if (preNode != null && nextNode != null
+            && preNode.getContainer() == nextNode.getContainer()
+            && preNode.getContainer() == flatNode.getContainer()) {
           flatNode.setX(
               (preNode.getX() + preNode.rightWidth() + nextNode.getX() - nextNode.leftWidth()) / 2);
         }
       }
     }
 
-    // If need flip, RankNode ranksep may be need update
-    flipUpdateRankSep();
-
     // graph container size init
-    containerSizeInit();
+    if (!containerSizeInit()) {
+      return;
+    }
+
+    expandClusterIfLabelOverflow(drawGraph.getGraphviz());
+  }
+
+  private void expandClusterIfLabelOverflow(GraphContainer container) {
+    for (Cluster cluster : DotAttachment.clusters(container)) {
+      ContainerBorder containerBorder = getContainerBorder(cluster);
+      Asserts.nullArgument(containerBorder);
+
+      double height = containerBorder.topRankHeight() + containerBorder.bottomRankHeight();
+      
+      for (int i = containerBorder.min; i < containerBorder.max; i++) {
+        RankNode rankNode = rankContent.get(i);
+
+        double rankSep = rankNode.getRankSep();
+
+      }
+    }
   }
 
   protected ContainerDrawProp getContainerDrawProp(GraphContainer container) {
@@ -260,8 +274,8 @@ abstract class AbstractCoordinate {
     if (containerRankRange == null || (needIgnoreFlip && needFlip)) {
       return;
     }
-    Map<RankNode, RankTopBottom> rankUpDownHeight = new HashMap<>();
 
+    Map<RankNode, RankTopBottom> rankUpDownHeight = new HashMap<>();
     for (Entry<GraphContainer, ContainerBorder> borderEntry : containerRankRange.entrySet()) {
       ContainerBorder rankRange = borderEntry.getValue();
 
@@ -291,22 +305,29 @@ abstract class AbstractCoordinate {
     }
   }
 
-  private double getVerTopMargin(GraphContainer graphContainer) {
+  private double getVerTopMargin(DNode node, GraphContainer graphContainer) {
     ContainerBorder containerBorder = getContainerBorder(graphContainer);
     if (containerBorder == null) {
       return 0;
     }
 
+    if (node != null && node.getRank() == containerBorder.min) {
+      containerBorder.maxTopHeight = Math.max(node.topHeight(), containerBorder.maxTopHeight);
+    }
     return containerBorder.verTopMargin;
   }
 
-  private double getVerBottomMargin(GraphContainer graphContainer) {
-    ContainerBorder clusterBorder = getContainerBorder(graphContainer);
-    if (clusterBorder == null) {
+  private double getVerBottomMargin(DNode node, GraphContainer graphContainer) {
+    ContainerBorder containerBorder = getContainerBorder(graphContainer);
+    if (containerBorder == null) {
       return 0;
     }
 
-    return clusterBorder.verBottomMargin;
+    if (node != null && node.getRank() == containerBorder.max) {
+      containerBorder.maxBottomHeight = Math
+          .max(node.bottomHeight(), containerBorder.maxBottomHeight);
+    }
+    return containerBorder.verBottomMargin;
   }
 
   private ContainerBorder clusterVerticalMargin(GraphContainer graphContainer) {
@@ -361,15 +382,7 @@ abstract class AbstractCoordinate {
     }
   }
 
-  private void flipUpdateRankSep() {
-    if (!needFlip) {
-      return;
-    }
-
-    TreeMap<Integer, Integer> rankOffset = new TreeMap<>(Integer::compareTo);
-    flipUpdateRankSep(dotAttachment.getGraphviz(), rankOffset);
-    updateRankSep(false);
-
+  private void refreshRankStartEnd() {
     double rankY = 0;
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
       RankNode rankNode = rankContent.get(i);
@@ -381,101 +394,10 @@ abstract class AbstractCoordinate {
     }
   }
 
-  private void flipUpdateRankSep(GraphContainer container,
-                                 TreeMap<Integer, Integer> rankAfterOffset) {
-    if (!needFlip) {
-      return;
-    }
-
-    ContainerBorder containerBorder = getContainerBorder(container);
-    if (containerBorder == null) {
-      return;
-    }
-
-    double maxTopHeight = 0;
-    double maxBottomHeight = 0;
-    for (Cluster cluster : DotAttachment.clusters(container)) {
-      flipUpdateRankSep(cluster, rankAfterOffset);
-      ContainerBorder child = getContainerBorder(cluster);
-      if (child == null) {
-        continue;
-      }
-
-      if (containerBorder.min == child.min) {
-        maxTopHeight = Math.max(child.verTopMargin, maxTopHeight);
-      }
-
-      if (containerBorder.max == child.max) {
-        maxBottomHeight = Math.max(child.verBottomMargin, maxBottomHeight);
-      }
-    }
-
-    ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-    containerBorder.verTopMargin = maxTopHeight + containerDrawProp.getHorMargin();
-    containerBorder.verBottomMargin = maxBottomHeight + containerDrawProp.getHorMargin();
-
-    FlatPoint labelSize = containerDrawProp.getLabelSize();
-    if (labelSize == null) {
-      return;
-    }
-
-    double startRankOffset = 0;
-    double endRankOffset = 0;
-    for (Entry<Integer, Integer> entry : rankAfterOffset.entrySet()) {
-      Integer key = entry.getKey();
-      if (key <= containerBorder.min) {
-        startRankOffset += entry.getValue();
-      }
-      if (key <= containerBorder.max) {
-        endRankOffset += entry.getValue();
-      } else {
-        break;
-      }
-    }
-
-    RankNode start = rankContent.get(containerBorder.min);
-    RankNode end = rankContent.get(containerBorder.max);
-
-    double height = containerBorder.verTopMargin + containerBorder.verBottomMargin
-        + end.getEndY() - start.getStartY() + endRankOffset - startRankOffset;
-    double diff = labelSize.getHeight() - height;
-
-    if (diff <= 0) {
-      return;
-    }
-
-    containerBorder.verTopMargin += diff / 2;
-    containerBorder.verBottomMargin += diff / 2;
-
-    RankNode startPre = rankContent.get(containerBorder.min - 1);
-    double preRankSep = startPre != null ? start.getStartY() - startPre.getEndY() : 0;
-    diff = containerBorder.verTopMargin - preRankSep;
-
-    if (diff > 0) {
-      Integer minRankOffset = rankAfterOffset.get(containerBorder.min);
-      if (minRankOffset != null) {
-        minRankOffset += ((int) diff + 5);
-      } else {
-        minRankOffset = (int) diff + 5;
-      }
-      rankAfterOffset.put(containerBorder.min, minRankOffset);
-    }
-
-    diff = containerBorder.verBottomMargin - end.getRankSep();
-    if (diff > 0 && containerBorder.max != rankContent.maxRank()) {
-      Integer maxRankOffset = rankAfterOffset.get(containerBorder.max + 1);
-      if (maxRankOffset != null) {
-        maxRankOffset += ((int) diff + 5);
-      } else {
-        maxRankOffset = (int) diff + 5;
-      }
-      rankAfterOffset.put(containerBorder.max, maxRankOffset);
-    }
-  }
-
-  private void containerSizeInit() {
+  private boolean containerSizeInit() {
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
 
+    boolean clusterLabelOverflow = false;
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
       RankNode rankNode = rankContent.get(i);
 
@@ -491,7 +413,7 @@ abstract class AbstractCoordinate {
             ((nextRankY - preRankY - rankNode.getRankSep()) / 2) - (node.getHeight() / 2);
         node.setY(preRankY + node.realTopHeight() + offset);
 
-        containerAdjust(node, !rankNode.noNormalNode());
+        clusterLabelOverflow |= containerAdjust(node, !rankNode.noNormalNode());
         if (!node.isVirtual()) {
           updateNodeContainer(node, drawGraph.getNodeDrawProp(node.getNode()));
         }
@@ -504,11 +426,12 @@ abstract class AbstractCoordinate {
     }
 
     refreshGraphBorder(drawGraph);
+    return clusterLabelOverflow;
   }
 
-  private void containerAdjust(DNode node, boolean normalRank) {
+  private boolean containerAdjust(DNode node, boolean normalRank) {
     if (!node.getContainer().isCluster()) {
-      return;
+      return false;
     }
 
     double verTopMargin;
@@ -517,6 +440,7 @@ abstract class AbstractCoordinate {
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
     GraphContainer container = node.getContainer();
 
+    boolean clusterLabelOverflow = false;
     while (container != null && container.isCluster()) {
       ClusterDrawProp clusterDrawProp = drawGraph.getClusterDrawProp((Cluster) container);
       if (clusterDrawProp == null) {
@@ -531,17 +455,25 @@ abstract class AbstractCoordinate {
                                 "Node " + node + " not in container " + container.id());
       }
 
-      verTopMargin = getVerTopMargin(clusterDrawProp.getCluster());
-      verBottomMargin = getVerBottomMargin(clusterDrawProp.getCluster());
+      verTopMargin = getVerTopMargin(node, clusterDrawProp.getCluster());
+      verBottomMargin = getVerBottomMargin(node, clusterDrawProp.getCluster());
       updateClusterHorBorder((Cluster) container, clusterDrawProp);
       updateClusterVerBorder(node, clusterDrawProp, verTopMargin, verBottomMargin);
       container = graphviz.effectiveFather(container);
+
+      if (needFlip && !clusterLabelOverflow) {
+        FlatPoint labelSize = clusterDrawProp.getLabelSize();
+        clusterLabelOverflow = labelSize != null
+            && labelSize.getHeight() > clusterDrawProp.getHeight();
+      }
 
       drawGraph.updateXAxisRange(clusterDrawProp.getLeftBorder());
       drawGraph.updateXAxisRange(clusterDrawProp.getRightBorder());
       drawGraph.updateYAxisRange(clusterDrawProp.getUpBorder());
       drawGraph.updateYAxisRange(clusterDrawProp.getDownBorder());
     }
+
+    return clusterLabelOverflow;
   }
 
   private void updateClusterVerBorder(DNode node, ClusterDrawProp clusterDrawProp,
@@ -599,8 +531,8 @@ abstract class AbstractCoordinate {
 
   private void refreshGraphBorder(DrawGraph drawGraph) {
     GraphvizDrawProp graphvizDrawProp = drawGraph.getGraphvizDrawProp();
-    double verTopMargin = getVerTopMargin(graphvizDrawProp.getGraphviz());
-    double verBottomMargin = getVerBottomMargin(graphvizDrawProp.getGraphviz());
+    double verTopMargin = getVerTopMargin(null, graphvizDrawProp.getGraphviz());
+    double verBottomMargin = getVerBottomMargin(null, graphvizDrawProp.getGraphviz());
     drawGraph.updateYAxisRange(drawGraph.getMinY() - verTopMargin);
     drawGraph.updateYAxisRange(drawGraph.getMaxY() + verBottomMargin);
 
@@ -651,8 +583,20 @@ abstract class AbstractCoordinate {
 
     private double verBottomMargin;
 
+    private double maxTopHeight;
+
+    private double maxBottomHeight;
+
     int width() {
       return max - min;
+    }
+
+    double topRankHeight() {
+      return verTopMargin + maxTopHeight;
+    }
+
+    double bottomRankHeight() {
+      return verBottomMargin + maxBottomHeight;
     }
   }
 
