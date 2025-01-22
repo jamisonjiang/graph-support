@@ -124,7 +124,7 @@ public abstract class DotTempAttrListener extends DOTParserBaseListener {
     return graphTempAttrs.tempNodeAttrs;
   }
 
-  static class GraphTempAttrs {
+  private static class GraphTempAttrs {
 
     private final SubgraphContext graphContext;
 
@@ -133,14 +133,6 @@ public abstract class DotTempAttrListener extends DOTParserBaseListener {
     GraphTempAttrs(SubgraphContext graphContext, Map<String, String> tempNodeAttrs) {
       this.graphContext = graphContext;
       this.tempNodeAttrs = tempNodeAttrs;
-    }
-
-    public SubgraphContext getGraphContext() {
-      return graphContext;
-    }
-
-    public Map<String, String> getTempNodeAttrs() {
-      return tempNodeAttrs;
     }
   }
 }

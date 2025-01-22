@@ -64,8 +64,12 @@ public class DefaultGraphResource implements GraphResource {
   @Override
   public void save(String parentPath, String fileName) throws IOException {
     fileName = StringUtils.isNotEmpty(fileName) ? fileName : name();
-    try (FileOutputStream fos = new FileOutputStream(
-        parentPath + File.separator + fileName + suffix())) {
+    if (fileName.endsWith(suffix())) {
+      fileName = parentPath + File.separator + fileName;
+    } else {
+      fileName = parentPath + File.separator + fileName + suffix();
+    }
+    try (FileOutputStream fos = new FileOutputStream(fileName)) {
       fos.write(bytes());
       fos.flush();
     }

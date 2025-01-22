@@ -269,10 +269,7 @@ public class GraphvizListener extends DotTempAttrListener {
 
         String id = ctx.id_() != null ? ctx.id_().getText() : null;
 
-        if (id == null) {
-            Subgraph.SubgraphBuilder builder = Subgraph.builder();
-            containerStack.push(builder);
-        } else if (id.startsWith("cluster")) {
+        if (id != null && id.startsWith("cluster")) {
             Cluster.ClusterBuilder builder = Cluster.builder();
             containerStack.push(builder);
         } else {
