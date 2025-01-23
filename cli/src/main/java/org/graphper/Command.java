@@ -16,13 +16,9 @@
 
 package org.graphper;
 
-import static org.graphper.Version.getAntlrVersion;
-import static org.graphper.Version.getBatikVersion;
-import static org.graphper.Version.getFopVersion;
-import static org.graphper.Version.getVersionFromPom;
-
 import java.io.File;
 import org.graphper.api.FileType;
+import org.graphper.api.attributes.Layout;
 
 public class Command {
 
@@ -32,12 +28,7 @@ public class Command {
 
   private FileType fileType;
 
-  public Command(String[] args) throws WrongCommandException {
-    int i = 0;
-    while (i < args.length) {
-      i = parseArgs(args, i);
-    }
-  }
+  private Layout layout;
 
   public File getDotFile() {
     return dotFile;
@@ -51,47 +42,23 @@ public class Command {
     return fileType == null ? FileType.SVG : fileType;
   }
 
-  private int parseArgs(String[] args, int currentIdx) throws WrongCommandException {
-    String arg = args[currentIdx];
-    if (arg.equals("-v")) {
-      System.out.println("graph-support CLI Version: " + getVersionFromPom());
-      System.out.println("Dependency Versions:");
-      System.out.println("- antlr: " + getAntlrVersion());
-      System.out.println("- batik: " + getBatikVersion());
-      System.out.println("- fop:   " + getFopVersion());
-      System.exit(1);
-    } else if (arg.startsWith("-T")) {
-      setFileType(arg.substring(2));
-    } else if (arg.endsWith("-o")) {
-      if (currentIdx == args.length - 1 || args[currentIdx + 1].startsWith("-")) {
-        throw new WrongCommandException("-o option lack value");
-      }
-      this.output = parseFile(args[++currentIdx]);
-    } else if (arg.startsWith("-")) {
-      throw new WrongCommandException("Error: option " + arg + " unrecognized");
-    } else {
-      this.dotFile = parseFile(args[currentIdx]);
-    }
-
-    return ++currentIdx;
+  public void setDotFile(File dotFile) {
+    this.dotFile = dotFile;
   }
 
-  private File parseFile(String filePath) {
-    File file = new File(filePath);
-    File directory = file.getParentFile();
-    if (directory == null) {
-      // If the output file doesn't specify a directory, use the current directory
-      file = new File("./" + filePath);
-    }
-
-    return file;
+  public void setOutput(File output) {
+    this.output = output;
   }
 
-  private void setFileType(String param) throws WrongCommandException {
-    try {
-      this.fileType = FileType.valueOf(param.toUpperCase());
-    } catch (Exception e) {
-      throw new WrongCommandException("Error: File type " + param + " not support yet");
-    }
+  public void setFileType(FileType fileType) {
+    this.fileType = fileType;
+  }
+
+  public Layout getLayout() {
+    return layout;
+  }
+
+  public void setLayout(Layout layout) {
+    this.layout = layout;
   }
 }

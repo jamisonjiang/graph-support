@@ -16,12 +16,12 @@
 package org.graphper.parser;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -32,12 +32,12 @@ import org.graphper.parser.grammar.DOTParser;
 
 public class DotParser {
 
-    private CharStream charStream;
+    private final CharStream charStream;
 
     public DotParser(File file, Charset charset) throws IOException {
-
-        Reader r = new InputStreamReader(new FileInputStream(file), charset);
-        charStream = CharStreams.fromReader(r, file.getCanonicalPath());
+        try(Reader r = new InputStreamReader(Files.newInputStream(file.toPath()), charset)) {
+            charStream = CharStreams.fromReader(r, file.getCanonicalPath());
+        }
     }
 
     public DotParser(InputStream in, Charset charset) throws IOException {
@@ -45,9 +45,9 @@ public class DotParser {
     }
 
     public DotParser(InputStream in, Charset charset, String sourceName) throws IOException {
-
-        Reader r = new InputStreamReader(in, charset);
-        charStream = CharStreams.fromReader(r, sourceName);
+        try(Reader r = new InputStreamReader(in, charset)) {
+            charStream = CharStreams.fromReader(r, sourceName);
+        }
     }
 
     public DotParser(String in) throws IOException {
@@ -61,10 +61,19 @@ public class DotParser {
 
     public Graphviz parse() throws ParseException {
 
-        return parse(charStream);
+        return compile(charStream);
     }
 
-    public static Graphviz parse(CharStream charStream) throws ParseException {
+    public Graphviz parse(PostGraphComponents postGraphComponents) throws ParseException {
+
+        return compile(charStream, postGraphComponents);
+    }
+
+    public static Graphviz compile(CharStream charStream) throws ParseException {
+        return compile(charStream, null);
+    }
+
+    public static Graphviz compile(CharStream charStream, PostGraphComponents postGraphComponents) throws ParseException {
 
         try {
             DOTLexer lexer = new DOTLexer(charStream);
@@ -80,10 +89,10 @@ public class DotParser {
             DOTParser.GraphContext graphCtx = p.graph();
 
             ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
-            NodeExtractor nodeExtractor = new NodeExtractor();
+            NodeExtractor nodeExtractor = new NodeExtractor(postGraphComponents);
             parseTreeWalker.walk(nodeExtractor, graphCtx);
 
-            GraphvizListener gl = new GraphvizListener(nodeExtractor);
+            GraphvizListener gl = new GraphvizListener(nodeExtractor, postGraphComponents);
             parseTreeWalker.walk(gl, graphCtx);
             return gl.getGraphviz();
         } catch (ParseException pe) {

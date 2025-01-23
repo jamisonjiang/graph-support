@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.graphper.api.Cluster;
+import org.graphper.api.Cluster.ClusterBuilder;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.GraphContainer.GraphContainerBuilder;
 import org.graphper.api.Graphviz;
@@ -56,9 +57,12 @@ public class GraphvizListener extends DotTempAttrListener {
 
     private final NodeExtractor nodeExtractor;
 
-    public GraphvizListener(NodeExtractor nodeExtractor) {
+    private final PostGraphComponents postGraphComponents;
+
+    public GraphvizListener(NodeExtractor nodeExtractor, PostGraphComponents postGraphComponents) {
         Objects.requireNonNull(nodeExtractor);
         this.nodeExtractor = nodeExtractor;
+        this.postGraphComponents = postGraphComponents;
     }
 
     @Override
@@ -87,7 +91,11 @@ public class GraphvizListener extends DotTempAttrListener {
 
     @Override
     public void exitGraph(DOTParser.GraphContext ctx) {
-        graphviz = (Graphviz)containerStack.pop().build();
+        GraphvizBuilder graphvizBuilder = (GraphvizBuilder) containerStack.pop();
+        if (postGraphComponents != null) {
+            postGraphComponents.postGraphviz(graphvizBuilder);
+        }
+        graphviz = graphvizBuilder.build();
     }
 
     @Override
@@ -232,6 +240,11 @@ public class GraphvizListener extends DotTempAttrListener {
         lineAttributes(lineAttrs, builder);
         setLinePort(builder, port(leftCtx, true), port(leftCtx, false), true);
         setLinePort(builder, port(rightCtx, true), port(rightCtx, false), false);
+
+        if (postGraphComponents != null) {
+            postGraphComponents.postLine(builder);
+        }
+
         Line line = builder.build();
         containerStack.peek().addLine(line);
     }
@@ -287,6 +300,9 @@ public class GraphvizListener extends DotTempAttrListener {
         Id_Context id = ctx.id_();
         if (id != null) {
             child.id(id.getText());
+        }
+        if (postGraphComponents != null && child instanceof ClusterBuilder) {
+            postGraphComponents.postCluster((ClusterBuilder) child);
         }
         GraphContainer gc = child.build();
         if (gc.isCluster()) {

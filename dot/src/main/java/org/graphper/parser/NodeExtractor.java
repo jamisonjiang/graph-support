@@ -23,6 +23,7 @@ import java.util.Map;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Node;
+import org.graphper.api.Node.NodeBuilder;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Attr_stmtContext;
 import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
@@ -32,6 +33,12 @@ public class NodeExtractor extends DotTempAttrListener {
   private final Map<String, Node> nodeMap = new HashMap<>();
 
   private final Map<String, Map<String, String>> nodeStmtContextMap = new HashMap<>();
+
+  private final PostGraphComponents postGraphComponents;
+
+  public NodeExtractor(PostGraphComponents postGraphComponents) {
+    this.postGraphComponents = postGraphComponents;
+  }
 
   @Override
   public void enterNode_stmt(DOTParser.Node_stmtContext ctx) {
@@ -71,12 +78,20 @@ public class NodeExtractor extends DotTempAttrListener {
       builder.id(nodeId);
       Map<String, String> nodeAttrs = nodeStmtContextMap.get(k);
       if (nodeAttrs == null) {
+        postNode(builder);
         return builder.build();
       }
 
       nodeAttributes(builder, nodeAttrs);
+      postNode(builder);
       return builder.build();
     });
+  }
+
+  private void postNode(NodeBuilder builder) {
+    if (postGraphComponents != null) {
+      postGraphComponents.postNode(builder);
+    }
   }
 
   private void parseNodeAttrs(String id, Node_stmtContext ctx) {

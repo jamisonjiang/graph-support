@@ -14,8 +14,24 @@
  * limitations under the License.
  */
 
-package org.graphper;
+package org.graphper.parser;
 
-public interface ParamUnit {
+import org.graphper.api.Cluster.ClusterBuilder;
+import org.graphper.api.Graphviz.GraphvizBuilder;
+import org.graphper.api.Line.LineBuilder;
+import org.graphper.api.Node.NodeBuilder;
 
+public interface PostGraphComponents {
+
+  default void postNode(NodeBuilder nodeBuilder) {
+  }
+
+  default void postLine(LineBuilder lineBuilder) {
+  }
+
+  default void postCluster(ClusterBuilder clusterBuilder) {
+  }
+
+  default void postGraphviz(GraphvizBuilder graphvizBuilder) {
+  }
 }
