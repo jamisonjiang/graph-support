@@ -79,7 +79,6 @@ class ContainerCollapse {
     }
 
     if (digraph.vertexNum() == 0) {
-      dotAttachment.addEmptyGraphContainer(graphContainer);
       return null;
     }
 

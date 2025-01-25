@@ -19,20 +19,16 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
-import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.Port;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -40,6 +36,7 @@ import org.graphper.draw.Rectangle;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LayoutGraph;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
@@ -56,8 +53,6 @@ class DotAttachment extends LayoutAttach {
 
   private GeneratePort generatePort;
 
-  private Set<GraphContainer> emptyContainers;
-
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
   public DotAttachment(DotDigraph dotDigraph, DrawGraph drawGraph, Map<Node, DNode> nodeRecord) {
@@ -65,6 +60,11 @@ class DotAttachment extends LayoutAttach {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.dotDigraph = dotDigraph;
     this.nodeRecord = nodeRecord;
+  }
+
+  @Override
+  public LayoutGraph getLayoutGraph() {
+    return dotDigraph;
   }
 
   Iterable<DNode> nodes(GraphContainer graphContainer) {
@@ -145,28 +145,6 @@ class DotAttachment extends LayoutAttach {
     return generatePort;
   }
 
-  void addEmptyGraphContainer(GraphContainer graphContainer) {
-    if (graphContainer == null) {
-      return;
-    }
-
-    if (emptyContainers == null) {
-      emptyContainers = new HashSet<>();
-    }
-    emptyContainers.add(graphContainer);
-  }
-
-  boolean isNotEmptyGraphContainer(GraphContainer graphContainer) {
-    return !isEmptyGraphContainer(graphContainer);
-  }
-
-  boolean isEmptyGraphContainer(GraphContainer graphContainer) {
-    if (emptyContainers == null) {
-      return false;
-    }
-    return emptyContainers.contains(graphContainer);
-  }
-
   boolean notContains(GraphContainer father, GraphContainer container) {
     return notContains(drawGraph.getGraphviz(), father, container);
   }
@@ -211,29 +189,7 @@ class DotAttachment extends LayoutAttach {
   }
 
   Iterable<Cluster> clusters(GraphContainer container) {
-    List<Iterable<Cluster>> iterables = null;
-
-    for (Subgraph subgraph : container.subgraphs()) {
-      if (isEmptyGraphContainer(container) || !subgraph.isTransparent()) {
-        continue;
-      }
-
-      Iterable<Cluster> clusters = clusters(subgraph);
-      if (clusters == null) {
-        continue;
-      }
-      if (iterables == null) {
-        iterables = new ArrayList<>(2);
-      }
-      iterables.add(clusters);
-    }
-
-    if (iterables == null) {
-      return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, container.clusters());
-    }
-
-    iterables.add(container.clusters());
-    return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, iterables);
+    return dotDigraph.clusters(container);
   }
 
   static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {

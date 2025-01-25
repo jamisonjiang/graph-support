@@ -20,7 +20,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.draw.DrawGraph;
 
-public class LayoutAttach {
+public abstract class LayoutAttach {
   private boolean haveClusters;
 
   protected final DrawGraph drawGraph;
@@ -63,4 +63,7 @@ public class LayoutAttach {
   public Graphviz getGraphviz() {
     return drawGraph.getGraphviz();
   }
+
+  @SuppressWarnings("rawtypes")
+  public abstract LayoutGraph getLayoutGraph();
 }

@@ -21,8 +21,10 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -201,6 +203,9 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
     // The corresponding layout engine executes.
     layout(drawGraph, attachment);
+
+    // Clusters scramble nodes can cause some clusters are actually empty in rendering
+    removeEmptyCluster(drawGraph, attachment.getLayoutGraph());
 
     // Get all movement strategies in the layout engine and rendering engine, and perform element movement.
     moveGraph(drawGraph, renderEngine, attachment);
@@ -851,6 +856,25 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
   private boolean isRecordShape(NodeShape nodeShape) {
     return nodeShape == NodeShapeEnum.RECORD || nodeShape == NodeShapeEnum.M_RECORD;
+  }
+
+  private void removeEmptyCluster(DrawGraph drawGraph, LayoutGraph layoutGraph) {
+    if (layoutGraph == null) {
+      return;
+    }
+
+    Map<Cluster, ClusterDrawProp> clusterDrawPropMap = drawGraph.getClusterDrawPropMap();
+    if (clusterDrawPropMap == null || clusterDrawPropMap.isEmpty()) {
+      return;
+    }
+
+    Iterator<Entry<Cluster, ClusterDrawProp>> iterator = clusterDrawPropMap.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Entry<Cluster, ClusterDrawProp> cluster = iterator.next();
+      if (layoutGraph.isEmptyGraphContainer(cluster.getKey())) {
+        iterator.remove();
+      }
+    }
   }
 
   public static class LineClipProcessor extends LineClip {

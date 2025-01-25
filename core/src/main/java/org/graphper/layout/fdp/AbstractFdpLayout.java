@@ -16,8 +16,6 @@
 
 package org.graphper.layout.fdp;
 
-import static org.graphper.layout.LayoutGraph.clusters;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -112,7 +110,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     FdpGraph fdpGraph = new FdpGraph(drawGraph.getGraphviz().nodeNum(),
                                      drawGraph.getGraphviz(), nodeRecord);
 
-    return new FdpAttachment(fdpGraph, drawGraph, nodeRecord);
+    return new FdpAttachment(fdpGraph, drawGraph);
   }
 
   @Override
@@ -264,7 +262,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       }
     }
 
-    for (Cluster cluster : clusters(container)) {
+    for (Cluster cluster : attachment.clusters(container)) {
       AreaGraph subGraph = layout(attachment, cluster, clusterNode);
       FNode fNode = new FNode(null);
       fNode.setWidth(subGraph.width());
@@ -313,7 +311,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
 
     layout(attachment.getDrawGraph(), proxyGraph, container);
 
-    for (Cluster cluster : clusters(container)) {
+    for (Cluster cluster : attachment.clusters(container)) {
       ClusterNode proxyNode = clusterNode.get(cluster);
       double xoffset = proxyNode.xoffset();
       double yoffset = proxyNode.yoffset();
@@ -323,7 +321,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
         node.setY(node.getY() - yoffset);
       }
 
-      alignChildClusters(attachment.getDrawGraph(), cluster, clusterNode, xoffset, yoffset);
+      alignChildClusters(attachment, cluster, clusterNode, xoffset, yoffset);
     }
 
     return proxyGraph;
@@ -393,11 +391,11 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     applyMargin(graph, drawGraph, container);
   }
 
-  private void alignChildClusters(DrawGraph drawGraph, Cluster cluster,
+  private void alignChildClusters(FdpAttachment fdpAttachment, Cluster cluster,
                                   Map<Cluster, ClusterNode> clusterNode,
                                   double xoffset, double yoffset) {
     ClusterNode proxyNode = clusterNode.get(cluster);
-    ClusterDrawProp clusterDrawProp = drawGraph.getClusterDrawProp(cluster);
+    ClusterDrawProp clusterDrawProp = fdpAttachment.getDrawGraph().getClusterDrawProp(cluster);
     clusterDrawProp.init();
     clusterDrawProp.updateXAxisRange(proxyNode.areaGraph.getLeftBorder() - xoffset);
     clusterDrawProp.updateXAxisRange(proxyNode.areaGraph.getRightBorder() - xoffset);
@@ -409,8 +407,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     proxyNode.areaGraph.updateYAxisRange(clusterDrawProp.getUpBorder());
     proxyNode.areaGraph.updateYAxisRange(clusterDrawProp.getDownBorder());
 
-    for (Cluster child : clusters(cluster)) {
-      alignChildClusters(drawGraph, child, clusterNode, xoffset, yoffset);
+    for (Cluster child : fdpAttachment.clusters(cluster)) {
+      alignChildClusters(fdpAttachment, child, clusterNode, xoffset, yoffset);
     }
   }
 
@@ -800,7 +798,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       drawGraph.updateYAxisRange(nodeDrawProp.getDownBorder() + margin.getHeight());
     }
 
-    for (Cluster cluster : clusters(drawGraph.getGraphviz())) {
+    for (Cluster cluster : attachment.clusters(drawGraph.getGraphviz())) {
       refreshByClusters(cluster, drawGraph, margin);
     }
 

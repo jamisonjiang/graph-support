@@ -304,7 +304,12 @@ public class GraphvizListener extends DotTempAttrListener {
         if (postGraphComponents != null && child instanceof ClusterBuilder) {
             postGraphComponents.postCluster((ClusterBuilder) child);
         }
+
         GraphContainer gc = child.build();
+        if (gc.isEmpty()) {
+            return;
+        }
+
         if (gc.isCluster()) {
             parent.cluster((Cluster) gc);
         } else if (gc.isSubgraph()) {

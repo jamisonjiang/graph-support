@@ -69,7 +69,7 @@ public class NodeExtractor extends DotTempAttrListener {
   }
 
   public Node getNode(String nodeId) {
-    if (StringUtils.isEmpty(nodeId)) {
+    if (nodeId == null) {
       return null;
     }
 

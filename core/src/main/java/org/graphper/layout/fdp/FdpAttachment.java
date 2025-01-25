@@ -16,24 +16,23 @@
 
 package org.graphper.layout.fdp;
 
-import java.util.Map;
+import org.graphper.api.Cluster;
+import org.graphper.api.GraphContainer;
 import org.graphper.api.Node;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.LayoutAttach;
+import org.graphper.layout.LayoutGraph;
 import org.graphper.util.Asserts;
 
 public class FdpAttachment extends LayoutAttach {
 
   private final FdpGraph fdpGraph;
 
-  private final Map<Node, FNode> nodeRecord;
-
-  public FdpAttachment(FdpGraph fdpGraph, DrawGraph drawGraph, Map<Node, FNode> nodeRecord) {
+  public FdpAttachment(FdpGraph fdpGraph, DrawGraph drawGraph) {
     super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");
     Asserts.nullArgument(fdpGraph, "fdpGraph");
     this.fdpGraph = fdpGraph;
-    this.nodeRecord = nodeRecord;
   }
 
   FNode get(Node node) {
@@ -46,5 +45,14 @@ public class FdpAttachment extends LayoutAttach {
 
   public DrawGraph getDrawGraph() {
     return drawGraph;
+  }
+
+  @Override
+  public LayoutGraph getLayoutGraph() {
+    return fdpGraph;
+  }
+
+  Iterable<Cluster> clusters(GraphContainer container) {
+    return fdpGraph.clusters(container);
   }
 }

@@ -259,8 +259,16 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return graphviz;
   }
 
-  public static <N extends ANode, E extends ALine<N, E>> Iterable<Cluster> clusters(
-      GraphContainer container) {
+  public boolean isNotEmptyGraphContainer(GraphContainer graphContainer) {
+    return !isEmptyGraphContainer(graphContainer);
+  }
+
+  public boolean isEmptyGraphContainer(GraphContainer graphContainer) {
+    GraphGroup graphGroup = containerMap().get(graphContainer);
+    return graphGroup == null || graphGroup.isEmpty();
+  }
+
+  public Iterable<Cluster> clusters(GraphContainer container) {
     List<Iterable<Cluster>> iterables = null;
 
     for (Subgraph subgraph : container.subgraphs()) {
@@ -279,11 +287,11 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     }
 
     if (iterables == null) {
-      return container.clusters();
+      return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, container.clusters());
     }
 
     iterables.add(container.clusters());
-    return new UnaryConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, iterables);
   }
 
   public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(
@@ -408,15 +416,32 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
     private final GraphContainer container;
 
+    private Boolean isEmpty;
+
     private Set<Node> repeatNodes;
 
     private List<Line> patchLines;
-    private UnaryConcatIterable<Node> containerNodes;
+
+    private final UnaryConcatIterable<Node> containerNodes;
 
     private GraphGroup(GraphContainer container) {
       this.container = container;
       this.containerNodes = new UnaryConcatIterable<>(
           node -> repeatNodes == null || !repeatNodes.contains(node), container.nodes());
+    }
+
+    private boolean isEmpty() {
+      if (isEmpty != null) {
+        return isEmpty;
+      }
+
+      isEmpty = true;
+      for (N n : nodes()) {
+        isEmpty = false;
+        break;
+      }
+
+      return isEmpty;
     }
 
     private boolean contains(E line) {
