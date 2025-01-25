@@ -60,6 +60,30 @@ public class Html {
     return new Td();
   }
 
+  public static Bold bold() {
+    return new Bold();
+  }
+
+  public static Italic italic() {
+    return new Italic();
+  }
+
+  public static Underline underline() {
+    return new Underline();
+  }
+
+  public static Subscript subscript() {
+    return new Subscript();
+  }
+
+  public static Superscript superscript() {
+    return new Superscript();
+  }
+
+  public static Center center() {
+    return new Center();
+  }
+
   public abstract static class Attrs<T> {
 
     private String id;
@@ -456,6 +480,8 @@ public class Html {
 
     private String text;
 
+    private TextTag textTag;
+
     private Color fontColor;
 
     private String fontName;
@@ -680,6 +706,134 @@ public class Html {
         return table.getFixedSize();
       }
       return false;
+    }
+  }
+
+  public abstract static class TextTag<T extends TextTag<T>> {
+
+    private List<TextTag> tags;
+
+    public abstract T self();
+
+    public T label(String label) {
+      Asserts.nullArgument(label);
+      addTags(new Label(label));
+      return self();
+    }
+
+    public T bold(Bold bold) {
+      addTags(bold);
+      return self();
+    }
+
+    public T italic(Italic italic) {
+      addTags(italic);
+      return self();
+    }
+
+    public T underline(Underline underline) {
+      addTags(underline);
+      return self();
+    }
+
+    public T subscript(Subscript subscript) {
+      addTags(subscript);
+      return self();
+    }
+
+    public T superscript(Superscript superscript) {
+      addTags(superscript);
+      return self();
+    }
+
+    public T center(Center center) {
+      addTags(center);
+      return self();
+    }
+
+    private void addTags(TextTag tag) {
+      Asserts.nullArgument(tag);
+      if (tags == null) {
+        tags = new ArrayList<>();
+      }
+      tags.add(tag);
+    }
+  }
+
+  public static class Bold extends TextTag<Bold> implements Serializable {
+
+    private static final long serialVersionUID = -1351761715429824030L;
+
+    @Override
+    public Bold self() {
+      return this;
+    }
+  }
+
+  public static class Italic extends TextTag<Italic> implements Serializable {
+
+    private static final long serialVersionUID = 2292514422221001045L;
+
+    @Override
+    public Italic self() {
+      return this;
+    }
+  }
+
+  public static class Underline extends TextTag<Underline> implements Serializable {
+
+    private static final long serialVersionUID = -1931827469051176590L;
+
+    @Override
+    public Underline self() {
+      return this;
+    }
+  }
+
+  public static class Subscript extends TextTag<Subscript> implements Serializable {
+
+    private static final long serialVersionUID = -2997787838141004169L;
+
+    @Override
+    public Subscript self() {
+      return this;
+    }
+  }
+
+  public static class Superscript extends TextTag<Superscript> implements Serializable {
+
+    private static final long serialVersionUID = -8456305348681500081L;
+
+    @Override
+    public Superscript self() {
+      return this;
+    }
+  }
+
+  public static class Center extends TextTag<Center> implements Serializable {
+
+    private static final long serialVersionUID = 8576970842159445835L;
+
+    @Override
+    public Center self() {
+      return this;
+    }
+  }
+
+  public static class Label extends TextTag<Label> implements Serializable {
+
+    private static final long serialVersionUID = 4191270534583265622L;
+
+    private final String label;
+
+    private Label(String label) {
+      Asserts.nullArgument(label);
+      this.label = label;
+    }
+
+    @Override
+    public Label self() {
+      return this;
     }
   }
 }

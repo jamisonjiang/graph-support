@@ -45,11 +45,72 @@ tr
     ;
 
 td
-    : TAG_OPEN TD htmlAttribute* TAG_CLOSE htmlContent TAG_OPEN TAG_SLASH TD TAG_CLOSE
+    : TAG_OPEN TD htmlAttribute* TAG_CLOSE tdContent TAG_OPEN TAG_SLASH TD TAG_CLOSE
     ;
 
-htmlContent
-    : htmlChardata? ((table | htmlComment) htmlChardata?)*
+tdContent
+    : htmlChardata? ((table | htmlElement | htmlComment) htmlChardata?)*
+    ;
+
+fontContent
+    : htmlChardata? (htmlElement htmlChardata?)*
+    ;
+
+htmlElement
+    : fontTag
+    | bTag
+    | iTag
+    | uTag
+    | subTag
+    | supTag
+    | brTag
+    | hrTag
+    | imgTag
+    | centerTag
+    ;
+
+fontTag
+    : TAG_OPEN FONT htmlAttribute* TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH FONT TAG_CLOSE
+    ;
+
+bTag
+    : TAG_OPEN B TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH B TAG_CLOSE
+    ;
+
+iTag
+    : TAG_OPEN I TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH I TAG_CLOSE
+    ;
+
+uTag
+    : TAG_OPEN U TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH U TAG_CLOSE
+    ;
+
+subTag
+    : TAG_OPEN SUB TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH SUB TAG_CLOSE
+    ;
+
+supTag
+    : TAG_OPEN SUP TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH SUP TAG_CLOSE
+    ;
+
+brTag
+    : TAG_OPEN BR TAG_SLASH_CLOSE
+    ;
+
+hrTag
+    : TAG_OPEN HR TAG_SLASH_CLOSE
+    ;
+
+imgTag
+    : TAG_OPEN IMG htmlAttribute* TAG_SLASH_CLOSE
+    ;
+
+centerTag
+    : TAG_OPEN CENTER TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH CENTER TAG_CLOSE
+    ;
+
+tableTag
+    : TAG_OPEN TABLE htmlAttribute* TAG_CLOSE (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
     ;
 
 htmlAttribute

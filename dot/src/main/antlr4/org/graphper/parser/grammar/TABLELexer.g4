@@ -32,6 +32,7 @@
 
 lexer grammar TABLELexer;
 
+HTML_COMMENT: '<!--' .*? '-->';
 HTML_CONDITIONAL_COMMENT: '<![' .*? ']>';
 
 WS: (' ' | '\t' | '\r'? '\n')+;
@@ -40,15 +41,25 @@ TAG_OPEN: '<' -> pushMode(TAG);
 
 HTML_TEXT: ~'<'+;
 
-// tag declarations
+// Tag declarations
 
 mode TAG;
 
 TABLE: [Tt][Aa][Bb][Ll][Ee];
 TR: [Tt][Rr];
 TD: [Tt][Dd];
+FONT: [Ff][Oo][Nn][Tt];
+B: [Bb];
+I: [Ii];
+U: [Uu];
+SUB: [Ss][Uu][Bb];
+SUP: [Ss][Uu][Pp];
+BR: [Bb][Rr];
+HR: [Hh][Rr];
+IMG: [Ii][Mm][Gg];
+CENTER: [Cc][Ee][Nn][Tt][Ee][Rr];
 
-COMMA : ',';
+COMMA: ',';
 
 SEMI_COLON: ';';
 
@@ -57,8 +68,6 @@ TAG_CLOSE: '>' -> popMode;
 TAG_SLASH_CLOSE: '/>' -> popMode;
 
 TAG_SLASH: '/';
-
-// lexing mode for attribute values
 
 TAG_EQUALS: '=' -> pushMode(ATTVALUE);
 
@@ -90,11 +99,10 @@ fragment TAG_NameStartChar:
     | '\uFDF0' ..'\uFFFD'
 ;
 
-// attribute values
+// Attribute values
 
 mode ATTVALUE;
 
-// an attribute value may have spaces b/t the '=' and the value
 ATTVALUE_VALUE: ' '* ATTRIBUTE -> popMode;
 
 ATTRIBUTE: DOUBLE_QUOTE_STRING | SINGLE_QUOTE_STRING | ATTCHARS | HEXCHARS | DECCHARS;

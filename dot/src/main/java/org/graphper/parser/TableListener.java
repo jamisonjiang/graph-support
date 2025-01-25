@@ -28,9 +28,10 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
+import org.graphper.parser.grammar.TABLEParser.FontContentContext;
 import org.graphper.parser.grammar.TABLEParser.HtmlAttributeContext;
-import org.graphper.parser.grammar.TABLEParser.HtmlContentContext;
 import org.graphper.parser.grammar.TABLEParser.TableContext;
+import org.graphper.parser.grammar.TABLEParser.TdContentContext;
 import org.graphper.parser.grammar.TABLEParser.TdContext;
 import org.graphper.parser.grammar.TABLEParser.TrContext;
 import org.graphper.parser.grammar.TABLEParserBaseListener;
@@ -89,10 +90,16 @@ public class TableListener extends TABLEParserBaseListener {
     Td td = Html.td();
     tds.add(td);
 
-    HtmlContentContext content = ctx.htmlContent();
+    TdContentContext content = ctx.tdContent();
     if (content != null && CollectionUtils.isEmpty(content.table())) {
       td.text(content.getText());
+      return;
     }
+  }
+
+  @Override
+  public void enterFontContent(FontContentContext ctx) {
+
   }
 
   @Override
