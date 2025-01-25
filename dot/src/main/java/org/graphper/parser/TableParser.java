@@ -47,6 +47,10 @@ public class TableParser {
     htmlStr = htmlStr.substring(0, htmlStr.length() - 1);
     htmlStr = htmlStr.trim();
 
+    if (!htmlStr.startsWith("<") || !htmlStr.endsWith(">")) {
+      return null;
+    }
+
     TABLELexer lexer = new TABLELexer(CharStreams.fromString(htmlStr));
     TABLEParser p = new TABLEParser(new CommonTokenStream(lexer));
 

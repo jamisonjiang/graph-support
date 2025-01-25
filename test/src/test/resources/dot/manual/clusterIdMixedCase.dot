@@ -1,0 +1,10 @@
+digraph G {
+
+  subgraph CLUSTeR_1 {
+     a
+  }
+
+  subgraph CLUSTeR1 {
+     b
+  }
+}

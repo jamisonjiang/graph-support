@@ -1,0 +1,55 @@
+digraph G {
+    node [shape=plaintext];
+
+    // Using <FONT> for styling
+    n1 [label=<
+        <FONT POINT-SIZE="16" COLOR="blue" FACE="Arial">Hello, World!</FONT>
+    >];
+
+    // Using <BR/> for line breaks
+    n2 [label=<
+        Line 1<BR/>Line 2<BR/>Line 3
+    >];
+
+    // Using <B>, <I>, <U> for bold, italic, underline
+    n3 [label=<
+        <B>Bold</B> <I>Italic</I> <U>Underline</U>
+    >];
+
+    // Using <SUB> and <SUP> for subscript and superscript
+    n4 [label=<
+        H<SUB>2</SUB>O + CO<SUB>2</SUB> = O<SUB>2</SUB>
+    >];
+
+    // Using <HR/> for horizontal rules
+    n5 [label=<
+        First Line<HR/>Second Line
+    >];
+
+    // Using <IMG> for inline images
+    n6 [label=<
+        <IMG SRC="https://via.placeholder.com/50" SCALE="TRUE"/>
+    >];
+
+    // Using <FONT> and <CENTER> together
+    n7 [label=<
+        <CENTER>
+            <FONT COLOR="green" POINT-SIZE="20">Centered Text</FONT>
+        </CENTER>
+    >];
+
+    // Using <U> inside <CENTER>
+    n8 [label=<
+        <CENTER>
+            <U>Underlined Centered</U>
+        </CENTER>
+    >];
+
+    n1 -> n2;
+    n2 -> n3;
+    n3 -> n4;
+    n4 -> n5;
+    n5 -> n6;
+    n6 -> n7;
+    n7 -> n8;
+}

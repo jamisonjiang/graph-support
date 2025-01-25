@@ -41,6 +41,10 @@ options { tokenVocab=DOTLexer; }
     boolean directed = false;
 }
 
+graphs
+    : graph+ EOF
+    ;
+
 /*
  * Entry point for the grammar.
  */
@@ -49,7 +53,7 @@ graph
       (GRAPH { directed = false; }
        | DIGRAPH { directed = true; }
       )
-      id_? LB stmt_list RB EOF
+      id_? LB stmt_list RB
     ;
 
 /*

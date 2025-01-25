@@ -2,7 +2,6 @@ digraph "Robot_Localization Components" {
 rankdir=LR;
 ratio=compress;
 splines=ortho;
-size="8.27,11.69";
 subgraph cluster_Robot_Localization {
 labelloc=t;
 fontname="Times-bold";

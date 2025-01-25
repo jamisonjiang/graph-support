@@ -800,6 +800,9 @@ public class ParserUtils {
             if (label.startsWith("\"") && label.endsWith("\"")) {
                 label = label.substring(1, label.length() - 1);
             }
+            if (label.startsWith("<") && label.endsWith(">")) {
+                label = label.substring(1, label.length() - 1);
+            }
             labelConsumer.accept(label);
         }
     }

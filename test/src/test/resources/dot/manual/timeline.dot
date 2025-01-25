@@ -1,0 +1,112 @@
+digraph timeline {
+    bgcolor="transparent";
+    size="7,8";
+
+    edge [style=invis];
+    node [fontsize=24, shape = plaintext];
+
+    1961 -> 1964 -> 1965 -> 1968 -> 1969 -> 1970 ->
+    1971 -> 1983 -> 1984 -> 1990 -> 1993 ->
+    1999 -> 2004 -> 2005 -> 2006 ->
+    2007 -> 2009 -> 2010 -> 2011 -> 2014 ->
+    2016 -> 2018 -> 2019 -> 2020 -> 2022;
+
+    node [fontsize=20, shape = box];
+    { rank=same;  1961 CYK; }
+    { rank=same;  1964 "Brzozowski Derivative"; }
+    { rank=same;  1965 LR; }
+    { rank=same;  1968 Earley "LL(k)"; }
+    { rank=same;  1969 LALR; }
+    { rank=same;  1970 TDPL; }
+    { rank=same;  1971 SLR; }
+    { rank=same;  1983 GLC; }
+    { rank=same;  1984 GLR; }
+    { rank=same;  1990 "Efficient LL(k)" "LAR(m)"; }
+    { rank=same;  1993 "GLR*"; }
+    { rank=same;  1999 SGLR; }
+    { rank=same;  2004 PEG; }
+    { rank=same;  2005 RIGLR; }
+    { rank=same;  2006 RNGLR; }
+    { rank=same;  2007 BRNGLR; }
+    { rank=same;  2009 GLL "Regular-expression derivatives"; }
+    { rank=same;  2010 IGLR Yakker "Tratt's PEG"; }
+    { rank=same;  2011 "LL(*)" "Parsing with Derivatives"; }
+    { rank=same;  2014 "ALL(*)"; }
+    { rank=same;  2016 LLLR; }
+    { rank=same;  2018 MSGLR; }
+    { rank=same;  2019 SEVM "Relational parsing" MOG}
+    { rank=same;  2020 ISGLR Pika; "Parsing with Zippers"; }
+    { rank=same;  2022 PEGLL; }
+
+    edge[ style=dashed ];
+
+    CYK -> Earley [style=dotted arrowhead=none];
+    LR -> Earley [style=dotted arrowhead=none];
+    Earley -> GLR [style=dotted arrowhead=none];
+
+    Earley -> Yakker;
+    Earley -> SEVM;
+
+    "LL(k)" -> "Efficient LL(k)";
+    "Efficient LL(k)" -> "LL(*)" -> "ALL(*)" [style=solid];
+    "LL(k)" -> GLL;
+
+    LR -> LALR;
+    LALR -> SLR [style=solid];
+    LALR -> "LAR(m)";
+    LR -> GLR;
+    GLR -> SGLR -> MSGLR;
+    GLR -> "GLR*" [style=solid];
+    GLR -> IGLR -> ISGLR;
+    GLR -> RIGLR;
+    RIGLR -> RNGLR -> BRNGLR [style=solid];
+    SGLR -> ISGLR;
+
+    TDPL -> PEG -> Pika [style=dashed];
+    PEG -> "Tratt's PEG" [style=dashed];
+
+    PEG -> PEGLL [style=dashed];
+    GLL -> PEGLL [style=dashed];
+
+    "LL(k)" -> LLLR;
+    LR -> LLLR;
+
+    "LAR(m)" -> "LL(*)" [style=dotted arrowhead=none];
+    GLR -> GLL [style=dotted arrowhead=none];
+
+    "Brzozowski Derivative" -> "Regular-expression derivatives" -> "Parsing with Derivatives" -> "Parsing with Zippers";
+    "Brzozowski Derivative" -> "Relational parsing"
+
+    PEG -> MOG [style=dotted arrowhead=none];
+
+    CYK[URL="/cyk/"];
+    Earley[URL="/earley/"];
+    LR[URL="/lr(k)/"];
+    "Brzozowski Derivative"[URL="/brzozowski-derivative/"];
+    "LL(k)"[URL="/ll(k)/"];
+    "LALR"[URL="/lalr/"];
+    "SLR"[URL="/slr/"];
+    "GLR"[URL="/glr/"];
+    "LAR(m)"[URL="/lar(m)/"];
+    "Efficient LL(k)"[URL="/efficient-ll(k)/"];
+    "LL(*)"[URL="/ll(*)/"];
+    "ALL(*)"[URL="/all(*)/"];
+    "GLL"[URL="/gll/"];
+    "GLR*"[URL="/glr*/"];
+    "SGLR"[URL="/sglr/"];
+    "IGLR"[URL="/iglr/"];
+    "ISGLR"[URL="/isglr/"];
+    "RIGLR"[URL="/riglr/"];
+    "RNGLR"[URL="/rnglr/"];
+    "BRNGLR"[URL="/brnglr/"];
+    MSGLR[URL="/msglr/"];
+    LLLR[URL="/lllr/"];
+    PEG[URL="/peg/"];
+    "Parsing with Derivatives"[URL="/pwd/"];
+    "Parsing with Zippers"[URL="/pwz/"];
+    PEGLL[URL="/pegll/"];
+    TDPL[URL="/tdpl/"];
+    "Relational parsing"[URL="/relational/"];
+    GLC[URL="/glc/"];
+    MOG[URL="/mog/"];
+}

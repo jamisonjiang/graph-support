@@ -26,6 +26,7 @@ import static org.graphper.parser.ParserUtils.subgraphAttributes;
 
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +42,8 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Attr_stmtContext;
+import org.graphper.parser.grammar.DOTParser.GraphContext;
+import org.graphper.parser.grammar.DOTParser.GraphsContext;
 import org.graphper.parser.grammar.DOTParser.Id_Context;
 import org.graphper.parser.grammar.DOTParser.Node_idContext;
 import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
@@ -68,6 +71,17 @@ public class GraphvizListener extends DotTempAttrListener {
     @Override
     protected boolean isFocusStmtType(Attr_stmtContext ctx) {
         return ctx.EDGE() != null;
+    }
+
+    @Override
+    public void enterGraphs(GraphsContext ctx) {
+        Iterator<GraphContext> iterator = ctx.graph().iterator();
+        iterator.next();
+
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
     }
 
     @Override

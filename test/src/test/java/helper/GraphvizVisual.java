@@ -60,7 +60,6 @@ public class GraphvizVisual {
     log.info("{} cost the time of layout is {}ms", graphviz.hashCode(), end - start);
 
     if (view) {
-      System.out.println(new String(svg.bytes()));
       new GraphView(img);
       System.in.read();
     } else {
@@ -118,7 +117,6 @@ public class GraphvizVisual {
     try (FileOutputStream fos = new FileOutputStream(file)) {
       if (type == 1) {
         graphResource.save(DocumentUtils.getTestPngPath(), f);
-        System.out.println(new String(graphResource.bytes()));
       } else if (type == 2) {
         fos.write(graphResource.bytes());
       } else {

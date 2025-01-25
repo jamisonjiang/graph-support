@@ -16,6 +16,18 @@ public class DOTParserBaseListener implements DOTParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterGraphs(DOTParser.GraphsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGraphs(DOTParser.GraphsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterGraph(DOTParser.GraphContext ctx) { }
 	/**
 	 * {@inheritDoc}
