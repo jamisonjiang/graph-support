@@ -39,6 +39,7 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.ExecuteException;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -224,7 +225,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   }
 
   @Override
-  protected void layout(DrawGraph drawGraph, LayoutAttach attach) {
+  protected void layout(DrawGraph drawGraph, LayoutAttach attach) throws ExecuteException {
     Asserts.nullArgument(drawGraph, "DrawGraph");
 
     DotAttachment dotAttachment = (DotAttachment) attach;
@@ -235,6 +236,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     // Collapse subgraphs and clusters, then assign the rank for per node
     ContainerCollapse containerCollapse = new ContainerCollapse(dotAttachment, graphviz);
     RankContent rankContent = containerCollapse.getRankContent();
+
+    if (rankContent == null) {
+      throw new ExecuteException("Graph is empty");
+    }
 
     if (dotAttachment.haveClusters() || dotAttachment.haveSubgraphs()) {
       /*

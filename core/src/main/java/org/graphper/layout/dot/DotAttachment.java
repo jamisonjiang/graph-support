@@ -19,9 +19,11 @@ package org.graphper.layout.dot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -53,6 +55,8 @@ class DotAttachment extends LayoutAttach {
   private List<DLine> labelLines;
 
   private GeneratePort generatePort;
+
+  private Set<GraphContainer> emptyContainers;
 
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
@@ -141,6 +145,28 @@ class DotAttachment extends LayoutAttach {
     return generatePort;
   }
 
+  void addEmptyGraphContainer(GraphContainer graphContainer) {
+    if (graphContainer == null) {
+      return;
+    }
+
+    if (emptyContainers == null) {
+      emptyContainers = new HashSet<>();
+    }
+    emptyContainers.add(graphContainer);
+  }
+
+  boolean isNotEmptyGraphContainer(GraphContainer graphContainer) {
+    return !isEmptyGraphContainer(graphContainer);
+  }
+
+  boolean isEmptyGraphContainer(GraphContainer graphContainer) {
+    if (emptyContainers == null) {
+      return false;
+    }
+    return emptyContainers.contains(graphContainer);
+  }
+
   boolean notContains(GraphContainer father, GraphContainer container) {
     return notContains(drawGraph.getGraphviz(), father, container);
   }
@@ -184,41 +210,11 @@ class DotAttachment extends LayoutAttach {
     }
   }
 
-  private void setCell(Node node, Node tail, Node head, LineAttrs lineAttrs,
-                       GeneratePortLine generatePortLine, boolean isFrom) {
-    Cell cell = null;
-    NodeDrawProp nodeDrawProp;
-    if (Objects.equals(tail, node)) {
-      nodeDrawProp = drawGraph.getNodeDrawProp(tail);
-      RootCell root = nodeDrawProp.getCell();
-      if (root != null) {
-        cell = root.getCellById(lineAttrs.getTailCell());
-      }
-    } else {
-      nodeDrawProp = drawGraph.getNodeDrawProp(head);
-      RootCell root = nodeDrawProp.getCell();
-      if (root != null) {
-        cell = root.getCellById(lineAttrs.getHeadCell());
-      }
-    }
-
-    if (cell == null) {
-      return;
-    }
-
-    generatePort().addCellOpenPorts(nodeDrawProp, cell);
-    if (isFrom) {
-      generatePortLine.fromCell = cell;
-    } else {
-      generatePortLine.toCell = cell;
-    }
-  }
-
-  static Iterable<Cluster> clusters(GraphContainer container) {
+  Iterable<Cluster> clusters(GraphContainer container) {
     List<Iterable<Cluster>> iterables = null;
 
     for (Subgraph subgraph : container.subgraphs()) {
-      if (!subgraph.isTransparent()) {
+      if (isEmptyGraphContainer(container) || !subgraph.isTransparent()) {
         continue;
       }
 
@@ -233,11 +229,11 @@ class DotAttachment extends LayoutAttach {
     }
 
     if (iterables == null) {
-      return container.clusters();
+      return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, container.clusters());
     }
 
     iterables.add(container.clusters());
-    return new UnaryConcatIterable<>(iterables);
+    return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, iterables);
   }
 
   static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {
@@ -366,6 +362,36 @@ class DotAttachment extends LayoutAttach {
       return lineAttrs.getHeadCell() != null;
     }
     return false;
+  }
+
+  private void setCell(Node node, Node tail, Node head, LineAttrs lineAttrs,
+                       GeneratePortLine generatePortLine, boolean isFrom) {
+    Cell cell = null;
+    NodeDrawProp nodeDrawProp;
+    if (Objects.equals(tail, node)) {
+      nodeDrawProp = drawGraph.getNodeDrawProp(tail);
+      RootCell root = nodeDrawProp.getCell();
+      if (root != null) {
+        cell = root.getCellById(lineAttrs.getTailCell());
+      }
+    } else {
+      nodeDrawProp = drawGraph.getNodeDrawProp(head);
+      RootCell root = nodeDrawProp.getCell();
+      if (root != null) {
+        cell = root.getCellById(lineAttrs.getHeadCell());
+      }
+    }
+
+    if (cell == null) {
+      return;
+    }
+
+    generatePort().addCellOpenPorts(nodeDrawProp, cell);
+    if (isFrom) {
+      generatePortLine.fromCell = cell;
+    } else {
+      generatePortLine.toCell = cell;
+    }
   }
 
   // ----------------------------- private method -----------------------------

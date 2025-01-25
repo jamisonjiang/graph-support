@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.graphper.api.Graphviz;
@@ -27,7 +28,7 @@ import org.graphper.layout.dot.SubgraphMerge.MergeNode;
 public class SubgraphMergeTest {
 
   @Test
-  public void testNewSubgraphMerge() {
+  public void testNewSubgraphMerge() throws ExecuteException {
     Node a = Node.builder().label("a").build();
     Node b = Node.builder().label("b").build();
     Node c = Node.builder().label("c").build();
@@ -86,7 +87,7 @@ public class SubgraphMergeTest {
   }
 
   @Test
-  public void testSubgrahOppositRankException() {
+  public void testSubgrahOppositRankException() throws ExecuteException {
     Node a = Node.builder().label("a").build();
     Node b = Node.builder().label("b").build();
     Node c = Node.builder().label("c").build();

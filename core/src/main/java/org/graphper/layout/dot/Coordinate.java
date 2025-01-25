@@ -276,7 +276,7 @@ class Coordinate extends AbstractCoordinate {
                                                 Map<GraphContainer, ContainerBorder> clusterBorderMap) {
     DotDigraph dotDigraph = clusterDotDigraph.getDotDigraph(container);
 
-    for (Cluster cluster : DotAttachment.clusters(container)) {
+    for (Cluster cluster : dotAttachment.clusters(container)) {
       ContainerBorder clusterHorRange = clusterNetworkSimplex(cluster, clusterDotDigraph,
                                                               clusterBorderMap);
 
@@ -336,7 +336,7 @@ class Coordinate extends AbstractCoordinate {
 
   private void calcClusterOffset(int offset, GraphContainer container,
                                  Map<GraphContainer, ContainerBorder> clusterBorderMap) {
-    for (Cluster c : DotAttachment.clusters(container)) {
+    for (Cluster c : dotAttachment.clusters(container)) {
       DNode childNode = clusterNode.getNode(c);
       ContainerBorder childWidth = clusterBorderMap.get(c);
       int left = childNode.getAuxRank() - (int) childNode.leftWidth() + offset;

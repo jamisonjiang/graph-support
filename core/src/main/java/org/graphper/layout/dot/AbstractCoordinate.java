@@ -321,7 +321,7 @@ abstract class AbstractCoordinate {
     ContainerBorder containerBorder = containerRankRange.computeIfAbsent(
         graphContainer, c -> new ContainerBorder());
 
-    for (Cluster cluster : DotAttachment.clusters(graphContainer)) {
+    for (Cluster cluster : dotAttachment.clusters(graphContainer)) {
       ContainerBorder childClusterBorder = clusterVerticalMargin(cluster);
 
       if (containerBorder.min == childClusterBorder.min) {
@@ -493,7 +493,7 @@ abstract class AbstractCoordinate {
     double maxTopIncrHeight = 0;
     double maxBottomIncrHeight = 0;
 
-    for (Cluster cluster : DotAttachment.clusters(container)) {
+    for (Cluster cluster : dotAttachment.clusters(container)) {
       ContainerBorder clusterBorder = getContainerBorder(cluster);
       Asserts.nullArgument(clusterBorder);
 

@@ -44,6 +44,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.ExecuteException;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
@@ -160,7 +161,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   }
 
   @Override
-  public DrawGraph layout(Graphviz graphviz, RenderEngine renderEngine) {
+  public DrawGraph layout(Graphviz graphviz, RenderEngine renderEngine) throws ExecuteException {
     Asserts.nullArgument(graphviz, "Graphviz");
     Asserts.illegalArgument(graphviz.nodeNum() == 0, "Graphviz container is empty!");
 
@@ -288,7 +289,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
    * @param drawGraph draw graph object
    * @param attach    layout attach
    */
-  protected abstract void layout(DrawGraph drawGraph, LayoutAttach attach);
+  protected abstract void layout(DrawGraph drawGraph, LayoutAttach attach) throws ExecuteException;
 
   /**
    * The move strategy for the layout engine.

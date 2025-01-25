@@ -17,6 +17,7 @@
 package org.graphper.layout.dot;
 
 import java.util.Arrays;
+import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.graphper.api.Cluster;
@@ -35,7 +36,7 @@ import org.graphper.draw.NodeDrawProp;
 public class DotLayoutEngineTest {
 
   @Test
-  public void testPropInherit() {
+  public void testPropInherit() throws ExecuteException {
     Node a = Node.builder().label("a").build();
     Node b = Node.builder().label("b").build();
     Node c = Node.builder().label("c").build();
@@ -131,7 +132,7 @@ public class DotLayoutEngineTest {
   }
 
   @Test
-  public void testParentContainer() {
+  public void testParentContainer() throws ExecuteException {
     Node a = Node.builder().build();
     Node b = Node.builder().build();
     Node c = Node.builder().build();

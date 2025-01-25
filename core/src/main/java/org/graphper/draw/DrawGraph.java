@@ -143,6 +143,13 @@ public class DrawGraph extends Rectangle implements Serializable {
         : Collections.emptyList();
   }
 
+  public void removeClusterDrawProp(Cluster cluster) {
+    if (clusterDrawPropMap == null) {
+      return;
+    }
+    clusterDrawPropMap.remove(cluster);
+  }
+
   public NodeDrawProp getNodeDrawProp(Node node) {
     return nodeDrawPropMap.get(node);
   }

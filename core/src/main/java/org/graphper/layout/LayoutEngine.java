@@ -18,6 +18,7 @@ package org.graphper.layout;
 
 import org.graphper.api.Graphviz;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.ExecuteException;
 import org.graphper.draw.RenderEngine;
 
 /**
@@ -35,7 +36,7 @@ public interface LayoutEngine {
    * @param graphviz graphviz
    * @return draw graph object
    */
-  default DrawGraph layout(Graphviz graphviz) {
+  default DrawGraph layout(Graphviz graphviz) throws ExecuteException {
     return layout(graphviz, null);
   }
 
@@ -47,5 +48,5 @@ public interface LayoutEngine {
    * @param renderEngine render engine
    * @return draw graph object
    */
-  DrawGraph layout(Graphviz graphviz, RenderEngine renderEngine);
+  DrawGraph layout(Graphviz graphviz, RenderEngine renderEngine) throws ExecuteException;
 }

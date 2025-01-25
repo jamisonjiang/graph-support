@@ -78,6 +78,11 @@ class ContainerCollapse {
       subRankInfo = collapseSet(digraph);
     }
 
+    if (digraph.vertexNum() == 0) {
+      dotAttachment.addEmptyGraphContainer(graphContainer);
+      return null;
+    }
+
     // Make digraph acyclic
     new Acyclic(digraph, dotAttachment.getDrawGraph());
 
@@ -283,6 +288,10 @@ class ContainerCollapse {
       // Get cluster's min rank node
       ContainerCollapse collapse = new ContainerCollapse(dotAttachment, cluster);
       RankContent rc = collapse.getRankContent();
+      if (rc == null) {
+        continue;
+      }
+
       // Record the delegate node of cluster
       clusterMerge.put(cluster, findMinRank(rc));
     }

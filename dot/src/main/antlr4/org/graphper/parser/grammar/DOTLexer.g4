@@ -57,6 +57,14 @@ STRING
     : '"' ( ESC_SEQ | ~["\\] )* '"'
         {
             String content = getText().substring(1, getText().length() - 1);
+
+            // Process escape sequences, removing \ except for \n, \r, \t
+            content = content.replaceAll("\\\\(?![nrt])", ""); // Remove \ not followed by n, r, t
+
+            // Replace recognized escape sequences with actual characters
+            content = content.replace("\\n", "\n")
+                             .replace("\\r", "\r")
+                             .replace("\\t", "\t");
             content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
             setText(content);
         }
@@ -66,7 +74,8 @@ STRING
  * Fragment for escape sequences within strings.
  */
 fragment ESC_SEQ
-    : '\\' [nrt"\\bf.\n]
+//    : '\\' [nrt"\\bf.\n]
+    : '\\' .
     ;
 
 /** "HTML strings, angle brackets must occur in matched pairs, and

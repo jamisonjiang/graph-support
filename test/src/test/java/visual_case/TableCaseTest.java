@@ -746,7 +746,7 @@ public class TableCaseTest extends GraphvizVisual {
   }
 
   @Test
-  public void testTableProp() {
+  public void testTableProp() throws ExecuteException {
     Td td = Html.td().id("td_prop").text("x").align(Labeljust.RIGHT).valign(Labelloc.BOTTOM)
         .cellPadding(60).style(NodeStyle.DASHED).color(Color.GOLD).bgColor(Color.PINK)
         .border(5).fixedSize(false).height(10).width(150).href("https://graphviz.org/")

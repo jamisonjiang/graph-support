@@ -256,7 +256,7 @@ class MinCross {
     }
     mincross(0, 2);
 
-    for (Cluster cluster : DotAttachment.clusters(dotAttachment.getGraphviz())) {
+    for (Cluster cluster : dotAttachment.clusters(dotAttachment.getGraphviz())) {
       mincrossCluster(cluster);
     }
   }
@@ -274,7 +274,7 @@ class MinCross {
     clusterExpand.clusterMerge.clearCluster(cluster);
     mincross(1, 2);
 
-    for (Cluster c : DotAttachment.clusters(cluster)) {
+    for (Cluster c : dotAttachment.clusters(cluster)) {
       mincrossCluster(c);
     }
 

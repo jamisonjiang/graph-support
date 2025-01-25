@@ -121,7 +121,7 @@ class CoordinateV2 extends AbstractCoordinate {
     auxDotDigraph.addEdge(new DLine(containerContent.leftNode, containerContent.rightNode,
                                     null, null, 128D, containerContent.minlen()));
 
-    for (Cluster cluster : DotAttachment.clusters(container)) {
+    for (Cluster cluster : dotAttachment.clusters(container)) {
       ContainerContent childCC = addClusterBorderEdge(auxDotDigraph, cluster);
       if (childCC == null) {
         continue;
