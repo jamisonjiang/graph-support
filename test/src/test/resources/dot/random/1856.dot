@@ -1,0 +1,17 @@
+digraph graphname 
+{
+	splines=ortho;
+	1 [ width=1, height=1, shape=rect ];
+	2 [ width=1, height=1, shape=rect ];
+	3 [ width=3, height=3, shape=rect ];
+	4 [ width=1, height=1, shape=rect ];
+	5 [ width=1, height=1, shape=rect ];
+	1 -> 2[arrowhead=none, headport=n, tailport=s];
+	1 -> 3[arrowhead=none, headport=n, tailport=s];
+	1 -> 4[arrowhead=none, headport=n, tailport=s];
+	2 -> 4[arrowhead=none, headport=n, tailport=s];
+	2 -> 5[arrowhead=none, headport=n, tailport=s];
+	3 -> 4[arrowhead=none, headport=n, tailport=s];
+	3 -> 5[arrowhead=none, headport=n, tailport=s];
+	4 -> 5[arrowhead=none, headport=n, tailport=s];
+}

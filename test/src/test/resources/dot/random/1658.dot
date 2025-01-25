@@ -1,0 +1,59 @@
+graph {
+# comment out this line and it works ok
+splines="ortho";
+
+node [shape="point"];
+
+3;
+2;
+1;
+0;
+
+node [shape="box"];
+
+Charger -- IHall1 -- 3;
+Charger -- IHall2 -- 2;
+Charger -- IHall3 -- 1;
+Charger -- 0;
+
+
+
+3 -- V3 -- 2 -- V2 -- 1 -- V1 -- 0 -- GND;
+
+
+node [shape="triangle",orientation=270];
+
+OpAmp3;
+OpAmp2;
+OpAmp1;
+
+node [shape="box"];
+
+3 -- OpAmp3;
+2 -- OpAmp3;
+
+2 -- OpAmp2;
+1 -- OpAmp2;
+
+1 -- OpAmp1;
+0 -- OpAmp1;
+
+#OpAmp3 -- ADC3 -- 0;
+#OpAmp2 -- ADC2 -- 0;
+#OpAmp1 -- ADC1 -- 0;
+
+# or comment out these 3 lines and it works ok
+ADC3 -- 0;
+ADC2 -- 0;
+ADC1 -- 0;
+
+
+OpAmp3 -- ADC3;
+OpAmp2 -- ADC2;
+OpAmp1 -- ADC1;
+
+V1 -- Temp1 [style=dashed];
+V2 -- Temp2 [style=dashed];
+V3 -- Temp3 [style=dashed];
+
+}

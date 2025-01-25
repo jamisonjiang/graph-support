@@ -61,6 +61,10 @@ public class DocumentUtils {
     return getClassPath() + "/table/";
   }
 
+  public static String getDotCasesPath() {
+    return getClassPath() + "/dot/";
+  }
+
   public static String getVisualHtmlTemplatePath() {
     return getClassPath() + "/graph-visual-template.html";
   }

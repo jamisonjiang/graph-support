@@ -1,0 +1,9 @@
+digraph Test {
+    splines = ortho;
+    nodesep = 1.0;
+    ranksep = 1.0;
+    edge [dir = both, arrowhead = dot, arrowtail = curve, headlabel="Head", taillabel="Tail"];  
+    A -> B;
+    A -> C;
+    D -> C;
+}

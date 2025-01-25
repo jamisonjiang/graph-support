@@ -1,0 +1,63 @@
+digraph {
+    tooltip=" "
+    graph [style="rounded, filled", splines=ortho, fontname="Helvetica", tooltip=" "]
+    edge [penwidth=1.5, tooltip=" "]
+    node [shape=box, style="rounded, filled", fontname="Helvetica", tooltip=" "]
+    
+    subgraph cluster_node0 {
+        id=node0
+        label="Stage 1 [-]"
+        fillcolor="#e8f3e1"
+        
+        class="z0"
+        
+        4564909 [label="Action 1", id="node4564909", fixedsize=true, width=4.2, height=0.75, fillcolor="#e6f3e6", class="z1"]
+        4564911 [label="Action 2", id="node4564911", fixedsize=true, width=4.2, height=0.75, fillcolor="#efdcf4", class="z1"]
+        4564913 [label="Action 3", id="node4564913", fixedsize=true, width=4.2, height=0.75, fillcolor="#f9ffe3", class="z1"]
+        subgraph cluster_node4564915 {
+            id=node4564915
+            label="Action 4 [-]"
+            fillcolor="#e6f6f3"
+            
+            class="z1"
+            
+            4564918 [label="Subaction 1", id="node4564918", fixedsize=true, width=4.2, height=0.75, fillcolor="#fbe3fa", class="z2"]
+            4564920 [label="Subaction 2", id="node4564920", fixedsize=true, width=4.2, height=0.5, fillcolor="#efe4e2", class="z2"]
+            4564924 [label="Subaction 3", id="node4564924", fixedsize=true, width=4.2, height=0.5, fillcolor="#f3f1f4", class="z2"]
+            4564926 [label="Subaction 4", id="node4564926", fixedsize=true, width=4.2, height=1, fillcolor="#f0eef3", class="z2"]
+            4564929 [label="Subaction 5", id="node4564929", fixedsize=true, width=4.2, height=0.75, fillcolor="#ecebe4", class="z2"]
+            4564930 [label="Subaction 6", id="node4564930", fixedsize=true, width=4.2, height=0.75, fillcolor="#e3f3eb", class="z2"]
+        }
+        4564932 [label="Action 5 [+]", id="node4564932", fixedsize=true, width=4.2, height=0.75, fillcolor="#f8eee7", class="z1"]
+        4564952 [label="Action 6", id="node4564952", fixedsize=true, width=4.2, height=1, fillcolor="#ecf3f5", class="z1"]
+    }
+    1 [label="Stage 2 [+]", id="node1", fixedsize=true, width=4.2, height=0.5, fillcolor="#dfe5e0", class="z0"]
+    2 [label="Stage 3 [+]", id="node2", fixedsize=true, width=4.2, height=0.5, fillcolor="#f6e5ea", class="z0"]
+    3 [label="Stage 4 [+]", id="node3", fixedsize=true, width=4.2, height=0.5, fillcolor="#ebfefc", class="z0"]
+    4 [label="Stage 5 [+]", id="node4", fixedsize=true, width=4.2, height=0.5, fillcolor="#e3f8ee", class="z0"]
+    5 [label="Stage 6 [+]", id="node5", fixedsize=true, width=4.2, height=0.5, fillcolor="#f2f1eb", class="z0"]
+    
+    4564909 -> 4564918 [id="4564909-4564918"]
+    4564909 -> 4564920 [id="4564909-4564920"]
+    4564911 -> 4564918 [id="4564911-4564918"]
+    4564911 -> 4564920 [id="4564911-4564920"]
+    4564913 -> 4564918 [id="4564913-4564918"]
+    4564913 -> 4564920 [id="4564913-4564920"]
+    4564918 -> 4564920 [id="4564918-4564920"]
+    4564918 -> 4564924 [id="4564918-4564924"]
+    4564918 -> 4564932 [id="4564918-4564932"]
+    4564920 -> 4564924 [id="4564920-4564924"]
+    4564924 -> 4564926 [id="4564924-4564926"]
+    4564926 -> 4564932 [id="4564926-4564932"]
+    4564929 -> 4564926 [id="4564929-4564926"]
+    4564930 -> 4564926 [id="4564930-4564926"]
+    4564932 -> 1 [id="4564932-1"]
+    4564932 -> 4564952 [id="4564932-4564952"]
+    4564952 -> 1 [id="4564952-1"]
+    1 -> 2 [id="1-2"]
+    1 -> 4 [id="1-4"]
+    2 -> 3 [id="2-3"]
+    2 -> 4 [id="2-4"]
+    3 -> 5 [id="3-5"]
+    4 -> 5 [id="4-5"]
+}

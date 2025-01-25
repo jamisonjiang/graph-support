@@ -1,0 +1,18 @@
+digraph cluster {
+    node [ shape = "record"]
+
+    subgraph cluster_dc1 {
+        label = "dc1";
+        cas1
+        app1
+    }
+    subgraph cluster_dc2 {
+        label = "dc2";
+        cas2
+        app2
+    }
+    app1 -> cas1
+    app1 -> cas2
+    app2 -> cas1
+}
+

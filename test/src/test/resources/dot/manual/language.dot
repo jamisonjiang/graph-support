@@ -1,0 +1,137 @@
+digraph G {
+    {
+        rank = same;
+        "English"[label="Hello, world"]
+        "Mandarin Chinese"[label="你好，世界"]
+        "Hindi"[label="नमस्ते, दुनिया"]
+        "Spanish"[label="Hola, mundo"]
+        "French"[label="Bonjour, monde"]
+        "Arabic"[label="مرحبا بالعالم"]
+        "Bengali"[label="ওহে বিশ্ব"]
+        "Russian"[label="Привет, мир"]
+        "Portuguese"[label="Olá, mundo"]
+        "Urdu"[label="ہیلو دنیا"]
+    }
+
+    {
+        rank = same;
+        "Indonesian"[label="Halo, dunia"]
+        "German"[label="Hallo, Welt"]
+        "Japanese"[label="こんにちは、世界"]
+        "Swahili"[label="Habari, dunia"]
+        "Marathi"[label="नमस्कार, जग"]
+        "Telugu"[label="హలో, ప్రపంచం"]
+        "Turkish"[label="Merhaba, dünya"]
+        "Tamil"[label="வணக்கம், உலகம்"]
+        "Italian"[label="Ciao, mondo"]
+        "Thai"[label="สวัสดีชาวโลก"]
+    }
+
+    {
+        rank = same;
+        "Gujarati"[label="હેલો, વિશ્વ"]
+        "Kannada"[label="ಹಲೋ, ವಿಶ್ವ"]
+        "Persian"[label="سلام دنیا"]
+        "Polish"[label="Witaj, świecie"]
+        "Ukrainian"[label="Привіт, світ"]
+        "Malayalam"[label="ഹലോ, ലോകമേ"]
+        "Sundanese"[label="Halo, dunya"]
+        "Hausa"[label="Sannu, duniya"]
+        "Burmese"[label="မင်္ဂလာပါ ကမ္ဘာ"]
+        "Oriya"[label="ନମସ୍କାର, ପ୍ରଥିବୀ"]
+    }
+
+    {
+        rank = same;
+        "Romanian"[label="Salut, lume"]
+        "Dutch"[label="Hallo, wereld"]
+        "Yoruba"[label="Bawo, aye"]
+        "Amharic"[label="ሰላም ለዓለም"]
+        "Fulani"[label="Ndi no duniya"]
+        "Igbo"[label="Ndewo, ụwa"]
+        "Sinhala"[label="හෙලෝ, ලෝකය"]
+        "Uzbek"[label="Salom, dunyo"]
+        "Zulu"[label="Sawubona, mhlaba"]
+        "Hungarian"[label="Helló, világ"]
+    }
+
+    {
+        rank = same;
+        "Tagalog"[label="Kamusta, mundo"]
+        "Kinyarwanda"[label="Muraho, isi"]
+        "Chewa"[label="Moni, dziko lapansi"]
+        "Haitian Creole"[label="Bonjou, mond lan"]
+        "Khmer"[label="សួស្ដីពិភពលោក"]
+        "Shona"[label="Mhoro, nyika"]
+        "Somali"[label="Salaan, adduunka"]
+        "Czech"[label="Ahoj, světe"]
+        "Greek"[label="Γειά σου, κόσμε"]
+        "Belarusian"[label="Прывітанне, свет"]
+    }
+
+    {
+        rank = same;
+        "Kazakh"[label="Сәлем, әлем"]
+        "Azerbaijani"[label="Salam, dünya"]
+        "Kurdish"[label="Silav, cihan"]
+        "Serbo-Croatian"[label="Zdravo, svijete"]
+        "Bulgarian"[label="Здравей, свят"]
+        "Finnish"[label="Hei, maailma"]
+        "Danish"[label="Hej, verden"]
+        "Slovak"[label="Ahoj, svet"]
+        "Lithuanian"[label="Labas, pasauli"]
+        "Norwegian"[label="Hei, verden"]
+    }
+
+    {
+        rank = same;
+        "Latvian"[label="Sveika, pasaule"]
+        "Estonian"[label="Tere, maailm"]
+        "Basque"[label="Kaixo, mundua"]
+        "Macedonian"[label="Здраво, свету"]
+        "Mongolian"[label="Сайн уу, ертөнц"]
+        "Tajik"[label="Салом, ҷаҳон"]
+        "Armenian"[label="Բարեւ աշխարհ"]
+        "Nepali"[label="नमस्ते, संसार"]
+        "Pashto"[label="سلام نړی"]
+        "Georgian"[label="გამარჯობა, მსოფლიო"]
+    }
+
+    {
+        rank = same;
+        "Tigrinya"[label="ሰላም ዓለም"]
+        "Bosnian"[label="Zdravo, svijete"]
+        "Albanian"[label="Përshendetje, botë"]
+        "Icelandic"[label="Halló, heimur"]
+        "Lao"[label="ສະບາຍດີໂລກ"]
+        "Luxembourgish"[label="Moien, Welt"]
+        "Galician"[label="Ola, mundo"]
+        "Maltese"[label="Hello, dinja"]
+        "Faroese"[label="Hey, heimur"]
+        "Samoan"[label="Talofa, lalolagi"]
+    }
+
+    {
+        rank = same;
+        "Maori"[label="Kia ora, ao"]
+        "Tahitian"[label="Ia ora na, fenua"]
+        "Fijian"[label="Bula, vuravura"]
+        "Hmong"[label="Nyob zoo, ntiaj teb"]
+        "Greenlandic"[label="Aluu, silarsuaq"]
+        "Wolof"[label="Salaam aleekum"]
+        "Quechua"[label="Napaykullayki, pacha"]
+        "Aymara"[label="Kamisa, aka pacha"]
+        "Inuktitut"[label="ᐊᐃᓐᓂᐊᕐᔪᒃ, ᓯᓚ"]
+        "Twi"[label="Agoo, wiase"]
+    }
+
+    // Invisible edges to link clusters logically
+    English -> Indonesian
+    Indonesian -> Gujarati
+    Gujarati -> Romanian
+    Romanian -> Tagalog
+    Tagalog -> Kazakh
+    Kazakh -> Latvian
+    Latvian -> Tigrinya
+    Tigrinya -> Maori
+}

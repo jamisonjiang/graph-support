@@ -1,0 +1,26 @@
+digraph G
+{
+  subgraph cluster_G1
+  {
+    {
+      rank=same;
+      A -> B;
+    }
+
+    C -> A;
+  }
+
+  subgraph cluster_G2
+  {
+    {
+      rank=same;
+      D -> E;
+    }
+
+    F -> E;
+  }
+
+  B -> D [ constraint=none ];
+  B -> D [ constraint=none ];
+}
+

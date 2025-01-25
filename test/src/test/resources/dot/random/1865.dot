@@ -1,0 +1,6 @@
+strict digraph "FTC/BTC" {
+subgraph cluster_Inputs {
+"Base (FTC) holding"
+}
+}
+

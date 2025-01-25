@@ -1,0 +1,81 @@
+digraph G {
+  "/*
+  This mess is the project of *manually* .Dot-ify minor .JavaScript projects
+  Current state: creating nodes, none connection done for the moment
+  May contain lots of stupid english-speaking mistakes
+  */"
+
+  "var VERSION=2.0106;"
+  "var BETA=0;"
+
+  "/*=====================================================================================
+  MISC HELPER FUNCTIONS
+  =======================================================================================*/"
+  "function l(what) {return document.getElementById(what);}"
+  "function choose(arr) {return arr[Math.floor(Math.random()*arr.length)];}"
+
+  "function escapeRegExp(str){return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");}"
+  "function replaceAll(find,replace,str){return str.replace(new RegExp(escapeRegExp(find),'g'),replace);}"
+
+  "//disable sounds (sorry)"
+  "var realAudio=Audio;//backup real audio"
+  "Audio=function(src){
+    if (src && src.indexOf('soundjay')&gt-1) {Game.Popup('Sorry, no sounds');this.play=function(){};}
+    else return new realAudio(src);
+  };"
+
+  "if(!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(needle) {
+      for(var i = 0; i < this.length; i++) {
+        if(this[i] === needle) {return i;}
+      }
+      return -1;
+    };
+  }"
+
+  "function randomFloor(x) {if ((x%1)<Math.random()) return Math.floor(x); else return Math.ceil(x);}"
+
+  "function shuffle(array)
+  {
+    var counter = array.length, temp, index;
+    // While there are elements in the array
+    while (counter--)
+    {
+      // Pick a random index
+      index = (Math.random() * counter) | 0;
+
+      // And swap the last element with it
+      temp = array[counter];
+      array[counter] = array[index];
+      array[index] = temp;
+    }
+    return array;
+  }"
+
+  "var sinArray=[];"
+  "for (var i=0;i<360;i++)
+  {
+    //let's make a lookup table
+    sinArray[i]=Math.sin(i/360*Math.PI*2);
+  }"
+  "function quickSin(x)
+  {
+    //oh man this isn't all that fast actually
+    //why do I do this. why
+    var sign=x<0?-1:1;
+    return sinArray[Math.round(
+      (Math.abs(x)*360/Math.PI/2)%360
+    )]*sign;
+  }"
+
+  "/*function ajax(url,callback){
+    var ajaxRequest;
+    try{ajaxRequest = new XMLHttpRequest();} catch (e){try{ajaxRequest=new ActiveXObject('Msxml2.XMLHTTP');} catch (e) {try{ajaxRequest=new ActiveXObject('Microsoft.XMLHTTP');} catch (e){alert("Something broke!");return false;}}}
+    if (callback){ajaxRequest.onreadystatechange=function(){if(ajaxRequest.readyState==4){callback(ajaxRequest.responseText);}}}
+    ajaxRequest.open('GET',url+'&nocache='+(new Date().getTime()),true);ajaxRequest.send(null);
+  }*/"
+
+# var ajax=function(url,callback)
+//[lots of unfinished things who have been turned into comments using #]
+# /*=======
+}

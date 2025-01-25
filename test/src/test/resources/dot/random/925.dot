@@ -1,0 +1,6 @@
+digraph G { 
+ rankdir=LR;  
+ node[shape=record style=rounded];
+ reclat[label="Ok with spaces (en):|{ AAA AAA AAA | BBB BBB BBB | CCC CCC CCC }"];
+ recrus[label="Eats spaces (utf):|{ ААА ААА ААА | ВВВ ВВВ ВВВ | ССС ССС ССС }"];
+}

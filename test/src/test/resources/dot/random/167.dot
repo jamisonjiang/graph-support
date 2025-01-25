@@ -1,0 +1,8 @@
+digraph G {
+ concentrate=true;
+  a -> 4 -> b
+  a -> b
+  a -> b
+  b -> a
+}
+

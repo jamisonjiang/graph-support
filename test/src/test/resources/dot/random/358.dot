@@ -1,0 +1,14 @@
+digraph H {
+  xdotversion=1.7
+  rankdir=LR
+  a [label=<<B>Bold text</B>>]
+  b [label=<<I>Italic text</I>>]
+  c [label=<<U>Underlined text</U>>]
+  d [label=<<O>Overstrike text</O>>]
+  e [label=<<SUB>Subscript text</SUB>>]
+  f [label=<<SUP>Superscript text</SUP>>]
+  g [label=<<S>Strikethrough text</S>>]
+  h [label=<<FONT FACE="courier">Courier text</FONT>>]    
+  i [label=<<FONT POINT-SIZE="36">fontsize 36 text</FONT>>]    
+}
+

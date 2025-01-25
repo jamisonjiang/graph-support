@@ -36,7 +36,7 @@
   <dependencies>
     <dependency>
       <groupId>org.graphper</groupId>
-      <artifactId>graph-support-core</artifactId>
+      <artifactId>graph-support-dot</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
 

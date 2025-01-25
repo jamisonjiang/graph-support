@@ -71,7 +71,7 @@
             <phase>package</phase>
             <configuration>
               <target>
-                <move file="${project.build.directory}/graph-support-cli-original-jar-with-dependencies.jar"
+                <copy file="${project.build.directory}/graph-support-cli-original-jar-with-dependencies.jar"
                   tofile="${project.build.directory}/graph-support-cli.jar" />
               </target>
             </configuration>

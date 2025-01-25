@@ -1,0 +1,24 @@
+digraph clusters {
+    subgraph cluster_0 {
+        a -> b -> c -> d -> e
+    }
+
+    subgraph cluster_1 {
+        a -> f -> c
+    }
+    
+    subgraph cluster_2 {
+        rank = same
+        p1
+        p2
+        p3->f
+    }
+    
+    subgraph cluster_3 {
+        rank = same
+        S1->a
+        S2->f
+        S3->p1
+    }
+}
+

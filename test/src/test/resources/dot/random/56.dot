@@ -1,0 +1,43 @@
+digraph "Robot_Localization Components" {
+rankdir=LR;
+ratio=compress;
+splines=ortho;
+size="8.27,11.69";
+subgraph cluster_Robot_Localization {
+labelloc=t;
+fontname="Times-bold";
+color=red;
+label=<<B>Robot Localization</B>>;
+fontsize="16.0";
+fontcolor=black;
+penwidth=2;
+ramcip_some_other_ros_node [shape=plaintext, margin=0, label=<<TABLE border="1" cellspacing="0" cellborder="1"><TR><TD>Registered point cloud, list of points (xyz,rgb)</TD></TR><TR><TD><B><BR/>ramcip_some_other_ros_node<BR/><BR/></B></TD></TR><TR><TD>Time stamped outputs</TD></TR></TABLE>>];
+ramcip_mapping_or_hector_mapping [shape=plaintext, margin=0, label=<<TABLE border="1" cellspacing="0" cellborder="1"><TR><TD>Undistorted, Rectified Depth image (512x424) pixels<BR/>Registered point cloud, list of points (xyz,rgb)</TD></TR><TR><TD><B><BR/>ramcip_mapping or hector_mapping<BR/><BR/></B></TD></TR><TR><TD>current pose expressed in world coordinates (xyz<BR/>rpy)<BR/>Time stamped outputs</TD></TR></TABLE>>];
+}
+
+kinect2_bridge_launch [shape=rect, style=filled, fillcolor=gray];
+kinect2_bridge_launch -> ramcip_some_other_ros_node  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="sensor_msgs/PointCloud2"];
+kinect2_bridge_launch -> ramcip_mapping_or_hector_mapping  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="sensor_msgs/Image\nsensor_msgs/PointCloud2"];
+ramcip_large_object_tracking_large_object_tracking [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_large_object_tracking_large_object_tracking  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_robot_navigation_robot_navigation [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_robot_navigation_robot_navigation  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="Robot pose"];
+ramcip_human_tracking_human_tracking [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_human_tracking_human_tracking  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_hierarchical_spaces_hierarchical_spaces [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_hierarchical_spaces_hierarchical_spaces  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_lower_body_phri_planner_lower_body_phri_planner [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_lower_body_phri_planner_lower_body_phri_planner  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="current pose expressed in world coordinates (XYZ and rpy euler angles)\nstd_msgs/Float64\nTBD. Delete this???"];
+ramcip_affect_recognizer_affect_recognizer [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_affect_recognizer_affect_recognizer  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_manipulation_planner_and_control_manipulation_planner_and_control [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_manipulation_planner_and_control_manipulation_planner_and_control  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="geometry_msgs/PoseStamped or nav_msgs/Odometry\ngeometry_msgs/TwistStamped or nav_msgs/Odometry"];
+ramcip_object_detection_object_detection [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_object_detection_object_detection  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_hand_over_controller_hand_over_controller [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_hand_over_controller_hand_over_controller  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="geometry_msgs/PoseStamped or nav_msgs/Odometry\ngeometry_msgs/TwistStamped or nav_msgs/Odometry"];
+ramcip_ar_projector_ar_projector [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_ar_projector_ar_projector  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+ramcip_global_mapping_global_mapping [shape=rect, style=filled, fillcolor=gray];
+ramcip_mapping_or_hector_mapping -> ramcip_global_mapping_global_mapping  [fontcolor=red, fontname=Verdana, fontsize="8.0", label="*"];
+}

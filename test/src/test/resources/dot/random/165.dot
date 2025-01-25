@@ -1,0 +1,4 @@
+// see test_regression.py:test_165()
+digraph {
+  a [label="hello \\\" world"];
+}

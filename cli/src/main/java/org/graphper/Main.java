@@ -19,7 +19,7 @@ package org.graphper;
 import static org.graphper.CommandUnits.COMMAND_UNITS;
 
 import java.io.File;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
@@ -32,7 +32,7 @@ public class Main {
 
     try {
       Command command = newCommand(args);
-      DotParser dotParser = new DotParser(command.getDotFile(), Charset.defaultCharset());
+      DotParser dotParser = new DotParser(command.getDotFile(), StandardCharsets.UTF_8);
       File output = command.getOutput();
       dotParser.parse(new PostGraphComponents() {
             @Override

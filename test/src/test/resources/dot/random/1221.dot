@@ -1,0 +1,12 @@
+digraph "Graph d718cbc6-5e20-4417-a41a-e1e380469dd2" {
+	graph [
+		newrank=true
+	];
+	subgraph "cluster_1" {
+		1;
+	}
+	subgraph "cluster_2" {
+		1
+	}
+}
+
