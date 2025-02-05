@@ -19,6 +19,7 @@ package org.graphper.api;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
@@ -219,6 +220,11 @@ public class Line implements Comparable<Line>, Serializable {
     public LineBuilder label(String label) {
       lineAttrs.label = label;
       lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
+      return this;
+    }
+
+    public LineBuilder labelTag(LabelTag labelTag) {
+      lineAttrs.labelTag = labelTag;
       return this;
     }
 

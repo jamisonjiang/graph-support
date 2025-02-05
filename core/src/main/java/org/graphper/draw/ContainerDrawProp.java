@@ -18,6 +18,7 @@ package org.graphper.draw;
 
 import java.io.Serializable;
 import org.graphper.api.Assemble;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
@@ -26,6 +27,7 @@ import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.HtmlConvertor;
+import org.graphper.layout.LabelAttributes;
 import org.graphper.util.Asserts;
 
 /**
@@ -149,11 +151,12 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return this instanceof ClusterDrawProp;
   }
 
-  protected void convertTable(Table table) {
-    if (table == null) {
+  protected void convertToAssemble(Table table, LabelTag labelTag) {
+    if (table != null) {
+      assemble = HtmlConvertor.toAssemble(table);
       return;
     }
-    assemble = HtmlConvertor.toAssemble(table);
+    assemble = HtmlConvertor.toAssemble(labelTag, labelAttrs());
   }
 
   public boolean containsRounded() {
@@ -169,4 +172,6 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
   public abstract String containerId();
 
   public abstract Assemble assemble();
+
+  public abstract LabelAttributes labelAttrs();
 }

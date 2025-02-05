@@ -17,6 +17,9 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.FontStyle;
+import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Test;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
@@ -25,16 +28,24 @@ import org.graphper.api.Node;
 public class LabelTest extends GraphvizVisual {
 
   @Test
-  public void testHtmlEncoder() {
+  public void testHtmlEncoder() throws ExecuteException {
     Node a = Node.builder().label("הרצליה").build();
     Node b = Node.builder().label("חוף בת ים").build();
     Node c = Node.builder().label("<f0> 0x10ba8| <f1>").build();
     Node d = Node.builder().label("<f0> 0xf7fc4380| <f1> | <f2> |-1").build();
+    Node e = Node.builder().label("test font styles \nsecond line הרצליה⊄♠Œ")
+//        .fontSize(100)
+        .fontColor(Color.RED)
+//        .fontStyle(FontStyle.BOLD, FontStyle.ITALIC, FontStyle.UNDERLINE).build();
+        .fontStyle(FontStyle.BOLD, FontStyle.ITALIC, FontStyle.STRIKETHROUGH).build();
     Graphviz graphviz = Graphviz.digraph()
-        .label("⊄♠Œ")
-        .addLine(Line.builder(a, b).label("\uD83C\uDF34").build())
-        .addLine(Line.builder(c, d).label("\u0152Š").build())
+//        .label("⊄♠Œ")
+        .addNode(e)
+//        .addLine(Line.builder(a, b).label("\uD83C\uDF34").build())
+//        .addLine(Line.builder(c, d).label("\u0152Š").build())
         .build();
+
+//    System.out.println(graphviz.toSvgStr());
     visual(graphviz);
   }
 }

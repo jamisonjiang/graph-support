@@ -30,6 +30,8 @@ import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Html.Attrs;
+import org.graphper.api.Html.FontAttrs;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
@@ -152,7 +154,7 @@ public class ParserUtils {
     public static void graphAttribute(String key, String value, Graphviz.GraphvizBuilder gb) {
         switch (key.toLowerCase()) {
             case "label":
-                labelHandle(gb::label, gb::table, value);
+                labelHandle(gb::label, gb::table, gb::labelTag, value);
                 break;
             case "labelloc":
                 setEnum(gb::labelloc, Labelloc.class, value.toUpperCase());
@@ -250,7 +252,7 @@ public class ParserUtils {
     public static void clusterAttribute(String key, String value, Cluster.ClusterBuilder sb) {
         switch (key.toLowerCase()) {
             case "label":
-                labelHandle(sb::label, sb::table, value);
+                labelHandle(sb::label, sb::table, sb::labelTag, value);
                 break;
             case "labelloc":
                 setEnum(sb::labelloc, Labelloc.class, value);
@@ -326,7 +328,7 @@ public class ParserUtils {
                     nodeBuilder.id(value);
                     break;
                 case "label":
-                    labelHandle(nodeBuilder::label, nodeBuilder::table, value);
+                    labelHandle(nodeBuilder::label, nodeBuilder::table, nodeBuilder::labelTag, value);
                     break;
                 case "height":
                     setDouble(nodeBuilder::height, value);
@@ -417,7 +419,7 @@ public class ParserUtils {
                     builder.id(value);
                     break;
                 case "label":
-                    labelHandle(builder::label, builder::table, value);
+                    labelHandle(builder::label, builder::table, builder::labelTag, value);
                     break;
                 case "controlpoints":
                     setBoolean(builder::controlPoints, value);
@@ -619,6 +621,26 @@ public class ParserUtils {
         }
     }
 
+    public static void setFontAttributes(FontAttrs fontAttrs, String key, String value) {
+        if (fontAttrs == null || StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
+            return;
+        }
+
+        switch (key.toLowerCase()) {
+            case "face":
+                fontAttrs.face(value);
+                break;
+            case "point-size":
+                setInteger(fontAttrs::pointSize, value);
+                break;
+            case "color":
+                fontAttrs.color(colorOf(value));
+                break;
+            default:
+                break;
+        }
+    }
+
     private static void setCommonAttributes(Attrs attrs, String key, String value) {
         if (attrs == null || StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
             return;
@@ -792,10 +814,22 @@ public class ParserUtils {
     }
 
     private static void labelHandle(Consumer<String> labelConsumer,
-                                    Consumer<Table> tableConsumer, String label) {
-        Table table = TableParser.parse(label);
-        if (table != null) {
-            tableConsumer.accept(table);
+                                    Consumer<Table> tableConsumer,
+                                    Consumer<LabelTag> labelTagConsumer,
+                                    String label) {
+        HtmlListener htmlListener = HtmlParser.parse(label);
+        if (htmlListener != null) {
+            Table table = htmlListener.getTable();
+            if (table != null) {
+                tableConsumer.accept(table);
+                return;
+            }
+            LabelTag labelTag = htmlListener.getLabelTag();
+            if (labelTag != null) {
+                labelTagConsumer.accept(labelTag);
+                return;
+            }
+            labelConsumer.accept(label);
         } else {
             if (label.startsWith("\"") && label.endsWith("\"")) {
                 label = label.substring(1, label.length() - 1);

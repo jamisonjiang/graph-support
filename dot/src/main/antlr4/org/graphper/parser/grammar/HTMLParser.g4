@@ -30,14 +30,23 @@
 // $antlr-format alignTrailingComments true, columnLimit 150, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments false, useTab false
 // $antlr-format allowShortRulesOnASingleLine false, allowShortBlocksOnASingleLine true, alignSemicolons hanging, alignColons hanging
 
-parser grammar TABLEParser;
+parser grammar HTMLParser;
 
 options {
-    tokenVocab = TABLELexer;
+    tokenVocab = HTMLLexer;
 }
+
+htmlTag
+    : table EOF
+    | tagContent EOF
+    ;
 
 table
     : TAG_OPEN TABLE htmlAttribute* TAG_CLOSE WS? (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
+    ;
+
+tagContent
+    : htmlChardata? ((htmlElement | htmlComment) htmlChardata?)*
     ;
 
 tr
@@ -52,65 +61,82 @@ tdContent
     : htmlChardata? ((table | htmlElement | htmlComment) htmlChardata?)*
     ;
 
-fontContent
-    : htmlChardata? (htmlElement htmlChardata?)*
-    ;
-
 htmlElement
     : fontTag
     | bTag
     | iTag
     | uTag
+    | sTag
+    | oTag
     | subTag
     | supTag
-    | brTag
+    | vtTag
+    | vbTag
+    | vcTag
+    | hlTag
     | hrTag
-    | imgTag
-    | centerTag
+    | hcTag
+    | brTag
     ;
 
 fontTag
-    : TAG_OPEN FONT htmlAttribute* TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH FONT TAG_CLOSE
+    : TAG_OPEN FONT htmlAttribute* TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH FONT TAG_CLOSE
     ;
 
 bTag
-    : TAG_OPEN B TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH B TAG_CLOSE
+    : TAG_OPEN B TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH B TAG_CLOSE
     ;
 
 iTag
-    : TAG_OPEN I TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH I TAG_CLOSE
+    : TAG_OPEN I TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH I TAG_CLOSE
     ;
 
 uTag
-    : TAG_OPEN U TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH U TAG_CLOSE
+    : TAG_OPEN U TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH U TAG_CLOSE
+    ;
+
+sTag
+    : TAG_OPEN S TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH S TAG_CLOSE
+    ;
+
+oTag
+    : TAG_OPEN O TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH O TAG_CLOSE
     ;
 
 subTag
-    : TAG_OPEN SUB TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH SUB TAG_CLOSE
+    : TAG_OPEN SUB TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH SUB TAG_CLOSE
     ;
 
 supTag
-    : TAG_OPEN SUP TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH SUP TAG_CLOSE
+    : TAG_OPEN SUP TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH SUP TAG_CLOSE
+    ;
+
+vtTag
+    : TAG_OPEN VT TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH VT TAG_CLOSE
+    ;
+
+vbTag
+    : TAG_OPEN VB TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH VB TAG_CLOSE
+    ;
+
+vcTag
+    : TAG_OPEN VC TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH VC TAG_CLOSE
+    ;
+
+hlTag
+    : TAG_OPEN HL TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH HL TAG_CLOSE
+    ;
+
+hrTag
+    : TAG_OPEN HR TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH HR TAG_CLOSE
+    ;
+
+hcTag
+    : TAG_OPEN HC TAG_CLOSE tagContent? TAG_OPEN TAG_SLASH HC TAG_CLOSE
     ;
 
 brTag
     : TAG_OPEN BR TAG_SLASH_CLOSE
-    ;
-
-hrTag
-    : TAG_OPEN HR TAG_SLASH_CLOSE
-    ;
-
-imgTag
-    : TAG_OPEN IMG htmlAttribute* TAG_SLASH_CLOSE
-    ;
-
-centerTag
-    : TAG_OPEN CENTER TAG_CLOSE fontContent? TAG_OPEN TAG_SLASH CENTER TAG_CLOSE
-    ;
-
-tableTag
-    : TAG_OPEN TABLE htmlAttribute* TAG_CLOSE (tr WS?)+ TAG_OPEN TAG_SLASH TABLE TAG_CLOSE
     ;
 
 htmlAttribute

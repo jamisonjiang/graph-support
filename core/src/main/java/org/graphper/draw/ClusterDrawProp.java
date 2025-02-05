@@ -19,11 +19,13 @@ package org.graphper.draw;
 import java.io.Serializable;
 import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
+import org.graphper.api.ClusterAttrs;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.LabelAttributes;
 import org.graphper.util.Asserts;
 
 /**
@@ -48,7 +50,8 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
     this.cluster = cluster;
     this.clusterShape = cluster.clusterAttrs().getShape();
     this.clusterShape = this.clusterShape.post(cluster.clusterAttrs());
-    convertTable(cluster.clusterAttrs().getTable());
+    convertToAssemble(cluster.clusterAttrs().getTable(),
+                      cluster.clusterAttrs().getLabelTag());
   }
 
   /**
@@ -114,6 +117,16 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   public Assemble assemble() {
     return cluster.clusterAttrs().getAssemble();
+  }
+
+  @Override
+  public LabelAttributes labelAttrs() {
+    ClusterAttrs clusterAttrs = cluster.clusterAttrs();
+    LabelAttributes labelAttrs = new LabelAttributes();
+    labelAttrs.setFontColor(clusterAttrs.getFontColor());
+    labelAttrs.setFontName(clusterAttrs.getFontName());
+    labelAttrs.setFontSize(clusterAttrs.getFontSize());
+    return labelAttrs;
   }
 
   @Override

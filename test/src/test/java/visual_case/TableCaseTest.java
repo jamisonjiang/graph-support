@@ -16,6 +16,15 @@
 
 package visual_case;
 
+import static org.graphper.api.Html.bold;
+import static org.graphper.api.Html.font;
+import static org.graphper.api.Html.fontAttrs;
+import static org.graphper.api.Html.italic;
+import static org.graphper.api.Html.overline;
+import static org.graphper.api.Html.strikeThrough;
+import static org.graphper.api.Html.text;
+import static org.graphper.api.Html.underline;
+
 import helper.DocumentUtils;
 import helper.GraphvizVisual;
 import helper.TableUtils;
@@ -313,7 +322,22 @@ public class TableCaseTest extends GraphvizVisual {
                     Html.td().text("3"),
                     Html.td().colSpan(51).text("444444444444"),
                     Html.td().text("5"),
-                    Html.td().text("6")
+                    Html.td().text("6"),
+                    Html.td().textTag(
+                        italic(font("Test Text Tag", fontAttrs().color(Color.RED).face("Impact").pointSize(50)).br()
+                                   .right("Second line"))
+                            .br().br().br().br().br().br().br()
+                            .bottom(bold(italic(underline(font("Third Line", fontAttrs().pointSize(22))))))
+                            .font(underline("ABC"), fontAttrs().color(Color.BLUE).pointSize(60))
+                            .top(strikeThrough("456789qwertyuiopasdfghjkl"))
+                            .br()
+                            .left(
+                                font(overline("overline"), fontAttrs().pointSize(30))
+                                    .bottom(italic("123").italic("456"))
+                                    .verticalCenter(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().pointSize(20)))
+                            )
+                            .br().br().br().br().br().br().br()
+                    )
                 )
         )
         .build();
@@ -322,6 +346,11 @@ public class TableCaseTest extends GraphvizVisual {
         .addNode(node)
         .build();
 
+//    try {
+//      System.out.println(graphviz.toSvgStr());
+//    } catch (ExecuteException e) {
+//      throw new RuntimeException(e);
+//    }
     visual(graphviz);
   }
 

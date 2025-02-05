@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
@@ -60,28 +61,144 @@ public class Html {
     return new Td();
   }
 
-  public static Bold bold() {
-    return new Bold();
+  public static FontAttrs fontAttrs() {
+    return new FontAttrs();
   }
 
-  public static Italic italic() {
-    return new Italic();
+  public static LabelTag labelTag() {
+    return new LabelTag();
   }
 
-  public static Underline underline() {
-    return new Underline();
+  public static LabelTag br() {
+    return labelTag().br();
   }
 
-  public static Subscript subscript() {
-    return new Subscript();
+  public static LabelTag text(String text) {
+    return labelTag().text(text);
   }
 
-  public static Superscript superscript() {
-    return new Superscript();
+  public static LabelTag text(LabelTag labelTag) {
+    return labelTag().text(labelTag);
   }
 
-  public static Center center() {
-    return new Center();
+  public static LabelTag font(String text) {
+    return labelTag().font(text);
+  }
+
+  public static LabelTag font(LabelTag labelTag) {
+    return labelTag().font(labelTag);
+  }
+
+  public static LabelTag font(String text, FontAttrs fontAttrs) {
+    return labelTag().font(text, fontAttrs);
+  }
+
+  public static LabelTag font(LabelTag labelTag, FontAttrs fontAttrs) {
+    return labelTag().font(labelTag, fontAttrs);
+  }
+
+  public static LabelTag bold(String text) {
+    return labelTag().bold(text);
+  }
+
+  public static LabelTag bold(LabelTag labelTag) {
+    return labelTag().bold(labelTag);
+  }
+
+  public static LabelTag italic(String text) {
+    return labelTag().italic(text);
+  }
+
+  public static LabelTag italic(LabelTag labelTag) {
+    return labelTag().italic(labelTag);
+  }
+
+  public static LabelTag overline(String text) {
+    return labelTag().overline(text);
+  }
+
+  public static LabelTag overline(LabelTag labelTag) {
+    return labelTag().overline(labelTag);
+  }
+
+  public static LabelTag underline(String text) {
+    return labelTag().underline(text);
+  }
+
+  public static LabelTag underline(LabelTag labelTag) {
+    return labelTag().underline(labelTag);
+  }
+
+  public static LabelTag subscript(String text) {
+    return labelTag().subscript(text);
+  }
+
+  public static LabelTag subscript(LabelTag labelTag) {
+    return labelTag().subscript(labelTag);
+  }
+
+  public static LabelTag superscript(String text) {
+    return labelTag().superscript(text);
+  }
+
+  public static LabelTag superscript(LabelTag labelTag) {
+    return labelTag().superscript(labelTag);
+  }
+
+  public static LabelTag strikeThrough(String text) {
+    return labelTag().strikeThrough(text);
+  }
+
+  public static LabelTag strikeThrough(LabelTag labelTag) {
+    return labelTag().strikeThrough(labelTag);
+  }
+
+  public static LabelTag top(String text) {
+    return labelTag().top(text);
+  }
+
+  public static LabelTag top(LabelTag labelTag) {
+    return labelTag().top(labelTag);
+  }
+
+  public static LabelTag bottom(String text) {
+    return labelTag().bottom(text);
+  }
+
+  public static LabelTag bottom(LabelTag labelTag) {
+    return labelTag().bottom(labelTag);
+  }
+
+  public static LabelTag verticalCenter(String text) {
+    return labelTag().verticalCenter(text);
+  }
+
+  public static LabelTag verticalCenter(LabelTag labelTag) {
+    return labelTag().verticalCenter(labelTag);
+  }
+
+  public static LabelTag left(String text) {
+    return labelTag().left(text);
+  }
+
+  public static LabelTag left(LabelTag labelTag) {
+    return labelTag().left(labelTag);
+  }
+
+  public static LabelTag right(String text) {
+    return labelTag().right(text);
+  }
+
+  public static LabelTag right(LabelTag labelTag) {
+    return labelTag().right(labelTag);
+  }
+
+  public static LabelTag horizontalCenter(String text) {
+    return labelTag().horizontalCenter(text);
+  }
+
+  public static LabelTag horizontalCenter(LabelTag labelTag) {
+    return labelTag().horizontalCenter(labelTag);
   }
 
   public abstract static class Attrs<T> {
@@ -480,7 +597,7 @@ public class Html {
 
     private String text;
 
-    private TextTag textTag;
+    private LabelTag textTag;
 
     private Color fontColor;
 
@@ -539,6 +656,11 @@ public class Html {
     public Td text(String text) {
       this.text = text;
       this.fontName = FontUtils.selectFont(this.text, this.fontName);
+      return this;
+    }
+
+    public Td textTag(LabelTag textTag) {
+      this.textTag = textTag;
       return this;
     }
 
@@ -616,6 +738,10 @@ public class Html {
 
     public String getText() {
       return text;
+    }
+
+    public LabelTag getTextTag() {
+      return textTag;
     }
 
     public Color getFontColor() {
@@ -709,49 +835,186 @@ public class Html {
     }
   }
 
-  public abstract static class TextTag<T extends TextTag<T>> {
 
-    private List<TextTag> tags;
+  public static class LabelTag implements Serializable {
 
-    public abstract T self();
+    private static final long serialVersionUID = -3452163944796622599L;
 
-    public T label(String label) {
-      Asserts.nullArgument(label);
-      addTags(new Label(label));
-      return self();
+    private List<BasicLabelTag> tags;
+
+    private LabelTag() {
     }
 
-    public T bold(Bold bold) {
-      addTags(bold);
-      return self();
+    public LabelTag br() {
+      addTag(new BasicLabelTag(StringUtils.EMPTY, LabelTagType.BR, null));
+      return this;
     }
 
-    public T italic(Italic italic) {
-      addTags(italic);
-      return self();
+    public LabelTag text(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.TEXT, null));
+      return this;
     }
 
-    public T underline(Underline underline) {
-      addTags(underline);
-      return self();
+    public LabelTag text(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.TEXT, labelTag));
+      return this;
     }
 
-    public T subscript(Subscript subscript) {
-      addTags(subscript);
-      return self();
+    public LabelTag font(String text) {
+      addTag(new FontLabelTag(text, null, null));
+      return this;
     }
 
-    public T superscript(Superscript superscript) {
-      addTags(superscript);
-      return self();
+    public LabelTag font(LabelTag labelTag) {
+      addTag(new FontLabelTag(null, labelTag, null));
+      return this;
     }
 
-    public T center(Center center) {
-      addTags(center);
-      return self();
+    public LabelTag font(String text, FontAttrs fontAttrs) {
+      addTag(new FontLabelTag(text, null, fontAttrs));
+      return this;
     }
 
-    private void addTags(TextTag tag) {
+    public LabelTag font(LabelTag labelTag, FontAttrs fontAttrs) {
+      addTag(new FontLabelTag(null, labelTag, fontAttrs));
+      return this;
+    }
+
+    public LabelTag bold(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.BOLD, null));
+      return this;
+    }
+
+    public LabelTag bold(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.BOLD, labelTag));
+      return this;
+    }
+
+    public LabelTag italic(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.ITALIC, null));
+      return this;
+    }
+
+    public LabelTag italic(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.ITALIC, labelTag));
+      return this;
+    }
+
+    public LabelTag overline(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.OVERLINE, null));
+      return this;
+    }
+
+    public LabelTag overline(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.OVERLINE, labelTag));
+      return this;
+    }
+
+    public LabelTag underline(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.UNDERLINE, null));
+      return this;
+    }
+
+    public LabelTag underline(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.UNDERLINE, labelTag));
+      return this;
+    }
+
+    public LabelTag subscript(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.SUBSCRIPT, null));
+      return this;
+    }
+
+    public LabelTag subscript(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.SUBSCRIPT, labelTag));
+      return this;
+    }
+
+    public LabelTag superscript(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.SUPERSCRIPT, null));
+      return this;
+    }
+
+    public LabelTag superscript(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.SUPERSCRIPT, labelTag));
+      return this;
+    }
+
+    public LabelTag strikeThrough(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.STRIKETHROUGH, null));
+      return this;
+    }
+
+    public LabelTag strikeThrough(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.STRIKETHROUGH, labelTag));
+      return this;
+    }
+
+    public LabelTag top(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.TOP, null));
+      return this;
+    }
+
+    public LabelTag top(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.TOP, labelTag));
+      return this;
+    }
+
+    public LabelTag bottom(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.BOTTOM, null));
+      return this;
+    }
+
+    public LabelTag bottom(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.BOTTOM, labelTag));
+      return this;
+    }
+
+    public LabelTag verticalCenter(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.VERTICAL_CENTER, null));
+      return this;
+    }
+
+    public LabelTag verticalCenter(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.VERTICAL_CENTER, labelTag));
+      return this;
+    }
+
+    public LabelTag left(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.LEFT, null));
+      return this;
+    }
+
+    public LabelTag left(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.LEFT, labelTag));
+      return this;
+    }
+
+    public LabelTag right(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.RIGHT, null));
+      return this;
+    }
+
+    public LabelTag right(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.RIGHT, labelTag));
+      return this;
+    }
+
+    public LabelTag horizontalCenter(String text) {
+      addTag(new BasicLabelTag(text, LabelTagType.HORIZONTAL_CENTER, null));
+      return this;
+    }
+
+    public LabelTag horizontalCenter(LabelTag labelTag) {
+      addTag(new BasicLabelTag(null, LabelTagType.HORIZONTAL_CENTER, labelTag));
+      return this;
+    }
+
+    public List<BasicLabelTag> getTags() {
+      return tags;
+    }
+
+    private void addTag(BasicLabelTag tag) {
       Asserts.nullArgument(tag);
       if (tags == null) {
         tags = new ArrayList<>();
@@ -760,80 +1023,121 @@ public class Html {
     }
   }
 
-  public static class Bold extends TextTag<Bold> implements Serializable {
+  public static class FontAttrs implements Serializable {
 
-    private static final long serialVersionUID = -1351761715429824030L;
+    private static final long serialVersionUID = -497148159693137849L;
 
-    @Override
-    public Bold self() {
+    private Color color;
+
+    private Integer pointSize;
+
+    private String face;
+
+    private FontAttrs() {
+    }
+
+    public FontAttrs color(Color color) {
+      this.color = color;
       return this;
+    }
+
+    public FontAttrs pointSize(int pointSize) {
+      this.pointSize = pointSize;
+      return this;
+    }
+
+    public FontAttrs face(String face) {
+      this.face = face;
+      return this;
+    }
+
+    public Color getColor() {
+      return color;
+    }
+
+    public Integer getPointSize() {
+      return pointSize;
+    }
+
+    public String getFace() {
+      return face;
     }
   }
 
-  public static class Italic extends TextTag<Italic> implements Serializable {
+  public static class BasicLabelTag implements Serializable {
 
-    private static final long serialVersionUID = 2292514422221001045L;
+    private static final long serialVersionUID = -2021156451838455226L;
 
-    @Override
-    public Italic self() {
-      return this;
+    private final String text;
+
+    private final LabelTagType type;
+
+    private final LabelTag subLabelTag;
+
+    public BasicLabelTag(String text, LabelTagType type, LabelTag subLabelTag) {
+      Asserts.nullArgument(type);
+      this.text = text;
+      this.type = type;
+      this.subLabelTag = subLabelTag;
+      verify();
+    }
+
+    public String getText() {
+      return text;
+    }
+
+    public LabelTagType getType() {
+      return type;
+    }
+
+    public LabelTag getSubLabelTag() {
+      return subLabelTag;
+    }
+
+    public void verify() {
+      if (subLabelTag == null) {
+        Asserts.nullArgument(text);
+      }
+      if (text == null) {
+        Asserts.nullArgument(subLabelTag);
+      }
     }
   }
 
-  public static class Underline extends TextTag<Underline> implements Serializable {
+  public static class FontLabelTag extends BasicLabelTag {
 
-    private static final long serialVersionUID = -1931827469051176590L;
+    private static final long serialVersionUID = -7175729224827523985L;
 
-    @Override
-    public Underline self() {
-      return this;
+    private final FontAttrs fontAttrs;
+
+    public FontLabelTag(String text, LabelTag subLabelTag, FontAttrs fontAttrs) {
+      super(text, LabelTagType.FONT, subLabelTag);
+      this.fontAttrs = fontAttrs;
+    }
+
+    public FontAttrs getFontAttrs() {
+      return fontAttrs;
     }
   }
 
-  public static class Subscript extends TextTag<Subscript> implements Serializable {
+  public enum LabelTagType {
+    BR,
+    TEXT,
+    BOLD,
+    FONT,
+    ITALIC,
+    OVERLINE,
+    UNDERLINE,
+    SUBSCRIPT,
+    SUPERSCRIPT,
+    STRIKETHROUGH,
 
-    private static final long serialVersionUID = -2997787838141004169L;
-
-    @Override
-    public Subscript self() {
-      return this;
-    }
-  }
-
-  public static class Superscript extends TextTag<Superscript> implements Serializable {
-
-    private static final long serialVersionUID = -8456305348681500081L;
-
-    @Override
-    public Superscript self() {
-      return this;
-    }
-  }
-
-  public static class Center extends TextTag<Center> implements Serializable {
-
-    private static final long serialVersionUID = 8576970842159445835L;
-
-    @Override
-    public Center self() {
-      return this;
-    }
-  }
-
-  public static class Label extends TextTag<Label> implements Serializable {
-
-    private static final long serialVersionUID = 4191270534583265622L;
-
-    private final String label;
-
-    private Label(String label) {
-      Asserts.nullArgument(label);
-      this.label = label;
-    }
-
-    @Override
-    public Label self() {
-      return this;
-    }
+    // Layout type
+    TOP,
+    BOTTOM,
+    LEFT,
+    RIGHT,
+    VERTICAL_CENTER,
+    HORIZONTAL_CENTER,
   }
 }

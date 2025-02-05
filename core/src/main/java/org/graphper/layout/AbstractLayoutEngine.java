@@ -19,6 +19,7 @@ package org.graphper.layout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.NodeAttrs;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
@@ -55,8 +57,8 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
-import org.graphper.util.GraphvizUtils;
 import org.graphper.util.FontUtils;
+import org.graphper.util.GraphvizUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,13 +265,32 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   /**
    * Returns the measured label size.
    *
-   * @param label    label
-   * @param fontName font name
-   * @param fontSize font size
+   * @param label      label
+   * @param fontName   font name
+   * @param fontSize   font size
    * @return label size
    */
   protected FlatPoint labelContainer(String label, String fontName, double fontSize) {
-    return FontUtils.measure(label, fontName, fontSize, 0);
+    return labelContainer(label, fontName, fontSize, null);
+  }
+
+  /**
+   * Returns the measured label size.
+   *
+   * @param label      label
+   * @param fontName   font name
+   * @param fontSize   font size
+   * @param fontStyles font styles
+   * @return label size
+   */
+  protected FlatPoint labelContainer(String label, String fontName,
+                                     double fontSize, Collection<FontStyle> fontStyles) {
+    if (CollectionUtils.isNotEmpty(fontStyles)) {
+      return FontUtils.measure(label, fontName, fontSize, 0,
+                               fontStyles.toArray(new FontStyle[0]));
+    } else {
+      return FontUtils.measure(label, fontName, fontSize, 0);
+    }
   }
 
   /**
@@ -402,8 +423,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
 
     NodeAttrs nodeAttrs = nodeDrawProp != null
-        ? nodeDrawProp.nodeAttrs()
-        : node.nodeAttrs().clone();
+        ? nodeDrawProp.nodeAttrs() : node.nodeAttrs().clone();
 
     try {
       if (isCell) {
@@ -726,7 +746,8 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
 
     String label = nodeAttrs.getLabel();
-    return labelContainer(label, nodeAttrs.getFontName(), getFontSize(nodeAttrs));
+    return labelContainer(label, nodeAttrs.getFontName(),
+                          getFontSize(nodeAttrs), nodeAttrs.getFontStyles());
   }
 
   private double getFontSize(NodeAttrs nodeAttrs) {

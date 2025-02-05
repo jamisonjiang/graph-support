@@ -18,12 +18,14 @@ package org.graphper.draw.common;
 
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
+import java.awt.Font;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
@@ -258,13 +260,40 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
     Object typeface = ClassUtils.invokeStatic(TYPE_FACE, "create",
                                               new Class[]{String.class, int.class},
-                                              fontName,
-                                              ClassUtils.getStaticField(TYPE_FACE, "NORMAL"));
+                                              fontName, fontStyle(ele));
     ClassUtils.invoke(paint, "setTypeface", typeface);
     ClassUtils.invoke(paint, "setTextSize", (float) fontSize);
+
+    float textX = (float) (x - (size.getWidth() / 2));
+    float textY = (float) y;
     ClassUtils.invoke(canvas, "drawText",
                       new Class[]{String.class, float.class, float.class, PAINT},
-                      text, (float) (x - (size.getWidth() / 2)), (float) y, paint);
+                      text, textX, textY, paint);
+
+    float strokeWidth = fontSize / 10.0f; // Proportional to font size
+    ClassUtils.invoke(paint, "setStrokeWidth", strokeWidth);
+
+
+    if (haveFontOverline(ele)) {
+      int overline = (int) (y - size.getHeight() + Math.max(1.0f, fontSize / 4.0f));
+      ClassUtils.invoke(canvas, "drawLine",
+                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
+                        textX, overline, textX + (float) size.getWidth(), overline, paint);
+    }
+
+    if (haveFontUnderline(ele)) {
+      float underlineY = (float) (textY + (size.getHeight() / 10.0f) + strokeWidth);
+      ClassUtils.invoke(canvas, "drawLine",
+                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
+                        textX, underlineY, textX + (float) size.getWidth(), underlineY, paint);
+    }
+
+    if (haveFontStrikeThrough(ele)) {
+      float strikeThroughY = (float) (textY - (size.getHeight() / 3.0f));
+      ClassUtils.invoke(canvas, "drawLine",
+                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
+                        textX, strikeThroughY, textX + (float) size.getWidth(), strikeThroughY, paint);
+    }
   }
 
   /**
@@ -469,6 +498,37 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
       pointFs[i] = ClassUtils.newObject(POINTF, toFloat(point[0]), toFloat(point[1]));
     }
     return pointFs;
+  }
+
+  private boolean haveFontOverline(Element textEle) {
+    return FontStyle.OVERLINE.name().equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
+  }
+
+  private boolean haveFontUnderline(Element textEle) {
+    return FontStyle.UNDERLINE.name().equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
+  }
+
+  private boolean haveFontStrikeThrough(Element textEle) {
+    return LINE_THROUGH.equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
+  }
+
+  private int fontStyle(Element textEle) {
+    int fs = Font.PLAIN;
+    if (isFontBold(textEle)) {
+      fs = Font.BOLD;
+    }
+    if (isFontItalic(textEle)) {
+      fs |= Font.ITALIC;
+    }
+    return fs;
+  }
+
+  private boolean isFontItalic(Element textEle) {
+    return FontStyle.ITALIC.name().equalsIgnoreCase(textEle.getAttribute(FONT_STYLE));
+  }
+
+  private boolean isFontBold(Element textEle) {
+    return FontStyle.BOLD.name().equalsIgnoreCase(textEle.getAttribute(FONT_WEIGHT));
   }
 
   private static class ImgContext {

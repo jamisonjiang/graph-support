@@ -65,6 +65,10 @@ public class DocumentUtils {
     return getClassPath() + "/dot/";
   }
 
+  public static String getDotTestFile(String path) {
+    return getClassPath() + "/dot/" + path;
+  }
+
   public static String getVisualHtmlTemplatePath() {
     return getClassPath() + "/graph-visual-template.html";
   }

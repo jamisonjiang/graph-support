@@ -84,11 +84,11 @@
         <artifactId>batik-transcoder</artifactId>
         <version>${batik-version}</version>
       </dependency>
-      <dependency>
+      <!--<dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>fop</artifactId>
         <version>${fop-version}</version>
-      </dependency>
+      </dependency>-->
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-log4j12</artifactId>

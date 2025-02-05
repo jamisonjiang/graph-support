@@ -23,23 +23,17 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.Html.Table;
-import org.graphper.parser.grammar.TABLELexer;
-import org.graphper.parser.grammar.TABLEParser;
+import org.graphper.parser.grammar.HTMLLexer;
+import org.graphper.parser.grammar.HTMLParser;
 
-public class TableParser {
+public class HtmlParser {
 
-  private TableParser() {
+  private HtmlParser() {
   }
 
-  public static Table parse(String htmlStr) {
+  public static HtmlListener parse(String htmlStr) {
     if (StringUtils.isEmpty(htmlStr) || htmlStr.length() < 3
         || (!htmlStr.contains(LT) && !htmlStr.contains(GT))) {
-      return null;
-    }
-
-    htmlStr = htmlStr.trim();
-    if (!htmlStr.startsWith("<") || !htmlStr.endsWith(">")) {
       return null;
     }
 
@@ -47,23 +41,19 @@ public class TableParser {
     htmlStr = htmlStr.substring(0, htmlStr.length() - 1);
     htmlStr = htmlStr.trim();
 
-    if (!htmlStr.startsWith("<") || !htmlStr.endsWith(">")) {
-      return null;
-    }
-
-    TABLELexer lexer = new TABLELexer(CharStreams.fromString(htmlStr));
-    TABLEParser p = new TABLEParser(new CommonTokenStream(lexer));
+    HTMLLexer lexer = new HTMLLexer(CharStreams.fromString(htmlStr));
+    HTMLParser p = new HTMLParser(new CommonTokenStream(lexer));
 
     p.removeErrorListeners();
     lexer.removeErrorListeners();
 
-    TableSyntaxErrorListener tableSyntaxErrorListener = new TableSyntaxErrorListener();
-    p.addErrorListener(tableSyntaxErrorListener);
-    lexer.addErrorListener(tableSyntaxErrorListener);
+    HtmlSyntaxErrorListener htmlSyntaxErrorListener = new HtmlSyntaxErrorListener();
+    p.addErrorListener(htmlSyntaxErrorListener);
+    lexer.addErrorListener(htmlSyntaxErrorListener);
 
-    TableListener listener = new TableListener();
-    new ParseTreeWalker().walk(listener, p.table());
+    HtmlListener listener = new HtmlListener();
+    new ParseTreeWalker().walk(listener, p.htmlTag());
 
-    return listener.getTable();
+    return listener;
   }
 }

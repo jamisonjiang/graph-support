@@ -31,6 +31,7 @@ import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.def.FlatPoint;
 
 public class AWTextRender {
 
@@ -55,11 +56,13 @@ public class AWTextRender {
     this.g2d = g2d;
   }
 
-  public double draw() {
+  public FlatPoint draw() {
     if (StringUtils.containsRTL(text)) {
       g2d.setFont(font);
       g2d.drawString(text, (float) x, (float) y);
-      return getTextBounds().getWidth();
+      double width = getTextBounds().getWidth();
+      double height = getTextBounds().getHeight();
+      return new FlatPoint(height, width);
     }
 
     // Prepare AttributedString to handle multi-language layout and shaping
@@ -73,7 +76,8 @@ public class AWTextRender {
     GlyphVector glyphVector = font.createGlyphVector(frc, iterator);
 
     // Your existing drawing logic starts here
-    double xoffset = 0;
+    double width = 0;
+    double height = 0;
     GeneralPath outline = new GeneralPath();
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
       // Get the position of the glyph in the vector
@@ -97,12 +101,13 @@ public class AWTextRender {
 
       // Calculate the width of each glyph and add it to the x-offset
       Rectangle2D glyphBounds = glyphVector.getGlyphLogicalBounds(i).getBounds2D();
-      xoffset += glyphBounds.getWidth();
+      width += glyphBounds.getWidth();
+      height = Math.max(height, glyphBounds.getHeight());
     }
 
     // Render the final outline
     g2d.fill(outline);
-    return xoffset;
+    return new FlatPoint(height, width);
   }
 
   public Rectangle2D getTextBounds() {

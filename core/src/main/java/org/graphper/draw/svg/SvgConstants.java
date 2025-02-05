@@ -40,6 +40,8 @@ public interface SvgConstants {
 
   String TRANSFORM_VAL = "scale(%s) rotate(%s)";
 
+  String LINE_THROUGH = "line-through";
+
   /* -------------------------------------------- Connect character ------------------------------------------ */
 
   String COMMA = ",";
@@ -118,9 +120,15 @@ public interface SvgConstants {
 
   String FONT_SIZE = "font-size";
 
+  String FONT_STYLE = "font-style";
+
+  String FONT_WEIGHT = "font-weight";
+
   String FONT_FAMILY = "font-family";
 
   String TEXT_ANCHOR = "text-anchor";
+
+  String TEXT_DECORATION = "text-decoration";
 
   String X = "x";
 

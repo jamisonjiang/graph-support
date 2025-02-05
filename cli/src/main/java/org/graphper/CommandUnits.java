@@ -56,7 +56,7 @@ public class CommandUnits {
 
       File input = parseFile(arg);
       if (!input.exists()) {
-        throw new WrongCommandException("Error: dot file " + input.getPath() +" not exists");
+        throw new WrongCommandException("Error: dot file " + input.getPath() + " not exists");
       }
       command.setDotFile(input);
       return true;

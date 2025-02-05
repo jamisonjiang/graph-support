@@ -20,6 +20,7 @@ import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.InitPos;
@@ -53,6 +54,8 @@ public class GraphAttrs implements Serializable, Cloneable {
   double nodeSep = 0.5 * Graphviz.PIXEL;
 
   String label;
+
+  LabelTag labelTag;
 
   String fontName = DEFAULT_FONT;
 
@@ -124,6 +127,10 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   public String getLabel() {
     return label;
+  }
+
+  public LabelTag getLabelTag() {
+    return labelTag;
   }
 
   public Labelloc getLabelloc() {
@@ -228,6 +235,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         && Objects.equals(bgColor, that.bgColor) && splines == that.splines
         && Objects.equals(fontColor, that.fontColor) && rankdir == that.rankdir
         && layout == that.layout && Objects.equals(label, that.label)
+        && Objects.equals(labelTag, that.labelTag)
         && Objects.equals(fontName, that.fontName) && labelloc == that.labelloc
         && labeljust == that.labeljust && Objects.equals(scale, that.scale)
         && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
@@ -237,10 +245,10 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, fontName,
-                        labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin, mclimit,
-                        fontSize, compound, showGrid, href, tooltip, table, assemble, maxiter, k,
-                        overlap, initPos);
+    return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, labelTag,
+                        fontName, labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin,
+                        mclimit, fontSize, compound, showGrid, href, tooltip, table, assemble,
+                        maxiter, k, overlap, initPos);
   }
 
   @Override
@@ -253,6 +261,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", layout=" + layout +
         ", nodeSep=" + nodeSep +
         ", label='" + label + '\'' +
+        ", labelTag='" + labelTag + '\'' +
         ", fontName='" + fontName + '\'' +
         ", labelloc=" + labelloc +
         ", labeljust=" + labeljust +

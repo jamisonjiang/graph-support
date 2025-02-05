@@ -23,16 +23,17 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-public class DotSyntaxErrorListener extends BaseErrorListener {
+public class HtmlSyntaxErrorListener extends BaseErrorListener {
   @Override
   public void syntaxError(Recognizer<?, ?> recognizer,
                           Object offendingSymbol,
-                          int line, int charPositionInLine,
+                          int line,
+                          int charPositionInLine,
                           String msg,
                           RecognitionException e)
       throws ParseCancellationException {
     if (offendingSymbol == null) {
-      throw new ParseCancellationException("line " + line + ":" + charPositionInLine + " " + msg);
+      throw new ParseCancellationException(msg);
     }
 
     // Cast the offendingSymbol to CommonToken
@@ -52,11 +53,7 @@ public class DotSyntaxErrorListener extends BaseErrorListener {
 
     // Build a detailed error message
     StringBuilder errorBuilder = new StringBuilder();
-    errorBuilder.append("line ")
-        .append(line)
-        .append(":")
-        .append(charPositionInLine)
-        .append(" ")
+    errorBuilder
         .append(msg)
         .append(System.lineSeparator())
         .append(errorLine)

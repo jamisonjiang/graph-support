@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 
 /**
@@ -56,10 +57,11 @@ public interface MeasureText extends EnvStrategy {
   /**
    * Calculate the actual size of the label container based on the font and size of the label.
    *
-   * @param text     text content
-   * @param fontName font name
-   * @param fontSize font size
+   * @param text       text content
+   * @param fontName   font name
+   * @param fontSize   font size
+   * @param fontStyles font styles
    * @return label size
    */
-  FlatPoint measure(String text, String fontName, double fontSize);
+  FlatPoint measure(String text, String fontName, double fontSize, FontStyle... fontStyles);
 }

@@ -16,13 +16,17 @@
 
 package visual_case;
 
+import static org.graphper.api.Html.bold;
+import static org.graphper.api.Html.font;
+import static org.graphper.api.Html.fontAttrs;
+import static org.graphper.api.Html.left;
+import static org.graphper.api.Html.strikeThrough;
+import static org.graphper.api.Html.underline;
+
 import helper.GraphvizVisual;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
@@ -30,6 +34,9 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class NodeAttrTest extends GraphvizVisual {
 
@@ -165,5 +172,21 @@ public class NodeAttrTest extends GraphvizVisual {
         .addNode(node)
         .build();
     visual(graphviz);
+  }
+
+  @Test
+  public void testLabelTag() {
+    visual(
+        Graphviz.digraph()
+            .addNode(Node.builder()
+                         .labelTag(
+                             bold(left(underline("First line")))
+                                 .br()
+                                 .italic(strikeThrough(font("Second line", fontAttrs().color(Color.INDIGO))))
+                                 .subscript("subscript").superscript(underline("superscript"))
+                         )
+                         .build())
+            .build()
+    );
   }
 }

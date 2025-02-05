@@ -26,10 +26,12 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.layout.HtmlConvertor;
+import org.graphper.layout.LabelAttributes;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -327,11 +329,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
   }
 
   private void convertTables() {
-    Table table = lineAttrs.getTable();
-    if (table != null) {
-      assemble = HtmlConvertor.toAssemble(table);
-    }
-
+    assemble = convertToAssemble(lineAttrs.getTable(),  lineAttrs.getLabelTag());
     FloatLabel[] floatLabels = lineAttrs.getFloatLabels();
     if (floatLabels == null) {
       return;
@@ -340,7 +338,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     for (FloatLabel floatLabel : floatLabels) {
       Assemble floatLabelAssemble = floatLabel.getAssemble();
       if (floatLabelAssemble == null && floatLabel.getTable() != null) {
-        floatLabelAssemble = HtmlConvertor.toAssemble(floatLabel.getTable());
+        floatLabelAssemble = convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag());
       }
 
       if (floatLabelAssemble == null) {
@@ -352,6 +350,19 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
       }
       floatAssembles.put(floatLabel, floatLabelAssemble);
     }
+  }
+
+  private Assemble convertToAssemble(Table table, LabelTag labelTag) {
+    if (table != null) {
+      return HtmlConvertor.toAssemble(table);
+    }
+    Double fontSize = lineAttrs.getFontSize();
+    fontSize = fontSize != null ? fontSize : 0;
+    LabelAttributes labelAttrs = new LabelAttributes();
+    labelAttrs.setFontSize(fontSize);
+    labelAttrs.setFontName(lineAttrs.getFontName());
+    labelAttrs.setFontColor(lineAttrs.getFontColor());
+    return HtmlConvertor.toAssemble(labelTag, labelAttrs);
   }
 
   @Override

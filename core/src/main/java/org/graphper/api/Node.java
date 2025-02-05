@@ -20,8 +20,10 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 import org.graphper.api.Html.Table;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
@@ -218,6 +220,11 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
       return this;
     }
 
+    public NodeBuilder labelTag(LabelTag labelTag) {
+      nodeAttrs.labelTag = labelTag;
+      return this;
+    }
+
     /**
      * Set the height of the node, the height will take effect mainly in the following situations:
      * <ul>
@@ -407,6 +414,12 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     public NodeBuilder style(NodeStyle... styles) {
       Asserts.nullOrContainsNull(styles);
       nodeAttrs.styles = Arrays.asList(styles);
+      return this;
+    }
+
+    public NodeBuilder fontStyle(FontStyle... fontStyles) {
+      Asserts.nullOrContainsNull(fontStyles);
+      nodeAttrs.fontStyles = Arrays.asList(fontStyles);
       return this;
     }
 

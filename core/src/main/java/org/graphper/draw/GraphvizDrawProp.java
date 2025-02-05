@@ -20,13 +20,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.Assemble;
+import org.graphper.api.GraphAttrs;
+import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Labeljust;
+import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.LabelAttributes;
 import org.graphper.layout.OrthoVisGraph.Segment;
 import org.graphper.util.Asserts;
-import org.graphper.api.Graphviz;
-import org.graphper.api.attributes.Labelloc;
 
 /**
  * Cluster's rendering description object.
@@ -44,7 +46,8 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   public GraphvizDrawProp(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphviz = graphviz;
-    convertTable(graphviz.graphAttrs().getTable());
+    convertToAssemble(graphviz.graphAttrs().getTable(),
+                      graphviz.graphAttrs().getLabelTag());
   }
 
   /**
@@ -83,6 +86,16 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   @Override
   public Assemble assemble() {
     return graphviz.graphAttrs().getAssemble();
+  }
+
+  @Override
+  public LabelAttributes labelAttrs() {
+    GraphAttrs graphAttrs = graphviz.graphAttrs();
+    LabelAttributes labelAttrs = new LabelAttributes();
+    labelAttrs.setFontColor(graphAttrs.getFontColor());
+    labelAttrs.setFontName(graphAttrs.getFontName());
+    labelAttrs.setFontSize(graphAttrs.getFontSize());
+    return labelAttrs;
   }
 
   /**

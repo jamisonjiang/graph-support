@@ -19,6 +19,7 @@ package org.graphper.layout;
 import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
 
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.ClassUtils;
 import org.slf4j.Logger;
@@ -91,13 +92,14 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
    * <p>If an error occurs during measurement, it logs the error and returns a {@link FlatPoint}
    * with both dimensions set to {@code 0}.</p>
    *
-   * @param text     the text to be measured
-   * @param fontName the name of the font (not used in this implementation)
-   * @param fontSize the size of the font in points
+   * @param text       the text to be measured
+   * @param fontName   the name of the font (not used in this implementation)
+   * @param fontSize   the size of the font in points
+   * @param fontStyles the font styles of text
    * @return a {@link FlatPoint} representing the height and width of the text
    */
   @Override
-  public FlatPoint measure(String text, String fontName, double fontSize) {
+  public FlatPoint measure(String text, String fontName, double fontSize, FontStyle... fontStyles) {
     if (StringUtils.isEmpty(text)) {
       return new FlatPoint(0, 0);
     }
@@ -110,7 +112,8 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
       Object bounds = ClassUtils.newObject(RECT);
       ClassUtils.invoke(myTextPaint, "getTextBounds", text, 0, text.length(), bounds);
       double width = (double) (int) ClassUtils.invoke(bounds, "width");
-      double height = (double) (int) ClassUtils.invoke(bounds, "height") * text.split(NEW_LINE_SYMBOL).length;
+      double height =
+          (double) (int) ClassUtils.invoke(bounds, "height") * text.split(NEW_LINE_SYMBOL).length;
       return new FlatPoint(height, width);
     } catch (Exception e) {
       log.error("Measure text size encountered an error: ", e);

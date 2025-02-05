@@ -27,10 +27,10 @@
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-transcoder</artifactId>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
-    </dependency>
+    </dependency>-->
   </dependencies>
 
   <build>

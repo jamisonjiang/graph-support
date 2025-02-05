@@ -19,6 +19,7 @@ package org.graphper.layout;
 import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
 
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 
 public class RoughMeasureText implements MeasureText {
@@ -34,7 +35,7 @@ public class RoughMeasureText implements MeasureText {
   }
 
   @Override
-  public FlatPoint measure(String text, String fontName, double fontSize) {
+  public FlatPoint measure(String text, String fontName, double fontSize, FontStyle... fontStyles) {
     if (StringUtils.isEmpty(text) || fontSize <= 0) {
       return new FlatPoint(0, 0);
     }

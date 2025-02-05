@@ -74,7 +74,6 @@ STRING
  * Fragment for escape sequences within strings.
  */
 fragment ESC_SEQ
-//    : '\\' [nrt"\\bf.\n]
     : '\\' .
     ;
 

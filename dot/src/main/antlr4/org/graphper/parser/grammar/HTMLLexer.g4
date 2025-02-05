@@ -30,7 +30,7 @@
 // $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons ownLine
 // $antlr-format alignColons trailing, singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
 
-lexer grammar TABLELexer;
+lexer grammar HTMLLexer;
 
 HTML_COMMENT: '<!--' .*? '-->';
 HTML_CONDITIONAL_COMMENT: '<![' .*? ']>';
@@ -52,12 +52,17 @@ FONT: [Ff][Oo][Nn][Tt];
 B: [Bb];
 I: [Ii];
 U: [Uu];
+S: [Ss];
+O: [Oo];
 SUB: [Ss][Uu][Bb];
 SUP: [Ss][Uu][Pp];
 BR: [Bb][Rr];
+VT: [Vv][Tt];
+VB: [Vv][Bb];
+VC: [Vv][Cc];
+HL: [Hh][Ll];
 HR: [Hh][Rr];
-IMG: [Ii][Mm][Gg];
-CENTER: [Cc][Ee][Nn][Tt][Ee][Rr];
+HC: [Hh][Cc];
 
 COMMA: ',';
 

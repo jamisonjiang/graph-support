@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Tend;
 import org.graphper.def.FlatPoint;
@@ -47,6 +48,8 @@ public class FloatLabel implements Serializable {
    */
   private final String label;
 
+  private final LabelTag labelTag;
+
   private final Tend tend;
 
   private final Table table;
@@ -70,12 +73,14 @@ public class FloatLabel implements Serializable {
    */
   private final FlatPoint offset;
 
-  private FloatLabel(String label, String fontName, float fontSize, double lengthRatio, Tend tend,
-                     FlatPoint offset, Table table, Assemble assemble) {
+  private FloatLabel(String label, LabelTag labelTag, String fontName, float fontSize,
+                     double lengthRatio, Tend tend, FlatPoint offset,
+                     Table table, Assemble assemble) {
     Asserts.illegalArgument(label == null && table == null && assemble == null,
                             "Empty Float Label");
     Asserts.illegalArgument(fontSize < 0, "Float label can not less than 0");
     this.label = label;
+    this.labelTag = labelTag;
     this.fontName = fontName;
     this.fontSize = fontSize;
     this.lengthRatio = lengthRatio;
@@ -92,6 +97,10 @@ public class FloatLabel implements Serializable {
    */
   public String getLabel() {
     return label;
+  }
+
+  public LabelTag getLabelTag() {
+    return labelTag;
   }
 
   /**
@@ -182,6 +191,7 @@ public class FloatLabel implements Serializable {
     return Float.compare(that.fontSize, fontSize) == 0
         && Double.compare(that.lengthRatio, lengthRatio) == 0
         && Objects.equals(label, that.label)
+        && Objects.equals(labelTag, that.labelTag)
         && tend == that.tend
         && Objects.equals(table, that.table)
         && Objects.equals(assemble, that.assemble)
@@ -191,7 +201,8 @@ public class FloatLabel implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(label, tend, table, assemble, fontName, fontSize, lengthRatio, offset);
+    return Objects.hash(label, labelTag, tend, table, assemble,
+                        fontName, fontSize, lengthRatio, offset);
   }
 
   // ------------------------------------------ FloatLabel Builder ---------------------------------------
@@ -202,6 +213,8 @@ public class FloatLabel implements Serializable {
   public static class FloatLabelBuilder {
 
     private String label;
+
+    private LabelTag labelTag;
 
     private String fontName;
 
@@ -231,6 +244,11 @@ public class FloatLabel implements Serializable {
       Asserts.nullArgument(label, "floatLabel");
       this.label = label;
       this.fontName = FontUtils.selectFont(this.label, this.fontName);
+      return this;
+    }
+
+    public FloatLabelBuilder labelTag(LabelTag labelTag) {
+      this.labelTag = labelTag;
       return this;
     }
 
@@ -347,7 +365,8 @@ public class FloatLabel implements Serializable {
      * @throws NullPointerException not set the label
      */
     public FloatLabel build() {
-      return new FloatLabel(label, fontName, fontSize, lengthRatio, tend, offset, table, assemble);
+      return new FloatLabel(label, labelTag, fontName, fontSize,
+                            lengthRatio, tend, offset, table, assemble);
     }
   }
 }

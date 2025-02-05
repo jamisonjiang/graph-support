@@ -18,6 +18,7 @@ package org.graphper.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterShapeEnum;
@@ -90,6 +91,11 @@ public class Cluster extends GraphContainer implements Serializable {
     public B label(String label) {
       clusterAttrs.label = label;
       clusterAttrs.fontName = FontUtils.selectFont(clusterAttrs.label, clusterAttrs.fontName);
+      return self();
+    }
+
+    public B labelTag(LabelTag labelTag) {
+      clusterAttrs.labelTag = labelTag;
       return self();
     }
 

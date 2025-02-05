@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterShapeEnum;
@@ -44,6 +45,8 @@ public class ClusterAttrs implements Serializable, Cloneable {
   String id;
 
   String label;
+
+  LabelTag labelTag;
 
   Labelloc labelloc = Labelloc.TOP;
 
@@ -81,6 +84,10 @@ public class ClusterAttrs implements Serializable, Cloneable {
 
   public String getLabel() {
     return label;
+  }
+
+  public LabelTag getLabelTag() {
+    return labelTag;
   }
 
   public Labelloc getLabelloc() {
@@ -166,7 +173,8 @@ public class ClusterAttrs implements Serializable, Cloneable {
     ClusterAttrs that = (ClusterAttrs) o;
     return Double.compare(that.fontSize, fontSize) == 0
         && Double.compare(that.penWidth, penWidth) == 0 && Objects.equals(id, that.id)
-        && Objects.equals(label, that.label) && labelloc == that.labelloc
+        && Objects.equals(label, that.label) && Objects.equals(labelTag, that.labelTag)
+        && labelloc == that.labelloc
         && labeljust == that.labeljust && Objects.equals(shape, that.shape)
         && Objects.equals(styles, that.styles) && Objects.equals(bgColor, that.bgColor)
         && Objects.equals(color, that.color) && Objects.equals(fontColor, that.fontColor)
@@ -177,7 +185,7 @@ public class ClusterAttrs implements Serializable, Cloneable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, label, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
+    return Objects.hash(id, label, labelTag, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
                         fontName, margin, fontSize, href, tooltip, penWidth, table, assemble);
   }
 
@@ -186,6 +194,7 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return "ClusterAttrs{" +
         "id='" + id + '\'' +
         ", label='" + label + '\'' +
+        ", labelTag='" + labelTag + '\'' +
         ", labelloc=" + labelloc +
         ", labeljust=" + labeljust +
         ", shape=" + shape +

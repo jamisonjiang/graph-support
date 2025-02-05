@@ -24,6 +24,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
@@ -38,6 +39,7 @@ import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
@@ -129,6 +131,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
         drawEllipse(ele, g2d);
         return;
       }
+
       if (Objects.equals(ele.tagName(), TEXT_ELE)) {
         drawString(ele, g2d);
         return;
@@ -230,12 +233,14 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
     String fontName = ele.getAttribute(FONT_FAMILY);
     fontName = FontUtils.fontExists(fontName) ? fontName : DEFAULT_FONT;
-    Font defaultFont = new Font(fontName, Font.PLAIN, fontSize);
+    Font defaultFont = new Font(fontName, toFontStyleTag(ele), fontSize);
 
     int pre = 0;
     Font font = null;
-    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0);
+    FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0, toMeasureFontStyles(ele));
     x = x - (size.getWidth() / 2);
+    double startX = x; // Save start x position for underline
+    double maxHeight = 0;
 
     for (int i = 0; i < text.length(); i++) {
       char c = text.charAt(i);
@@ -245,7 +250,9 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
       if (font != null) {
         AWTextRender awTextRender = new AWTextRender(font, text.substring(pre, i), x, y, g2d);
-        x += awTextRender.draw();
+        FlatPoint offset = awTextRender.draw();
+        x += offset.getWidth();
+        maxHeight = Math.max(maxHeight, offset.getHeight());
         pre = i;
       }
 
@@ -253,17 +260,37 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
         font = defaultFont;
       } else {
         String supportFont = FontUtils.findFirstSupportFont(c);
-        if (supportFont == null) {
-          font = null;
-        } else {
-          font = new Font(supportFont, Font.PLAIN, fontSize);
-        }
+        font = supportFont != null ? new Font(supportFont, Font.PLAIN, fontSize) : null;
       }
     }
 
     font = font != null ? font : defaultFont;
     AWTextRender awTextRender = new AWTextRender(font, text.substring(pre), x, y, g2d);
-    awTextRender.draw();
+    FlatPoint finalOffset = awTextRender.draw();
+    x += finalOffset.getWidth();
+    maxHeight = Math.max(maxHeight, finalOffset.getHeight());
+
+    // Set pen width for underline and strikethrough relative to font size
+    float strokeWidth = Math.max(1.0f, fontSize / 12.0f);
+    Stroke originalStroke = g2d.getStroke();
+    g2d.setStroke(new BasicStroke(strokeWidth));
+
+    if (haveFontOverline(ele)) {
+      int overline = (int) (y - maxHeight + Math.max(1.0f, fontSize / 4.0f));
+      g2d.drawLine((int) startX, overline, (int) x, overline);
+    }
+
+    if (haveFontUnderline(ele)) {
+      int underlineY = (int) (y + strokeWidth);
+      g2d.drawLine((int) startX, underlineY, (int) x, underlineY);
+    }
+
+    if (haveFontStrikeThrough(ele)) {
+      double strikeThroughY = y - (maxHeight / 4.0);
+      g2d.drawLine((int) startX, (int) strikeThroughY, (int) x, (int) strikeThroughY);
+    }
+
+    g2d.setStroke(originalStroke);
   }
 
   /**
@@ -418,6 +445,50 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
     int rgb = Integer.parseInt(hexColorCode.substring(1), 16);
     return new Color(rgb);
+  }
+
+  private int toFontStyleTag(Element textEle) {
+    int fs = Font.PLAIN;
+    if (isFontBold(textEle)) {
+      fs = Font.BOLD;
+    }
+    if (isFontItalic(textEle)) {
+      fs |= Font.ITALIC;
+    }
+    return fs;
+  }
+
+  private FontStyle[] toMeasureFontStyles(Element textEle) {
+    boolean bold = isFontBold(textEle);
+    boolean italic = isFontItalic(textEle);
+    if (bold && italic) {
+      return new FontStyle[]{FontStyle.BOLD, FontStyle.ITALIC};
+    } else if (bold) {
+      return new FontStyle[]{FontStyle.BOLD};
+    } else if (italic) {
+      return new FontStyle[]{FontStyle.ITALIC};
+    }
+    return null;
+  }
+
+  private boolean isFontBold(Element textEle) {
+    return FontStyle.BOLD.name().equalsIgnoreCase(textEle.getAttribute(FONT_WEIGHT));
+  }
+
+  private boolean isFontItalic(Element textEle) {
+    return FontStyle.ITALIC.name().equalsIgnoreCase(textEle.getAttribute(FONT_STYLE));
+  }
+
+  private boolean haveFontOverline(Element textEle) {
+    return FontStyle.OVERLINE.name().equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
+  }
+
+  private boolean haveFontUnderline(Element textEle) {
+    return FontStyle.UNDERLINE.name().equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
+  }
+
+  private boolean haveFontStrikeThrough(Element textEle) {
+    return LINE_THROUGH.equalsIgnoreCase(textEle.getAttribute(TEXT_DECORATION));
   }
 
   private static class ImgContext {

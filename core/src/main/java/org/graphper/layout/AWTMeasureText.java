@@ -17,6 +17,8 @@
 package org.graphper.layout;
 
 import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
+import static org.graphper.api.attributes.FontStyle.containsBold;
+import static org.graphper.api.attributes.FontStyle.containsItalic;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.awt.Font;
@@ -26,6 +28,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 
 /**
@@ -82,19 +85,20 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
    *
    * <p>If the font name is invalid or not supported, a default font will be used.</p>
    *
-   * @param text     the text to measure
-   * @param fontName the name of the font to use
-   * @param fontSize the size of the font in points
+   * @param text       the text to measure
+   * @param fontName   the name of the font to use
+   * @param fontSize   the size of the font in points
+   * @param fontStyles the font styles of text
    * @return a {@link FlatPoint} representing the height and width of the text
    */
   @Override
-  public FlatPoint measure(String text, String fontName, double fontSize) {
+  public FlatPoint measure(String text, String fontName, double fontSize, FontStyle... fontStyles) {
     if (StringUtils.isEmpty(text) || fontSize <= 0) {
       return new FlatPoint(0, 0);
     }
 
     fontName = exists(fontName) ? fontName : DEFAULT_FONT;
-    Font font = new Font(fontName, Font.PLAIN, (int) fontSize);
+    Font font = new Font(fontName, toFontStyleTag(fontStyles), (int) fontSize);
     FontRenderContext renderContext = new FontRenderContext(null, true, true);
 
     String[] lines = text.split(NEW_LINE_SYMBOL);
@@ -119,7 +123,11 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
    */
   @Override
   protected String[] listAllSystemFonts() {
-    return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    try {
+      return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    } catch (NoClassDefFoundError e) {
+      return null;
+    }
   }
 
   /**
@@ -147,5 +155,16 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
 
     Font font = fontCache.computeIfAbsent(fontName, fn -> new Font(fn, Font.PLAIN, 0));
     return font.canDisplay(c);
+  }
+
+  private int toFontStyleTag(FontStyle... fontStyles) {
+    int fs = Font.PLAIN;
+    if (containsBold(fontStyles)) {
+      fs = Font.BOLD;
+    }
+    if (containsItalic(fontStyles)) {
+      fs |= Font.ITALIC;
+    }
+    return fs;
   }
 }

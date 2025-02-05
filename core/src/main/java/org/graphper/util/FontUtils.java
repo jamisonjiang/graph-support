@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.FontSelector;
 import org.graphper.layout.MeasureText;
@@ -92,16 +93,17 @@ public class FontUtils {
   /**
    * Measures the actual size of a label's bounding box based on its content, font, and size.
    *
-   * @param label     the label content to measure
-   * @param fontName  the name of the font used for the label
-   * @param fontSize  the size of the font
-   * @param widthIncr additional width added for fault tolerance
+   * @param label      the label content to measure
+   * @param fontName   the name of the font used for the label
+   * @param fontSize   the size of the font
+   * @param widthIncr  additional width added for fault tolerance
+   * @param fontStyles the font styles of label
    * @return a {@link FlatPoint} representing the width and height of the label
    * @throws RuntimeException if the measurement operation fails or returns null
    */
   public static FlatPoint measure(String label, String fontName, double fontSize,
-                                  double widthIncr) {
-    FlatPoint size = MEASURE_TEXT.measure(label, fontName, fontSize);
+                                  double widthIncr, FontStyle... fontStyles) {
+    FlatPoint size = MEASURE_TEXT.measure(label, fontName, fontSize, fontStyles);
     if (size == null) {
       throw new RuntimeException(
           "Unexpected error: MeasureText returned null for label size");

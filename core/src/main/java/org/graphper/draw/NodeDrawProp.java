@@ -27,6 +27,7 @@ import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.LabelAttributes;
 import org.graphper.util.Asserts;
 
 /**
@@ -62,7 +63,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     this.node = node;
     this.nodeAttrs = nodeAttrs;
     this.margin = nodeAttrs.getMargin();
-    convertTable(nodeAttrs.getTable());
+    convertToAssemble(nodeAttrs.getTable(), nodeAttrs.getLabelTag());
   }
 
   public Node getNode() {
@@ -118,6 +119,17 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   @Override
   public Assemble assemble() {
     return nodeAttrs.getAssemble();
+  }
+
+  @Override
+  public LabelAttributes labelAttrs() {
+    Double fontSize = nodeAttrs.getFontSize();
+    LabelAttributes labelAttrs = new LabelAttributes();
+    labelAttrs.setFontSize(fontSize != null ? fontSize : 0);
+    labelAttrs.setFontName(nodeAttrs.getFontName());
+    labelAttrs.setFontColor(nodeAttrs.getFontColor());
+    labelAttrs.setByStyles(nodeAttrs.getFontStyles());
+    return labelAttrs;
   }
 
   @Override

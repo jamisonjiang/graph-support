@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.InitPos;
@@ -240,6 +241,11 @@ public class Graphviz extends GraphContainer implements Serializable {
     public GraphvizBuilder label(String label) {
       graphAttrs.label = label;
       graphAttrs.fontName = FontUtils.selectFont(graphAttrs.label, graphAttrs.fontName);
+      return self();
+    }
+
+    public GraphvizBuilder labelTag(LabelTag labelTag) {
+      graphAttrs.labelTag = labelTag;
       return self();
     }
 

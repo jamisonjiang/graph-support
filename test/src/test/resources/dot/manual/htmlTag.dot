@@ -1,5 +1,43 @@
 digraph G {
-    node [shape=plaintext];
+  node [shape=plaintext];
+  size="0.8"
+
+  exampleNode [
+    label=<
+      <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="4" CELLPADDING="4">
+        <TR>
+          <TD>
+            <B>Bold text</B><BR/>
+            <I>Italic text</I><BR/>
+            <U>Underlined text</U><BR/>
+            <O>Overlined text</O><BR/>
+            <SUB>Subscript text</SUB><BR/>
+            <SUP>Superscript text</SUP><BR/>
+            <S>Strikethrough text</S>
+          </TD>
+        </TR>
+
+        <TR>
+          <TD>
+            <FONT COLOR="red">Red text in a FONT tag</FONT>
+            <BR/>
+          </TD>
+        </TR>
+
+        <TR>
+          <TD>
+           Multiple
+          </TD>
+          <TD>
+            columns
+          </TD>
+          <TD>
+            using VR
+          </TD>
+        </TR>
+      </TABLE>
+    >
+  ];
 
     // Using <FONT> for styling
     n1 [label=<
@@ -21,28 +59,20 @@ digraph G {
         H<SUB>2</SUB>O + CO<SUB>2</SUB> = O<SUB>2</SUB>
     >];
 
-    // Using <HR/> for horizontal rules
     n5 [label=<
-        First Line<HR/>Second Line
+        First Line<BR/>Second Line
     >];
 
-    // Using <IMG> for inline images
-    n6 [label=<
-        <IMG SRC="https://via.placeholder.com/50" SCALE="TRUE"/>
-    >];
-
-    // Using <FONT> and <CENTER> together
+    // Using <FONT> and <S> together
     n7 [label=<
-        <CENTER>
-            <FONT COLOR="green" POINT-SIZE="20">Centered Text</FONT>
-        </CENTER>
+        <S><FONT COLOR="green" POINT-SIZE="20">Centered Text</FONT></S>
     >];
 
-    // Using <U> inside <CENTER>
+    // Using <U> inside <S>
     n8 [label=<
-        <CENTER>
+        <S>
             <U>Underlined Centered</U>
-        </CENTER>
+        </S>
     >];
 
     n1 -> n2;

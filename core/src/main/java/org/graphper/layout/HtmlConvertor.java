@@ -16,7 +16,10 @@
 
 package org.graphper.layout;
 
+import static org.graphper.api.Graphviz.PIXEL;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,20 +28,30 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
 import org.graphper.api.Assemble.AssembleBuilder;
-import org.graphper.api.Graphviz;
+import org.graphper.api.Html.BasicLabelTag;
+import org.graphper.api.Html.FontAttrs;
+import org.graphper.api.Html.FontLabelTag;
+import org.graphper.api.Html.LabelTag;
+import org.graphper.api.Html.LabelTagType;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
 import org.graphper.api.Html.Tr;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
+import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.FontStyle;
+import org.graphper.api.attributes.Labeljust;
+import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.def.CycleDependencyException;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
+import org.graphper.util.LabelTagUtils;
 
 /**
  * Translate the data of the original html-like structure into a lower-level {@link Assemble}.
@@ -69,6 +82,26 @@ public class HtmlConvertor {
 
     return convertToAssemble(table, tableHelper);
   }
+
+  public static Assemble toAssemble(LabelTag labelTag, LabelAttributes labelAttrs) {
+    if (labelTag == null || labelAttrs == null) {
+      return null;
+    }
+
+    // TODO: Infinite loop
+    AssembleBuilder builder = Assemble.builder();
+    TextRows textRows = new TextRows();
+    TextTagValue textTagValue = new TextTagValue(labelAttrs);
+    accessLabelTag(textRows, labelTag, textTagValue, new FlatPoint(0, 0), 0);
+
+    FlatPoint size = LabelTagUtils.measure(labelTag, labelAttrs);
+    Asserts.nullArgument(size);
+
+    textAlign(size, textRows, builder);
+    return builder.width(size.getWidth() / PIXEL).height(size.getHeight() / PIXEL).build();
+  }
+
+  // ------------------------------------------ table private methods ------------------------------------------
 
   private static void tableLayout(Table table, TableHelper tableHelper,
                                   RootTableHelper rootTableHelper) {
@@ -392,9 +425,9 @@ public class HtmlConvertor {
   }
 
   private static Assemble convertToAssemble(Table table, TableHelper tableHelper) {
-    double tabCellSpacing = (double) table.getCellSpacing() / (2 * Graphviz.PIXEL);
-    double width = tableHelper.getWidth() / Graphviz.PIXEL;
-    double height = tableHelper.getHeight() / Graphviz.PIXEL;
+    double tabCellSpacing = (double) table.getCellSpacing() / (2 * PIXEL);
+    double width = tableHelper.getWidth() / PIXEL;
+    double height = tableHelper.getHeight() / PIXEL;
     AssembleBuilder assembleBuilder = Assemble.builder().width(width).height(height);
     NodeBuilder nodeBuilder = Node.builder()
         .id(table.getId())
@@ -455,6 +488,16 @@ public class HtmlConvertor {
           cellBuilder.assemble(assemble);
         }
 
+        LabelTag textTag = td.getTextTag();
+        if (textTag != null) {
+          LabelAttributes attrs = new LabelAttributes();
+          attrs.setFontColor(td.getFontColor());
+          attrs.setFontName(td.getFontName());
+          attrs.setFontSize(td.getFontSize());
+          Assemble assemble = toAssemble(textTag, attrs);
+          cellBuilder.assemble(assemble);
+        }
+
         assembleBuilder.addCell(horOffset, verOffset, cellBuilder.build());
       }
     }
@@ -483,16 +526,186 @@ public class HtmlConvertor {
         return;
       }
 
-      labelSize = FontUtils.measure(td.getText(), td.getFontName(),
-                                    td.getFontSize(), 0);
+      LabelTag textTag = td.getTextTag();
+      if (textTag != null) {
+        LabelAttributes attrs = new LabelAttributes();
+        attrs.setFontName(td.getFontName());
+        attrs.setFontSize(td.getFontSize());
+        labelSize = LabelTagUtils.measure(textTag, attrs);
+      } else {
+        labelSize = FontUtils.measure(td.getText(), td.getFontName(), td.getFontSize(), 0);
+      }
     }
 
     int margin = td.getCellPadding(table) + table.getCellSpacing();
-    tdBox.size = td.getShape().minContainerSize(labelSize.getHeight() + margin,
-                                                labelSize.getWidth() + margin);
+    tdBox.size = td.getShape()
+        .minContainerSize(labelSize.getHeight() + margin, labelSize.getWidth() + margin);
     Asserts.nullArgument(tdBox.size, "Node shape cannot return null outer box size");
     tdBox.size.setWidth(Math.max(width, tdBox.size.getWidth()));
     tdBox.size.setHeight(Math.max(height, tdBox.size.getHeight()));
+  }
+
+  // ------------------------------------------ label tag private methods ------------------------------------------
+  private static void textAlign(FlatPoint size, TextRows textRows, AssembleBuilder builder) {
+    double width = size.getWidth();
+    for (TextRow row : textRows.getRows()) {
+      double horOffset = row.horOffset(width);
+
+      for (TextCell cell : row.getCells()) {
+        double xOffset = cell.xOffset + horOffset;
+        double yOffset = cell.yOffset + row.verOffset(cell);
+
+        builder.addCell(xOffset / PIXEL, yOffset / PIXEL, cell.cell);
+      }
+    }
+  }
+
+  private static double accessLabelTag(TextRows textRows, LabelTag labelTag,
+                                       TextTagValue textTagValue, FlatPoint position,
+                                       double currentLineHeight) {
+    if (labelTag == null) {
+      return currentLineHeight;
+    }
+
+    for (BasicLabelTag tag : labelTag.getTags()) {
+      TextTagValue temp = textTagValue.clone();
+      currentLineHeight = accessLabelTag(textRows, tag, textTagValue,
+                                         position, currentLineHeight);
+      textTagValue = temp;
+    }
+    return currentLineHeight;
+  }
+
+  private static double accessLabelTag(TextRows textRows, BasicLabelTag labelTag,
+                                       TextTagValue textTagValue, FlatPoint position,
+                                       double currentLineHeight) {
+    if (labelTag.getType() == LabelTagType.BR) {
+      position.setX(0);
+      position.setY(position.getY() + currentLineHeight);
+      textRows.clearCurrentRow();
+      return 10;
+    }
+
+    setTextValue(labelTag, textTagValue);
+    if (StringUtils.isNotEmpty(labelTag.getText())) {
+      return textTagToCell(textRows, labelTag, textTagValue, position, currentLineHeight);
+    }
+
+    return accessLabelTag(textRows, labelTag.getSubLabelTag(),
+                          textTagValue, position, currentLineHeight);
+  }
+
+  private static void setTextValue(BasicLabelTag labelTag, TextTagValue textTagValue) {
+    if (labelTag.getType() == LabelTagType.FONT) {
+      FontLabelTag fontLabelTag = (FontLabelTag) labelTag;
+      FontAttrs fontAttrs = fontLabelTag.getFontAttrs();
+      if (fontAttrs != null) {
+        Color color = fontAttrs.getColor();
+        String face = fontAttrs.getFace();
+        Integer pointSize = fontAttrs.getPointSize();
+
+        if (color != null) {
+          textTagValue.setFontColor(color);
+        }
+        if (StringUtils.isNotEmpty(face)) {
+          textTagValue.setFontName(face);
+        }
+        if (pointSize != null) {
+          textTagValue.setFontSize(pointSize);
+        }
+      }
+    }
+
+    if (labelTag.getType() == LabelTagType.BOLD) {
+      textTagValue.setBold(true);
+    }
+
+    if (labelTag.getType() == LabelTagType.ITALIC) {
+      textTagValue.setItalic(true);
+    }
+
+    if (labelTag.getType() == LabelTagType.OVERLINE) {
+      textTagValue.setOverline(true);
+    }
+
+    if (labelTag.getType() == LabelTagType.UNDERLINE) {
+      textTagValue.setUnderline(true);
+    }
+
+    if (labelTag.getType() == LabelTagType.STRIKETHROUGH) {
+      textTagValue.setStrikethrough(true);
+    }
+
+    if (labelTag.getType() == LabelTagType.SUBSCRIPT) {
+      textTagValue.subscript = true;
+    }
+
+    if (labelTag.getType() == LabelTagType.SUPERSCRIPT) {
+      textTagValue.superscript = true;
+    }
+
+    textTagValue.setVerAlign(labelTag);
+    textTagValue.setHorAlign(labelTag);
+  }
+
+  private static double textTagToCell(TextRows textRows, BasicLabelTag labelTag,
+                                      TextTagValue textTagValue, FlatPoint position,
+                                      double currentLineHeight) {
+    if (StringUtils.isEmpty(labelTag.getText())) {
+      return currentLineHeight;
+    }
+
+    String fontName = textTagValue.getFontName();
+    double fontSize = textTagValue.getFontSize();
+    FontStyle[] fontStyles = textTagValue.toMeasureFontStyles();
+    FlatPoint size = FontUtils.measure(labelTag.getText(), fontName,
+                                       fontSize, 0, fontStyles);
+
+    if (textTagValue.subscript || textTagValue.superscript) {
+      FlatPoint originalSize = size;
+      fontSize /= 2;
+      size = FontUtils.measure(labelTag.getText(), fontName, fontSize, 0, fontStyles);
+      size.setHeight(originalSize.getHeight());
+    }
+
+    NodeBuilder cellBuilder = Node
+        .builder()
+        .penWidth(0)
+        .fixedSize(true)
+        .labelloc(Labelloc.TOP)
+        .label(labelTag.getText())
+        .fontSize(fontSize)
+        .fontName(fontName)
+        .fontColor(textTagValue.getFontColor())
+        .width(size.getWidth() / PIXEL)
+        .height(size.getHeight() / PIXEL);
+
+    if (textTagValue.superscript) {
+      cellBuilder.labelloc(Labelloc.TOP);
+    }
+    if (textTagValue.subscript) {
+      cellBuilder.labelloc(Labelloc.BOTTOM);
+    }
+
+    setFontStyles(textTagValue, cellBuilder);
+
+    TextCell textCell = new TextCell(position.getX(), position.getY(),
+                                     cellBuilder.build(), textTagValue.verAlign);
+
+    TextRow currentRow = textRows.getCurrentRow();
+    currentRow.setRowHorAlign(textTagValue.horAlign);
+    currentRow.addCells(textCell);
+    currentRow.width = Math.max(currentRow.width, position.getX() + textCell.width());
+    position.setX(position.getX() + size.getWidth());
+
+    return Math.max(currentLineHeight, size.getHeight());
+  }
+
+  private static void setFontStyles(TextTagValue textTagValue, NodeBuilder cellBuilder) {
+    FontStyle[] fontStyles = textTagValue.toFontStyles();
+    if (fontStyles != null) {
+      cellBuilder.fontStyle(fontStyles);
+    }
   }
 
   private static class RootTableHelper extends TableHelper {
@@ -633,7 +846,7 @@ public class HtmlConvertor {
     }
 
     private OccupyRange getOccupyRange(int row, int idx) {
-      if (rowOccupyRanges == null || rowOccupyRanges.size() == 0) {
+      if (rowOccupyRanges == null || rowOccupyRanges.isEmpty()) {
         return null;
       }
 
@@ -734,15 +947,12 @@ public class HtmlConvertor {
     }
 
     private double pixelPosition() {
-      return position / Graphviz.PIXEL;
+      return position / PIXEL;
     }
 
     @Override
     public String toString() {
-      return "TableAxis{" +
-          "no=" + no +
-          ", position=" + position +
-          '}';
+      return "TableAxis{" + "no=" + no + ", position=" + position + '}';
     }
   }
 
@@ -776,11 +986,11 @@ public class HtmlConvertor {
     }
 
     private double width() {
-      return Math.abs(right.position - left.position) / Graphviz.PIXEL;
+      return Math.abs(right.position - left.position) / PIXEL;
     }
 
     private double height() {
-      return Math.abs(down.position - up.position) / Graphviz.PIXEL;
+      return Math.abs(down.position - up.position) / PIXEL;
     }
 
     private boolean rowSpanThanOne() {
@@ -814,6 +1024,197 @@ public class HtmlConvertor {
 
     private boolean inRange(int axisNo) {
       return axisNo >= start && axisNo < end;
+    }
+  }
+
+  private static class TextTagValue extends LabelAttributes implements Cloneable {
+
+    private boolean subscript;
+
+    private boolean superscript;
+
+    private Labelloc verAlign;
+
+    private Labeljust horAlign;
+
+    public TextTagValue(LabelAttributes labelAttrs) {
+      setBold(labelAttrs.isBold());
+      setItalic(labelAttrs.isItalic());
+      setFontSize(labelAttrs.getFontSize());
+      setFontName(labelAttrs.getFontName());
+      setFontColor(labelAttrs.getFontColor());
+    }
+
+    private void setHorAlign(BasicLabelTag labelTag) {
+      LabelTagType type = labelTag.getType();
+      switch (type) {
+        case LEFT:
+          this.horAlign = Labeljust.LEFT;
+          break;
+        case RIGHT:
+          this.horAlign = Labeljust.RIGHT;
+          break;
+        case HORIZONTAL_CENTER:
+          this.horAlign = Labeljust.CENTER;
+          break;
+        default:
+          break;
+      }
+    }
+
+    private void setVerAlign(BasicLabelTag labelTag) {
+      LabelTagType type = labelTag.getType();
+      switch (type) {
+        case TOP:
+          this.verAlign = Labelloc.TOP;
+          break;
+        case BOTTOM:
+          this.verAlign = Labelloc.BOTTOM;
+          break;
+        case VERTICAL_CENTER:
+          this.verAlign = Labelloc.CENTER;
+          break;
+        default:
+          break;
+      }
+    }
+
+    @Override
+    public TextTagValue clone() {
+      TextTagValue t = (TextTagValue) super.clone();
+      t.subscript = subscript;
+      t.superscript = subscript;
+      t.verAlign = verAlign;
+      t.horAlign = horAlign;
+      return t;
+    }
+  }
+
+  private static class TextRows {
+
+    private TextRow currentRow;
+
+    private List<TextRow> rows;
+
+    private void addRows(TextRow row) {
+      if (rows == null) {
+        rows = new ArrayList<>();
+      }
+      rows.add(row);
+    }
+
+    private List<TextRow> getRows() {
+      return rows == null ? Collections.emptyList() : rows;
+    }
+
+    private TextRow getCurrentRow() {
+      if (currentRow == null) {
+        currentRow = new TextRow();
+        addRows(currentRow);
+      }
+      return currentRow;
+    }
+
+    private void clearCurrentRow() {
+      this.currentRow = null;
+    }
+  }
+
+  private static class TextRow {
+
+    private double width;
+
+    private double height;
+
+    private Labeljust rowHorAlign;
+
+    private List<TextCell> cells;
+
+    private void addCells(TextCell cell) {
+      if (cells == null) {
+        cells = new ArrayList<>();
+      }
+      cells.add(cell);
+      width += cell.width();
+      height = Math.max(height, cell.height());
+    }
+
+    private List<TextCell> getCells() {
+      return cells == null ? Collections.emptyList() : cells;
+    }
+
+    private void setRowHorAlign(Labeljust labeljust) {
+      if (rowHorAlign == null || rowHorAlign == labeljust) {
+        rowHorAlign = labeljust;
+        return;
+      }
+
+      rowHorAlign = Labeljust.CENTER;
+    }
+
+    private double horOffset(double rowsWidth) {
+      if (rowHorAlign == Labeljust.LEFT) {
+        return 0;
+      }
+
+      double offset = rowsWidth - width;
+
+      if (rowHorAlign == null || rowHorAlign == Labeljust.CENTER) {
+        return offset / 2;
+      }
+
+      if (rowHorAlign == Labeljust.RIGHT) {
+        return offset;
+      }
+
+      return 0;
+    }
+
+    private double verOffset(TextCell textCell) {
+      Labelloc verAlign = textCell.verAlign;
+      if (verAlign == Labelloc.TOP) {
+        return 0;
+      }
+
+      double offset = height - textCell.height();
+
+      if (verAlign == null || verAlign == Labelloc.CENTER) {
+        return offset / 2;
+      }
+
+      if (verAlign == Labelloc.BOTTOM) {
+        return offset;
+      }
+
+      return 0;
+    }
+  }
+
+  private static class TextCell {
+
+    private final Node cell;
+
+    private final double xOffset;
+
+    private final double yOffset;
+
+    private final Labelloc verAlign;
+
+    TextCell(double xOffset, double yOffset, Node cell, Labelloc verAlign) {
+      this.xOffset = xOffset;
+      this.yOffset = yOffset;
+      this.cell = cell;
+      this.verAlign = verAlign;
+    }
+
+    private double width() {
+      Double width = cell.nodeAttrs().getWidth();
+      return width == null ? 0 : width;
+    }
+
+    private double height() {
+      Double height = cell.nodeAttrs().getHeight();
+      return height == null ? 0 : height;
     }
   }
 }
