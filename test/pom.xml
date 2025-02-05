@@ -51,11 +51,11 @@
       <artifactId>batik-transcoder</artifactId>
       <scope>test</scope>
     </dependency>
-    <!--<dependency>
+    <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>fop</artifactId>
       <scope>test</scope>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>

@@ -1,6 +1,6 @@
 digraph timeline {
     bgcolor="transparent";
-    size="7,8";
+    size="0.7,0.8";
 
     edge [style=invis];
     node [fontsize=24, shape = plaintext];

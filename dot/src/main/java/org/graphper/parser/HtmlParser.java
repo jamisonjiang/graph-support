@@ -33,7 +33,7 @@ public class HtmlParser {
 
   public static HtmlListener parse(String htmlStr) {
     if (StringUtils.isEmpty(htmlStr) || htmlStr.length() < 3
-        || (!htmlStr.contains(LT) && !htmlStr.contains(GT))) {
+        || (!htmlStr.startsWith(LT) && !htmlStr.endsWith(GT))) {
       return null;
     }
 
