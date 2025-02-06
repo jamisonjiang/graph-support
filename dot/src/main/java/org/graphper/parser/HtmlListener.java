@@ -63,16 +63,49 @@ import org.graphper.parser.grammar.HTMLParser.VtTagContext;
 import org.graphper.parser.grammar.HTMLParserBaseListener;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * A listener for parsing a subset of HTML-like syntax and converting it into a {@link Table} or
+ * {@link LabelTag} structure, depending on the input.
+ * <p>
+ * This listener extends {@link HTMLParserBaseListener} and processes events such as entering and
+ * exiting tags ({@code <table>}, {@code <td>}, etc.), gathering content (text or nested tags), and
+ * applying attributes (e.g., font color, size). The result can be retrieved using:
+ * <ul>
+ *   <li>{@link #getLabel()} if the root is a simple string label,</li>
+ *   <li>{@link #getTable()} if the root is an HTML table, or</li>
+ *   <li>{@link #getLabelTag()} if the root is an HTML-based {@link LabelTag}.</li>
+ * </ul>
+ *
+ * @author Jamison Jiang
+ */
 public class HtmlListener extends HTMLParserBaseListener {
 
+  /**
+   * The final root object of the parsed HTML, which could be a {@link Table}, a {@link LabelTag},
+   * or a {@link String}.
+   */
   private Object root;
 
+  /**
+   * A stack of {@link Table} objects corresponding to nested {@code <table>} tags.
+   */
   private Deque<Table> tableQueue;
 
+  /**
+   * A stack of {@link List}{@code <Td>} objects corresponding to nested {@code <tr>} tags. Each
+   * list holds the {@link Td} elements within that row.
+   */
   private Deque<List<Td>> tdQueue;
 
+  /**
+   * A stack of {@link Tag} objects used to build and nest {@link LabelTag} structures.
+   */
   private Deque<Tag> tagQueue;
 
+  /**
+   * Called upon entering any HTML tag. If the tag is not a {@code <table>}, this method checks if
+   * the content is just text or nested elements.
+   */
   @Override
   public void enterHtmlTag(HtmlTagContext ctx) {
     if (ctx.table() != null) {
@@ -84,18 +117,29 @@ public class HtmlListener extends HTMLParserBaseListener {
       return;
     }
 
+    // If the element has no sub-elements, treat it as pure text root
     if (CollectionUtils.isEmpty(tagCtx.htmlElement())) {
       root = tagCtx.getText();
       return;
     }
+    // Otherwise, prepare for a nested tag structure
     pushTag(new Tag(labelTag -> root = labelTag));
   }
 
+  /**
+   * Called upon exiting an HTML tag. Consumes any pending {@link Tag} on the stack, finalizing the
+   * nested label structure.
+   */
   @Override
   public void exitHtmlTag(HtmlTagContext ctx) {
     pollAndConsTag();
   }
 
+  /**
+   * Called upon entering a {@code <table>} tag. Creates a new {@link Table} instance and, if we're
+   * currently inside a {@code <td>}, associates the table with that cell. If no root is set yet,
+   * this table becomes the root.
+   */
   @Override
   public void enterTable(TableContext ctx) {
     Table t = Html.table();
@@ -111,16 +155,30 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Called upon exiting a {@code <table>} tag. Pops the current table off the stack, effectively
+   * returning to the parent container (or no container at all).
+   */
   @Override
   public void exitTable(TableContext ctx) {
     popCurrentTable();
   }
 
+  /**
+   * Called upon entering a {@code <tr>} tag. Prepares a new list of {@link Td} objects to hold the
+   * row's cells.
+   */
   @Override
   public void enterTr(TrContext ctx) {
     pushTds();
   }
 
+  /**
+   * Called upon exiting a {@code <tr>} tag. The list of {@link Td} objects for this row is
+   * retrieved and added to the current {@link Table} as a single row.
+   *
+   * @throws ParseException if no {@link Td} elements are found for the row
+   */
   @Override
   public void exitTr(TrContext ctx) {
     List<Td> tds = peekTds();
@@ -131,6 +189,12 @@ public class HtmlListener extends HTMLParserBaseListener {
     pollTds();
   }
 
+  /**
+   * Called upon entering a {@code <td>} tag. Creates a new {@link Td} and adds it to the current
+   * row. If the cell contains nested HTML elements, we prepare a new {@link Tag} to capture them.
+   *
+   * @throws ParseException if the {@code <td>} is not within any {@code <tr>}
+   */
   @Override
   public void enterTd(TdContext ctx) {
     List<Td> tds = peekTds();
@@ -154,11 +218,19 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Called upon exiting a {@code <td>} tag. Consumes any pending {@link Tag} on the stack,
+   * finalizing the cell's nested label structure.
+   */
   @Override
   public void exitTd(TdContext ctx) {
     pollAndConsTag();
   }
 
+  /**
+   * Called upon entering any attribute definition (e.g. {@code width="200"}). Applies the
+   * attributes to either the {@link Td} or the {@link Table}, depending on the parent context.
+   */
   @Override
   public void enterHtmlAttribute(HtmlAttributeContext ctx) {
     if (ctx.TAG_NAME() == null || ctx.ATTVALUE_VALUE() == null) {
@@ -181,6 +253,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Called upon entering a generic HTML element (e.g., {@code <b>}, {@code <i>}, {@code <font>}).
+   * Depending on the type of tag, it applies appropriate formatting or alignment by constructing or
+   * updating the {@link LabelTag}.
+   */
   @Override
   public void enterHtmlElement(HtmlElementContext ctx) {
     FontTagContext font = ctx.fontTag();
@@ -199,6 +276,7 @@ public class HtmlListener extends HTMLParserBaseListener {
     HcTagContext horizontalCenter = ctx.hcTag();
     BrTagContext br = ctx.brTag();
 
+    // Handling <font> with optional attributes
     if (font != null) {
       FontAttrs fontAttrs = parseFontAttrs(font.htmlAttribute());
       if (fontAttrs == null) {
@@ -267,6 +345,10 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Called upon exiting a generic HTML element. If the element is not a {@code <br>}, we pop and
+   * consume any pending {@link Tag}.
+   */
   @Override
   public void exitHtmlElement(HtmlElementContext ctx) {
     BrTagContext br = ctx.brTag();
@@ -275,21 +357,29 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Called upon encountering character data within an HTML element. If the root is not already set
+   * to a {@link String}, it attempts to treat this data as text within the current {@link Tag}.
+   */
   @Override
   public void enterHtmlChardata(HtmlChardataContext ctx) {
-    // Entire html content is String
+    // If we already have a string root, do nothing
     if (getLabel() != null) {
       return;
     }
 
     String text = StringUtils.isEmpty(ctx.getText()) ? StringUtils.EMPTY : ctx.getText();
-    text = text.replace("\n", "")
-        .replace("\r", "")
-        .replace("\t", "");
+    // Trim whitespace artifacts like newlines or tabs
+    text = text.replace("\n", "").replace("\r", "").replace("\t", "");
     String t = text;
     peekAndConsTagIfAbsent(() -> Html.text(t), labelTag -> labelTag.text(t));
   }
 
+  /**
+   * Retrieves the final label if the parsed root is a simple text {@link String}.
+   *
+   * @return the label as a string, or {@code null} if not available
+   */
   public String getLabel() {
     if (root instanceof String) {
       return (String) root;
@@ -297,6 +387,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     return null;
   }
 
+  /**
+   * Retrieves the parsed {@link Table} if the root is an HTML table.
+   *
+   * @return the {@link Table} root, or {@code null} if not available
+   */
   public Table getTable() {
     if (root instanceof Table) {
       return (Table) root;
@@ -304,6 +399,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     return null;
   }
 
+  /**
+   * Retrieves the parsed {@link LabelTag} if the root is an HTML-like label structure.
+   *
+   * @return the {@link LabelTag} root, or {@code null} if not available
+   */
   public LabelTag getLabelTag() {
     if (root instanceof LabelTag) {
       return (LabelTag) root;
@@ -311,6 +411,12 @@ public class HtmlListener extends HTMLParserBaseListener {
     return null;
   }
 
+  /**
+   * Obtains the current {@link Td} (the last in the current row).
+   *
+   * @return the current {@link Td}
+   * @throws ParseException if no current {@link Td} is found
+   */
   private Td currentTd() {
     List<Td> tds = peekTds();
     if (CollectionUtils.isEmpty(tds)) {
@@ -319,6 +425,12 @@ public class HtmlListener extends HTMLParserBaseListener {
     return tds.get(tds.size() - 1);
   }
 
+  /**
+   * Obtains the current {@link Table} (the last pushed onto the {@link #tableQueue}).
+   *
+   * @return the current {@link Table}
+   * @throws ParseException if there is no table context on the stack
+   */
   private Table curretTable() {
     if (tableQueue == null) {
       throw new ParseException("Cannot found current table");
@@ -331,6 +443,10 @@ public class HtmlListener extends HTMLParserBaseListener {
     return t;
   }
 
+  /**
+   * Removes the topmost {@link Table} from the stack, returning to a higher-level context (or none
+   * if the stack becomes empty).
+   */
   private void popCurrentTable() {
     if (tableQueue == null) {
       return;
@@ -338,6 +454,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     tableQueue.pop();
   }
 
+  /**
+   * Pushes a new {@link Table} onto the stack, making it the current table context.
+   *
+   * @param table the new {@link Table} to push
+   */
   private void pushTable(Table table) {
     if (tableQueue == null) {
       tableQueue = new LinkedList<>();
@@ -345,22 +466,32 @@ public class HtmlListener extends HTMLParserBaseListener {
     tableQueue.push(table);
   }
 
+  /**
+   * Removes and returns the current list of {@link Td} objects from {@link #tdQueue}.
+   *
+   * @return the list of {@link Td} elements for the most recent row
+   */
   private List<Td> pollTds() {
     if (tdQueue == null) {
       return null;
     }
-
     return tdQueue.poll();
   }
 
+  /**
+   * Returns the list of {@link Td} objects for the current row (top of the {@link #tdQueue}), or
+   * {@code null} if none are active.
+   */
   private List<Td> peekTds() {
     if (tdQueue == null) {
       return null;
     }
-
     return tdQueue.peek();
   }
 
+  /**
+   * Pushes a new list of {@link Td} elements to represent a newly encountered row ({@code <tr>}).
+   */
   private void pushTds() {
     if (tdQueue == null) {
       tdQueue = new LinkedList<>();
@@ -368,6 +499,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     tdQueue.push(new ArrayList<>());
   }
 
+  /**
+   * Pushes a new {@link Tag} onto the stack, used to build or modify {@link LabelTag} structures.
+   *
+   * @param tag the {@link Tag} to add
+   */
   private void pushTag(Tag tag) {
     if (tagQueue == null) {
       tagQueue = new LinkedList<>();
@@ -375,6 +511,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     tagQueue.push(tag);
   }
 
+  /**
+   * Retrieves the topmost {@link Tag} from the stack without removing it.
+   *
+   * @return the current {@link Tag}, or {@code null} if none
+   */
   private Tag peekTag() {
     if (tagQueue == null) {
       return null;
@@ -382,6 +523,11 @@ public class HtmlListener extends HTMLParserBaseListener {
     return tagQueue.peek();
   }
 
+  /**
+   * Removes and returns the topmost {@link Tag} from the stack.
+   *
+   * @return the {@link Tag} or {@code null} if none
+   */
   private Tag pollTag() {
     if (tagQueue == null) {
       return null;
@@ -389,6 +535,10 @@ public class HtmlListener extends HTMLParserBaseListener {
     return tagQueue.poll();
   }
 
+  /**
+   * Removes the topmost {@link Tag} from the stack and finalizes its effect by calling
+   * {@link Tag#consumeTag()}.
+   */
   private void pollAndConsTag() {
     Tag tag = pollTag();
     if (tag != null) {
@@ -396,13 +546,16 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Ensures a label-tag is present at the top of the stack. If absent, applies the given supplier
+   * to create one. Otherwise, uses the provided consumer to modify the existing label-tag.
+   */
   private void peekAndConsTagIfAbsent(Supplier<LabelTag> supplier,
                                       Consumer<LabelTag> labelTagCons) {
     Tag tag = peekTag();
     if (tag == null) {
       return;
     }
-
     if (tag.labelTag != null) {
       labelTagCons.accept(tag.labelTag);
     } else {
@@ -410,19 +563,39 @@ public class HtmlListener extends HTMLParserBaseListener {
     }
   }
 
+  /**
+   * Handles a nested tag context (such as {@code <font>}, {@code <b>}, etc.) by pushing a new
+   * {@link Tag} that, when consumed, applies either a supplier or a chained consumer to build the
+   * {@link LabelTag}.
+   *
+   * @param tagCtx              the context containing nested elements or text
+   * @param tagTagSupplier      a {@link UnaryOperator} that generates a {@link LabelTag}
+   * @param tagChainTagConsumer a {@link BiConsumer} that merges child tags into a parent
+   */
   private void handleTagCtx(TagContentContext tagCtx, UnaryOperator<LabelTag> tagTagSupplier,
                             BiConsumer<LabelTag, LabelTag> tagChainTagConsumer) {
     if (tagCtx == null) {
       return;
     }
-
     pushTag(new Tag(labelTag -> peekAndConsTagIfAbsent(() -> tagTagSupplier.apply(labelTag),
                                                        lt -> tagChainTagConsumer.accept(lt, labelTag))));
   }
+
+  /**
+   * Determines if a {@code <td>} context is pure text (no nested {@code <table>} or HTML
+   * elements).
+   */
   private boolean pureText(TdContentContext tdCtx) {
     return CollectionUtils.isEmpty(tdCtx.table()) && CollectionUtils.isEmpty(tdCtx.htmlElement());
   }
 
+  /**
+   * Parses a list of font attributes (e.g., {@code size="12"} or {@code face="Arial"}). Builds a
+   * {@link FontAttrs} object if any valid attributes are found.
+   *
+   * @param fontAttrsCtx list of HTML attributes found within a {@code <font>} tag
+   * @return a {@link FontAttrs} instance containing parsed attributes, or {@code null} if none
+   */
   private FontAttrs parseFontAttrs(List<HtmlAttributeContext> fontAttrsCtx) {
     if (CollectionUtils.isEmpty(fontAttrsCtx)) {
       return null;
@@ -434,32 +607,47 @@ public class HtmlListener extends HTMLParserBaseListener {
       if (StringUtils.isEmpty(attributeValue)) {
         continue;
       }
-
       setFontAttributes(fontAttrs, attr.TAG_NAME().getText(), adaptAttrValue(attributeValue));
     }
-
     return fontAttrs;
   }
 
+  /**
+   * Normalizes an attribute value by trimming quotes and surrounding whitespace.
+   *
+   * @param attributeValue the raw attribute string, possibly including quotes
+   * @return the cleaned string
+   */
   private static String adaptAttrValue(String attributeValue) {
     attributeValue = attributeValue.trim();
-    if ((attributeValue.startsWith("'") && attributeValue.endsWith("'"))
-        || (attributeValue.startsWith("\"") && attributeValue.endsWith("\""))) {
+    if ((attributeValue.startsWith("'") && attributeValue.endsWith("'")) || (
+        attributeValue.startsWith("\"") && attributeValue.endsWith("\""))) {
       attributeValue = attributeValue.substring(1, attributeValue.length() - 1).trim();
     }
     return attributeValue;
   }
 
+  /**
+   * Represents a pending tag in the parse stack, holding a reference to a possible {@link LabelTag}
+   * and a consumer that applies this tag to a parent context when {@link #consumeTag()} is called.
+   */
   private static class Tag {
 
     private LabelTag labelTag;
-
     private final Consumer<LabelTag> labelTagCons;
 
+    /**
+     * Constructs a new {@code Tag}.
+     *
+     * @param labelTagCons a consumer that applies the {@link LabelTag} to a parent or container
+     */
     public Tag(Consumer<LabelTag> labelTagCons) {
       this.labelTagCons = labelTagCons;
     }
 
+    /**
+     * Finalizes this tag by calling its consumer with the current {@link #labelTag}.
+     */
     private void consumeTag() {
       labelTagCons.accept(labelTag);
     }

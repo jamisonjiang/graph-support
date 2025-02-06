@@ -22,7 +22,14 @@ import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
+/**
+ * An ANTLR listener that intercepts syntax errors when parsing DOT input and
+ * throws a {@link ParseException} with a detailed error message.
+ *
+ * @author Jamison Jiang
+ */
 public class DotSyntaxErrorListener extends BaseErrorListener {
+
   @Override
   public void syntaxError(Recognizer<?, ?> recognizer,
                           Object offendingSymbol,

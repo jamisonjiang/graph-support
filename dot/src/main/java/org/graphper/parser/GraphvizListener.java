@@ -50,6 +50,13 @@ import org.graphper.parser.grammar.DOTParser.Node_stmtContext;
 import org.graphper.parser.grammar.DOTParser.PortContext;
 import org.graphper.parser.grammar.DOTParser.SubgraphContext;
 
+/**
+ * A specialized listener that extends {@link DotTempAttrListener} to build a
+ * {@link Graphviz} model (graph, subgraphs, clusters, nodes, and edges) from a parsed
+ * DOT syntax tree.
+ *
+ * @author johannes
+ */
 public class GraphvizListener extends DotTempAttrListener {
 
     private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();

@@ -21,17 +21,77 @@ import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.Node.NodeBuilder;
 
+/**
+ * An optional hook interface for customizing or "post-processing" various
+ * graph components (nodes, edges, clusters, entire graphs) after they have
+ * been initially constructed during the parsing phase.
+ *
+ * <p>By implementing this interface, callers can provide logic in any of the
+ * default methods to modify or decorate the corresponding builder classes
+ * (e.g., {@link NodeBuilder}, {@link LineBuilder}, {@link ClusterBuilder},
+ * and {@link GraphvizBuilder}). If no customization is needed, the default
+ * (empty) method bodies have no effect.</p>
+ *
+ * <p>Typical usage involves passing an instance of this interface to the
+ * parser or listener, which will invoke these methods at appropriate times
+ * before final objects are built.</p>
+ *
+ * <pre>{@code
+ * public class MyPostGraphComponents implements PostGraphComponents {
+ *     @Override
+ *     public void postNode(NodeBuilder nodeBuilder) {
+ *         // For example, always apply a bold style to nodes
+ *         nodeBuilder.fontStyle(FontStyle.BOLD);
+ *     }
+ *
+ *     @Override
+ *     public void postLine(LineBuilder lineBuilder) {
+ *         // Maybe set a default color for edges
+ *         lineBuilder.color(Color.BLUE);
+ *     }
+ *
+ *     // ... etc. ...
+ * }
+ * }</pre>
+ *
+ * @author Jamison Jiang
+ */
 public interface PostGraphComponents {
 
+  /**
+   * Called after a node is initially built, allowing further customization
+   * before it is finalized.
+   *
+   * @param nodeBuilder the builder for the node
+   */
   default void postNode(NodeBuilder nodeBuilder) {
   }
 
+  /**
+   * Called after a line (edge) is initially built, allowing further customization
+   * before it is finalized.
+   *
+   * @param lineBuilder the builder for the line
+   */
   default void postLine(LineBuilder lineBuilder) {
   }
 
+  /**
+   * Called after a cluster is initially built, allowing further customization
+   * before it is finalized.
+   *
+   * @param clusterBuilder the builder for the cluster
+   */
   default void postCluster(ClusterBuilder clusterBuilder) {
   }
 
+  /**
+   * Called after the entire graph (either a {@code graph} or {@code digraph}) has
+   * been initially built, allowing further customization before it is finalized.
+   *
+   * @param graphvizBuilder the builder for the graph
+   */
   default void postGraphviz(GraphvizBuilder graphvizBuilder) {
   }
 }
+

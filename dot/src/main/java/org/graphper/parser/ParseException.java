@@ -15,6 +15,11 @@
  */
 package org.graphper.parser;
 
+/**
+ * A custom unchecked exception indicating a parsing error in DOT or HTML-like inputs.
+ *
+ * @author johannes
+ */
 public class ParseException extends RuntimeException {
 
     private static final long serialVersionUID = 6494880405240898272L;

@@ -60,6 +60,11 @@ import org.graphper.api.attributes.Tend;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.parser.grammar.DOTParser;
 
+/**
+ * Attributes mapping tools.
+ *
+ * @author johannes
+ */
 @SuppressWarnings("unchecked")
 public class ParserUtils {
 
