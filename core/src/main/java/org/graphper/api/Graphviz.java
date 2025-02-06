@@ -244,6 +244,40 @@ public class Graphviz extends GraphContainer implements Serializable {
       return self();
     }
 
+    /**
+     * Assigns an HTML-like {@link LabelTag} to the entire graph, enabling rich text formatting
+     * (such as bold, italic, or multi-line text) in the graph's label.
+     *
+     * <p>If a plain text label was previously set via {@code label(String)}, calling this method
+     * will override that label with the provided {@link LabelTag}.</p>
+     *
+     * <p><b>Example Usage:</b></p>
+     * <pre>{@code
+     * LabelTag tag = bold("Graph Analysis")
+     *     .br()
+     *     .italic("Understanding the flow of a directed graph")
+     *     .br()
+     *     .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+     *     .br()
+     *     .top(bold(italic("Key Takeaways:")))
+     *     .br()
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .br()
+     *     .right(strikeThrough("Outdated Formula"))
+     *     .br()
+     *     .bottom(italic("Bottom Text Example"))
+     *     .font("Bigger", fontAttrs().pointSize(50))
+     *     .verticalCenter(italic(bold("Centered Text Example")));
+
+     * Graphviz graphviz = Graphviz.digraph()
+     *     .labelTag(tag)
+     *     // ...additional builder configuration...
+     *     .build();
+     * }</pre>
+     *
+     * @param labelTag the {@link LabelTag} containing advanced formatting for the graph label
+     * @return this {@code GraphvizBuilder} for method chaining
+     */
     public GraphvizBuilder labelTag(LabelTag labelTag) {
       graphAttrs.labelTag = labelTag;
       return self();

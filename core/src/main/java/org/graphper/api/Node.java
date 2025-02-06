@@ -220,6 +220,40 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
       return this;
     }
 
+    /**
+     * Assigns an HTML-like {@link LabelTag} structure as this node's label, allowing for
+     * advanced text styling such as bold, italics, and nested formatting.
+     * <p>
+     * This method overrides any plain text label set via {@link #label(String)}.
+     * If you need a richly formatted label (e.g., multi-line text, nested tags),
+     * use {@code labelTag} rather than a simple string label.
+     * </p>
+     *
+     * <p><b>Example Usage:</b></p>
+     * <pre>{@code
+     * LabelTag tag = bold("Graph Analysis")
+     *     .br()
+     *     .italic("Understanding the flow of a directed graph")
+     *     .br()
+     *     .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+     *     .br()
+     *     .top(bold(italic("Key Takeaways:")))
+     *     .br()
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .br()
+     *     .right(strikeThrough("Outdated Formula"))
+     *     .br()
+     *     .bottom(italic("Bottom Text Example"))
+     *     .font("Bigger", fontAttrs().pointSize(50))
+     *     .verticalCenter(italic(bold("Centered Text Example")));
+     *
+     * Node node = Node.builder().labelTag(tag).build();
+     * }</pre>
+     *
+     * @param labelTag the {@link LabelTag} to use as this node's label
+     * @return this {@code NodeBuilder} for method chaining
+     * @see #label(String)
+     */
     public NodeBuilder labelTag(LabelTag labelTag) {
       nodeAttrs.labelTag = labelTag;
       return this;
@@ -417,6 +451,18 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
       return this;
     }
 
+    /**
+     * Applies one or more font styles (e.g., bold, italic) to the node's label text.
+     * <p>
+     * Multiple font styles can be combined. For example, calling
+     * {@code fontStyle(FontStyle.BOLD, FontStyle.ITALIC)} will make the text both bold and italic.
+     * </p>
+     *
+     * @param fontStyles one or more {@link FontStyle} values to apply
+     * @return this {@code NodeBuilder} for method chaining
+     * @throws IllegalArgumentException if the provided array or any element within it is
+     *                                  {@code null}
+     */
     public NodeBuilder fontStyle(FontStyle... fontStyles) {
       Asserts.nullOrContainsNull(fontStyles);
       nodeAttrs.fontStyles = Arrays.asList(fontStyles);
@@ -505,11 +551,26 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     }
 
     /**
-     * Set a Table similar to the HTML structure to replace the {@link #label(String)}, and the
-     * generated {@link Table} will be in the position of the label.
+     * Assigns an HTML-like {@link Table} structure as this node's label, replacing
+     * the simple textual label set via {@link #label(String)}. This allows for a
+     * more complex arrangement of row and column cells, effectively converting the
+     * node label into a small "table."
      *
-     * @param table table
-     * @return node builder
+     * <p><b>Example Usage:</b></p>
+     * <pre>{@code
+     * Table table = Html.table()
+     *     .tr(Html.td().text("Header 1"), Html.td().text("Header 2"))
+     *     .tr(Html.td().text("Row 1, Col 1"), Html.td().text("Row 1, Col 2"));
+     * Node node = Node.builder()
+     *     .table(table)
+     *     .build();
+     * }</pre>
+     *
+     * @param table the HTML-like {@link Table} to use as the node's label
+     * @return this {@code NodeBuilder} for method chaining
+     * @throws IllegalArgumentException if {@code table} is {@code null}
+     * @see #label(String)
+     * @see #labelTag(LabelTag)
      */
     public NodeBuilder table(Table table) {
       Asserts.nullArgument(table, "table");

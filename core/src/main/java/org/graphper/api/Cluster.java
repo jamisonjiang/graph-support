@@ -94,6 +94,40 @@ public class Cluster extends GraphContainer implements Serializable {
       return self();
     }
 
+    /**
+     * Assigns an HTML-like {@link LabelTag} to this cluster, allowing for rich text formatting
+     * (e.g., bold, italic, multi-line text) in the cluster’s label.
+     *
+     * <p>If a plain text label was previously set via {@code label(String)}, this method
+     * will override that label with the provided {@link LabelTag}.</p>
+     *
+     * <p><b>Example Usage:</b></p>
+     * <pre>{@code
+     * LabelTag tag = bold("Graph Analysis")
+     *     .br()
+     *     .italic("Understanding the flow of a directed graph")
+     *     .br()
+     *     .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+     *     .br()
+     *     .top(bold(italic("Key Takeaways:")))
+     *     .br()
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .br()
+     *     .right(strikeThrough("Outdated Formula"))
+     *     .br()
+     *     .bottom(italic("Bottom Text Example"))
+     *     .font("Bigger", fontAttrs().pointSize(50))
+     *     .verticalCenter(italic(bold("Centered Text Example")));
+     *
+     * Cluster cluster = Cluster.builder()
+     *     .labelTag(tag)
+     *     // ...more builder configuration...
+     *     .build();
+     * }</pre>
+     *
+     * @param labelTag the {@link LabelTag} containing advanced formatting for the cluster label
+     * @return this builder instance for method chaining
+     */
     public B labelTag(LabelTag labelTag) {
       clusterAttrs.labelTag = labelTag;
       return self();

@@ -37,8 +37,8 @@ import org.graphper.util.FontUtils;
  * Provides utilities for creating HTML-based graph labels.
  *
  * <p>This class offers a fluent API to construct HTML elements such as tables, text,
- * and formatting tags. It allows users to define rich, multi-line, and styled text labels
- * for graph/cluster/node/line label.</p>
+ * and formatting tags. It allows users to define rich, multi-line, and styled text labels for
+ * graph/cluster/node/line label.</p>
  *
  * <h2>Usage Examples</h2>
  *
@@ -99,142 +99,352 @@ public class Html {
     return new Td();
   }
 
+  /**
+   * Creates and returns a new {@link FontAttrs}, which can be used to set font properties.
+   *
+   * @return A fresh {@link FontAttrs} instance.
+   */
   public static FontAttrs fontAttrs() {
     return new FontAttrs();
   }
 
+  /**
+   * Creates a new empty {@link LabelTag}.
+   *
+   * @return A new {@link LabelTag} instance.
+   */
   public static LabelTag labelTag() {
     return new LabelTag();
   }
 
+  /**
+   * Creates a {@link LabelTag} representing a line break (i.e., &lt;br&gt;).
+   *
+   * @return A new {@link LabelTag} with a line break.
+   */
   public static LabelTag br() {
     return labelTag().br();
   }
 
+  /**
+   * Creates a {@link LabelTag} containing plain text.
+   *
+   * @param text The text content to include.
+   * @return A new {@link LabelTag} with the specified text.
+   */
   public static LabelTag text(String text) {
     return labelTag().text(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} inside a text tag.
+   *
+   * @param labelTag The existing label to wrap as text.
+   * @return A new {@link LabelTag} containing the given label.
+   */
   public static LabelTag text(LabelTag labelTag) {
     return labelTag().text(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} applying default font styling to the specified text.
+   *
+   * @param text The text content to style.
+   * @return A new {@link LabelTag} styled with a font tag.
+   */
   public static LabelTag font(String text) {
     return labelTag().font(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} inside a font-styled tag.
+   *
+   * @param labelTag The existing label to style with a font tag.
+   * @return A new {@link LabelTag} styled with a font tag.
+   */
   public static LabelTag font(LabelTag labelTag) {
     return labelTag().font(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} applying the specified font attributes (e.g., color, size) to the
+   * given text.
+   *
+   * @param text      The text content to style.
+   * @param fontAttrs The font attributes to apply.
+   * @return A new {@link LabelTag} with the specified font attributes.
+   */
   public static LabelTag font(String text, FontAttrs fontAttrs) {
     return labelTag().font(text, fontAttrs);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} inside a font-styled tag with the specified attributes.
+   *
+   * @param labelTag  The existing label to style.
+   * @param fontAttrs The font attributes to apply.
+   * @return A new {@link LabelTag} with the specified font attributes.
+   */
   public static LabelTag font(LabelTag labelTag, FontAttrs fontAttrs) {
     return labelTag().font(labelTag, fontAttrs);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing bold text.
+   *
+   * @param text The text content to make bold.
+   * @return A new {@link LabelTag} with bold formatting.
+   */
   public static LabelTag bold(String text) {
     return labelTag().bold(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a bold formatting tag.
+   *
+   * @param labelTag The existing label to make bold.
+   * @return A new {@link LabelTag} with bold formatting applied.
+   */
   public static LabelTag bold(LabelTag labelTag) {
     return labelTag().bold(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing italic text.
+   *
+   * @param text The text content to italicize.
+   * @return A new {@link LabelTag} with italic formatting.
+   */
   public static LabelTag italic(String text) {
     return labelTag().italic(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in an italic formatting tag.
+   *
+   * @param labelTag The existing label to italicize.
+   * @return A new {@link LabelTag} with italic formatting applied.
+   */
   public static LabelTag italic(LabelTag labelTag) {
     return labelTag().italic(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing overlined text.
+   *
+   * @param text The text content to overline.
+   * @return A new {@link LabelTag} with an overline.
+   */
   public static LabelTag overline(String text) {
     return labelTag().overline(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in an overline formatting tag.
+   *
+   * @param labelTag The existing label to overline.
+   * @return A new {@link LabelTag} with overline formatting applied.
+   */
   public static LabelTag overline(LabelTag labelTag) {
     return labelTag().overline(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing underlined text.
+   *
+   * @param text The text content to underline.
+   * @return A new {@link LabelTag} with an underline.
+   */
   public static LabelTag underline(String text) {
     return labelTag().underline(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in an underline formatting tag.
+   *
+   * @param labelTag The existing label to underline.
+   * @return A new {@link LabelTag} with underline formatting applied.
+   */
   public static LabelTag underline(LabelTag labelTag) {
     return labelTag().underline(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing subscript text.
+   *
+   * @param text The text content to subscript.
+   * @return A new {@link LabelTag} with subscript formatting.
+   */
   public static LabelTag subscript(String text) {
     return labelTag().subscript(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a subscript formatting tag.
+   *
+   * @param labelTag The existing label to apply subscript formatting.
+   * @return A new {@link LabelTag} with subscript formatting.
+   */
   public static LabelTag subscript(LabelTag labelTag) {
     return labelTag().subscript(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing superscript text.
+   *
+   * @param text The text content to superscript.
+   * @return A new {@link LabelTag} with superscript formatting.
+   */
   public static LabelTag superscript(String text) {
     return labelTag().superscript(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a superscript formatting tag.
+   *
+   * @param labelTag The existing label to apply superscript formatting.
+   * @return A new {@link LabelTag} with superscript formatting.
+   */
   public static LabelTag superscript(LabelTag labelTag) {
     return labelTag().superscript(labelTag);
   }
 
+  /**
+   * Creates a {@link LabelTag} containing strikethrough text.
+   *
+   * @param text The text content to strike through.
+   * @return A new {@link LabelTag} with strikethrough formatting.
+   */
   public static LabelTag strikeThrough(String text) {
     return labelTag().strikeThrough(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a strikethrough formatting tag.
+   *
+   * @param labelTag The existing label to strike through.
+   * @return A new {@link LabelTag} with strikethrough formatting.
+   */
   public static LabelTag strikeThrough(LabelTag labelTag) {
     return labelTag().strikeThrough(labelTag);
   }
 
+  /**
+   * Aligns text to the top in a {@link LabelTag}.
+   *
+   * @param text The text content to align at the top.
+   * @return A new {@link LabelTag} with top alignment.
+   */
   public static LabelTag top(String text) {
     return labelTag().top(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a top alignment tag.
+   *
+   * @param labelTag The existing label to align at the top.
+   * @return A new {@link LabelTag} with top alignment.
+   */
   public static LabelTag top(LabelTag labelTag) {
     return labelTag().top(labelTag);
   }
 
+  /**
+   * Aligns text to the bottom in a {@link LabelTag}.
+   *
+   * @param text The text content to align at the bottom.
+   * @return A new {@link LabelTag} with bottom alignment.
+   */
   public static LabelTag bottom(String text) {
     return labelTag().bottom(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a bottom alignment tag.
+   *
+   * @param labelTag The existing label to align at the bottom.
+   * @return A new {@link LabelTag} with bottom alignment.
+   */
   public static LabelTag bottom(LabelTag labelTag) {
     return labelTag().bottom(labelTag);
   }
 
+  /**
+   * Centers text vertically in a {@link LabelTag}.
+   *
+   * @param text The text content to center vertically.
+   * @return A new {@link LabelTag} with vertical center alignment.
+   */
   public static LabelTag verticalCenter(String text) {
     return labelTag().verticalCenter(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a vertical center alignment tag.
+   *
+   * @param labelTag The existing label to center vertically.
+   * @return A new {@link LabelTag} with vertical center alignment.
+   */
   public static LabelTag verticalCenter(LabelTag labelTag) {
     return labelTag().verticalCenter(labelTag);
   }
 
+  /**
+   * Aligns text to the left in a {@link LabelTag}.
+   *
+   * @param text The text content to align left.
+   * @return A new {@link LabelTag} with left alignment.
+   */
   public static LabelTag left(String text) {
     return labelTag().left(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a left alignment tag.
+   *
+   * @param labelTag The existing label to align left.
+   * @return A new {@link LabelTag} with left alignment.
+   */
   public static LabelTag left(LabelTag labelTag) {
     return labelTag().left(labelTag);
   }
 
+  /**
+   * Aligns text to the right in a {@link LabelTag}.
+   *
+   * @param text The text content to align right.
+   * @return A new {@link LabelTag} with right alignment.
+   */
   public static LabelTag right(String text) {
     return labelTag().right(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a right alignment tag.
+   *
+   * @param labelTag The existing label to align right.
+   * @return A new {@link LabelTag} with right alignment.
+   */
   public static LabelTag right(LabelTag labelTag) {
     return labelTag().right(labelTag);
   }
 
+  /**
+   * Centers text horizontally in a {@link LabelTag}.
+   *
+   * @param text The text content to center horizontally.
+   * @return A new {@link LabelTag} with horizontal center alignment.
+   */
   public static LabelTag horizontalCenter(String text) {
     return labelTag().horizontalCenter(text);
   }
 
+  /**
+   * Wraps an existing {@link LabelTag} in a horizontal center alignment tag.
+   *
+   * @param labelTag The existing label to center horizontally.
+   * @return A new {@link LabelTag} with horizontal center alignment.
+   */
   public static LabelTag horizontalCenter(LabelTag labelTag) {
     return labelTag().horizontalCenter(labelTag);
   }
@@ -873,7 +1083,29 @@ public class Html {
     }
   }
 
-
+  /**
+   * Represents a label element that supports rich text formatting and various layout alignments.
+   *
+   * <p>This class provides methods to create formatted text elements, including bold, italic,
+   * underline, and alignment options such as top, bottom, left, right, and center. It also supports
+   * multi-line text (via {@link #br()}) and recursive nesting of labels.</p>
+   *
+   * <p><b>Example Usage:</b></p>
+   * <pre>{@code
+   * LabelTag label = new LabelTag()
+   *     .bold("Header")
+   *     .br()
+   *     .italic("Some italic text")
+   *     .br()
+   *     .underline("Underlined text")
+   *     .br()
+   *     .font("Styled text", new FontAttrs().color(Color.BLUE).pointSize(16))
+   *     .br()
+   *     .top("Top aligned text")
+   *     .br()
+   *     .strikeThrough("Obsolete text");
+   * }</pre>
+   */
   public static class LabelTag implements Serializable {
 
     private static final long serialVersionUID = -3452163944796622599L;
@@ -883,171 +1115,375 @@ public class Html {
     private LabelTag() {
     }
 
+    /**
+     * Inserts a line break.
+     *
+     * @return this {@code LabelTag} with the line break added.
+     */
     public LabelTag br() {
       addTag(new BasicLabelTag(StringUtils.EMPTY, LabelTagType.BR, null));
       return this;
     }
 
+    /**
+     * Adds plain text to this label.
+     *
+     * @param text the text content to add.
+     * @return this {@code LabelTag} with the text added.
+     */
     public LabelTag text(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.TEXT, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} as text.
+     *
+     * @param labelTag an existing label to be wrapped as text.
+     * @return this {@code LabelTag} with the label nested as text.
+     */
     public LabelTag text(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.TEXT, labelTag));
       return this;
     }
 
+    /**
+     * Applies font styling to the specified text.
+     *
+     * @param text the text to style.
+     * @return this {@code LabelTag} with the font-styled text.
+     */
     public LabelTag font(String text) {
       addTag(new FontLabelTag(text, null, null));
       return this;
     }
 
+    /**
+     * Applies font styling to an existing {@code LabelTag}.
+     *
+     * @param labelTag the label to style.
+     * @return this {@code LabelTag} with the font-styled label.
+     */
     public LabelTag font(LabelTag labelTag) {
       addTag(new FontLabelTag(null, labelTag, null));
       return this;
     }
 
+    /**
+     * Applies specific font attributes to the given text.
+     *
+     * @param text      the text to style.
+     * @param fontAttrs the font attributes (e.g., size, color, face).
+     * @return this {@code LabelTag} with the styled text.
+     */
     public LabelTag font(String text, FontAttrs fontAttrs) {
       addTag(new FontLabelTag(text, null, fontAttrs));
       return this;
     }
 
+    /**
+     * Applies specific font attributes to an existing {@code LabelTag}.
+     *
+     * @param labelTag  the label to style.
+     * @param fontAttrs the font attributes (e.g., size, color, face).
+     * @return this {@code LabelTag} with the styled label.
+     */
     public LabelTag font(LabelTag labelTag, FontAttrs fontAttrs) {
       addTag(new FontLabelTag(null, labelTag, fontAttrs));
       return this;
     }
 
+    /**
+     * Adds text with bold formatting.
+     *
+     * @param text the text to make bold.
+     * @return this {@code LabelTag} with bold text.
+     */
     public LabelTag bold(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.BOLD, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a bold tag.
+     *
+     * @param labelTag an existing label to be made bold.
+     * @return this {@code LabelTag} with bold formatting applied.
+     */
     public LabelTag bold(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.BOLD, labelTag));
       return this;
     }
 
+    /**
+     * Adds text with italic formatting.
+     *
+     * @param text the text to make italic.
+     * @return this {@code LabelTag} with italic text.
+     */
     public LabelTag italic(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.ITALIC, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in an italic tag.
+     *
+     * @param labelTag an existing label to be made italic.
+     * @return this {@code LabelTag} with italic formatting applied.
+     */
     public LabelTag italic(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.ITALIC, labelTag));
       return this;
     }
 
+    /**
+     * Adds text with an overline.
+     *
+     * @param text the text to overline.
+     * @return this {@code LabelTag} with overlined text.
+     */
     public LabelTag overline(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.OVERLINE, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in an overline tag.
+     *
+     * @param labelTag an existing label to be overlined.
+     * @return this {@code LabelTag} with overline formatting applied.
+     */
     public LabelTag overline(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.OVERLINE, labelTag));
       return this;
     }
 
+    /**
+     * Adds text with an underline.
+     *
+     * @param text the text to underline.
+     * @return this {@code LabelTag} with underlined text.
+     */
     public LabelTag underline(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.UNDERLINE, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in an underline tag.
+     *
+     * @param labelTag an existing label to be underlined.
+     * @return this {@code LabelTag} with underline formatting applied.
+     */
     public LabelTag underline(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.UNDERLINE, labelTag));
       return this;
     }
 
+    /**
+     * Adds subscript formatting to text.
+     *
+     * @param text the text to subscript.
+     * @return this {@code LabelTag} with subscript formatting.
+     */
     public LabelTag subscript(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.SUBSCRIPT, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a subscript tag.
+     *
+     * @param labelTag an existing label to subscript.
+     * @return this {@code LabelTag} with subscript formatting applied.
+     */
     public LabelTag subscript(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.SUBSCRIPT, labelTag));
       return this;
     }
 
+    /**
+     * Adds superscript formatting to text.
+     *
+     * @param text the text to superscript.
+     * @return this {@code LabelTag} with superscript formatting.
+     */
     public LabelTag superscript(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.SUPERSCRIPT, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a superscript tag.
+     *
+     * @param labelTag an existing label to superscript.
+     * @return this {@code LabelTag} with superscript formatting applied.
+     */
     public LabelTag superscript(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.SUPERSCRIPT, labelTag));
       return this;
     }
 
+    /**
+     * Adds text with a strikethrough.
+     *
+     * @param text the text to strike through.
+     * @return this {@code LabelTag} with strikethrough formatting.
+     */
     public LabelTag strikeThrough(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.STRIKETHROUGH, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a strikethrough tag.
+     *
+     * @param labelTag an existing label to strike through.
+     * @return this {@code LabelTag} with strikethrough formatting applied.
+     */
     public LabelTag strikeThrough(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.STRIKETHROUGH, labelTag));
       return this;
     }
 
+    /**
+     * Aligns text at the top.
+     *
+     * @param text the text to align at the top.
+     * @return this {@code LabelTag} with top alignment.
+     */
     public LabelTag top(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.TOP, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a top alignment tag.
+     *
+     * @param labelTag an existing label to align at the top.
+     * @return this {@code LabelTag} with top alignment applied.
+     */
     public LabelTag top(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.TOP, labelTag));
       return this;
     }
 
+    /**
+     * Aligns text at the bottom.
+     *
+     * @param text the text to align at the bottom.
+     * @return this {@code LabelTag} with bottom alignment.
+     */
     public LabelTag bottom(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.BOTTOM, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a bottom alignment tag.
+     *
+     * @param labelTag an existing label to align at the bottom.
+     * @return this {@code LabelTag} with bottom alignment applied.
+     */
     public LabelTag bottom(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.BOTTOM, labelTag));
       return this;
     }
 
+    /**
+     * Centers text vertically.
+     *
+     * @param text the text to center vertically.
+     * @return this {@code LabelTag} with vertical center alignment.
+     */
     public LabelTag verticalCenter(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.VERTICAL_CENTER, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a vertical center alignment.
+     *
+     * @param labelTag an existing label to center vertically.
+     * @return this {@code LabelTag} with vertical center alignment.
+     */
     public LabelTag verticalCenter(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.VERTICAL_CENTER, labelTag));
       return this;
     }
 
+    /**
+     * Aligns text to the left.
+     *
+     * @param text the text to align left.
+     * @return this {@code LabelTag} with left alignment.
+     */
     public LabelTag left(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.LEFT, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a left alignment.
+     *
+     * @param labelTag an existing label to align left.
+     * @return this {@code LabelTag} with left alignment applied.
+     */
     public LabelTag left(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.LEFT, labelTag));
       return this;
     }
 
+    /**
+     * Aligns text to the right.
+     *
+     * @param text the text to align right.
+     * @return this {@code LabelTag} with right alignment.
+     */
     public LabelTag right(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.RIGHT, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a right alignment.
+     *
+     * @param labelTag an existing label to align right.
+     * @return this {@code LabelTag} with right alignment applied.
+     */
     public LabelTag right(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.RIGHT, labelTag));
       return this;
     }
 
+    /**
+     * Centers text horizontally.
+     *
+     * @param text the text to center horizontally.
+     * @return this {@code LabelTag} with horizontal center alignment.
+     */
     public LabelTag horizontalCenter(String text) {
       addTag(new BasicLabelTag(text, LabelTagType.HORIZONTAL_CENTER, null));
       return this;
     }
 
+    /**
+     * Wraps an existing {@code LabelTag} in a horizontal center alignment.
+     *
+     * @param labelTag an existing label to center horizontally.
+     * @return this {@code LabelTag} with horizontal center alignment.
+     */
     public LabelTag horizontalCenter(LabelTag labelTag) {
       addTag(new BasicLabelTag(null, LabelTagType.HORIZONTAL_CENTER, labelTag));
       return this;
     }
 
+    /**
+     * Returns all the nested {@link BasicLabelTag} elements in this label.
+     *
+     * @return a list of {@link BasicLabelTag} objects that compose this label.
+     */
     public List<BasicLabelTag> getTags() {
       return tags;
     }
@@ -1061,42 +1497,87 @@ public class Html {
     }
   }
 
+  /**
+   * Defines font attributes such as color, size (in points), and font face.
+   *
+   * <p>Instances of this class are typically used in conjunction with HTML-like
+   * label rendering, allowing customization of text appearance within labels.</p>
+   *
+   * <p><b>Example Usage:</b></p>
+   * <pre>{@code
+   * FontAttrs attrs = new FontAttrs()
+   *     .color(Color.RED)
+   *     .pointSize(14)
+   *     .face("Arial");
+   * }</pre>
+   */
   public static class FontAttrs implements Serializable {
 
     private static final long serialVersionUID = -497148159693137849L;
 
     private Color color;
-
     private Integer pointSize;
-
     private String face;
 
     private FontAttrs() {
     }
 
+    /**
+     * Sets the color of the font.
+     *
+     * @param color The {@link Color} to apply.
+     * @return This {@code FontAttrs} instance, for method chaining.
+     */
     public FontAttrs color(Color color) {
       this.color = color;
       return this;
     }
 
+    /**
+     * Sets the point size of the font.
+     *
+     * @param pointSize The font size in points.
+     * @return This {@code FontAttrs} instance, for method chaining.
+     */
     public FontAttrs pointSize(int pointSize) {
       this.pointSize = pointSize;
       return this;
     }
 
+    /**
+     * Sets the face (font family) of the font.
+     *
+     * @param face The name of the font face, e.g., "Arial" or "Times New Roman".
+     * @return This {@code FontAttrs} instance, for method chaining.
+     */
     public FontAttrs face(String face) {
       this.face = face;
       return this;
     }
 
+    /**
+     * Retrieves the current font color.
+     *
+     * @return The {@link Color} of this font.
+     */
     public Color getColor() {
       return color;
     }
 
+    /**
+     * Retrieves the current point size of this font.
+     *
+     * @return The size in points.
+     */
     public Integer getPointSize() {
       return pointSize;
     }
 
+    /**
+     * Retrieves the current font face.
+     *
+     * @return The name of the font face.
+     */
     public String getFace() {
       return face;
     }

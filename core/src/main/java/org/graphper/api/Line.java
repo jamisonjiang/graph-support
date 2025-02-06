@@ -222,7 +222,37 @@ public class Line implements Comparable<Line>, Serializable {
       lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
-
+    /**
+     * Assigns an HTML-like {@link LabelTag} to this line, enabling rich text formatting
+     * (such as bold, italic, or multi-line text) in the line's label.
+     *
+     * <p>If a plain text label was previously set via {@code label(String)}, this call
+     * will override that label with the provided {@code LabelTag}.</p>
+     *
+     * <p><b>Example Usage:</b></p>
+     * <pre>{@code
+     * LabelTag tag = bold("Graph Analysis")
+     *     .br()
+     *     .italic("Understanding the flow of a directed graph")
+     *     .br()
+     *     .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+     *     .br()
+     *     .top(bold(italic("Key Takeaways:")))
+     *     .br()
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .br()
+     *     .right(strikeThrough("Outdated Formula"))
+     *     .br()
+     *     .bottom(italic("Bottom Text Example"))
+     *     .font("Bigger", fontAttrs().pointSize(50))
+     *     .verticalCenter(italic(bold("Centered Text Example")));
+     *
+     * Line line = Line.builder(nodeA, nodeB).labelTag(tag).build();
+     * }</pre>
+     *
+     * @param labelTag the {@link LabelTag} containing advanced formatting for the line label
+     * @return this {@code LineBuilder} for method chaining
+     */
     public LineBuilder labelTag(LabelTag labelTag) {
       lineAttrs.labelTag = labelTag;
       return this;

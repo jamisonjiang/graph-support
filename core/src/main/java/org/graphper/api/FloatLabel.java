@@ -248,6 +248,13 @@ public class FloatLabel implements Serializable {
       return this;
     }
 
+    /**
+     * Assigns an HTML-like {@link LabelTag} structure as this label, allowing for
+     * advanced text styling such as bold, italics, and nested formatting.
+     *
+     * @param labelTag the {@link LabelTag} to use as this label
+     * @return float label builder
+     */
     public FloatLabelBuilder labelTag(LabelTag labelTag) {
       this.labelTag = labelTag;
       return this;

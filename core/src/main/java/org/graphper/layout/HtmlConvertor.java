@@ -64,11 +64,19 @@ public class HtmlConvertor {
   }
 
   /**
-   * Parses the data structure of the table, and automatically performs table layout and converts it
-   * into a lower-level {@link Assemble} data structure for rendering.
+   * Parses the given {@link Table} data structure, performs a table layout, and converts the result
+   * into a lower-level {@link Assemble} instance for rendering.
    *
-   * @param table table
-   * @return assemble
+   * <p>This method inspects the rows and cells of the provided {@code table} and
+   * calculates their sizes and positions. It then assembles the layout data into a container-like
+   * structure represented by {@link Assemble}, which can be rendered or further processed by
+   * downstream logic.</p>
+   *
+   * @param table the HTML-like table to convert.
+   * @return an {@link Assemble} structure representing the laid-out table, or {@code null} if the
+   * provided table is {@code null}.
+   * @throws IllegalArgumentException if the table is empty (i.e., no rows).
+   * @throws CycleDependencyException if a cycle dependency is detected in table processing
    */
   public static Assemble toAssemble(Table table) {
     if (table == null) {
@@ -83,6 +91,22 @@ public class HtmlConvertor {
     return convertToAssemble(table, tableHelper);
   }
 
+  /**
+   * Parses the given {@link LabelTag} with the specified label attributes, performs an automatic
+   * layout calculation, and converts the result into a lower-level {@link Assemble} structure for
+   * rendering.
+   *
+   * <p>This method measures the text defined by the {@code labelTag} using
+   * {@link LabelTagUtils#measure(LabelTag, LabelAttributes)}, then calculates how to position lines
+   * and sub-tags within a final {@link Assemble} instance.</p>
+   *
+   * @param labelTag   the {@link LabelTag} (HTML-like structure) to convert
+   * @param labelAttrs the default attributes (e.g., font size, color) to apply
+   * @return an {@link Assemble} instance representing the laid-out label, or {@code null} if either
+   * parameter is {@code null}
+   * @throws IllegalArgumentException if the label measurement is {@code null}
+   * @throws CycleDependencyException if a cycle dependency is detected in label processing
+   */
   public static Assemble toAssemble(LabelTag labelTag, LabelAttributes labelAttrs) {
     if (labelTag == null || labelAttrs == null) {
       return null;
@@ -566,14 +590,14 @@ public class HtmlConvertor {
       return currentLineHeight;
     }
     if (textTagValue.isMark(labelTag)) {
-      throw new CycleDependencyException("Cannot convert LabelTag due to LabelTag has cycle dependency");
+      throw new CycleDependencyException(
+          "Cannot convert LabelTag due to LabelTag has cycle dependency");
     }
     textTagValue.mark(labelTag);
 
     for (BasicLabelTag tag : labelTag.getTags()) {
       TextTagValue temp = textTagValue.clone();
-      currentLineHeight = accessLabelTag(textRows, tag, textTagValue,
-                                         position, currentLineHeight);
+      currentLineHeight = accessLabelTag(textRows, tag, textTagValue, position, currentLineHeight);
       textTagValue = temp;
     }
 
