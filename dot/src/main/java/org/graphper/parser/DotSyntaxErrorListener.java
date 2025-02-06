@@ -21,7 +21,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class DotSyntaxErrorListener extends BaseErrorListener {
   @Override
@@ -29,10 +28,9 @@ public class DotSyntaxErrorListener extends BaseErrorListener {
                           Object offendingSymbol,
                           int line, int charPositionInLine,
                           String msg,
-                          RecognitionException e)
-      throws ParseCancellationException {
+                          RecognitionException e) {
     if (offendingSymbol == null) {
-      throw new ParseCancellationException("line " + line + ":" + charPositionInLine + " " + msg);
+      throw new ParseException("line " + line + ":" + charPositionInLine + " " + msg);
     }
 
     // Cast the offendingSymbol to CommonToken
@@ -69,6 +67,6 @@ public class DotSyntaxErrorListener extends BaseErrorListener {
     errorBuilder.append('^');
 
     // Throw a ParseCancellationException with the detailed error message
-    throw new ParseCancellationException(errorBuilder.toString());
+    throw new ParseException(errorBuilder.toString());
   }
 }

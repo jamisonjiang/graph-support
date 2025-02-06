@@ -58,13 +58,21 @@ public class AWTextRender {
 
   public FlatPoint draw() {
     if (StringUtils.containsRTL(text)) {
-      g2d.setFont(font);
-      g2d.drawString(text, (float) x, (float) y);
-      double width = getTextBounds().getWidth();
-      double height = getTextBounds().getHeight();
-      return new FlatPoint(height, width);
+      return drawByNativeMethod();
     }
 
+    return drawByGlyphVector();
+  }
+
+  private FlatPoint drawByNativeMethod() {
+    g2d.setFont(font);
+    g2d.drawString(text, (float) x, (float) y);
+    double width = getTextBounds().getWidth();
+    double height = getTextBounds().getHeight();
+    return new FlatPoint(height, width);
+  }
+
+  private FlatPoint drawByGlyphVector() {
     // Prepare AttributedString to handle multi-language layout and shaping
     AttributedString attributedString = new AttributedString(text);
     attributedString.addAttribute(TextAttribute.FONT, font);
@@ -76,7 +84,6 @@ public class AWTextRender {
     GlyphVector glyphVector = font.createGlyphVector(frc, iterator);
 
     // Your existing drawing logic starts here
-    double width = 0;
     double height = 0;
     GeneralPath outline = new GeneralPath();
     for (int i = 0; i < glyphVector.getNumGlyphs(); i++) {
@@ -101,12 +108,11 @@ public class AWTextRender {
 
       // Calculate the width of each glyph and add it to the x-offset
       Rectangle2D glyphBounds = glyphVector.getGlyphLogicalBounds(i).getBounds2D();
-      width += glyphBounds.getWidth();
       height = Math.max(height, glyphBounds.getHeight());
     }
 
-    // Render the final outline
     g2d.fill(outline);
+    double width = outline.getBounds2D().getWidth();
     return new FlatPoint(height, width);
   }
 

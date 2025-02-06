@@ -21,7 +21,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class HtmlSyntaxErrorListener extends BaseErrorListener {
   @Override
@@ -30,10 +29,9 @@ public class HtmlSyntaxErrorListener extends BaseErrorListener {
                           int line,
                           int charPositionInLine,
                           String msg,
-                          RecognitionException e)
-      throws ParseCancellationException {
+                          RecognitionException e) {
     if (offendingSymbol == null) {
-      throw new ParseCancellationException(msg);
+      throw new ParseException(msg);
     }
 
     // Cast the offendingSymbol to CommonToken
@@ -66,6 +64,6 @@ public class HtmlSyntaxErrorListener extends BaseErrorListener {
     errorBuilder.append('^');
 
     // Throw a ParseCancellationException with the detailed error message
-    throw new ParseCancellationException(errorBuilder.toString());
+    throw new ParseException(errorBuilder.toString());
   }
 }

@@ -59,45 +59,38 @@ public class DotParser {
         charStream = CharStreams.fromString(in, sourceName);
     }
 
-    public Graphviz parse() throws ParseException {
-
+    public Graphviz parse() {
         return compile(charStream);
     }
 
-    public Graphviz parse(PostGraphComponents postGraphComponents) throws ParseException {
+    public Graphviz parse(PostGraphComponents postGraphComponents) {
 
         return compile(charStream, postGraphComponents);
     }
 
-    public static Graphviz compile(CharStream charStream) throws ParseException {
+    public static Graphviz compile(CharStream charStream) {
         return compile(charStream, null);
     }
 
-    public static Graphviz compile(CharStream charStream, PostGraphComponents postGraphComponents) throws ParseException {
+    public static Graphviz compile(CharStream charStream, PostGraphComponents postGraphComponents) {
+        DOTLexer lexer = new DOTLexer(charStream);
+        DOTParser p = new DOTParser(new CommonTokenStream(lexer));
 
-        try {
-            DOTLexer lexer = new DOTLexer(charStream);
-            DOTParser p = new DOTParser(new CommonTokenStream(lexer));
+        p.removeErrorListeners();
+        lexer.removeErrorListeners();
 
-            p.removeErrorListeners();
-            lexer.removeErrorListeners();
+        DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
+        p.addErrorListener(dotSyntaxErrorListener);
+        lexer.addErrorListener(dotSyntaxErrorListener);
 
-            DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
-            p.addErrorListener(dotSyntaxErrorListener);
-            lexer.addErrorListener(dotSyntaxErrorListener);
+        DOTParser.GraphContext graphCtx = p.graph();
 
-            DOTParser.GraphContext graphCtx = p.graph();
+        ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
+        NodeExtractor nodeExtractor = new NodeExtractor(postGraphComponents);
+        parseTreeWalker.walk(nodeExtractor, graphCtx);
 
-            ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
-            NodeExtractor nodeExtractor = new NodeExtractor(postGraphComponents);
-            parseTreeWalker.walk(nodeExtractor, graphCtx);
-
-            GraphvizListener gl = new GraphvizListener(nodeExtractor, postGraphComponents);
-            parseTreeWalker.walk(gl, graphCtx);
-            return gl.getGraphviz();
-        } catch (ParseException pe) {
-            pe.setSourceName(charStream.getSourceName());
-            throw pe;
-        }
+        GraphvizListener gl = new GraphvizListener(nodeExtractor, postGraphComponents);
+        parseTreeWalker.walk(gl, graphCtx);
+        return gl.getGraphviz();
     }
 }

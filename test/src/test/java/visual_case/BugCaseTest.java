@@ -16,9 +16,6 @@
 
 package visual_case;
 
-import static org.graphper.api.Html.table;
-import static org.graphper.api.Html.td;
-
 import helper.GraphvizVisual;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;

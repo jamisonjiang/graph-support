@@ -17,12 +17,7 @@ package org.graphper.parser;
 
 public class ParseException extends RuntimeException {
 
-    private String sourceName;
-
-    public ParseException() {
-
-        super();
-    }
+    private static final long serialVersionUID = 6494880405240898272L;
 
     public ParseException(String message) {
 
@@ -37,18 +32,5 @@ public class ParseException extends RuntimeException {
     public ParseException(Throwable cause) {
 
         super(cause);
-    }
-
-    public String getSourceName() {
-        return sourceName;
-    }
-
-    public void setSourceName(String sourceName) {
-        this.sourceName = sourceName;
-    }
-
-    @Override
-    public String getMessage() {
-        return super.getMessage() + ", source: " + sourceName;
     }
 }

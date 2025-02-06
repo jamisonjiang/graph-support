@@ -829,6 +829,7 @@ public class ParserUtils {
                 labelTagConsumer.accept(labelTag);
                 return;
             }
+            label = StringUtils.isEmpty(htmlListener.getLabel()) ? label : htmlListener.getLabel();
             labelConsumer.accept(label);
         } else {
             if (label.startsWith("\"") && label.endsWith("\"")) {

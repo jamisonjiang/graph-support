@@ -20,7 +20,6 @@ import static org.graphper.CommandUnits.COMMAND_UNITS;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
@@ -47,7 +46,7 @@ public class Main {
           })
           .toFile(command.getFileType())
           .save(output.getParentFile().getAbsolutePath(), output.getName());
-    } catch (ParseException | ParseCancellationException | WrongCommandException e) {
+    } catch (ParseException | WrongCommandException e) {
       System.err.println(e.getMessage());
     } catch (Exception e) {
       e.printStackTrace();

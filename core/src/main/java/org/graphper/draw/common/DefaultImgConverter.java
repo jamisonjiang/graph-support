@@ -239,7 +239,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     Font font = null;
     FlatPoint size = FontUtils.measure(text, fontName, fontSize, 0, toMeasureFontStyles(ele));
     x = x - (size.getWidth() / 2);
-    double startX = x; // Save start x position for underline
+    double startX = x;
     double maxHeight = 0;
 
     for (int i = 0; i < text.length(); i++) {

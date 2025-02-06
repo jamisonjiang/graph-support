@@ -25,11 +25,11 @@ import org.graphper.api.Graphviz;
 import org.graphper.parser.DotParser;
 import org.junit.jupiter.api.Test;
 
-public class DotCases extends GraphvizVisual {
+public class DotCasesTest extends GraphvizVisual {
 
   @Test
   public void testCase() throws IOException {
-    String dot = DocumentUtils.getDotTestFile("/manual/port.dot");
+    String dot = DocumentUtils.getDotTestFile("/manual/htmlTag.dot");
     Graphviz graphviz = new DotParser(new File(dot), StandardCharsets.UTF_8).parse();
     visual(graphviz);
   }
