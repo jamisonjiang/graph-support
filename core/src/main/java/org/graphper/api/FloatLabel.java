@@ -76,7 +76,8 @@ public class FloatLabel implements Serializable {
   private FloatLabel(String label, LabelTag labelTag, String fontName, float fontSize,
                      double lengthRatio, Tend tend, FlatPoint offset,
                      Table table, Assemble assemble) {
-    Asserts.illegalArgument(label == null && table == null && assemble == null,
+    Asserts.illegalArgument(label == null && table == null
+                                && labelTag == null && assemble == null,
                             "Empty Float Label");
     Asserts.illegalArgument(fontSize < 0, "Float label can not less than 0");
     this.label = label;

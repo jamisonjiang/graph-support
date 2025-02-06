@@ -29,7 +29,7 @@ public class DotCasesTest extends GraphvizVisual {
 
   @Test
   public void testCase() throws IOException {
-    String dot = DocumentUtils.getDotTestFile("/manual/htmlTag.dot");
+    String dot = DocumentUtils.getDotTestFile("/manual/clusterAttrs.dot");
     Graphviz graphviz = new DotParser(new File(dot), StandardCharsets.UTF_8).parse();
     visual(graphviz);
   }

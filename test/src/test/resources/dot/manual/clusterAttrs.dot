@@ -1,17 +1,20 @@
 digraph G {
-
+  label=<test<i><font color=red>123</font></i>>
   subgraph cluster_0 {
-    graph[color=lightgrey,bgcolor=lightgrey,label = "process #2"]
+    color=lightgrey;
+    bgcolor=lightgrey;
     node[color=white,fillcolor=white];
     a0 -> a1 -> a2 -> a3;
+    label = <process <b><u>#1</u></b>>;
   }
 
   subgraph cluster_1 {
-    graph[color=blue,label = "process #2"]
     node[fillcolor=grey];
     b0 -> b1 -> b2 -> b3;
+    label = <<s>process <hr><br/><b><o>#2</o></b></hr></s>>;
+    color=blue
   }
-  start -> a0;
+  start -> a0[label=<line <u>label</u>> taillabel=<tail <font color="blue"><u>label</u></font>> headlabel=<head <s><b>label</b></s>>];
   start -> b0;
   a1 -> b3;
   b2 -> a3;

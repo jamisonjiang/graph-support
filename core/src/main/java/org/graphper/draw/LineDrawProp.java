@@ -337,7 +337,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
     for (FloatLabel floatLabel : floatLabels) {
       Assemble floatLabelAssemble = floatLabel.getAssemble();
-      if (floatLabelAssemble == null && floatLabel.getTable() != null) {
+      if (floatLabelAssemble == null) {
         floatLabelAssemble = convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag());
       }
 

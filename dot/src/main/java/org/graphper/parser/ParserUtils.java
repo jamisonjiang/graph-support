@@ -28,6 +28,7 @@ import org.apache_gs.commons.lang3.ArrayUtils;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
+import org.graphper.api.FloatLabel.FloatLabelBuilder;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Html.Attrs;
 import org.graphper.api.Html.FontAttrs;
@@ -516,11 +517,15 @@ public class ParserUtils {
         FloatLabel headFloatLabel = null;
 
         if (StringUtils.isNotEmpty(taillabel)) {
-            tailFloatLabel = FloatLabel.builder().label(taillabel).tend(Tend.TAIL).build();
+            FloatLabelBuilder fb = FloatLabel.builder();
+            labelHandle(fb::label, fb::table, fb::labelTag, taillabel);
+            tailFloatLabel = fb.tend(Tend.TAIL).build();
         }
 
         if (StringUtils.isNotEmpty(headlabel)) {
-            headFloatLabel = FloatLabel.builder().label(headlabel).tend(Tend.HEAD).build();
+            FloatLabelBuilder fb = FloatLabel.builder();
+            labelHandle(fb::label, fb::table, fb::labelTag, headlabel);
+            headFloatLabel  = fb.tend(Tend.HEAD).build();
         }
 
         if (tailFloatLabel == null) {
