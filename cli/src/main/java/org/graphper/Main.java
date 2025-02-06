@@ -19,7 +19,14 @@ package org.graphper;
 import static org.graphper.CommandUnits.COMMAND_UNITS;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
@@ -29,13 +36,10 @@ import org.graphper.parser.PostGraphComponents;
 public class Main {
 
   public static void main(String[] args) {
-    System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "off");
-
     try {
       Command command = newCommand(args);
-      DotParser dotParser = new DotParser(command.getDotFile(), StandardCharsets.UTF_8);
       File output = command.getOutput();
-      dotParser.parse(new PostGraphComponents() {
+      DotParser.parse(getCharStream(command), new PostGraphComponents() {
             @Override
             public void postGraphviz(GraphvizBuilder graphvizBuilder) {
               Layout layout = command.getLayout();
@@ -51,6 +55,16 @@ public class Main {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private static CharStream getCharStream(Command command) throws IOException {
+    File dotFile = command.getDotFile();
+    InputStream is = Files.newInputStream(dotFile.toPath());
+    CharStream charStream;
+    try(Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+      charStream = CharStreams.fromReader(r, dotFile.getName());
+    }
+    return charStream;
   }
 
   private static Command newCommand(String[] args) throws WrongCommandException {

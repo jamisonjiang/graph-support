@@ -30,7 +30,7 @@ public class DotCasesTest extends GraphvizVisual {
   @Test
   public void testCase() throws IOException {
     String dot = DocumentUtils.getDotTestFile("/manual/clusterAttrs.dot");
-    Graphviz graphviz = new DotParser(new File(dot), StandardCharsets.UTF_8).parse();
+    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
     visual(graphviz);
   }
 
@@ -67,8 +67,7 @@ public class DotCasesTest extends GraphvizVisual {
       return;
     }
     try {
-      DotParser dotParser = new DotParser(file, StandardCharsets.UTF_8);
-      visual(dotParser.parse());
+      visual(DotParser.parse(file, StandardCharsets.UTF_8));
     } catch (Exception e) {
       System.err.println("File " + file.getName() + " error");
       throw e;

@@ -21,163 +21,168 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Graphviz;
 import org.graphper.parser.grammar.DOTLexer;
 import org.graphper.parser.grammar.DOTParser;
+import org.graphper.util.Asserts;
 
 /**
- * A parser that reads DOT language input (e.g., <i>.dot</i> files or strings)
- * and converts it into a {@link Graphviz} data structure for further use
- * within Java code.
+ * Provides static utility methods to read DOT language input (e.g., <i>.dot</i> files,
+ * strings, or input streams) and convert them into a {@link Graphviz} data structure
+ * for further use within Java code.
  *
  * <p>Example usage:</p>
  * <pre>{@code
  * // Parsing from a File
- * DotParser parser = new DotParser(new File("path/to/graph.dot"), StandardCharsets.UTF_8);
- * Graphviz graphviz = parser.parse();
+ * Graphviz graphFromFile = DotParser.parse(new File("path/to/graph.dot"));
  *
- * // Parsing from a string
+ * // Parsing from a String
  * String dotSource = "digraph G { a -> b; }";
- * DotParser stringParser = new DotParser(dotSource);
- * Graphviz stringGraph = stringParser.parse();
+ * Graphviz graphFromString = DotParser.parse(dotSource);
  * }</pre>
  *
  * @author johannes
  */
 public class DotParser {
 
-    private final CharStream charStream;
-
-    /**
-     * Creates a parser that reads DOT input from a file using the specified charset.
-     *
-     * @param file    the DOT file to parse
-     * @param charset the charset used to read the file
-     * @throws IOException    if an I/O error occurs opening or reading the file
-     */
-    public DotParser(File file, Charset charset) throws IOException {
-        try(Reader r = new InputStreamReader(Files.newInputStream(file.toPath()), charset)) {
-            charStream = CharStreams.fromReader(r, file.getCanonicalPath());
-        }
+    private DotParser() {
     }
 
     /**
-     * Creates a parser that reads DOT input from an {@link InputStream} using the specified charset.
+     * Reads DOT input from the specified file and returns a {@link Graphviz} representation of the
+     * parsed graph.
      *
-     * <p>The {@code sourceName} is set to {@code "anonymous InputStream"} by default.</p>
-     *
-     * @param in      an input stream containing DOT data
-     * @param charset the charset used to read the stream
-     * @throws IOException    if an I/O error occurs while reading the stream
+     * @param file the file containing DOT data
+     * @return a {@code Graphviz} object representing the parsed graph
+     * @throws NullPointerException if {@code File} is null
+     * @throws IOException          if an I/O error occurs while reading the file
+     * @throws ParseException       if the DOT script contains syntax errors
      */
-    public DotParser(InputStream in, Charset charset) throws IOException {
-        this(in, charset, "anonymous InputStream");
+    public static Graphviz parse(File file) throws IOException {
+        Asserts.nullArgument(file);
+        return parse(file, StandardCharsets.UTF_8);
     }
 
     /**
-     * Creates a parser that reads DOT input from an {@link InputStream} using the specified charset
-     * and associates it with a given source name, useful for error reporting.
+     * Reads DOT input from the specified file using the given charset and returns a {@link Graphviz}
+     * representation of the parsed graph.
      *
-     * @param in         an input stream containing DOT data
-     * @param charset    the charset used to read the stream
-     * @param sourceName a descriptive name for this source (e.g., a file path)
-     * @throws IOException    if an I/O error occurs while reading the stream
+     * @param file    the file containing DOT data
+     * @param charset the character set to use for reading the file
+     * @return a {@code Graphviz} object representing the parsed graph
+     * @throws NullPointerException if {@code File} is null
+     * @throws IOException          if an I/O error occurs while reading the file
+     * @throws ParseException       if the DOT script contains syntax errors
      */
-    public DotParser(InputStream in, Charset charset, String sourceName) throws IOException {
+    public static Graphviz parse(File file, Charset charset) throws IOException {
+        Asserts.nullArgument(file);
+        charset = charset == null ? StandardCharsets.UTF_8 : charset;
+        return parse(Files.newInputStream(file.toPath()), charset);
+    }
+
+    /**
+     * Reads DOT input from the specified {@link InputStream} using the given charset, assuming the
+     * source name is "anonymous InputStream". Returns a {@link Graphviz} representation of the parsed
+     * graph.
+     *
+     * @param in      the {@link InputStream} containing DOT data
+     * @param charset the character set to use for reading the stream
+     * @return a {@code Graphviz} object representing the parsed graph
+     * @throws NullPointerException if {@code InputStream} is null
+     * @throws IOException          if an I/O error occurs while reading the stream
+     * @throws ParseException       if the DOT script contains syntax errors
+     */
+    public static Graphviz parse(InputStream in, Charset charset) throws IOException {
+        return parse(in, charset, "anonymous InputStream");
+    }
+
+    /**
+     * Reads DOT input from the specified {@link InputStream} using the given charset, associating the
+     * resulting stream with a custom {@code sourceName} (useful for error reporting). Returns a
+     * {@link Graphviz} representation of the parsed graph.
+     *
+     * @param in         the {@link InputStream} containing DOT data
+     * @param charset    the character set to use for reading the stream
+     * @param sourceName a descriptive name for the input (e.g., file path or identifier)
+     * @return a {@code Graphviz} object representing the parsed graph
+     * @throws NullPointerException if {@code InputStream} is null
+     * @throws IOException          if an I/O error occurs while reading the stream
+     * @throws ParseException       if the DOT script contains syntax errors
+     */
+    public static Graphviz parse(InputStream in, Charset charset, String sourceName) throws IOException {
+        Asserts.nullArgument(in);
+        charset = charset == null ? StandardCharsets.UTF_8 : charset;
         try(Reader r = new InputStreamReader(in, charset)) {
-            charStream = CharStreams.fromReader(r, sourceName);
+            CharStream charStream = CharStreams.fromReader(r, sourceName);
+            return parse(charStream);
         }
     }
 
     /**
-     * Creates a parser that reads DOT input from a string. The {@code sourceName} is set to
-     * {@code "anonymous String"} by default.
+     * Reads DOT input from the specified string, using "anonymous String" as the source name.
      *
-     * @param in the DOT input as a string
-     */
-    public DotParser(String in) {
-        this(in, "anonymous String");
-    }
-
-    /**
-     * Creates a parser that reads DOT input from a string and associates it with a given source name,
-     * useful for error reporting.
-     *
-     * @param in         the DOT input as a string
-     * @param sourceName a descriptive name for this source (e.g., a file path)
-     */
-    public DotParser(String in, String sourceName) {
-
-        charStream = CharStreams.fromString(in, sourceName);
-    }
-
-    /**
-     * Parses the DOT data provided via the constructor, returning a {@link Graphviz}
-     * instance representing the parsed graph.
-     *
-     * <p>This is a convenience method that calls {@link #compile(CharStream)} under
-     * the hood. If parsing fails due to syntax or lexical errors, an exception may be
-     * thrown (see {@link DotSyntaxErrorListener}).</p>
-     *
+     * @param in the DOT script as a string
      * @return a {@code Graphviz} object representing the parsed graph
-     * @throws ParseException if dot script is illegal
+     * @throws IllegalArgumentException if the DOT script is null or empty
+     * @throws ParseException           if the DOT script contains syntax errors
      */
-    public Graphviz parse() {
-        return compile(charStream);
+    public static Graphviz parse(String in) {
+        return parse(in, "anonymous String");
     }
 
     /**
-     * Parses the DOT data provided via the constructor, returning a {@link Graphviz} instance
-     * representing the parsed graph, with optional post-graph modifications.
+     * Reads DOT input from the specified string, associating the content with the given
+     * {@code sourceName} (useful for error reporting).
      *
-     * <p>The {@code postGraphComponents} may alter or augment the parse results before
-     * the final {@code Graphviz} object is created.</p>
-     *
-     * @param postGraphComponents an optional post-processing hook applied after parsing
-     * @return a {@code Graphviz} object representing the parsed graph with post-graph modifications
-     * @throws ParseException if dot script is illegal
-     */
-    public Graphviz parse(PostGraphComponents postGraphComponents) {
-
-        return compile(charStream, postGraphComponents);
-    }
-
-    /**
-     * A static utility method that compiles a given {@link CharStream} (DOT source)
-     * into a {@link Graphviz} instance, without any post-graph modifications.
-     *
-     * <p>If syntax errors are encountered, they will be recorded by {@link DotSyntaxErrorListener}
-     * and may cause exceptions or error messages. For advanced handling, consider
-     * calling {@link #compile(CharStream, PostGraphComponents)}.</p>
-     *
-     * @param charStream the DOT input stream to parse
+     * @param in         the DOT script as a string
+     * @param sourceName a descriptive name for the input (e.g., file path or identifier)
      * @return a {@code Graphviz} object representing the parsed graph
-     * @throws ParseException if dot script is illegal
+     * @throws IllegalArgumentException if the DOT script is null or empty
+     * @throws ParseException           if the DOT script contains syntax errors
      */
-    public static Graphviz compile(CharStream charStream) {
-        return compile(charStream, null);
+    public static Graphviz parse(String in, String sourceName) {
+        Asserts.illegalArgument(StringUtils.isEmpty(in), "Empty dot");
+        CharStream charStream = CharStreams.fromString(in, sourceName);
+        return parse(charStream);
     }
 
     /**
-     * A static utility method that compiles a given {@link CharStream} (DOT source)
-     * into a {@link Graphviz} instance, applying optional post-graph modifications.
+     * A convenience method that parses DOT data from the given {@link CharStream} and returns a
+     * {@code Graphviz} representation of the parsed graph. No post-processing hook is applied.
+     *
+     * @param charStream the {@link CharStream} containing DOT data
+     * @return a {@code Graphviz} object representing the parsed graph
+     * @throws NullPointerException if {@code CharStream} is null
+     * @throws ParseException       if the DOT script contains syntax errors
+     */
+    public static Graphviz parse(CharStream charStream) {
+        return parse(charStream, null);
+    }
+
+    /**
+     * A static utility method that compiles a given {@link CharStream} (DOT source) into a
+     * {@link Graphviz} instance, applying optional post-graph modifications.
      *
      * <p>It uses ANTLR to tokenize and parse the input via {@link DOTLexer} and {@link DOTParser},
-     * then walks the parse tree to extract nodes and build a {@code Graphviz} model.
-     * If {@code postGraphComponents} is provided, it is used to adjust or augment
-     * the parse results before returning the final model.</p>
+     * then walks the parse tree to extract nodes and build a {@code Graphviz} model. If
+     * {@code postGraphComponents} is provided, it is used to adjust or augment the parse results
+     * before returning the final model.</p>
      *
      * @param charStream          the DOT input stream to parse
      * @param postGraphComponents an optional post-processing hook applied after parsing
      * @return a {@code Graphviz} object representing the parsed graph
-     * @throws ParseException if dot script is illegal
+     * @throws NullPointerException if {@code CharStream} is null
+     * @throws ParseException       if dot script is illegal
      */
-    public static Graphviz compile(CharStream charStream, PostGraphComponents postGraphComponents) {
+    public static Graphviz parse(CharStream charStream, PostGraphComponents postGraphComponents) {
+        Asserts.nullArgument(charStream);
         DOTLexer lexer = new DOTLexer(charStream);
         DOTParser p = new DOTParser(new CommonTokenStream(lexer));
 
@@ -189,7 +194,6 @@ public class DotParser {
         lexer.addErrorListener(dotSyntaxErrorListener);
 
         DOTParser.GraphContext graphCtx = p.graph();
-
         ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
         NodeExtractor nodeExtractor = new NodeExtractor(postGraphComponents);
         parseTreeWalker.walk(nodeExtractor, graphCtx);
