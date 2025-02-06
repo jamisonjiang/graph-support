@@ -20,8 +20,7 @@ import static org.graphper.api.Html.bold;
 import static org.graphper.api.Html.font;
 import static org.graphper.api.Html.fontAttrs;
 import static org.graphper.api.Html.left;
-import static org.graphper.api.Html.strikeThrough;
-import static org.graphper.api.Html.underline;
+import static org.graphper.api.Html.overline;
 
 import helper.GraphvizVisual;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
@@ -179,12 +179,14 @@ public class NodeAttrTest extends GraphvizVisual {
     visual(
         Graphviz.digraph()
             .addNode(Node.builder()
+                         .label("test")
                          .labelTag(
-                             bold(left(underline("First line")))
+                             bold(left(overline("First line")))
                                  .br()
-                                 .italic(strikeThrough(font("Second line", fontAttrs().color(Color.INDIGO))))
-                                 .subscript("subscript").superscript(underline("superscript"))
+                                 .italic(font("Second line", fontAttrs().color(Color.INDIGO)))
+                                 .subscript("subscript").superscript("superscript")
                          )
+                         .fontStyle(FontStyle.BOLD, FontStyle.ITALIC, FontStyle.STRIKETHROUGH)
                          .build())
             .build()
     );

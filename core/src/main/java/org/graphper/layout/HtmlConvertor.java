@@ -1043,6 +1043,9 @@ public class HtmlConvertor {
       setFontSize(labelAttrs.getFontSize());
       setFontName(labelAttrs.getFontName());
       setFontColor(labelAttrs.getFontColor());
+      setOverline(labelAttrs.isOverline());
+      setUnderline(labelAttrs.isUnderline());
+      setStrikethrough(labelAttrs.isStrikethrough());
     }
 
     private void setHorAlign(BasicLabelTag labelTag) {
