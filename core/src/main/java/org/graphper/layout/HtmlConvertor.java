@@ -88,7 +88,6 @@ public class HtmlConvertor {
       return null;
     }
 
-    // TODO: Infinite loop
     AssembleBuilder builder = Assemble.builder();
     TextRows textRows = new TextRows();
     TextTagValue textTagValue = new TextTagValue(labelAttrs);
@@ -566,6 +565,10 @@ public class HtmlConvertor {
     if (labelTag == null) {
       return currentLineHeight;
     }
+    if (textTagValue.isMark(labelTag)) {
+      throw new CycleDependencyException("LabelTag");
+    }
+    textTagValue.mark(labelTag);
 
     for (BasicLabelTag tag : labelTag.getTags()) {
       TextTagValue temp = textTagValue.clone();
@@ -573,6 +576,8 @@ public class HtmlConvertor {
                                          position, currentLineHeight);
       textTagValue = temp;
     }
+
+    textTagValue.remove(labelTag);
     return currentLineHeight;
   }
 

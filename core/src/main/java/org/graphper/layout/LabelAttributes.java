@@ -3,11 +3,12 @@ package org.graphper.layout;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.util.CollectionUtils;
 
-public class LabelAttributes implements Cloneable {
+public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
 
   private Color fontColor;
 

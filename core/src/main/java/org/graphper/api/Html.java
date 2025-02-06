@@ -1074,7 +1074,7 @@ public class Html {
 
     private final LabelTag subLabelTag;
 
-    public BasicLabelTag(String text, LabelTagType type, LabelTag subLabelTag) {
+    private BasicLabelTag(String text, LabelTagType type, LabelTag subLabelTag) {
       Asserts.nullArgument(type);
       this.text = text;
       this.type = type;

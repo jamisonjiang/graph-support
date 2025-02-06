@@ -53,6 +53,13 @@ public abstract class Mark<T> {
     return marked.contains(node);
   }
 
+  protected void remove(T node) {
+    if (marked == null) {
+      return;
+    }
+    marked.remove(node);
+  }
+
   protected void clear() {
     if (marked == null) {
       return;
