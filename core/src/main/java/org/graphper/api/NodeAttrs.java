@@ -20,9 +20,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.Html.Table;
 import org.graphper.api.Html.LabelTag;
+import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labeljust;
@@ -114,7 +113,7 @@ public class NodeAttrs implements Serializable, Cloneable {
   }
 
   public String getLabel() {
-    return StringUtils.isNotEmpty(label) ? label : id;
+    return Objects.nonNull(label) ? label : id;
   }
 
   public LabelTag getLabelTag() {

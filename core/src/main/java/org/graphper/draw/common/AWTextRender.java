@@ -112,7 +112,13 @@ public class AWTextRender {
     }
 
     g2d.fill(outline);
-    double width = outline.getBounds2D().getWidth();
+
+    double width = 0;
+    if (glyphVector.getNumGlyphs() > 0) {
+      Point2D endPos = glyphVector.getGlyphPosition(glyphVector.getNumGlyphs());
+      width = endPos.getX();
+    }
+
     return new FlatPoint(height, width);
   }
 
