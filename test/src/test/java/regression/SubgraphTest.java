@@ -154,7 +154,7 @@ public class SubgraphTest extends GraphvizVisual  {
      */
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.6)
+        .scale(6)
 //        .splines(Splines.SPLINE)
         .addLine(a, b)
         .addLine(a, c)
@@ -298,7 +298,7 @@ public class SubgraphTest extends GraphvizVisual  {
 
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.5)
+        .scale(5)
         .label("Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph Temp Graph\nTemp Graph\nTemp Graph\nTemp Graph\nTemp Graph")
         .labeljust(Labeljust.LEFT)
         .addLine(n_1945604815, n_1720435669)
@@ -418,7 +418,7 @@ Hello World"
     Node n13 = Node.builder().label("13").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .scale(0.6)
+        .scale(6)
         .tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build())
         .rankdir(Rankdir.TB)
 //        .splines(Splines.SPLINE)
@@ -638,7 +638,7 @@ Hello World"
 
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.4)
+        .scale(4)
 //        .splines(Splines.SPLINE)
         .addNode(
             Node.builder()

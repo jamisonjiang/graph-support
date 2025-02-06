@@ -54,8 +54,8 @@ public class GraphAttrTest extends GraphvizVisual {
             g -> {
               try {
                 return Stream.of(
-                    g.clone().scale(1, 2).fontSize(10).labeljust(Labeljust.CENTER),
-                    g.clone().scale(2, 1).fontSize(50).labeljust(Labeljust.LEFT),
+                    g.clone().scale(10, 20).fontSize(10).labeljust(Labeljust.CENTER),
+                    g.clone().scale(20, 10).fontSize(50).labeljust(Labeljust.LEFT),
                     g.clone().labeljust(Labeljust.RIGHT)
                 );
               } catch (CloneNotSupportedException e) {
@@ -149,7 +149,7 @@ public class GraphAttrTest extends GraphvizVisual {
     Node n_S30 = Node.builder().label("S30").build();
     Node n_S35 = Node.builder().label("S35").build();
 
-    graphvizBuilder.scale(0.7)
+    graphvizBuilder.scale(7)
         .addLine(Line.builder(n_S8, n_9).build())
         .addLine(Line.builder(n_S24, n_27).build())
         .addLine(Line.builder(n_S24, n_25).build())
@@ -262,7 +262,7 @@ public class GraphAttrTest extends GraphvizVisual {
     Node n_KornShell = Node.builder().label("KornShell").build();
 
     graphvizBuilder
-        .scale(0.75)
+        .scale(7.5)
         .addLine(n_Thompson, n_Mashey)
         .addLine(n_Thompson, n_Bourne)
         .addLine(n_Thompson, n_csh)

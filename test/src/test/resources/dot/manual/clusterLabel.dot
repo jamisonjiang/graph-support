@@ -1,6 +1,6 @@
 digraph axionalterm {
     rankdir="LR"
-    size="0.7"
+    size="7"
     subgraph cluster_backend {
          margin="1,0.5"
         subgraph cluster_0 {

@@ -60,7 +60,7 @@ public class ClusterTest extends GraphvizVisual {
     Node n13 = Node.builder().label("13").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .scale(0.6)
+        .scale(6)
         .tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build())
         .rankdir(Rankdir.TB)
         .compound(true)
@@ -187,7 +187,7 @@ public class ClusterTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.4)
+        .scale(4)
         .addNode(
             Node.builder()
                 .label("ds")
@@ -352,7 +352,7 @@ public class ClusterTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz.digraph()
         .label("Graph label")
-        .scale(0.8)
+        .scale(8)
         .addNode(a)
         .startClus()
         .id("1")

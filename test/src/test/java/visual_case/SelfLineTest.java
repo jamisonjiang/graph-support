@@ -116,7 +116,7 @@ public class SelfLineTest extends GraphvizVisual {
     Node n = Node.builder().label("n").build();
 
     GraphvizBuilder graphvizBuilder = Graphviz.digraph()
-        .scale(0.7)
+        .scale(7)
         .addLine(Line.builder(a, a).headPort(Port.WEST).tailPort(Port.NORTH_EAST).build())
         .addLine(Line.builder(a, a).tailPort(Port.WEST).headPort(Port.NORTH_EAST).build())
 
@@ -268,7 +268,7 @@ public class SelfLineTest extends GraphvizVisual {
         .label("{<1>1|<2>2}").build();
 
     GraphvizBuilder graphvizBuilder = Graphviz.digraph()
-        .scale(0.7)
+        .scale(7)
         .addLine(Line.builder(a, a).tailPort(Port.WEST).headPort(Port.NORTH_EAST).build())
         .addLine(Line.builder(o, o)
                      .tailCell("1").headCell("2")

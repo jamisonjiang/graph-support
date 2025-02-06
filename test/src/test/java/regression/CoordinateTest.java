@@ -198,7 +198,7 @@ public class CoordinateTest extends GraphvizVisual {
      * */
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.6)
+        .scale(6)
 //        .splines(Splines.POLYLINE)
         .addLine(Thompson, Mashey)
         .addLine(Thompson, Bourne)
@@ -509,7 +509,7 @@ public class CoordinateTest extends GraphvizVisual {
 
    GraphvizBuilder graphvizBuilder = Graphviz
         .digraph()
-        .scale(0.5)
+        .scale(5)
         .tempLine(Line.tempLine().label("label").minlen(3).build())
         .addLine(Line.builder(n_S8, n_9).build())
         .addLine(Line.builder(n_S8, n_9).build())
@@ -693,7 +693,7 @@ public class CoordinateTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.5)
+        .scale(5)
         .addLine(Line.builder(n_S35, n_S30).build())
         .addLine(Line.builder(n_S30, n_S1).build())
         .addLine(Line.builder(n_S1, n_S24).build())

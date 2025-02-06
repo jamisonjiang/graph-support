@@ -45,7 +45,7 @@ public class TempTest extends GraphvizVisual {
 
     Graphviz graphviz = Graphviz
         .digraph()
-        .scale(0.7)
+        .scale(7)
         .tempNode(Node.builder().fillColor(Color.GREEN).build())
         .label("This is a demo of Cluster style delivery\nThis is a demo of Cluster style delivery\nThis is a demo of Cluster style delivery\n"
                    + "This is a demo of Cluster style delivery\nThis is a demo of Cluster style delivery")

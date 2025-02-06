@@ -37,8 +37,9 @@ import org.graphper.util.ClassUtils;
 import org.graphper.util.FontUtils;
 
 /**
- * Implementation of {@link SvgConverter} to convert SVG elements into Android Bitmap images.
- * This class uses Android's graphics library to perform the rendering and supports both PNG and JPEG formats.
+ * Implementation of {@link SvgConverter} to convert SVG elements into Android Bitmap images. This
+ * class uses Android's graphics library to perform the rendering and supports both PNG and JPEG
+ * formats.
  *
  * @author Jamison Jiang
  */
@@ -81,7 +82,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   }
 
   /**
-   * Returns the priority order of this converter. The default order for Android implementation is set to 0.
+   * Returns the priority order of this converter. The default order for Android implementation is
+   * set to 0.
    *
    * @return the priority order of this converter
    */
@@ -91,8 +93,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   }
 
   /**
-   * Checks if the current environment supports image conversion on Android.
-   * This requires certain Android graphics classes to be present.
+   * Checks if the current environment supports image conversion on Android. This requires certain
+   * Android graphics classes to be present.
    *
    * @return {@code true} if the environment supports image conversion, {@code false} otherwise
    */
@@ -112,12 +114,12 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   }
 
   /**
-   * Converts the given SVG document into an image of the specified type.
-   * Processes each element of the SVG and renders it using Android's graphics classes.
+   * Converts the given SVG document into an image of the specified type. Processes each element of
+   * the SVG and renders it using Android's graphics classes.
    *
-   * @param document   the SVG document to convert
-   * @param drawGraph  the drawing context with graph-related attributes
-   * @param fileType   the target image type for conversion
+   * @param document  the SVG document to convert
+   * @param drawGraph the drawing context with graph-related attributes
+   * @param fileType  the target image type for conversion
    * @return a {@link DefaultGraphResource} representing the converted image
    * @throws FailInitResourceException if the conversion fails or if parameters are missing
    */
@@ -132,7 +134,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     document.accessEles(((ele, children) -> {
       try {
         if (Objects.equals(ele.tagName(), SVG_ELE)) {
-          initImage(imgContext, ele);
+          initImage(drawGraph, imgContext, ele);
           return;
         }
         Object canvas = imgContext.canvas;
@@ -183,11 +185,12 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Initializes an image based on the provided dimensions and scale.
    *
+   * @param drawGraph  the drawing context
    * @param imgContext the image context to be initialized
    * @param ele        the SVG element containing the attributes
    * @throws Exception if initialization fails
    */
-  private void initImage(ImgContext imgContext, Element ele) throws Exception {
+  private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
 
@@ -198,6 +201,14 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     imgContext.canvas = ClassUtils.newObject(CANVAS, imgContext.img);
     ClassUtils.invoke(imgContext.canvas, "drawColor",
                       ClassUtils.getStaticField(COLOR, "WHITE"));
+
+    FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
+    if (scale != null) {
+      Object transform = ClassUtils.newObject(MATRIX);
+      ClassUtils.invoke(transform, "setScale", (float) (scale.getX() / 10),
+                        (float) (scale.getY() / 10));
+      ClassUtils.invoke(imgContext.canvas, "setMatrix", transform);
+    }
   }
 
   /**
@@ -265,7 +276,6 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     float strokeWidth = fontSize / 10.0f; // Proportional to font size
     ClassUtils.invoke(paint, "setStrokeWidth", strokeWidth);
 
-
     if (haveFontOverline(ele)) {
       int overline = (int) (y - size.getHeight() + Math.max(1.0f, fontSize / 4.0f));
       ClassUtils.invoke(canvas, "drawLine",
@@ -284,7 +294,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
       float strikeThroughY = (float) (textY - (size.getHeight() / 3.0f));
       ClassUtils.invoke(canvas, "drawLine",
                         new Class[]{float.class, float.class, float.class, float.class, PAINT},
-                        textX, strikeThroughY, textX + (float) size.getWidth(), strikeThroughY, paint);
+                        textX, strikeThroughY, textX + (float) size.getWidth(), strikeThroughY,
+                        paint);
     }
   }
 
@@ -324,11 +335,11 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Draws a path based on given points.
    *
-   * @param ele        the SVG element
-   * @param canvas     the graphics context
-   * @param pointFs    the points defining the path
-   * @param isCurve    {@code true} if the path contains curves, {@code false} otherwise
-   * @param needClose  {@code true} if the path should be closed, {@code false} otherwise
+   * @param ele       the SVG element
+   * @param canvas    the graphics context
+   * @param pointFs   the points defining the path
+   * @param isCurve   {@code true} if the path contains curves, {@code false} otherwise
+   * @param needClose {@code true} if the path should be closed, {@code false} otherwise
    * @throws Exception if drawing fails
    */
   private void drawPath(Element ele, Object canvas, Object[] pointFs,
@@ -369,8 +380,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Sets the common attributes of a shape such as fill color, stroke color, and stroke width.
    *
-   * @param ele     the SVG element with attributes to be set
-   * @param paint   the paint object to apply these attributes
+   * @param ele      the SVG element with attributes to be set
+   * @param paint    the paint object to apply these attributes
    * @param isBorder {@code true} if setting border attributes, {@code false} for fill attributes
    * @return {@code true} if the shape attributes were successfully set, {@code false} otherwise
    * @throws Exception if setting attributes fails

@@ -217,7 +217,7 @@ public class PortTest extends GraphvizVisual {
     Node n = Node.builder().label("n").build();
 
     GraphvizBuilder graphvizBuilder = Graphviz.digraph()
-        .scale(0.7)
+        .scale(7)
 //        .splines(Splines.ORTHO)
         .addLine(Line.builder(a, a).tailPort(Port.WEST).headPort(Port.NORTH_EAST).build())
         .addLine(Line.builder(a, a).tailPort(Port.WEST).build())

@@ -1,6 +1,6 @@
 digraph G {
   node [shape=plaintext];
-  size="0.8"
+  size="8"
 
   exampleNode [
     label=<
