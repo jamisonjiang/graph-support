@@ -38,7 +38,7 @@ public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
     }
 
     String href = nodeAttrs.getHref();
-    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE, A_ELE);
+    Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
