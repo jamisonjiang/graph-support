@@ -69,8 +69,8 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     double height = drawGraph.height();
     FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
     if (scale != null) {
-      width *= scale.getX();
-      height *= scale.getY();
+      width *= (scale.getX() / 10);
+      height *= (scale.getY() / 10);
     }
 
     svgDocument = new SvgDocument();
@@ -94,7 +94,7 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     if (scale == null) {
       transform = String.format(transform, "1 1", "%s");
     } else {
-      String scaleStr = scale.getX() + SvgConstants.SPACE + scale.getY();
+      String scaleStr = scale.getX() / 10 + SvgConstants.SPACE + scale.getY() / 10;
       transform = String.format(transform, scaleStr, "%s");
     }
 

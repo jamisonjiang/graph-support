@@ -69,7 +69,7 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   double rankSep = (double) Graphviz.PIXEL / 2;
 
-  FlatPoint scale = new FlatPoint(1, 1);
+  FlatPoint scale = new FlatPoint(10, 10);
 
   FlatPoint margin = new FlatPoint(20, 20);
 

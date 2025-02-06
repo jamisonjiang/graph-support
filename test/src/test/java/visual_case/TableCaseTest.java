@@ -842,6 +842,7 @@ public class TableCaseTest extends GraphvizVisual {
     Node n9 = Node.builder().label("EC  ⊥  EB").build();
 
     Graphviz graphviz = Graphviz.digraph()
+        .scale(5, 5)
         .tempNode(Node.builder().shape(NodeShapeEnum.RECT).color(Color.BLACK).fillColor(Color.ofRGB("#C0FFFF")).build())
         .tempLine(Line.tempLine().dir(Dir.BACK).build())
         .addLine(n1, n5)

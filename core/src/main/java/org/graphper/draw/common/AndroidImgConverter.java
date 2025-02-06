@@ -132,7 +132,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     document.accessEles(((ele, children) -> {
       try {
         if (Objects.equals(ele.tagName(), SVG_ELE)) {
-          initImage(drawGraph, imgContext, ele);
+          initImage(imgContext, ele);
           return;
         }
         Object canvas = imgContext.canvas;
@@ -183,12 +183,11 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Initializes an image based on the provided dimensions and scale.
    *
-   * @param drawGraph  the drawing context
    * @param imgContext the image context to be initialized
    * @param ele        the SVG element containing the attributes
    * @throws Exception if initialization fails
    */
-  private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
+  private void initImage(ImgContext imgContext, Element ele) throws Exception {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
 
@@ -199,13 +198,6 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     imgContext.canvas = ClassUtils.newObject(CANVAS, imgContext.img);
     ClassUtils.invoke(imgContext.canvas, "drawColor",
                       ClassUtils.getStaticField(COLOR, "WHITE"));
-
-    FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
-    if (scale != null) {
-      Object transform = ClassUtils.newObject(MATRIX);
-      ClassUtils.invoke(transform, "setScale", (float) scale.getX(), (float) scale.getY());
-      ClassUtils.invoke(imgContext.canvas, "setMatrix", transform);
-    }
   }
 
   /**

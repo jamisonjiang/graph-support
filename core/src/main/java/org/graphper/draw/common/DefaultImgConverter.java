@@ -119,7 +119,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     ImgContext imgContext = new ImgContext();
     document.accessEles(((ele, children) -> {
       if (Objects.equals(ele.tagName(), SVG_ELE)) {
-        initImage(drawGraph, imageType, imgContext, ele);
+        initImage(imageType, imgContext, ele);
         return;
       }
       Graphics2D g2d = imgContext.g2d;
@@ -165,20 +165,15 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
   /**
    * Initializes an image based on the provided dimensions and scale.
    *
-   * @param drawGraph  the drawing context
    * @param imageType  the target image type
    * @param imgContext the image context to be initialized
    * @param ele        the SVG element containing the attributes
    */
-  private void initImage(DrawGraph drawGraph, FileType imageType,
-                         ImgContext imgContext, Element ele) {
+  private void initImage(FileType imageType, ImgContext imgContext, Element ele) {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
-    FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
     AffineTransform transform = new AffineTransform();
-    if (scale != null) {
-      transform.scale(scale.getX() * 1.3333, scale.getY() * 1.3333);
-    }
+    transform.scale(1.3333, 1.3333);
 
     w = (int) (w * 1.3333);
     h = (int) (h * 1.3333);
