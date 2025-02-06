@@ -34,7 +34,45 @@ import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
 
 /**
- * Html-related APIs.
+ * Provides utilities for creating HTML-based graph labels.
+ *
+ * <p>This class offers a fluent API to construct HTML elements such as tables, text,
+ * and formatting tags. It allows users to define rich, multi-line, and styled text labels
+ * for graph/cluster/node/line label.</p>
+ *
+ * <h2>Usage Examples</h2>
+ *
+ * <h3>Creating a Table</h3>
+ * <pre>{@code
+ * Table table = table()
+ *     .tr(td().text("Title"), td().text("Description"))
+ *     .tr(td().text("Node A"), td().text("Represents Start Point"))
+ *     .tr(td().text("Node B"), td().text("Represents Decision"));
+ *
+ * Node.builder().table(table).build();
+ * }</pre>
+ *
+ * <h3>Using Recursive Label Tags for Rich Formatting</h3>
+ * <p>The following example shows how to create a label with multiple text styles:
+ * <pre>{@code
+ * LabelTag label = bold("Graph Analysis")
+ *     .br()
+ *     .italic("Understanding the flow of a directed graph")
+ *     .br()
+ *     .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+ *     .br()
+ *     .top(bold(italic("Key Takeaways:")))
+ *     .br()
+ *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+ *     .br()
+ *     .right(strikeThrough("Outdated Formula"))
+ *     .br()
+ *     .bottom(italic("Bottom Text Example"))
+ *     .font("Bigger", fontAttrs().pointSize(50))
+ *     .verticalCenter(italic(bold("Centered Text Example")));
+ *
+ * Node.builder().labelTag(label).build();
+ * }</pre>
  *
  * @author Jamison Jiang
  */

@@ -37,7 +37,7 @@ public abstract class Mark<T> {
     this.marked = new HashSet<>(initialCapacity);
   }
 
-  protected void mark(T node) {
+  public void mark(T node) {
     Objects.requireNonNull(node);
 
     if (marked == null) {
@@ -46,14 +46,14 @@ public abstract class Mark<T> {
     marked.add(node);
   }
 
-  protected boolean isMark(T node) {
+  public boolean isMark(T node) {
     if (marked == null) {
       return false;
     }
     return marked.contains(node);
   }
 
-  protected void remove(T node) {
+  public void remove(T node) {
     if (marked == null) {
       return;
     }

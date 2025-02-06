@@ -8,6 +8,11 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.util.CollectionUtils;
 
+/**
+ * Represents the attributes of a label, including font settings and text decorations.
+ *
+ * @author Jamison Jiang
+ */
 public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
 
   private Color fontColor;
@@ -90,6 +95,12 @@ public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
     this.strikethrough = strikethrough;
   }
 
+  /**
+   * Converts the label's attributes into an array of font styles.
+   *
+   * @return An array of {@link FontStyle} representing the applied styles,
+   *         or {@code null} if no styles are applied.
+   */
   public FontStyle[] toFontStyles() {
     List<FontStyle> fontStyles = null;
     if (bold) {
@@ -132,6 +143,12 @@ public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
     return null;
   }
 
+  /**
+   * Converts the label's attributes which affect the text size into an array of font styles.
+   *
+   * @return An array of {@link FontStyle} representing the applied styles,
+   *         or {@code null} if no styles are applied.
+   */
   public FontStyle[] toMeasureFontStyles() {
     if (bold && italic) {
       return new FontStyle[]{FontStyle.BOLD, FontStyle.ITALIC};

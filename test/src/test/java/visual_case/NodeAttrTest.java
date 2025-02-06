@@ -19,18 +19,19 @@ package visual_case;
 import static org.graphper.api.Html.bold;
 import static org.graphper.api.Html.font;
 import static org.graphper.api.Html.fontAttrs;
-import static org.graphper.api.Html.left;
-import static org.graphper.api.Html.overline;
+import static org.graphper.api.Html.italic;
+import static org.graphper.api.Html.strikeThrough;
+import static org.graphper.api.Html.text;
 
 import helper.GraphvizVisual;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.attributes.Color;
-import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
@@ -176,17 +177,30 @@ public class NodeAttrTest extends GraphvizVisual {
 
   @Test
   public void testLabelTag() {
+    LabelTag label = bold("Graph Analysis")
+        .br()
+        .italic("Understanding the flow of a directed graph")
+        .br()
+        .underline(font("Highlighted Concept", fontAttrs().color(Color.BLUE).pointSize(18)))
+        .br()
+        .top(bold(italic("Key Takeaways:")))
+        .br()
+        .left(font(text("H").subscript("2").text("O").superscript("2"),
+                   fontAttrs().color(Color.RED).pointSize(16)))
+        .br()
+        .right(strikeThrough("Outdated Formula"))
+        .br()
+        .bottom(italic("Bottom Text Example"))
+        .font("Bigger", fontAttrs().pointSize(50))
+        .verticalCenter(italic(bold("Centered Text Example")));
+
+    Node.builder().labelTag(label).build();
+
     visual(
         Graphviz.digraph()
             .addNode(Node.builder()
-                         .label("test")
-                         .labelTag(
-                             bold(left(overline("First line")))
-                                 .br()
-                                 .italic(font("Second line", fontAttrs().color(Color.INDIGO)))
-                                 .subscript("subscript").superscript("superscript")
-                         )
-                         .fontStyle(FontStyle.BOLD, FontStyle.ITALIC, FontStyle.STRIKETHROUGH)
+                         .labelTag(label)
+//                         .fontStyle(FontStyle.BOLD, FontStyle.ITALIC, FontStyle.STRIKETHROUGH)
                          .build())
             .build()
     );

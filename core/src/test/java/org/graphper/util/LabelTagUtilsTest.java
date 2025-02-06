@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.graphper.api;
+package org.graphper.util;
 
 import static org.graphper.api.Html.bold;
 import static org.graphper.api.Html.italic;
 import static org.graphper.api.Html.underline;
 
 import org.graphper.api.Html.LabelTag;
-import org.graphper.draw.ExecuteException;
+import org.graphper.def.CycleDependencyException;
+import org.graphper.layout.LabelAttributes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class HtmlTagTest {
+public class LabelTagUtilsTest {
 
   @Test
   public void testLabelTagCycleDependency() {
     LabelTag t1 = bold("text");
+    LabelTag t2 = t1.br().font("font").bold(italic(underline(t1)));
 
-    Graphviz graphviz = Graphviz.digraph()
-        .addNode(Node.builder().labelTag(t1.br().font("font").bold(italic(underline(t1)))).build())
-        .build();
-    Assertions.assertThrowsExactly(ExecuteException.class, graphviz::toSvgStr);
+    Assertions.assertThrowsExactly(CycleDependencyException.class,
+                                   () -> LabelTagUtils.measure(t2, new LabelAttributes()));
   }
 }

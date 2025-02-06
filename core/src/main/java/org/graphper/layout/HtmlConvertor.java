@@ -566,7 +566,7 @@ public class HtmlConvertor {
       return currentLineHeight;
     }
     if (textTagValue.isMark(labelTag)) {
-      throw new CycleDependencyException("LabelTag");
+      throw new CycleDependencyException("Cannot convert LabelTag due to LabelTag has cycle dependency");
     }
     textTagValue.mark(labelTag);
 
