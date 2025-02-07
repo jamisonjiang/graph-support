@@ -1,91 +1,44 @@
 # graph-support
 
-**graph-support** is a minimalistic re-implementation of a **Graphviz** using pure Java, almost without external dependencies. It is designed to be small and efficient, and provides a Java API similar to dot-script.
+**graph-support** is a lightweight Java re-implementation of [Graphviz](https://graphviz.org/) for parsing and rendering DOT graphs.
 
-Key Features:
+## Using by CLI
 
-* API like Dot-script structure
+Download the latest version from here:
 
-* No external dependencies
+prepare a dot-script file:
 
-* Lightweight and efficient
-
-Target Audience: 
-
-Developers who need to work with **Graphviz** in their Java applications, but want a small and efficient solution without relying on external libraries.
-
-## How to build
-
-You require the following to build **graph-support**:
-
-- Latest stable [OpenJDK 8](https://adoptium.net/)
-- Latest stable [Apache Maven](https://maven.apache.org/)
-
-Run the following command under the current project:
-
-```bash
-mvn clean install
+```dot
+digraph {a -> b}
 ```
 
-After building, go to `target/test-classes/visual/graph-visual.html` to see all the visual test cases.
+Render by CLI
 
-![](picture/case_visual.png)
+```shell
+java -jar graph-support-cli.jar example.dot -o example -Tpng
+```
 
-## Usage
+See help
 
-### Import
+```shell
+java -jar graph-support-cli.jar -h
+```
 
-This project is available via Maven:
+## Using in code
+
+### Render by Java API
+
+Import core dependency, if no need dot parser, import this dependency is enough
 
 ```xml
 <dependency>
     <groupId>org.graphper</groupId>
-    <artifactId>graph-support</artifactId>
-    <version>1.4.0</version>
+    <artifactId>graph-support-core</artifactId>
+    <version>1.5.0</version>
 </dependency>
 ```
 
-### API like Dot-script
-
 An API with a structure like a dot script, if you have written dot, it is easy to think of how to convert it into the corresponding java code:
-
-```dot
-digraph Q {
-  // Node attribute template
-  node [shape=rect];
-
-  // Node definition
-  nd_1   [label = "Node 1"];
-  nd_2   [label = "Node 2"];
-  nd_3_a [label = "Above Right Node 3"];
-  nd_3_l [label = "Left of Node 3"];
-  nd_3   [label = "Node 3"];
-  nd_3_r [label = "Right of Node 3"];
-  nd_4   [label = "Node 4"];
-
-  // Edges in root graph
-  nd_3_a -> nd_3_r;
-  nd_1 -> nd_2 -> nd_3 -> nd_4;
-
-  // Use Cluster to wrap the corresponding nodes and edges
-  subgraph cluster_R {
-    // Edge attribute template
-    edge[color=grey arrowhead=none]
-    // Use Subgraph to limit nodes to the same level
-    {
-        rank=same 
-        nd_3_l
-        nd_3 
-        nd_3_r
-    }
-
-    // Edges in cluster
-    nd_3_l -> nd_3 -> nd_3_r;
-  }
-}
-```
-
-The Java code of a similar structure is as follows: 
 
 ```java
 // Node definition
@@ -121,54 +74,30 @@ Graphviz graphviz = Graphviz.digraph()
     )
     .build();
 
-// Print svg
-System.out.println(graphviz.toSvgStr());
 // Save png
 graphviz.toFile(FileType.PNG).save("./", "example");
 ```
 
-### Multi output file type (>= 1.2.0)
+### Render by dot script
 
-**graph-support** support multi output formats if version >= 1.2.0 (only support svg before 1.2.0):
-
-|                                               | svg  | png  | jpg  | jpeg | gif  | tiff | pdf  |
-| --------------------------------------------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| JDK (>=1.8)                                   | Y    | Y    | Y    | Y    | Y    | N    | N    |
-| Android 13 (API level 33)<br/>Only test >= 13 | Y    | Y    | N    | Y    | N    | N    | N    |
-| JDK (>=1.8) + batik(>=1.9)                    | Y    | Y    | Y    | Y    | Y    | Y    | N    |
-| JDK(>=1.8) + batik(>=1.9) + fop(>=2.4)        | Y    | Y    | Y    | Y    | Y    | Y    | Y    |
-
-*Note: The version for the Android platform is only a recommendation, because versions below 13 have not been tested, it does not means other version won't work*
-
-### Quickly expand output formats
-
-**graph-support** detect environments when need render specific file type and throws **FailInitResourceException** if do not have any ways to rendering, so we just need import dependencies without any extra coding:
-
-```java
-// Output PNG only relys on java.awt and android.graphics
-graphviz.toFile(FileType.PNG);
-
-// Output TIFF without batik will throws FailInitResourceException
-graphviz.toFile(FileType.TIFF);
-
-// Output PDF without fop will throws FailInitResourceException
-graphviz.toFile(FileType.PDF);
-```
-
-import **batik** dependencies via maven
+Import DOT module:
 
 ```xml
 <dependency>
-    <groupId>org.apache.xmlgraphics</groupId>
-    <artifactId>batik-codec</artifactId>
-    <version>1.9</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.xmlgraphics</groupId>
-    <artifactId>batik-transcoder</artifactId>
-    <version>1.9</version>
+    <groupId>org.graphper</groupId>
+    <artifactId>graph-support-dot</artifactId>
+    <version>1.5.0</version>
 </dependency>
 ```
+
+Render by dot-script:
+
+```java
+String dot = "digraph {a -> b}";
+DotParser.parse(dot).toFile(FileType.PNG).save("./", "example");
+```
+
+
 
 no need change code
 

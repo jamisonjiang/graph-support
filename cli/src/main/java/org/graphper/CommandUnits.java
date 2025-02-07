@@ -21,6 +21,8 @@ import static org.graphper.Version.getBatikVersion;
 import static org.graphper.Version.getFopVersion;
 import static org.graphper.Version.getVersionFromPom;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,14 +32,19 @@ import java.util.stream.Stream;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
 import org.graphper.api.attributes.Layout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommandUnits {
+
+  private static final Logger log = LoggerFactory.getLogger(CommandUnits.class);
 
   private CommandUnits() {
   }
 
   protected static final List<CommandUnit> COMMAND_UNITS = Arrays.asList(
       new Help(),
+      new Debug(),
       new Version(),
       new DotInput(),
       new OutputFile(),
@@ -166,11 +173,11 @@ public class CommandUnits {
         return false;
       }
 
-      System.out.println("graph-support CLI Version: " + getVersionFromPom());
-      System.out.println("Dependency Versions:");
-      System.out.println("- antlr: " + getAntlrVersion());
-      System.out.println("- batik: " + getBatikVersion());
-      System.out.println("- fop:   " + getFopVersion());
+      log.info("graph-support CLI Version: {}", getVersionFromPom());
+      log.info("Dependency Versions:");
+      log.info("- antlr: {}", getAntlrVersion());
+      log.info("- batik: {}", getBatikVersion());
+      log.info("- fop:   {}", getFopVersion());
       System.exit(1);
       return true;
     }
@@ -191,11 +198,11 @@ public class CommandUnits {
       }
 
       for (CommandUnit unit : COMMAND_UNITS) {
-        String helpCommend = unit.helpCommend();
-        if (StringUtils.isEmpty(helpCommend)) {
+        String helpCommand = unit.helpCommend();
+        if (StringUtils.isEmpty(helpCommand)) {
           continue;
         }
-        System.out.println(helpCommend);
+        log.info(helpCommand);
       }
 
       System.exit(1);
@@ -205,6 +212,26 @@ public class CommandUnits {
     @Override
     public String helpCommend() {
       return null;
+    }
+  }
+
+  public static class Debug implements CommandUnit {
+
+    @Override
+    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+      String arg = arguments.current();
+      if (!"-d".equals(arg) && !"--debug".equals(arg)) {
+        return false;
+      }
+
+      LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+      loggerContext.getLogger("org.graphper").setLevel(Level.DEBUG);
+      return true;
+    }
+
+    @Override
+    public String helpCommend() {
+      return "-d           - Print debug info";
     }
   }
 

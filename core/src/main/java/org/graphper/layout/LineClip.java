@@ -483,9 +483,11 @@ public abstract class LineClip extends LineHandler {
 
   private void arrowSet(FlatPoint f, FlatPoint t, boolean isTail, LineDrawProp lineDrawProp) {
     if (Objects.equals(f, t)) {
-      log.debug(
-          "Found that the arrow end point and arrow direction point of the arrow are equal, "
-              + "and the arrow setting has been skipped, arrow end {}, arrow direction {}", f, t);
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Found that the arrow end point and arrow direction point of the arrow are equal, "
+                + "and the arrow setting has been skipped, arrow end {}, arrow direction {}", f, t);
+      }
       return;
     }
 

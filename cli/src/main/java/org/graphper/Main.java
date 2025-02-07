@@ -32,8 +32,12 @@ import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
 import org.graphper.parser.ParseException;
 import org.graphper.parser.PostGraphComponents;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+
+  private static final Logger log = LoggerFactory.getLogger(Main.class);
 
   public static void main(String[] args) {
     try {
@@ -50,10 +54,14 @@ public class Main {
           })
           .toFile(command.getFileType())
           .save(output.getParentFile().getAbsolutePath(), output.getName());
-    } catch (ParseException | WrongCommandException e) {
-      System.err.println(e.getMessage());
+    } catch (StackOverflowError e) {
+      log.warn("Big graph, please increasing the stack size (e.g., java -Xss2024m -jar graph-support-cli.jar xxx).");
+    }catch (ParseException e) {
+      log.error("Parse script error: {}", e.getMessage());
+    } catch (WrongCommandException e) {
+      log.error("Command error: {}", e.getMessage());
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Generate error:", e);
     }
   }
 

@@ -17,10 +17,12 @@
 package org.graphper.draw;
 
 import org.graphper.api.GraphResource;
-import org.graphper.layout.LayoutEngine;
-import org.graphper.util.Asserts;
 import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Layout;
+import org.graphper.layout.LayoutEngine;
+import org.graphper.util.Asserts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract rendering engine.
@@ -29,6 +31,8 @@ import org.graphper.api.attributes.Layout;
  */
 public abstract class AbstractRenderEngine implements RenderEngine {
 
+  private static final Logger log = LoggerFactory.getLogger(AbstractRenderEngine.class);
+
   @Override
   public GraphResource render(Graphviz graphviz, Object attach) throws ExecuteException {
     Asserts.nullArgument(graphviz, "graphviz");
@@ -36,6 +40,7 @@ public abstract class AbstractRenderEngine implements RenderEngine {
     // Get layout
     Layout layout = graphviz.graphAttrs().getLayout();
     layout = layout == null ? Layout.DOT : layout;
+    long startTime = System.currentTimeMillis();
 
     try {
       LayoutEngine layoutEngine = layout.getLayoutEngine();
@@ -44,6 +49,11 @@ public abstract class AbstractRenderEngine implements RenderEngine {
       return render0(drawGraph);
     } catch (Exception e) {
       throw new ExecuteException("Layout engine execute error: ", e);
+    } finally {
+      if (log.isDebugEnabled()) {
+        long endTime = System.currentTimeMillis();
+        log.debug("The graph was generated using {} ms", (endTime - startTime));
+      }
     }
   }
 
