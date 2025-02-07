@@ -1,0 +1,27 @@
+strict digraph G {
+psvg=t
+node[shape=rect, color = black, style = filled];
+node[dir = back];
+1 -> "G is the midpoint of DE";
+1 -> 2;
+2 -> 3;
+3 -> "F is the midpoint of CB";
+3 -> "DC  ⊥  DB";
+2 -> 4;
+4 -> "F is the midpoint of CB";
+4 -> "EC  ⊥  EB";
+1 [ shape="invtrapezium" fillcolor="#C0FFFF" href="https://github.com/kovzol/Java-Geometry-Expert/blob/master/src/docs/help/images_a/rectangle.gif" tooltips="8. szabály: Pitagorasz-tétel" label=<
+<table  border="0" cellspacing="0" cellborder="0" href="https://github.com/kovzol/Java-Geometry-Expert/blob/master/src/docs/help/images_a/rectangle.gif" tooltips="8. szabály: Pitagorasz-tétel">
+<tr><td bgcolor="#C0FFFF" color="#C0FFFF">18) ∠[EBA] = ∠[HFA]</td></tr>
+<tr><td bgcolor="#C0FFFF" color="#C0FFFF">Rule 31.</td></tr>
+</table>
+>];
+2 [ label = "18) ∠[EBA] = ∠[HFA]\nRule 31", fillcolor = "#FFA0A0" ];
+3 [ label = "3) CF = DF", fillcolor = "#C0FFFF"];
+4 [ label = "4) CF = EF", fillcolor = "#C0FFFF"];
+"G is the midpoint of DE" [ fillcolor = "#F7CAC9", shape = ellipse, style = filled ];
+"F is the midpoint of CB" [ fillcolor = "#F7CAC9", shape = ellipse, style = filled ];
+"DC  ⊥  DB" [ fillcolor = "#F7CAC9", shape = oval, style = filled ];
+"F is the midpoint of CB" [ fillcolor = "#F7CAC9", shape = ellipse, style = filled ];
+"EC  ⊥  EB" [ fillcolor = "#F7CAC9", shape = ellipse, style = filled ];
+}

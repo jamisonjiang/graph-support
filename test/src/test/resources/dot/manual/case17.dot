@@ -1,0 +1,66 @@
+digraph G {
+   size="7"
+    subgraph cluster_Services {
+        label="Services"
+        app_foobar [label="{Foobar Repo|.Net App}"]
+    }
+    subgraph cluster_Server1 {
+        label="Server1"
+        subgraph cluster_Jobs {
+            label="Jobs"
+            job_daily [label="{Job) Daily Job|Step 2) Run stored proc}"]
+        }
+    }
+    subgraph cluster_Server2 {
+        label="Server2"
+        subgraph cluster_Support_Database {
+            label="Support_Database"
+            subgraph cluster_Procs {
+                label="Procs"
+                usp_StoredProcedure1
+                usp_StoredProcedure2
+            }
+            subgraph cluster_Tables {
+                label="Tables"
+                Table1
+                Table2
+                Table3
+                Table4
+            }
+            subgraph cluster_Views {
+                label="Views"
+                vw_View1
+            }
+        }
+    }
+    subgraph cluster_Server3 {
+        label="Server3"
+        subgraph cluster_AutoAlert_Support {
+            label="Other_Database"
+            subgraph cluster_Procs {
+                label="Procs"
+                usp_StoredProcedure3
+                usp_StoredProcedure4
+            }
+        }
+    }
+    subgraph cluster_Reports {
+        label="Report Server"
+        ssrs_report_1 [label="{SSRS Report 1|ReportFile1.rdl}"]
+        ssrs_report_2 [label="{SSRS Report 2|ReportFile2.rdl}"]
+    }
+    app_foobar -> usp_StoredProcedure1
+    usp_StoredProcedure1 -> Table1
+    usp_StoredProcedure1 -> Table2
+    usp_StoredProcedure1 -> Table3
+    usp_StoredProcedure2 -> Table4
+    usp_StoredProcedure2 -> Table3 [color=red]
+    job_daily -> usp_StoredProcedure2
+    ssrs_report_1 -> usp_StoredProcedure3
+    ssrs_report_2 -> usp_StoredProcedure4
+    usp_StoredProcedure3 -> vw_View1 [style=dashed]
+    usp_StoredProcedure4 -> vw_View1 [style=dashed]
+    vw_View1 -> Table1 [style=dashed]
+    vw_View1 -> Table2 [style=dashed]
+    vw_View1 -> Table3 [style=dashed]
+}

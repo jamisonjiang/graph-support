@@ -1,0 +1,37 @@
+digraph G {
+    compound=true
+    nodesep=1
+    a[shape=pentagon style="bold,dashed"  color=orange]
+    a->d[minlen=0 label="requires" dir=back ltail="cluster_0" lhead="cluster_2"]
+    b->e[minlen=0 label="opens" dir=back ltail="cluster_0" ]
+    b->f[minlen=0 label="exports" lhead="cluster_2"  style="bold,dashed" color=blue]
+    subgraph cluster_0 {
+        label="ModuleA"
+        style="rounded,bold,dotted"
+        subgraph cluster_1 {
+            label="coo.foo"
+            penwidth=2
+            a[label="api"]
+            b[label="internal"]
+            a->b[style=invis]
+            b->c[style=invis]
+            c[style=invis height=0 fixedsize=true]
+        }
+    }
+
+    subgraph cluster_2 {
+        label="ModuleB"
+        shape="octagon"
+        color=red
+        style="rounded,dashed"
+        d->e[style=invis]
+        d[style=invis height=0 fixedsize=true]
+        f[style=invis height=0 fixedsize=true]
+        subgraph cluster_3 {
+            label="com.bar"
+            e[label="impl"]
+            e->f[style=invis]
+        }
+    }
+
+}

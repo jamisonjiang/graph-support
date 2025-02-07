@@ -1,0 +1,27 @@
+digraph {
+	rankdir=RL
+	ranksep="1.5"
+	node [shape=record]
+	edge [color=red]
+	frame [label="<0>X|<1>X|<2>X|<3>X|<4>X|<5>X|<6>X|<7>X|<8>X|<9>X|<10>X|<11>X|<12>.|<13>.|<14>.|<15>.|<16>.|<17>.|<18>.|<19>.|<20>.|<21>.|<22>.|<23>.|<24>.|<25>.|<26>.|<27>.|<28>.|<29>.|<30>.|<31>.|"]
+	{
+	rank=source
+	p2 [label="<2>2|<3>3|<4>4|<5>5|<6>6|<7>7|"]
+	}
+	{
+	rank=sink
+	p3 [label="<0>0|<1>1|<8>8|<9>9|<10>10|<11>11|"]
+	}
+	p2 -> frame[tailcell="2" headcell="2"]
+	p2 -> frame[tailcell="3" headcell="3"]
+	p2 -> frame[tailcell="4" headcell="4"]
+	p2 -> frame[tailcell="5" headcell="5"]
+	p2 -> frame[tailcell="6" headcell="6"]
+	p2 -> frame[tailcell="7" headcell="7"]
+	p3 -> frame[tailcell="0" headcell="0"]
+	p3 -> frame[tailcell="1" headcell="1"]
+	p3 -> frame[tailcell="8" headcell="8"]
+	p3 -> frame[tailcell="9" headcell="9"]
+	p3 -> frame[tailcell="10" headcell="10"]
+	p3 -> frame[tailcell="11" headcell="11"]
+}

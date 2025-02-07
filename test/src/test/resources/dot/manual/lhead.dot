@@ -1,0 +1,9 @@
+digraph G {
+   compound=true
+   subgraph cluster_a {
+      a;b;
+   }
+
+   c->b[lhead=cluster_a]
+   c->a
+}

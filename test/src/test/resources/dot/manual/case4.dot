@@ -1,0 +1,20 @@
+digraph G {
+label="My Cool Graph"
+
+subgraph cluster_0 {
+    q0->x2
+    subgraph cluster_1 {
+        x2->y2
+        x2->z2
+        subgraph cluster_2 {
+            label="C2"
+            x21->x22
+        }     
+    }
+    subgraph cluster_3 {
+        x1->y1
+        x1->z1
+    }
+    z2->x1
+}
+}

@@ -1,0 +1,8 @@
+digraph G {
+  layout=fdp
+  splines=ortho
+  a->a[label="ffffffff\nfffffffffffff\nfffffff" dir=back];
+  a->a[label="324234324324"];
+  a->a;
+  a->a;
+}

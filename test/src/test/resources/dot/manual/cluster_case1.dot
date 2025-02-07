@@ -1,0 +1,65 @@
+digraph G {
+    layout=fdp
+edge [label="test\ntest\ntest\ntresttttttttttttttttttttt" controlPoints=true]
+C[fillcolor=red fontcolor=blue fontsize=100 fontname="宋体" labelloc="b" labeljust="r" fixedsize=false style=dashed penWidth="5"]
+    C->BB
+    B->F
+    F->GG
+    F->SS
+    B->D
+    C->D
+    AA->D
+    L->AA
+    B->45
+    A->12
+    34->gg
+    C->34
+    subgraph cluster_A {
+        label="Cluster A"
+        A->C
+        B->C
+        subgraph cluster_A_A  {
+            label="Cluster A Iner"
+            B->K
+            C->U
+           subgraph cluster_frontend {
+               label="Frontend";
+               React;
+               Bootstrap;
+           }
+           subgraph cluster_backend {
+               label="Backend";
+               expressjs;
+               "aws-sdk";
+            }
+            React -> expressjs;
+            expressjs -> "aws-sdk";
+            "aws-sdk" -> S3;
+            "aws-sdk" -> DynamoDb;
+        }
+    }
+    subgraph cluster_B {
+        label="Cluster B"
+        AA->CC
+        BB->CC
+    }
+    subgraph cluster_C {
+        label="Cluster C"
+        SS->TT
+        GG->PP
+        D->F
+        L->FF
+        FF->SS
+        {
+           rank=same;
+           L -> D
+        }
+    }
+    subgraph cluster_D {
+        label="Cluster D"
+        12->45
+        34->98
+        34->45
+        45->98
+    }
+}

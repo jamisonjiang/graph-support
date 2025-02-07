@@ -1,0 +1,10 @@
+digraph unix {
+splines=ortho
+showgrid=true
+sh0006 [shape=record,label="{<t>|sh0006|}"];
+sh0007 [shape=record,label="{<t>|sh0007|}"];
+sh0010 [shape=record,label="{<p1>p1|<p2>p2|<p3>p3|<p4>p4}"];
+
+sh0007->sh0010[tailcell="t",tailport="w",headcell="p4",headport="e",minlen=0];
+sh0010->sh0007[tailcell="p2",tailport="e",headcell="p4",headport="w",minlen=0];
+}

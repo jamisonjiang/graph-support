@@ -1,0 +1,81 @@
+digraph rusty {
+    size="6"
+    rankdir=LR
+    cluster=true
+    bgcolor=black
+    fillcolor=black
+    color=white
+    node [style=filled, fillcolor=black, fontcolor=white, shape=box]
+    edge [fontcolor=white, color=white]
+    subgraph cluster_a {
+        style=dashed
+        color=white
+        ref_t [label="&T ≈ *const T", shape=plaintext]
+        ref_mut_t [label="&mut T ≈ *mut T", shape=plaintext]
+    }
+    subgraph cluster_b {
+        dummy3 [style=invis]
+        color=white
+        subgraph cluster_c {
+            style=dashed
+            color=white
+            t [label="T or mut", shape=plaintext]
+            cell_t [label="Cell<T>", shape=plaintext]
+            refcell_t [label="RefCell<T>", shape=plaintext]
+            box_t [label="Box<T>", shape=plaintext]
+            rc_t [label="Rc<T>", shape=plaintext]
+            rc_cell_t [label="Rc<Cell<T>>", shape=plaintext]
+            rc_refcell_t [label="Rc<RefCell<T>>", shape=plaintext]
+            atomic_t [label="AtomicT", shape=plaintext]
+            mutex_t [label="Mutex<T>", shape=plaintext]
+            rwlock_t [label="RwLock<T>", shape=plaintext]
+            arc_t [label="Arc<T>", shape=plaintext]
+            arc_atomic_t [label="Arc<AtomicT>", shape=plaintext]
+            arc_mutex_t [label="Arc<Mutex<T>>", shape=plaintext]
+            arc_rwlock_t [label="Arc<RwLock<T>>", shape=plaintext]
+        }
+    }
+    dummy2 [label="<&ref|*deref>", shape=plaintext]
+    ref_t -> dummy2 [label="<immutable>", style=dashed, dir=back]
+    ref_mut_t -> dummy2 [label="<mut>", style=dashed, dir=back]
+    dummy2 -> dummy3 [style=dashed]
+    threads [label=Threads, color=green]
+    ownership1 [label="Ownership", color=brown]
+    threads -> ownership1 [label="<single>"]
+    allocate [label=Allocate, color=orange]
+    ownership1 -> allocate [label="<unique>"]
+    interior_mut [label="Interior-mutability", color=gold]
+    allocate -> interior_mut [label="<stack>"]
+    interior_mut -> t [label="<not needed>"]
+    type1 [label=Type, color=blue]
+    interior_mut -> type1 [label="<need>", fontcolor=gold, color=gold]
+    type1 -> cell_t [label="<Copy|move>", fontcolor=blue, color=blue]
+    type1 -> refcell_t [label="<& reference>"]
+    allocate -> box_t [label="<heap>", fontcolor=orange, color=orange]
+    mutable1 [label=Mutable, color=gold]
+    ownership1 -> mutable1 [label="<shared>", fontcolor=brown, color=brown]
+    mutable1 -> rc_t [label="<immutable>"]
+    type2 [label=Type, color=blue]
+    mutable1 -> type2 [label="<mut>", color=gold]
+    type2 -> rc_cell_t [label="<Copy|move>", fontcolor=blue, color=blue]
+    type2 -> rc_refcell_t [label="<& reference>"]
+    ownership2 [label="Ownership", color=brown]
+    threads -> ownership2 [label="<multiple>", fontcolor=green, color=green]
+    rw1 [label="R/W", color=red]
+    ownership2 -> rw1 [label="<unique>"]
+    type3 [label=Type, color=blue]
+    rw1 -> type3 [label="<reader/writer>"]
+    type3 -> atomic_t [label="<bool|int>", fontcolor=blue, color=blue]
+    type3 -> mutex_t [label="<any>"]
+    rw1 -> rwlock_t [label="<readers/writer>", fontcolor=red, color=red]
+    mutable2 [label=Mutable, color=gold]
+    ownership2 -> mutable2 [label="<shared>", fontcolor=brown, color=brown]
+    mutable2 -> arc_t [label="<immutable>"]
+    rw2 [label="R/W", color=red]
+    mutable2 -> rw2 [label="<mut>", fontcolor=gold, color=gold]
+    type4 [label=Type, color=blue]
+    rw2 -> type4 [label="<reader/writer>"]
+    type4 -> arc_atomic_t [label="<bool|int>", fontcolor=blue, color=blue]
+    type4 -> arc_mutex_t [label="<any>"]
+    rw2 -> arc_rwlock_t [label="<readers/writer>", fontcolor=red, color=red]
+}

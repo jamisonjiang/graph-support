@@ -1,0 +1,33 @@
+digraph time {
+    rankdir = "LR";
+    node[shape = "point" width=0 height=0];
+    edge[arrowhead = "none", style = "dashed",tailclip=false,tailclip=false];
+
+    {
+        rank = "same"
+        APP[shape = "plaintext"];
+        APP -> step00 -> step01 -> step02 -> step03 -> step04 -> step05;
+    }
+
+    {
+        rank="same";
+        SDK[shape="plaintext"];
+        SDK -> step10 -> step11 -> step12 -> step13 -> step14 -> step15;
+    }
+    {
+        rank="same";
+        AliPay[shape="plaintext"];
+        AliPay -> step20 -> step21 -> step22 -> step23 -> step24 -> step25;
+    }
+    {
+        rank="same";
+        Server[shape="plaintext"];
+        Server -> step30 -> step31 -> step32 -> step33 -> step34 -> step35;
+    }
+
+    step00 -> step10 [label="sends order info", arrowhead="normal"];
+    step11 -> step21 [label="open AliPay", arrowhead="normal"];
+    step22 -> step12 [label="pay success", arrowhead="normal"];
+    step13 -> step03 [label="pay success", arrowhead="normal"];
+    step24 -> step34 [label="pay success", arrowhead="normal"];
+}

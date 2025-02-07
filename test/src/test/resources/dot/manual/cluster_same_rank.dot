@@ -1,0 +1,38 @@
+digraph G {
+layout=fdp
+subgraph cluster_A {
+e;
+c;
+
+subgraph cluster_B {
+label="test"
+subgraph {
+rank=same
+e->g
+}
+}
+
+subgraph {
+
+rank=same
+a->b->c->d
+
+}
+
+subgraph {
+c->e
+d->f
+e->f
+}
+
+
+
+a->c
+b->e
+
+a->f
+a->g
+}
+
+
+}

@@ -1,0 +1,23 @@
+graph G {
+layout=fdp
+a--b
+a--b
+a--c
+a--c
+a--d
+a--d
+a--e
+a--e
+b--c
+b--c
+b--d
+b--d
+b--e
+b--e
+c--d
+c--d
+c--e
+c--e
+d--e
+d--e
+}

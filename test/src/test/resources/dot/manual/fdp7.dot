@@ -1,0 +1,27 @@
+graph G {
+layout=fdp
+size="0.7"
+a--b
+b--c
+a--c
+c--d
+d--e
+e--f
+f--g
+g--h
+h--i
+i--j
+j--k
+k--m
+j--m
+
+o[style=invis]
+o--c[style=invis]
+o--d[style=invis]
+o--e[style=invis]
+o--f[style=invis]
+o--g[style=invis]
+o--h[style=invis]
+o--i[style=invis]
+o--j[style=invis]
+}

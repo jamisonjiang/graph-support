@@ -1,0 +1,59 @@
+digraph G {
+compound=true
+
+subgraph cluster_A {
+label="machine cluster"
+bgcolor=orange
+style=rounded
+e;
+c;
+
+subgraph cluster_B {
+label="test"
+style="rounded"
+subgraph cluster_C {
+label="kkk"
+shape=parallelogram
+style="rounded,dashed,bold"
+color=red
+f
+}
+subgraph {
+rank=same
+e->g->f
+}
+}
+
+subgraph {
+rank=same
+a->b->c->d
+}
+
+subgraph cluster_D {
+{
+rank=same
+o->t
+}
+l->o->p
+}
+
+subgraph {
+c->e
+d->f
+e->f
+}
+
+a->c
+b->e
+
+a->f
+a->g
+d->p
+d->t
+}
+
+o->f[ltail="cluster_d", lhead="cluster_l" headclip=false]
+o->f[ltail="cluster_d", lhead="cluster_c"]
+t->m
+f->m[weight=5]
+}

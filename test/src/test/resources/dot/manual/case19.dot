@@ -1,0 +1,117 @@
+digraph axionalterm {
+    rankdir="LR"
+    size="6"
+    node [shape="box", fontsize="12", style="filled", fillcolor="#FAFAFA"];
+    edge [style="dashed"];
+    subgraph cluster_user {
+        label="User"
+        style="filled"
+        fillcolor="#EEEEEE"
+        shape="polygon"
+        origin
+    }
+    subgraph cluster_frontend {
+        label="Terminal Server"
+        style="filled"
+        fillcolor="#EEEEEE"
+        newrank="true"
+        form
+        term
+        eval
+        parser1
+        parser2
+        LOCAL
+        value
+        subgraph cluster_vars {
+            style="filled"
+            fillcolor="#CFD8DC"
+            label="Form Variables"
+            rank="same"
+            subgraph cluster_UEL_SQL_DATA {
+                style="filled"
+                fillcolor="#FAFAFA"
+                label="UEL/SQLDATA"
+                col_default
+            }
+            subgraph cluster_UEL_SQL_EXPR {
+                style="filled"
+                fillcolor="#FAFAFA"
+                label="UEL/SQLEXPR"
+                col_check_exp
+            }
+            subgraph cluster_SQL_EXISTS {
+                style="filled"
+                fillcolor="#FAFAFA"
+                label="SQLEXISTS"
+                sref_help_cond
+            }
+            subgraph cluster_UEL {
+                style="filled"
+                fillcolor="#FAFAFA"
+                label="UEL"
+                button_cond
+                group_cond
+                col_hide_cond
+            }
+            subgraph cluster_SQL_XSQL {
+                style="filled"
+                fillcolor="#FAFAFA"
+                label="SQL/XSQL"
+                col_after_sql
+                button_action
+                sql_action_exec
+                sql_action_cancel
+            }
+        }
+    }
+    subgraph cluster_backend {
+        style="filled"
+        fillcolor="#EEEEEE"
+        label="Backend Server"
+        newrank="true"
+        soap
+        jdbc
+    }
+    origin [style="invis"]
+    form [label="Form - UI"]
+    term [label="Terminal\nEngine", shape="cylinder"]
+    eval [label="Eval\nExpression", shape="circle"]
+    col_hide_cond [label="Hide Condition \napps_wms_formatl \ncol_hide_cond", style="filled", fillcolor="#90CAF9"]
+    group_cond [label="Hide Condition\napps_wms_formatg\ngroup_cond", style="filled", fillcolor="#B39DDB"]
+    button_cond [label="Button condition\napps_wms_formatg_buttons\nbutton_cond", style="filled", fillcolor="#EF9A9A"]
+    sql_action_exec [label="Statements \napps_wms_formath\nsql_action_exec", style="filled", fillcolor="#80CBC4"]
+    sql_action_cancel [label="Interrupt \napps_wms_formath\nsql_action_cancel", style="filled", fillcolor="#80CBC4"]
+    col_after_sql [label="Interrupt \napps_wms_formatl\ncol_after_sql", style="filled", fillcolor="#90CAF9"]
+    col_default [label="Default value \napps_wms_formatl \ncol_default", style="filled", fillcolor="#90CAF9"]
+    sref_help_cond [label="Validate Condition\napps_wms_formatl \nsref_help_cond", style="filled", fillcolor="#90CAF9"]
+    col_check_exp [label="Check Condition\napps_wms_formatl \ncol_check_exp", style="filled", fillcolor="#90CAF9"]
+    button_action [label="Button action\napps_wms_formatg_buttons\n button_action", style="filled", fillcolor="#EF9A9A"]
+    parser1 [label="Variable Parser\nEngine", shape="cylinder"]
+    parser2 [label="Variable Parser\nEngine\n@", shape="cylinder"]
+    soap [label="http/SOAP"]
+    jdbc [label="JDBC", shape="cylinder", style="filled", fillcolor="#0277BD", fontcolor="#FFFFFF"]
+    LOCAL [label="LOCAL/JAVA-UEL"]
+    value [label="Value"]
+    origin -> form [label="User input"]
+    form -> term
+    term -> eval
+    eval -> sref_help_cond [lhead="cluster_SQL_EXISTS"]
+    eval -> sql_action_exec [lhead="cluster_SQL_XSQL"]
+    eval -> group_cond [lhead="cluster_UEL"]
+    eval -> col_default [lhead="cluster_UEL_SQL_DATA"]
+    eval -> col_check_exp [lhead="cluster_UEL_SQL_EXPR"]
+    sql_action_exec -> parser2 [ltail="cluster_SQL_XSQL", color="#FF0000"]
+    group_cond -> parser1 [ltail="cluster_UEL" color="#0000FF"]
+    sref_help_cond -> parser2 [color="#FF0000"]
+    col_check_exp -> parser1 [color="#0000FF"]
+    col_check_exp -> parser2 [color="#FF0000"]
+    col_default -> parser1 [color="#0000FF"]
+    col_default -> parser2 [color="#FF0000"]
+    parser1 -> LOCAL [color="#0000FF"]
+    parser2 -> soap [color="#FF0000"]
+    soap -> jdbc [color="#FF0000"]
+    LOCAL -> value
+    jdbc -> value
+    value -> term
+    term -> form
+}

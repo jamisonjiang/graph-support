@@ -1,0 +1,15 @@
+digraph UML {
+
+    node[fontname = "Courier New", fontsize = 10, shape = record];
+    edge[fontname = "Courier New", fontsize = 10, arrowhead = "empty"];
+
+    Car[label = "{Car | v : float\nt : float | run() : float}"]
+
+    subgraph clusterSome{
+        bgcolor = "yellow";
+        Bus[label = "{Bus | | carryPeople() : void}"];
+        Bike[label = "{bike | | ride() : void}"];
+    }
+    Bus -> Car
+    Bike -> Car
+}

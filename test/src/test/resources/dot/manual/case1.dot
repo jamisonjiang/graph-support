@@ -1,0 +1,16 @@
+digraph unix {
+splines=ortho
+sh0006 [shape=rect,width=0.861111,height=0.543335,color="#000006"];
+sh0007 [shape=rect,width=1.236111,height=0.543335,color="#000007"];
+sh0008 [shape=rect,width=0.694444,height=0.543335,color="#000008"];
+sh0009 [shape=rect,width=0.958333,height=0.543335,color="#000009"];
+sh0010 [shape=plain,label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="0"><TR><TD  FIXEDSIZE="TRUE" WIDTH="82.0" HEIGHT="23"></TD></TR><TR><TD  FIXEDSIZE="TRUE" WIDTH="82.0" HEIGHT="23" PORT="p1"></TD></TR><TR><TD  FIXEDSIZE="TRUE" WIDTH="82.0" HEIGHT="23" PORT="p2"></TD></TR><TR><TD  FIXEDSIZE="TRUE" WIDTH="82.0" HEIGHT="23" PORT="p3"></TD></TR></TABLE>>];
+
+sh0010:p1->sh0006[tailcell="p1",tailport="e",arrowsize=0.5,minlen=0,color="#00000B"];
+sh0010:p2->sh0007[tailcell="p2",tailport="w",arrowsize=0.5,minlen=1,color="#00000F"];
+sh0010:p2->sh0007[tailcell="p2",tailport="w",arrowsize=0.5,minlen=1,color="#00000F"];
+sh0010:p3->sh0008[tailcell="p3",tailport="e",arrowsize=0.5,minlen=2,color="#000013"];
+sh0010:p3->sh0008[tailcell="p3",tailport="e",arrowsize=0.5,minlen=2,color="#000013"];
+sh0009->sh0010:p2[headcell="p2",headport="e"arrowsize=0.5,minlen=1,color="#000017"];
+
+}

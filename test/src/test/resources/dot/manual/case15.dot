@@ -1,0 +1,85 @@
+digraph rusty {
+ size="5"
+    subgraph cluster_ownership {
+        label="Onwership Model"
+        subgraph cluster_unique {
+            label=Unique
+            borrowing [label="Borrowing", shape=box]
+            subgraph cluster_static {
+                label=Static
+                t [label=T, shape=box]
+                borrowing -> t
+            }
+            subgraph cluster_local_dynamic {
+                label="Local Dynamic"
+                subgraph cluster_val {
+                    label=Val
+                    cell [label="Cell<T>", shape=box]
+                    borrowing -> cell
+                }
+                subgraph cluster_ref {
+                    label=Ref
+                    refcell [label="RefCell<T>", shape=box]
+                    borrowing -> refcell
+                }
+            }
+            subgraph cluster_threaded_dynamic {
+                label="Threaded Dynamic"
+                subgraph cluster_atomics {
+                    label=Atomics
+                    atomic [label="Atomic<T>", shape=box]
+                    borrowing -> atomic
+                }
+                subgraph cluster_locks {
+                    label=Locks
+                    mutex [label="Mutex<T>", shape=box]
+                    rwlock [label="RwLock<T>", shape=box]
+                    borrowing -> mutex
+                    borrowing -> rwlock
+                }
+            }
+        }
+        subgraph cluster_locally_shared {
+            label="Locally Shared"
+            mutable1 [label="Mutable?", shape=box]
+            no1 [label=No, shape=plaintext]
+            yes1 [label=Yes, shape=plaintext]
+            rc_t [label="Rc<T>", shape=box]
+            mutable1 -> no1 [arrowhead=none]
+            mutable1 -> yes1 [arrowhead=none]
+            subgraph cluster_val {
+                label=Val
+                rc_cell_t [label="Rc<Cell<T>>", shape=box]
+                yes1 -> rc_cell_t
+            }
+            subgraph cluster_ref {
+                label=Ref
+                rc_refcell_t [label="Rc<RefCell<T>>", shape=box]
+                yes1 -> rc_refcell_t
+            }
+            no1 -> rc_t
+        }
+        subgraph cluster_shared_between_threads {
+            label="Shared Between Threads"
+            mutable2 [label="Mutable?", shape=box]
+            no2 [label=No, shape=plaintext]
+            yes2 [label=Yes, shape=plaintext]
+            arc_t [label="Arc<T>", shape=box]
+            mutable2 -> no2 [arrowhead=none]
+            mutable2 -> yes2 [arrowhead=none]
+            subgraph cluster_atomics {
+                label=Atomics
+                arc_atomic_t [label="Arc<Atomic<T>>", shape=box]
+                yes2 -> arc_atomic_t
+            }
+            subgraph cluster_locks {
+                label=Locks
+                arc_mutex_t [label="Arc<Mutex<T>>", shape=box]
+                arc_rwlock_t [label="Arc<RwLock<T>>", shape=box]
+                yes2 -> arc_mutex_t
+                yes2 -> arc_rwlock_t
+            }
+            no2 -> arc_t
+        }
+    }
+}

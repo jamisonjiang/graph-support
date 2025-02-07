@@ -1,0 +1,10 @@
+digraph G {
+splines=ortho
+showgrid=true
+a[shape=record,label="<l>12|<k>32|{<u>sd|<c>fs|f}|32"]
+b[shape=record,label="{sss|ssdf|ssdf|{<p>ff|sdf|{s|s|s1}|<t>ttt}|<b>sdfsd}"]
+
+a->b[tailcell=l,headcell=p]
+a->b[tailcell=k,headcell=t]
+a->b[tailcell=u,headcell=b]
+}

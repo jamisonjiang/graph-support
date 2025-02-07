@@ -1,0 +1,78 @@
+digraph G {
+size="0.2"
+	edge [color="#9ecae1",
+		fontcolor="#3182bd",
+		fontname=Helvetica,
+		fontsize=10,
+		style=solid
+	];
+	"Prepare DAQ/Pre Set Event"	[label="Pre Set Event"];
+	"Prepare DAQ/Pre Set Event" -> "Check if there is at least\none active IC headstage";
+	"Check if there is at least\none active IC headstage" -> "Check if no TTL channels are active";
+	"Check if no TTL channels are active" -> "All required analysis parameters present?";
+	"All required analysis parameters present?" -> "Check if all active IC\n headstages have the same stimset";
+	"Check if all active IC\n headstages have the same stimset" -> "All checks passed";
+	"All checks passed" -> Abort	[label=No];
+	"All checks passed" -> "Set DAScale to 100pA\nfor all active IC headstages"	[label=Yes];
+	"Set DAScale to 100pA\nfor all active IC headstages" -> "Write initial stepsize of 100pA into\nlabnotebook for all active IC headstages";
+	"Write initial stepsize of 100pA into\nlabnotebook for all active IC headstages" -> "Set \"DAScale exceeded\" labnotebook entry\nto false for all active IC headstages";
+	"Set \"DAScale exceeded\" labnotebook entry\nto false for all active IC headstages" -> "Store active headstages in labnotebook";
+	"Start DAQ/RA (only call for last active headstage)" -> "Prepare DAQ/Pre Set Event";
+	"Start DAQ/RA (only call for last active headstage)" -> "Post Sweep Event";
+	"Start DAQ/RA (only call for last active headstage)" -> "Post DAQ Event";
+	"Start DAQ/RA (only call for last active headstage)" -> "Post Set Event";
+	n60	[label="Pre DAQ Event"];
+	"Start DAQ/RA (only call for last active headstage)" -> n60;
+	"Post Sweep Event" -> "Iterate over all active headstages";
+	"Post Sweep Event" -> "Store pulse duration in labnotebook";
+	"Post DAQ Event" -> "Update Dashboard";
+	"Post Set Event" -> "Mark set as passed if 1 sweep passed,\nas failure otherwise";
+	"Post Set Event" -> "Set \"TP during ITI\" to enabled";
+	n60 -> "Enable \"Multidevice DAQ\"";
+	"Iterate over all active headstages" -> "Active headstages left?";
+	"Mark set as passed if 1 sweep passed,\nas failure otherwise" -> "Analysis parameter \"PostDAQSetDAScale\" is true";
+	"Set \"TP during ITI\" to enabled" -> "Set \"TP inserting\" to enabled";
+	"Enable \"Multidevice DAQ\"" -> "Enable \"Repeated Acquisition\"";
+	"Active headstages left?" -> "Have all headstages passed in one sweep\nof their stimset cycle?"	[label=No];
+	"Active headstages left?" -> "Headstage passed?"	[label=Yes];
+	"Analysis parameter \"PostDAQSetDAScale\" is true" -> "Set DAScale to the stored LBN value taking into account\nthe analysis parameter \"PostDAQDAScaleFactor\"\nand \"PostDAQDAScaleMinOffset\"\
+.\nSet it to \"PostDAQDAScaleForFailedHS\" for failed headstages.";
+	n61	[label="Is \"Unlocked indexing\" active"];
+	"Enable \"Repeated Acquisition\"" -> n61;
+	"Have all headstages passed in one sweep\nof their stimset cycle?" -> "Mark sweep as failed"	[label=No];
+	"Have all headstages passed in one sweep\nof their stimset cycle?" -> "Mark sweep as passed"	[label=Yes];
+	"Headstage passed?" -> "Headstage exceeded DAScale\n according to labnotebook entry?"	[label=No];
+	"Set DAScale to the stored LBN value taking into account\nthe analysis parameter \"PostDAQDAScaleFactor\"\nand \"PostDAQDAScaleMinOffset\"\
+.\nSet it to \"PostDAQDAScaleForFailedHS\" for failed headstages." -> "Read active headstages from labnotebook\nand turn them all on again";
+	n61 -> Abort	[label=Yes];
+	"Mark sweep as failed" -> "Have all active headstages an DAScale exceeded\n labnotebook entry?";
+	"Mark sweep as passed" -> "Skip to end of active set";
+	"Headstage exceeded DAScale\n according to labnotebook entry?" -> "Spike detected?\n(x range: pulse onset to end of sweep\ny condition: max above 0.01mV)\nStore result in labnotebook"	[label=No];
+	"Have all active headstages an DAScale exceeded\n labnotebook entry?" -> "Skip to end of active set"	[label=Yes];
+	"Spike detected?\n(x range: pulse onset to end of sweep\ny condition: max above 0.01mV)\nStore result in labnotebook" -> "Step size from labnotebook? (1)"	[label=Yes];
+	"Spike detected?\n(x range: pulse onset to end of sweep\ny condition: max above 0.01mV)\nStore result in labnotebook" -> "Step size from labnotebook? (2)"	[label=No];
+	"Step size from labnotebook? (1)" -> "Store DAScale in labnotebook"	[label="+10pA"];
+	"Step size from labnotebook? (1)" -> "Offset DAScale by -50pA"	[label="-50pA"];
+	"Step size from labnotebook? (1)" -> "Write step size of -50pA to labnotebook"	[label="+100pA"];
+	"Step size from labnotebook? (2)" -> "Write step size of +10pA to labnotebook"	[label="-50pA"];
+	"Step size from labnotebook? (2)" -> "Offset DAScale by +10pA"	[label="+10pA"];
+	"Step size from labnotebook? (2)" -> "Offset DAScale by +100pA"	[label="+100pA"];
+	"Store DAScale in labnotebook" -> "Mark headstage as passed";
+	"Offset DAScale by -50pA" -> "Mark headstage as failed";
+	"Write step size of -50pA to labnotebook" -> "Offset DAScale by -50pA";
+	"Write step size of +10pA to labnotebook" -> "Offset DAScale by +10pA";
+	"Offset DAScale by +10pA" -> "Mark headstage as failed";
+	"Offset DAScale by +100pA" -> "Mark headstage as failed";
+	"Mark headstage as passed" -> "Set DAScale to zero";
+	"Mark headstage as failed" -> "\"MaximumDAScale\" analysis parameter is not NaN?";
+	"Store active headstages in labnotebook" -> "Turn off active non-IC headstages";
+	"\"MaximumDAScale\" analysis parameter is not NaN?" -> "DAScale is larger than \"MaximumDAScale\"?"	[label=Yes];
+	"Disable \"dDAQ\"/\"oodDAQ\"" -> "Set \"TP during ITI\" to disabled";
+	"Set \"TP during ITI\" to disabled" -> "Set \"ITI\" to 100ms";
+	"Set \"ITI\" to 100ms" -> "Set \"TP inserting\" to disabled";
+	"Turn off active non-IC headstages" -> "Set \"User onset delay\" to 0ms";
+	"Set \"User onset delay\" to 0ms" -> "Set \"Termination delay\" to 0 ms";
+	"Set \"Termination delay\" to 0 ms" -> "Disable \"dDAQ\"/\"oodDAQ\"";
+	"DAScale is larger than \"MaximumDAScale\"?" -> "Mark headstage as \"DAScale exceeded\"\nin labnotebook"	[label=Yes];
+	"Mark headstage as \"DAScale exceeded\"\nin labnotebook" -> "Set DAScale to zero";
+}

@@ -7,7 +7,7 @@
 ## Features
 
 - **Pure Java API**  for building graph.
-- **DOT Script Parsing**: Convert `.dot` files or strings into an internal graph model.
+- **DOT Script Parsing**: Parsing`.dot` files or strings and generate graph.
 - **Flexible Layout Engines**: Multiple engines (e.g., `dot`, `fdp`) for different layout styles.
 - **Clusters & Subgraphs**: Organize your nodes logically or visually.
 - **HTML Label Support**: Render rich labels with HTML-like syntax.
