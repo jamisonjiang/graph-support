@@ -6,7 +6,7 @@
 
 ## Features
 
-- **Lightweight Java API** for creating and manipulating DOT graphs (no large external dependencies).
+- **Pure Java API**  for building graph.
 - **DOT Script Parsing**: Convert `.dot` files or strings into an internal graph model.
 - **Flexible Layout Engines**: Multiple engines (e.g., `dot`, `fdp`) for different layout styles.
 - **Clusters & Subgraphs**: Organize your nodes logically or visually.
