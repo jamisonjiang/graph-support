@@ -364,11 +364,9 @@ public abstract class Maze {
         FlatPoint rightDown = findRightDown(track, horAxis, verAxis);
 
         GridVertex vertex = new GridVertex(leftUp, rightDown);
-//        vertex.leftNo = verAxis.getIdx();
-//        vertex.topNo = horAxis.getIdx();
         ovg.add(vertex);
         vertexMap.put(grid.coordToIdx(horAxis.getIdx(), verAxis.getIdx()), vertex);
-        if (pre != null) {
+        if (pre != null && isHorContinuous(pre, vertex)) {
           ovg.addLeft(vertex, pre);
         }
         pre = vertex;
