@@ -1,5 +1,6 @@
 digraph G {
-size="0.8"
+size="8"
+layout=fdp
   subgraph cluster_0 {
     color=lightgrey;
     bgcolor=lightgrey;

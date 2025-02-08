@@ -1,6 +1,6 @@
 graph G {
 layout=fdp
-size="0.7"
+size="7"
 a--b
 b--c
 a--c
