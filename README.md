@@ -185,8 +185,8 @@ Some properties can be used to debug how edges are routed:
 
 If you want **only** the layout engine to compute node coordinates or line segments (without generating images), you can do:
 
-```
-java复制编辑Node a = Node.builder().label("a").build();
+```java
+Node a = Node.builder().label("a").build();
 Node b = Node.builder().label("b").build();
 
 Graphviz graphviz = Graphviz.digraph()
