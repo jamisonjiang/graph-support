@@ -29,6 +29,7 @@ import java.util.Queue;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.graphper.api.Line;
+import org.graphper.api.Node;
 import org.graphper.api.attributes.Port;
 import org.graphper.api.ext.Box;
 import org.graphper.def.DedirectedGraph;
@@ -197,6 +198,16 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
     Asserts.nullArgument(target, "target");
     PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
     PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
+
+    if (log.isDebugEnabled()) {
+      Node tn = tail.getNode();
+      Node hn = head.getNode();
+      if (tn != null && hn != null) {
+        log.debug("Start orthogonal routing: {} -> {}",
+                  tn.nodeAttrs().getLabel(), hn.nodeAttrs().getLabel());
+      }
+    }
+
     EdgeDraw edgeDraw = ovgRouter(tailCell, target, tailPoint, headPoint, edgeSegRecord);
     pathContent.clear();
 
@@ -393,8 +404,16 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
         continue;
       }
 
+      if (log.isDebugEnabled()) {
+        log.debug("Try: {}", vertexDir.path());
+      }
+
       // If arrive at destination, terminate the router process
       if (arriveAtDestination(target, vertexDir, toCenter)) {
+        if (log.isDebugEnabled()) {
+          log.debug("Reach the target path");
+          log.debug("-----------------------------------");
+        }
         return terminateRouter(edgeSegRecord, from, target.end, fromCenter, toCenter, vertexDir);
       }
 
@@ -419,7 +438,7 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
     Integer horDir = horDir(fromPoint, from);
     Integer verDir = verDir(fromPoint, from);
     for (GridVertex vertex : from.getAxisVertexes()) {
-      if (!vertex.in(fromPoint.getX(), fromPoint.getY())) {
+      if (!vertex.inInnerDeviation(fromPoint.getX(), fromPoint.getY(), -0.1)) {
         continue;
       }
 
@@ -443,6 +462,9 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
     v.centering = FlatPoint.twoPointDistance(vertex.getX(), vertex.getY(), from.getX(),
                                              from.getY());
     pathContent.offer(v);
+    if (log.isDebugEnabled()) {
+      log.debug("Add start vertex: {}", v);
+    }
   }
 
   private boolean arriveAtDestination(Target target, VertexDir vertexDir, PortPoint endPoint) {
@@ -455,7 +477,7 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
     }
     GridVertex vertex = vertexDir.vertex;
     return target.end.in(vertex.getX(), vertex.getY()) && vertex.isNodeInternal()
-        && vertex.in(endPoint.getX(), endPoint.getY());
+        && vertex.inInnerDeviation(endPoint.getX(), endPoint.getY(), -0.1);
   }
 
   private EdgeDraw terminateRouter(EdgeSegRecord edgeSegRecord, Maze.Cell from, Maze.Cell to,
@@ -731,6 +753,22 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
         break;
     }
     return false;
+  }
+
+  private static Character dirToChar(int dir) {
+    switch (dir) {
+      case LEFT:
+        return '<';
+      case RIGHT:
+        return '>';
+      case UP:
+        return '^';
+      case DOWN:
+        return 'v';
+      default:
+        break;
+    }
+    return '?';
   }
 
   private interface TargetConstructor {
@@ -1109,6 +1147,28 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
 
       return Double.compare(costLen + estimateRemainLen,
                             o.costLen + o.estimateRemainLen);
+    }
+
+    private String path() {
+      VertexDir v = this;
+      StringBuilder path = new StringBuilder();
+      do {
+        path.insert(0, dirToChar(v.dir));
+        v = v.parent;
+      } while (v != null);
+
+      String start = "Start :{x=" +  vertex.getX() + ", y=" + vertex.getY() + "}: ";
+      path.insert(0, start);
+      return path.toString();
+    }
+
+    @Override
+    public String toString() {
+      return "{" +
+          "dir=" + dirToChar(dir) +
+          ", x=" + vertex.getX() +
+          ", y=" + vertex.getY() +
+          '}';
     }
   }
 

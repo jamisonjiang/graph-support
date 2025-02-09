@@ -725,6 +725,8 @@ public class ParserUtils {
                 return Color.GOLD;
             case "grey":
                 return Color.GREY;
+            case "pink":
+                return Color.PINK;
             case "bisque":
                 return Color.BISQUE;
             case "lightgrey":

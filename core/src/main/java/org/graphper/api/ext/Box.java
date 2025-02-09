@@ -181,11 +181,24 @@ public interface Box {
    * @return true - in box area false - not in box area
    */
   default boolean in(double x, double y) {
+    return inInnerDeviation(x, y, 0.01);
+  }
+
+  /**
+   * Returns true if the coordinate (x, y) is inside the box area, shrinking each border
+   * by a given inner deviation.
+   *
+   * @param x          x-coordinate
+   * @param y          y-coordinate
+   * @param deviation  how much to shrink each border
+   * @return true if (x, y) is within the adjusted box, false otherwise
+   */
+  default boolean inInnerDeviation(double x, double y, double deviation) {
     if (!positive()) {
       return false;
     }
-    return x >= getLeftBorder() + 0.01 && x <= getRightBorder() - 0.01
-        && y >= getUpBorder() + 0.01 && y <= getDownBorder() - 0.01;
+    return x >= getLeftBorder() + deviation && x <= getRightBorder() - deviation
+        && y >= getUpBorder() + deviation && y <= getDownBorder() - deviation;
   }
 
   /**
