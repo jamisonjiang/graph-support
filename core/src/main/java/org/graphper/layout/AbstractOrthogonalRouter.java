@@ -1157,7 +1157,7 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
         v = v.parent;
       } while (v != null);
 
-      String start = "Start :{x=" +  vertex.getX() + ", y=" + vertex.getY() + "}: ";
+      String start = "Start {x=" +  vertex.getX() + ", y=" + vertex.getY() + "}: ";
       path.insert(0, start);
       return path.toString();
     }
