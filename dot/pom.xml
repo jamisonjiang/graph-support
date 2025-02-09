@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.5.0</version>
   </parent>
 
   <artifactId>graph-support-dot</artifactId>

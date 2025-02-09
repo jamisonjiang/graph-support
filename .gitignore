@@ -1,5 +1,4 @@
 .idea/*
-doc/*
 target/
 workspace.xml
 graph-support.iml

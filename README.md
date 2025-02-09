@@ -20,7 +20,7 @@
 
 ## Using by CLI
 
-1. **Download** the latest CLI JAR (e.g., `graph-support-cli.jar`).
+1. **Download** the [latest CLI JAR](https://github.com/jamisonjiang/graph-support/releases/tag/1.5.0).
 
 2. Prepare a DOT file
 
