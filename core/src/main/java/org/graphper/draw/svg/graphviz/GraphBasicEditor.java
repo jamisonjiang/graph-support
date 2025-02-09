@@ -62,7 +62,7 @@ public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
     String tooltip = StringUtils.isNotEmpty(graphAttrs.getTooltip())
         ? graphAttrs.getTooltip() : graphAttrs.getLabel();
 
-    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
+    Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
     if (StringUtils.isNotEmpty(tooltip)) {

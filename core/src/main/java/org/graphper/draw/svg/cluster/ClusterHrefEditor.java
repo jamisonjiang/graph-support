@@ -42,7 +42,7 @@ public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants 
     String tooltip = StringUtils.isNotEmpty(clusterAttrs.getTooltip())
         ? clusterAttrs.getTooltip() : clusterAttrs.getLabel();
 
-    Element wrapEle = brush.getOrCreateShapeEleById(A_ELE + UNDERSCORE + id, A_ELE);
+    Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
