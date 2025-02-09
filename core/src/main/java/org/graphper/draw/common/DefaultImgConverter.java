@@ -33,7 +33,10 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.apache_gs.commons.lang3.StringUtils;
@@ -49,6 +52,8 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.EnvProp;
 import org.graphper.util.FontUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of {@link SvgConverter} to convert SVG elements into image files. This
@@ -58,6 +63,8 @@ import org.graphper.util.FontUtils;
  * @author Jamison Jiang
  */
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
+
+  private static final Logger log = LoggerFactory.getLogger(DefaultImgConverter.class);
 
   /**
    * Returns the priority order of this converter. If local image converter is used, returns the
@@ -144,6 +151,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
       if (Objects.equals(ele.tagName(), PATH_ELE)) {
         drawPath(ele, g2d);
+        return;
+      }
+
+      // ADD THIS NEW BRANCH:
+      if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
+        drawImage(ele, g2d);
       }
     }));
 
@@ -352,6 +365,85 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
 
     setShapeCommonAttr(ele, g2d, path2D);
+  }
+
+  private void drawImage(Element ele, Graphics2D g2d) {
+    // 1) Get the href from xlink:href or href
+    String href = getHref(ele);
+    if (StringUtils.isEmpty(href)) {
+      href = ele.getAttribute("href");
+    }
+    if (StringUtils.isEmpty(href)) {
+      return;
+    }
+
+    // 2) Load the image
+    BufferedImage image = loadImage(href);
+    if (image == null) {
+      // Could not load image
+      return;
+    }
+
+    // 3) Extract bounding box from SVG <image> attributes
+    double x = toDouble(ele.getAttribute("x"));
+    double y = toDouble(ele.getAttribute("y"));
+    double boxW = toDouble(ele.getAttribute("width"));
+    double boxH = toDouble(ele.getAttribute("height"));
+
+    // If width or height is zero or absent, no bounding box to center in.
+    // You could decide to just draw at natural size in that case, or do nothing.
+    if (boxW <= 0 || boxH <= 0) {
+      // Draw at natural size, or skip
+      g2d.drawImage(image, (int)x, (int)y, null);
+      return;
+    }
+
+    // 4) Get natural (intrinsic) size of the loaded image
+    double imgW = image.getWidth();
+    double imgH = image.getHeight();
+
+    // 5) Compute scale to 'meet' the smaller ratio so entire image fits in the box
+    double scale = Math.min(boxW / imgW, boxH / imgH);
+
+    // 6) Compute the final drawn size, preserving aspect ratio
+    double finalW = imgW * scale;
+    double finalH = imgH * scale;
+
+    // 7) Center the image within the box
+    double xOffset = x + (boxW - finalW) / 2.0;
+    double yOffset = y + (boxH - finalH) / 2.0;
+
+    // 8) Draw the image into the bounding box
+    g2d.drawImage(image, (int) xOffset, (int) yOffset, (int) finalW, (int) finalH, null);
+  }
+
+  // Helper to read xlink:href or href
+  private String getHref(Element ele) {
+    String href = ele.getAttribute("xlink:href");
+    if (StringUtils.isEmpty(href)) {
+      href = ele.getAttribute("href");
+    }
+    // Unescape &amp; etc.
+    return StringEscapeUtils.unescapeHtml4(href);
+  }
+
+  // Helper to load from URL or file
+  private BufferedImage loadImage(String href) {
+    try {
+      URL url = new URL(href);
+      return ImageIO.read(url);
+    } catch (MalformedURLException e) {
+      // fallback to local file
+      File file = new File(href);
+      try {
+        return ImageIO.read(file);
+      } catch (IOException ex) {
+        log.error("Failed to read from file: {}", file.getAbsolutePath(), ex);
+      }
+    } catch (IOException ioEx) {
+      log.error("Failed to read from URL: {}", href, ioEx);
+    }
+    return null;
   }
 
   /**

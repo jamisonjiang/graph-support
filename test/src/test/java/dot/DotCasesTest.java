@@ -29,12 +29,6 @@ public class DotCasesTest extends GraphvizVisual {
 
   @Test
   public void testCase() throws IOException {
-    String content = "E:/demo/example.jpg";
-    content = "Backspace:\b";
-    content = content.replaceAll("\\\\(?![nrt\\\\])", ""); // Remove \ not followed by n, r, t
-
-    System.out.println(content);
-
     String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
     Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
     visual(graphviz);

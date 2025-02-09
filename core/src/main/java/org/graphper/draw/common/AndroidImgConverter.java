@@ -20,16 +20,21 @@ import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.awt.Font;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
@@ -60,6 +65,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   private static Class<?> COMPRESS_FORMAT;
   private static Class<?> DASH_PATH_EFFECT;
 
+  private static Class<?> BITMAP_FACTORY;
+
   static {
     try {
       PATH = Class.forName("android.graphics.Path");
@@ -74,8 +81,9 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
       BIT_MAP = Class.forName("android.graphics.Bitmap");
       TYPE_FACE = Class.forName("android.graphics.Typeface");
       PATH_EFFECT = Class.forName("android.graphics.PathEffect");
-      COMPRESS_FORMAT = Class.forName("android.graphics.Bitmap$CompressFormat");
+      BITMAP_FACTORY = Class.forName("android.graphics.BitmapFactory");
       DASH_PATH_EFFECT = Class.forName("android.graphics.DashPathEffect");
+      COMPRESS_FORMAT = Class.forName("android.graphics.Bitmap$CompressFormat");
     } catch (Exception e) {
       // Ignore
     }
@@ -100,7 +108,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
    */
   @Override
   public boolean envSupport() {
-    return PATH != null && DASH_PATH_EFFECT != null;
+    return PATH != null && COMPRESS_FORMAT != null;
   }
 
   /**
@@ -159,6 +167,11 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
         if (Objects.equals(ele.tagName(), PATH_ELE)) {
           drawPath(ele, canvas);
+          return;
+        }
+
+        if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
+          drawImage(ele, canvas);
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -375,6 +388,99 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     if (setShapeCommonAttr(ele, fill, false)) {
       ClassUtils.invoke(canvas, "drawPath", path, fill);
     }
+  }
+
+  private void drawImage(Element ele, Object canvas) throws Exception {
+    // 1) Extract href from the <image> tag
+    String href = ele.getAttribute("xlink:href");
+    if (StringUtils.isEmpty(href)) {
+      href = ele.getAttribute("href");
+    }
+    if (StringUtils.isEmpty(href)) {
+      // No image source
+      return;
+    }
+    // Unescape HTML entities (&amp; -> & etc.)
+    href = StringEscapeUtils.unescapeHtml4(href);
+
+    // 2) Load the Bitmap
+    Object bitmap = loadBitmap(href);
+    if (bitmap == null) {
+      // Could not decode the image
+      return;
+    }
+
+    // 3) Extract the bounding box from SVG <image> attributes
+    double x = toDouble(ele.getAttribute("x"));
+    double y = toDouble(ele.getAttribute("y"));
+    double boxW = toDouble(ele.getAttribute("width"));
+    double boxH = toDouble(ele.getAttribute("height"));
+
+    // If no bounding box, just draw at natural size
+    if (boxW <= 0 || boxH <= 0) {
+      // Draw at (x, y) with the image’s intrinsic size
+      ClassUtils.invoke(canvas, "drawBitmap",
+                        new Class[]{BIT_MAP, float.class, float.class, PAINT},
+                        bitmap, (float)x, (float)y, null
+      );
+      return;
+    }
+
+    // 4) Get natural (intrinsic) size of the loaded bitmap
+    int imgW = (int) ClassUtils.invoke(bitmap, "getWidth");
+    int imgH = (int) ClassUtils.invoke(bitmap, "getHeight");
+
+    // 5) Compute scale so the entire image fits in the box
+    double scale = Math.min(boxW / imgW, boxH / imgH);
+
+    // 6) Final drawn size
+    double finalW = imgW * scale;
+    double finalH = imgH * scale;
+
+    // 7) Center the image in (boxW, boxH)
+    double xOffset = x + (boxW - finalW) / 2.0;
+    double yOffset = y + (boxH - finalH) / 2.0;
+
+    // 8) Make a Matrix for scaling, so we can call drawBitmap(Bitmap, Matrix, Paint).
+    Object matrix = ClassUtils.newObject(MATRIX);
+    // First translate so top-left is at (xOffset, yOffset)
+    ClassUtils.invoke(matrix, "postTranslate", (float)xOffset, (float)yOffset);
+    // Then scale the image’s top-left corner
+    ClassUtils.invoke(matrix, "preScale",
+                      (float)(scale), (float)(scale)
+    );
+
+    // 9) Draw the image using drawBitmap(Bitmap, Matrix, Paint)
+    ClassUtils.invoke(canvas, "drawBitmap",
+                      new Class[]{BIT_MAP, MATRIX, PAINT},
+                      bitmap, matrix, null
+    );
+  }
+
+  private Object loadBitmap(String href) throws Exception {
+    try {
+      // Try a URL
+      URL url = new URL(href);
+      try(InputStream in = url.openStream()) {
+        return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeStream",
+                                       new Class[]{InputStream.class}, in);
+      }
+
+    } catch (MalformedURLException e) {
+      // Not a valid URL -> local file path?
+      File file = new File(href);
+      if (!file.exists()) {
+        System.err.println("File not found: {}" + file.getAbsolutePath());
+        return null;
+      }
+      try (FileInputStream fis = new FileInputStream(file)) {
+        return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeStream",
+                                       new Class[]{InputStream.class}, fis);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   /**

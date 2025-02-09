@@ -49,7 +49,8 @@ public class CommandUnits {
       new DotInput(),
       new OutputFile(),
       new GraphLayout(),
-      new OutputFileType()
+      new OutputFileType(),
+      new NativeImageRender()
   );
 
   public static class DotInput implements CommandUnit {
@@ -161,6 +162,24 @@ public class CommandUnits {
           .map(String::toLowerCase)
           .collect(Collectors.joining("|"));
       return "-Tv          - Set output format to 'v' (" + fileTypes + ")";
+    }
+  }
+
+  public static class NativeImageRender implements CommandUnit {
+
+    @Override
+    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+      String arg = arguments.current();
+      if (!"-N".equals(arg)) {
+        return false;
+      }
+      System.setProperty("use.local.img.converter", "true");
+      return true;
+    }
+
+    @Override
+    public String helpCommend() {
+      return "-N           - Use native image render (ignore Batik)";
     }
   }
 
