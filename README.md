@@ -1,16 +1,20 @@
 # graph-support
 
-**graph-support** is a lightweight Java re-implementation of [Graphviz](https://graphviz.org/) for **parsing**, **layout** and **rendering** graph. 
+`graph-support` is a lightweight Java re-implementation of [Graphviz](https://graphviz.org/) for **parsing**, **layout**, and **rendering** graphs.
 
-------
+## **Highlights**
 
-## Features
-
-- **Using Pure Java API**:  for building graph.
-- **DOT Script Parsing**: Parsing`.dot` files or strings and generate graph.
-- **Clusters & Subgraphs**: Organize nodes logically or visually.
-- **HTML Label Support**: Render rich labels with HTML-like syntax.
-- **Multiple Layout Engines**: Multiple engines (e.g., `dot`, `fdp`) for different layout styles.
+- **Dual Support for Java API and DOT Script**:
+  Use the **Java API** or **DOT script**, depending on which method is more convenient for your use case.
+- **Clusters and Subgraphs**:
+  Organize nodes logically or visually into clusters and subgraphs.
+- **HTML Label Support**:
+  Render rich, customizable labels using HTML-like syntax.
+- **Multiple Layout Engines**:(e.g., `dot`, `fdp`)
+- **Light Dependencies**:
+  Designed with minimal dependencies to ensure stability. The core module can even work with **zero dependencies**.
+- **Multi-Platform Support**:
+  Compatible with Mac, Linux, Windows, and Android platforms.
 
 ------
 
