@@ -3,6 +3,7 @@ digraph G_component_0 {
 	fontname="Helvetica,Arial,sans-serif"
 	splines=ortho
 	size="2"
+	overlap=false
 	1 [label="02f5daf56e299b8a8ecea892", style=filled, color=green];
 	"189E" [label=ca5af2, style=filled, color=blue];
 	"790E" [label=b4dfef6, style=filled, color=grey];

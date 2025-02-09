@@ -1,4 +1,4 @@
-// Generated from org/graphper/parser/grammar/DOTParser.g4 by ANTLR 4.9.3
+// Generated from org\graphper\parser\grammar\DOTParser.g4 by ANTLR 4.9.3
 package org.graphper.parser.grammar;
 
 import java.util.List;

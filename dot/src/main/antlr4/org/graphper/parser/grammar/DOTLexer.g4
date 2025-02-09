@@ -57,9 +57,7 @@ STRING
     : '"' ( ESC_SEQ | ~["\\] )* '"'
         {
             String content = getText().substring(1, getText().length() - 1);
-
-            // Process escape sequences, removing \ except for \n, \r, \t
-            content = content.replaceAll("\\\\(?![nrt])", ""); // Remove \ not followed by n, r, t
+            content = content.replaceAll("\\\\(?![nrt\\\\])", ""); // Remove \ not followed by n, r, t, \
 
             // Replace recognized escape sequences with actual characters
             content = content.replace("\\n", "\n")
@@ -74,16 +72,13 @@ STRING
  * Fragment for escape sequences within strings.
  */
 fragment ESC_SEQ
-    // Match one backslash, then one of \ " b f n r t
     : '\\' [\\"bfnrt.\n\r]
-    // Or match \u followed by 4 hex digits
     | '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
 
 fragment HEX_DIGIT
     : [0-9a-fA-F]
     ;
-
 
 /** "HTML strings, angle brackets must occur in matched pairs, and
  *  unescaped newlines are allowed."
