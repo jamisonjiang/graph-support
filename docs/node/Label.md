@@ -80,7 +80,7 @@ Graphviz.digraph()
     .build();
 ```
 
-![](..\images\node_record.png)
+![Record Node](../images/node_record.png)
 
 ### Cell fieldId examples:
 
