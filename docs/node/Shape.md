@@ -69,4 +69,4 @@ digraph shapes_demo {
 }
 ```
 
-![](..\images\node_shape.png)
+![Node Shape](../images/node_shape.png)
