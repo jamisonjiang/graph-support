@@ -236,9 +236,7 @@ Dot
 
 ## Examples
 
-### Table|TR|TD
-
-Dot example
+**Dot example**
 
 ```dot
 digraph {
@@ -260,7 +258,7 @@ digraph {
 }
 ```
 
-Java example
+**Java example**
 
 ```java
 import static org.graphper.api.Html.table;
@@ -274,12 +272,12 @@ Node tableNode = Node.builder()
                 .cellSpacing(0) // No spacing between cells
                 .bgColor(Color.ofRGB("#E0E0E0")) // Light gray background for the table
                 .style(NodeStyle.ROUNDED) // Rounded corners for the table
-                .tr( // First row
+                .tr(
                      td()
                          .id("cell1")
                          .align(Labeljust.CENTER)
                          .valign(Labelloc.TOP)
-                         .bgColor(Color.ofRGB("#FFD700")) // Gold background
+                         .bgColor(Color.ofRGB("#FFD700"))
                          .cellPadding(5)
                          .color(Color.BLACK)
                          .fixedSize(true)
@@ -294,88 +292,7 @@ Node tableNode = Node.builder()
                          .fontColor(Color.BLUE)
                          .fontSize(14)
                          .shape(NodeShapeEnum.RECT)
-                         .text("Header Cell 1"),
-                     td()
-                         .id("cell2")
-                         .align(Labeljust.LEFT)
-                         .valign(Labelloc.CENTER)
-                         .bgColor(Color.ofRGB("#87CEEB")) // Light blue background
-                         .cellPadding(3)
-                         .color(Color.BLACK)
-                         .fixedSize(false)
-                         .width(80)
-                         .height(40)
-                         .href("https://example.org")
-                         .tooltip("Clickable cell")
-                         .border(1)
-                         .fontName("Times New Roman")
-                         .fontColor(Color.RED)
-                         .fontSize(12)
-                         .shape(NodeShapeEnum.ELLIPSE)
-                         .text("Header Cell 2")
-                )
-                .tr( // Second row
-                     td()
-                         .id("cell3")
-                         .align(Labeljust.RIGHT)
-                         .valign(Labelloc.BOTTOM)
-                         .bgColor(Color.ofRGB("#98FB98")) // Pale green background
-                         .cellPadding(4)
-                         .color(Color.BLACK)
-                         .fixedSize(true)
-                         .width(90)
-                         .height(45)
-                         .href("https://example.com")
-                         .tooltip("Another tooltip")
-                         .style(NodeStyle.ROUNDED)
-                         .border(1)
-                         .rowSpan(2)
-                         .fontName("Courier New")
-                         .fontColor(Color.BLACK)
-                         .fontSize(10)
-                         .shape(NodeShapeEnum.DIAMOND)
-                         .text("Row 2, Col 1"),
-                     td()
-                         .id("cell4")
-                         .align(Labeljust.CENTER)
-                         .valign(Labelloc.TOP)
-                         .bgColor(Color.ofRGB("#FF69B4")) // Hot pink background
-                         .cellPadding(4)
-                         .color(Color.BLACK)
-                         .fixedSize(false)
-                         .width(120)
-                         .height(50)
-                         .href("https://example.com")
-                         .tooltip("Hover here")
-                         .style(NodeStyle.DASHED)
-                         .border(1)
-                         .fontName("Verdana")
-                         .fontColor(Color.GREEN)
-                         .fontSize(11)
-                         .shape(NodeShapeEnum.TRIANGLE)
-                         .text("Row 2, Col 2")
-                )
-                .tr( // Third row
-                     td()
-                         .id("cell5")
-                         .align(Labeljust.LEFT)
-                         .valign(Labelloc.BOTTOM)
-                         .bgColor(Color.ofRGB("#FFA500")) // Orange background
-                         .cellPadding(2)
-                         .color(Color.BLACK)
-                         .fixedSize(true)
-                         .width(110)
-                         .height(50)
-                         .href("https://example.net")
-                         .tooltip("Last cell tooltip")
-                         .style(NodeStyle.SOLID)
-                         .border(1)
-                         .colSpan(2)
-                         .fontName("Tahoma")
-                         .fontColor(Color.PURPLE)
-                         .fontSize(13)
-                         .shape(NodeShapeEnum.HEXAGON)
-                         .text("Row 3, Col 1")
+                         .text("Header Cell 1")
                 )
         )
         .build();

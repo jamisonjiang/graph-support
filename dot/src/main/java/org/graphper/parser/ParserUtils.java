@@ -844,10 +844,8 @@ public class ParserUtils {
             label = StringUtils.isEmpty(htmlListener.getLabel()) ? label : htmlListener.getLabel();
             labelConsumer.accept(label);
         } else {
-            if (label.startsWith("\"") && label.endsWith("\"")) {
-                label = label.substring(1, label.length() - 1);
-            }
-            if (label.startsWith("<") && label.endsWith(">")) {
+            if (label.startsWith("\"") && label.endsWith("\"")
+                || label.startsWith("<") && label.endsWith(">")) {
                 label = label.substring(1, label.length() - 1);
             }
             labelConsumer.accept(label);

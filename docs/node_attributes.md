@@ -168,7 +168,7 @@ Node node = Node.builder()
 
 ### **Tooltip**
 
-Sets a tooltip to display additional information on hover.
+Sets a tooltip to display additional information on hover, only take effect when node set href attribute
 
 **Usage**:
 
@@ -190,25 +190,6 @@ Table table = Html.table()
     .tr(Html.td().text("Row 1, Col 1"), Html.td().text("Row 1, Col 2"));
 
 Node node = Node.builder().table(table).build();
-```
-
-------
-
-### **Assemble**
-
-Sets an `Assemble` object for precise layout of subcomponents within the node.
-
-**Usage**:
-
-```java
-Assemble assemble = Assemble.builder()
-    .width(1.0)
-    .height(0.5)
-    .addCell(0, 0, Node.builder().label("Left").build())
-    .addCell(0.5, 0, Node.builder().label("Right").build())
-    .build();
-
-Node node = Node.builder().assemble(assemble).build();
 ```
 
 ------
@@ -274,3 +255,21 @@ Node node = Node.builder()
 ```
 
 ------
+
+### **Assemble**
+
+Sets an `Assemble` object for precise layout of subcomponents within the node.
+
+**Usage**:
+
+```java
+Assemble assemble = Assemble.builder()
+    .width(1.0)
+    .height(0.5)
+    .addCell(0, 0, Node.builder().label("Left").build())
+    .addCell(0.5, 0, Node.builder().label("Right").build())
+    .build();
+
+Node node = Node.builder().assemble(assemble).build();
+```
+

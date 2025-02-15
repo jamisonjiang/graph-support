@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.Html;
 import org.graphper.api.Html.FontAttrs;
 import org.graphper.api.Html.LabelTag;
@@ -209,6 +210,7 @@ public class HtmlListener extends HTMLParserBaseListener {
     if (pureText(tdCtx)) {
       String text = tdCtx.getText();
       text = StringUtils.isEmpty(text) ? StringUtils.EMPTY : text.trim();
+      text = StringEscapeUtils.escapeHtml4(text);
       td.text(text);
       return;
     }
@@ -371,6 +373,7 @@ public class HtmlListener extends HTMLParserBaseListener {
     String text = StringUtils.isEmpty(ctx.getText()) ? StringUtils.EMPTY : ctx.getText();
     // Trim whitespace artifacts like newlines or tabs
     text = text.replace("\n", "").replace("\r", "").replace("\t", "");
+    text = StringEscapeUtils.escapeHtml4(text);
     String t = text;
     peekAndConsTagIfAbsent(() -> Html.text(t), labelTag -> labelTag.text(t));
   }

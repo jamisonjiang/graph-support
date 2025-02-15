@@ -32,7 +32,7 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
 
   private final String tagName;
 
-  private String textContext;
+  private String textContent;
 
   private Map<String, String> attr;
 
@@ -81,8 +81,12 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
   }
 
   @Override
-  public void setTextContent(String textContent) {
-    this.textContext = StringEscapeUtils.escapeXml11(textContent);
+  public void setTextContent(String ttc) {
+    ttc = StringEscapeUtils.escapeXml11(ttc);
+    if (ttc != null) {
+      ttc = ttc.replace(" ", "&#160;");
+    }
+    this.textContent = ttc;
   }
 
   @Override
@@ -123,7 +127,7 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
 
   @Override
   public String textContext() {
-    return textContext;
+    return textContent;
   }
 
   @Override
@@ -142,13 +146,13 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
     SvgElement that = (SvgElement) o;
     return Objects.equals(id, that.id)
         && Objects.equals(tagName, that.tagName)
-        && Objects.equals(textContext, that.textContext)
+        && Objects.equals(textContent, that.textContent)
         && Objects.equals(attr, that.attr)
         && Objects.equals(parent, that.parent);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, tagName, textContext, attr, parent);
+    return Objects.hash(id, tagName, textContent, attr, parent);
   }
 }

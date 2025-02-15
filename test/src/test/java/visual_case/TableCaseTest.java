@@ -346,11 +346,6 @@ public class TableCaseTest extends GraphvizVisual {
         .addNode(node)
         .build();
 
-//    try {
-//      System.out.println(graphviz.toSvgStr());
-//    } catch (ExecuteException e) {
-//      throw new RuntimeException(e);
-//    }
     visual(graphviz);
   }
 

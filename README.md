@@ -1,22 +1,28 @@
 # graph-support
 
+## About
+
 `graph-support` is a lightweight Java re-implementation of [Graphviz](https://graphviz.org/) for **parsing**, **layout**, and **rendering** graphs.
 
 ## **Highlights**
 
 - **Dual Support for Java API and DOT Script**:
-  Use the **Java API** or **DOT script**, depending on which method is more convenient for your use case.
-- **Clusters and Subgraphs**:
-  Organize nodes logically or visually into clusters and subgraphs.
-- **HTML Label Support**:
-  Render rich, customizable labels using HTML-like syntax.
-- **Multiple Layout Engines**:(e.g., `dot`, `fdp`)
-- **Light Dependencies**:
-  Designed with minimal dependencies to ensure stability. The core module can even work with **zero dependencies**.
+   Use the **Java API** or **DOT script**, depending on which method is more convenient for your use case.
+- **Lightweight Design**:
+   `graph-support` is designed to be **lightweight**, ensuring stability and efficiency. Unlike other graphing tools, `graph-support` **does not require** Graphviz binaries, JavaScript runtime engines, or external renderers, making it ideal for **embedding into applications**.
 - **Multi-Platform Support**:
-  Compatible with Mac, Linux, Windows, and Android platforms.
+   Compatible with **Mac, Linux, Windows, and Android platforms**, ensuring seamless integration across different environments.
 
 ------
+
+## Useful information
+
+* [Release](https://github.com/jamisonjiang/graph-support/releases)
+* [Documentation](./docs)
+* Quick build: 
+  * Latest stable [OpenJDK 8](https://adoptium.net/)
+  * Latest stable [Apache Maven](https://maven.apache.org/)
+  * Run `mvn clean install`
 
 ## Using by CLI
 
@@ -146,7 +152,7 @@ public class DotExample {
 
 ![Record Node](test/picture/node_record.png)
 
-### HTML Lable
+### HTML Label
 
 ![Record Node](test/picture/rich_text.png)
 

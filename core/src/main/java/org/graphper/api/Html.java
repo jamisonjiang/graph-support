@@ -1595,7 +1595,11 @@ public class Html {
 
     private BasicLabelTag(String text, LabelTagType type, LabelTag subLabelTag) {
       Asserts.nullArgument(type);
-      this.text = text;
+      if (subLabelTag == null && text == null) {
+        this.text = StringUtils.EMPTY;
+      } else {
+        this.text = text;
+      }
       this.type = type;
       this.subLabelTag = subLabelTag;
       verify();
@@ -1614,9 +1618,6 @@ public class Html {
     }
 
     public void verify() {
-      if (subLabelTag == null) {
-        Asserts.nullArgument(text);
-      }
       if (text == null) {
         Asserts.nullArgument(subLabelTag);
       }

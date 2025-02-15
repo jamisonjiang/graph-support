@@ -1,7 +1,7 @@
 ## ID
 
 Sets a unique identifier for the node. If not specified, it is automatically assigned during rendering.
-**Note**: If multiple nodes share the same ID, only one will be rendered, though all will occupy space.
+**Note**: If multiple nodes share the same ID, only one will be rendered.
 
 **Usage**:
 

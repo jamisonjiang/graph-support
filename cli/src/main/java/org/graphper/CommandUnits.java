@@ -168,9 +168,9 @@ public class CommandUnits {
   public static class NativeImageRender implements CommandUnit {
 
     @Override
-    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+    public boolean handle(Arguments arguments, Command command) {
       String arg = arguments.current();
-      if (!"-N".equals(arg)) {
+      if (!"-n".equals(arg)) {
         return false;
       }
       System.setProperty("use.local.img.converter", "true");
@@ -179,7 +179,7 @@ public class CommandUnits {
 
     @Override
     public String helpCommend() {
-      return "-N           - Use native image render (ignore Batik)";
+      return "-n           - Use native image render (ignore Batik)";
     }
   }
 
@@ -237,7 +237,7 @@ public class CommandUnits {
   public static class Debug implements CommandUnit {
 
     @Override
-    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+    public boolean handle(Arguments arguments, Command command) {
       String arg = arguments.current();
       if (!"-d".equals(arg) && !"--debug".equals(arg)) {
         return false;
