@@ -69,4 +69,4 @@ digraph shapes_demo {
 }
 ```
 
-![](E:\github\graph-support\docs\images\node_shape.png)
+![](..\images\node_shape.png)
