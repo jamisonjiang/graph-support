@@ -18,16 +18,15 @@ package visual_case;
 
 import helper.GraphvizVisual;
 import org.graphper.api.Cluster;
-import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
+import org.graphper.api.attributes.ClusterStyle;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rank;
-import org.graphper.api.attributes.Tend;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -302,23 +301,53 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-Node a = Node.builder().id("a").build();
-Node b = Node.builder().id("b").build();
+    Cluster dashedCluster = Cluster.builder()
+        .id("cluster_0")
+        .label("Dashed Cluster")
+        .style(ClusterStyle.DASHED)  // Dashed boundary
+        .addNode(Node.builder().id("a").build())
+        .addNode(Node.builder().id("b").build())
+        .build();
 
-FloatLabel tailLabel = FloatLabel.builder()
-    .tend(Tend.TAIL)
-    .label("Tail Label")
-    .build();
+    Cluster dottedCluster = Cluster.builder()
+        .id("cluster_1")
+        .label("Dotted Cluster")
+        .style(ClusterStyle.DOTTED)  // Dotted boundary
+        .addNode(Node.builder().id("c").build())
+        .addNode(Node.builder().id("d").build())
+        .build();
 
-// Edge with main label and tail label
-Line edgeWithTailLabel = Line.builder(a, b)
-    .label("Main Label")
-    .floatLabels(tailLabel)  // Label at the tail of the edge
-    .build();
+    Cluster boldCluster = Cluster.builder()
+        .id("cluster_2")
+        .label("Bold Cluster")
+        .style(ClusterStyle.BOLD)  // Bold boundary
+        .addNode(Node.builder().id("e").build())
+        .addNode(Node.builder().id("f").build())
+        .build();
 
-Graphviz graph = Graphviz.digraph()
-    .addLine(edgeWithTailLabel)
-    .build();
+    Cluster roundedCluster = Cluster.builder()
+        .id("cluster_3")
+        .label("Rounded Cluster")
+        .style(ClusterStyle.ROUNDED)  // Rounded corners
+        .addNode(Node.builder().id("g").build())
+        .addNode(Node.builder().id("h").build())
+        .build();
+
+    Cluster invisibleCluster = Cluster.builder()
+        .id("cluster_4")
+        .label("Invisible Cluster")
+        .style(ClusterStyle.INVIS)  // Hidden cluster
+        .addNode(Node.builder().id("i").build())
+        .addNode(Node.builder().id("j").build())
+        .build();
+
+    Graphviz graph = Graphviz.digraph()
+        .cluster(dashedCluster)
+        .cluster(dottedCluster)
+        .cluster(boldCluster)
+        .cluster(roundedCluster)
+        .cluster(invisibleCluster)
+        .build();
 
     visual(graph);
   }
