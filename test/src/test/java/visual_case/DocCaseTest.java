@@ -24,6 +24,7 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rank;
 import org.junit.jupiter.api.Test;
@@ -304,25 +305,43 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-// Create individual nodes
     Node a = Node.builder().id("a").build();
     Node b = Node.builder().id("b").build();
     Node c = Node.builder().id("c").build();
     Node d = Node.builder().id("d").build();
     Node e = Node.builder().id("e").build();
-    Node f = Node.builder().id("f").build();
 
-// Create edges (lines)
-    Line edge1 = Line.builder(c, d).id("edge_1").build();
-    Line edge2 = Line.builder(e, f).id("edge_1").build(); // Duplicate ID, only one edge will be rendered
-
-// Build the Graphviz graph
-    Graphviz graphviz = Graphviz.digraph()
-        .addLine(a, b)  // Simple direct connection
-        .addLine(edge1) // Explicitly set edge ID for c -> d
-        .addLine(edge2) // Duplicate edge ID, one will be used
+// Default direction (arrow at head)
+    Line forwardEdge = Line.builder(a, b)
+        .label("Forward (Default)")
+        .dir(Dir.FORWARD) // Default arrow at the head
         .build();
 
-    visual(graphviz);
+// Backward direction (arrow at the tail)
+    Line backwardEdge = Line.builder(a, c)
+        .label("Backward")
+        .dir(Dir.BACK) // Arrow at the tail
+        .build();
+
+// Bidirectional (arrows at both ends)
+    Line bothDirectionsEdge = Line.builder(a, d)
+        .label("Both Directions")
+        .dir(Dir.BOTH) // Arrows at both ends
+        .build();
+
+// No arrows
+    Line noArrowsEdge = Line.builder(a, e)
+        .label("No Arrows")
+        .dir(Dir.NONE) // No arrows on the edge
+        .build();
+
+    Graphviz graph = Graphviz.digraph()
+        .addLine(forwardEdge)
+        .addLine(backwardEdge)
+        .addLine(bothDirectionsEdge)
+        .addLine(noArrowsEdge)
+        .build();
+
+    visual(graph);
   }
 }

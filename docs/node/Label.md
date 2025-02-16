@@ -147,7 +147,7 @@ digraph {
 }
 ```
 
-Java api using another attribute `labelTag` like:
+Java api using another method `labelTag` like:
 
 ```java
  LabelTag label = text("Line 1").br()
@@ -197,7 +197,7 @@ digraph G {
 }
 ```
 
-Java api using another attribute `table` like
+Java api using another method `table` like
 
 ```java
 Node node = Node.builder()

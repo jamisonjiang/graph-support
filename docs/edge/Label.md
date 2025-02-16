@@ -1,18 +1,12 @@
-Here is the **updated document focusing only on edge labels**, excluding node labels and **removing Cell Expression support** from edge labels.
+# Edge Label
+
+Defines the **text content** of an **edge**. Edge labels can be **simple strings**, **formatted using LabelTag**, or **structured using tables**.
 
 ------
 
-# **Edge Label**
+## **Using a Simple Edge Label**
 
-The **label** attribute in an **edge** defines **text content** that appears **along the edge line**. Edge labels can be **simple text** or **formatted using LabelTag** for rich styling.
-
-------
-
-## **1. Using a Simple Edge Label**
-
-A **plain text label** that appears **along the edge**.
-
-### **Dot**
+Dot
 
 ```dot
 digraph G {
@@ -20,7 +14,7 @@ digraph G {
 }
 ```
 
-### **Java**
+Java
 
 ```java
 Node a = Node.builder().id("a").build();
@@ -31,20 +25,17 @@ Line edge = Line.builder(a, b)
     .build();
 
 Graphviz graph = Graphviz.digraph()
-    .addNode(a, b)
     .addLine(edge)
     .build();
 ```
 
-✅ **`label("Text")`** → Defines a **plain text** edge label.
-
 ------
 
-## **2. Using Rich Formatting with LabelTag**
+## **Using LabelTag for Rich Text Formatting**
 
-For **styled text** on edges, use **LabelTag**, which supports **bold, italics, underline, colors, and font styles**.
+Please see here to check [Lable Tag](../LabelTag.md) detail
 
-### **Dot**
+Dot
 
 ```dot
 digraph G {
@@ -54,7 +45,7 @@ digraph G {
 }
 ```
 
-### **Java**
+Java using another `labelTag`  method to set:
 
 ```java
 Node a = Node.builder().id("a").build();
@@ -75,138 +66,52 @@ Line italicEdge = Line.builder(c, d)
     .build();
 
 Graphviz graph = Graphviz.digraph()
-    .addNode(a, b, c, d)
-    .addLine(boldEdge, blueEdge, italicEdge)
+    .addLine(boldEdge)
+    .addLine(blueEdge)
+    .addLine(italicEdge)
     .build();
 ```
-
-✅ **Supports rich text formatting** (bold, italic, font color).
- ✅ **Use `labelTag()` instead of `label()` for advanced styles.**
 
 ------
 
-## **3. Edge Labels with Multi-Line Support**
+## **Using Tables in Edge Labels**
 
-To display **multi-line edge labels**, use ` ` in **LabelTag**.
+Edge labels support **[tables](../Table.md)**, allowing structured content inside an edge label.
 
-### **Dot**
-
-```dot
-digraph G {
-    a -> b [label=< Line 1<BR/>Line 2<BR/>Line 3 >];
-}
-```
-
-### **Java**
-
-```java
-Node a = Node.builder().id("a").build();
-Node b = Node.builder().id("b").build();
-
-Line multilineEdge = Line.builder(a, b)
-    .labelTag(text("Line 1").br().text("Line 2").br().text("Line 3"))
-    .build();
-
-Graphviz graph = Graphviz.digraph()
-    .addNode(a, b)
-    .addLine(multilineEdge)
-    .build();
-```
-
-✅ **`br()`** → Inserts a line break (` ` in DOT format).
-
-------
-
-## **4. Edge Labels with Font Size & Face**
-
-Use **LabelTag** to change **font size and typeface**.
-
-### **Dot**
-
-```dot
-digraph G {
-    a -> b [label=< <FONT POINT-SIZE="16" FACE="Arial">Styled Label</FONT> >];
-}
-```
-
-### **Java**
-
-```java
-Line styledEdge = Line.builder(a, b)
-    .labelTag(font("Styled Label", fontAttrs().pointSize(16).face("Arial")))
-    .build();
-```
-
-✅ **`fontAttrs()`** → Controls **size, color, and font face**.
-
-------
-
-## **5. Edge Labels with Color**
-
-Use **font color styling** to make edge labels more readable.
-
-### **Dot**
-
-```dot
-digraph G {
-    a -> b [label=< <FONT COLOR="red">Red Label</FONT> >];
-}
-```
-
-### **Java**
-
-```java
-Line redEdge = Line.builder(a, b)
-    .labelTag(font("Red Label", fontAttrs().color(Color.RED)))
-    .build();
-```
-
-✅ **Changes label text color while keeping other styles intact.**
-
-------
-
-## **6. Edge Labels with Background Color**
-
-Although edge labels don't directly support **background color**, you can simulate it using a **colored table**.
-
-### **Dot**
+Dot
 
 ```dot
 digraph G {
     a -> b [label=<
-        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="yellow">
-            <TR><TD>Highlighted Label</TD></TR>
+        <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0">
+            <TR><TD>Row 1, Col 1</TD><TD>Row 1, Col 2</TD></TR>
+            <TR><TD>Row 2, Col 1</TD><TD>Row 2, Col 2</TD></TR>
         </TABLE>
     >];
 }
 ```
 
-### **Java**
+Java using another `table` method to set
 
 ```java
-Line highlightedEdge = Line.builder(a, b)
-    .labelTag(
+Node a = Node.builder().id("a").build();
+Node b = Node.builder().id("b").build();
+
+Line tableEdge = Line.builder(a, b)
+    .table(
         table()
-            .bgColor(Color.YELLOW)
-            .tr(td().text("Highlighted Label"))
+            .border(1)
+            .cellBorder(1)
+            .cellSpacing(0)
+            .tr(td().text("Row 1, Col 1"), td().text("Row 1, Col 2"))
+            .tr(td().text("Row 2, Col 1"), td().text("Row 2, Col 2"))
     )
+    .build();
+
+Graphviz graph = Graphviz.digraph()
+    .addLine(tableEdge)
     .build();
 ```
 
-✅ **Simulates a background color for the edge label using a table.**
-
-------
-
-## **Summary**
-
-| Label Type                | Java Method                                                  | Supports Formatting? | Supports Multi-Line? |
-| ------------------------- | ------------------------------------------------------------ | -------------------- | -------------------- |
-| **Plain Text**            | `label("Text")`                                              | ❌ No                 | ❌ No                 |
-| **Bold/Italic/Underline** | `labelTag(bold("Text"))`                                     | ✅ Yes                | ✅ Yes                |
-| **Font Size & Face**      | `labelTag(font("Text", fontAttrs().pointSize(16).face("Arial")))` | ✅ Yes                | ✅ Yes                |
-| **Text Color**            | `labelTag(font("Red Text", fontAttrs().color(Color.RED)))`   | ✅ Yes                | ✅ Yes                |
-| **Background Color**      | `labelTag(table().bgColor(Color.YELLOW).tr(td().text("Label")))` | ✅ Yes (via table)    | ✅ Yes                |
-
-------
-
-This **updated document** now focuses **exclusively on edge labels** with **simple text and rich formatting**, while **removing unsupported Cell Expressions**. 🚀
+✅ **Allows table layout inside an edge label**.
+ ✅ **Useful for structured information inside edge labels**.
