@@ -341,7 +341,6 @@ public class SubgraphTest extends GraphvizVisual  {
   public void testClusterMinCross()  {
     /*
  digraph {
-     compound=true
      label="GRAPHVIZ DEMO"
      1->4
      1->2[label="1-->2"]
@@ -422,7 +421,6 @@ Hello World"
         .tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build())
         .rankdir(Rankdir.TB)
 //        .splines(Splines.SPLINE)
-        .compound(true)
         .addLine(n1, n4)
         .addLine(Line.builder(n1, n2).label("1 --> 2").build())
 //        .labeljust(Labeljust.LEFT)

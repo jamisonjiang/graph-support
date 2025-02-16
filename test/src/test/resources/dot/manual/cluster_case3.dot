@@ -1,5 +1,4 @@
 digraph G {
-compound=true
 
 subgraph cluster_A {
 label="machine cluster"

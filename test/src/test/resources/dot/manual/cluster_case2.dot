@@ -1,5 +1,4 @@
 digraph G {
-    compound=true
     nodesep=1
     a[shape=pentagon style="bold,dashed"  color=orange]
     a->d[minlen=0 label="requires" dir=back ltail="cluster_0" lhead="cluster_2"]

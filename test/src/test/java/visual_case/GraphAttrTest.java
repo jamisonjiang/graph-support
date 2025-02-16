@@ -426,44 +426,6 @@ public class GraphAttrTest extends GraphvizVisual {
         );
   }
 
-  static Stream<GraphvizBuilder> compoundCases() {
-    Node a = Node.builder().label("a").build();
-    Node b = Node.builder().label("b").build();
-    Node c = Node.builder().label("c").build();
-
-    GraphvizBuilder graphvizBuilder = Graphviz.digraph()
-        .label("compound_test")
-        // Make sure this compound is turned on
-        .compound(true)
-        // The line will point directly to the head node, not the cluster
-        .addLine(a, b)
-        // Set the head node position of the line to be cut by the cluster with id "cluster_0"
-        .addLine(Line.builder(a, c).lhead("cluster_0").build())
-
-        // The head node "b" and "c" in a same cluster
-        .cluster(
-            Cluster.builder()
-                // Set a cluster id, provide lhead with a unique cluster ID
-                .id("cluster_0")
-                .addNode(b, c)
-                .build()
-        );
-
-    return Stream.of(graphvizBuilder)
-        .flatMap(
-            builder -> {
-              try {
-                return Stream.of(
-                    builder.compound(false),
-                    builder.clone().compound(true)
-                );
-              } catch (CloneNotSupportedException ex) {
-                throw new RuntimeException(ex);
-              }
-            }
-        );
-  }
-
   @ParameterizedTest
   @MethodSource("labelCases")
   public void testLabel(GraphvizBuilder graphvizBuilder) {
@@ -529,10 +491,30 @@ public class GraphAttrTest extends GraphvizVisual {
     visual(graphvizBuilder);
   }
 
-  @ParameterizedTest
-  @MethodSource("compoundCases")
-  public void testCompound(GraphvizBuilder graphvizBuilder) {
-    visual(graphvizBuilder);
+  @Test
+  public void testCompound() {
+
+    Node a = Node.builder().label("a").build();
+    Node b = Node.builder().label("b").build();
+    Node c = Node.builder().label("c").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .label("lhead_test")
+        // The line will point directly to the head node, not the cluster
+        .addLine(a, b)
+        // Set the head node position of the line to be cut by the cluster with id "cluster_0"
+        .addLine(Line.builder(a, c).lhead("cluster_0").build())
+
+        // The head node "b" and "c" in a same cluster
+        .cluster(
+            Cluster.builder()
+                // Set a cluster id, provide lhead with a unique cluster ID
+                .id("cluster_0")
+                .addNode(b, c)
+                .build()
+        )
+        .build();
+    visual(graphviz);
   }
 
   @Test

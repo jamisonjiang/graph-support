@@ -1,5 +1,4 @@
 digraph G {
-   compound=true
    subgraph cluster_a {
       a;b;
    }

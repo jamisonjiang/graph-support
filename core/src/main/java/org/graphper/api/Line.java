@@ -222,9 +222,10 @@ public class Line implements Comparable<Line>, Serializable {
       lineAttrs.fontName = FontUtils.selectFont(lineAttrs.label, lineAttrs.fontName);
       return this;
     }
+
     /**
-     * Assigns an HTML-like {@link LabelTag} to this line, enabling rich text formatting
-     * (such as bold, italic, or multi-line text) in the line's label.
+     * Assigns an HTML-like {@link LabelTag} to this line, enabling rich text formatting (such as
+     * bold, italic, or multi-line text) in the line's label.
      *
      * <p>If a plain text label was previously set via {@code label(String)}, this call
      * will override that label with the provided {@code LabelTag}.</p>
@@ -472,15 +473,11 @@ public class Line implements Comparable<Line>, Serializable {
      * Set the head direction of the line according to which {@link Cluster} to clip. If attribute
      * {@link #headclip(boolean)} is set to false, {@code lhead} would never take effect.
      *
-     * <p>To make this property take effect, first ensure that
-     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find the specified
-     * {@link Cluster} that you want the line segment to clipped, set the corresponding
-     * id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
+     * <p>To make this property take effect, set the corresponding id
+     * ({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
      * attribute to the corresponding id. Here is a simple example:
      * <pre>{@code
      *     Graphviz.digraph()
-     *         // Make sure this compound is turned on
-     *         .compound(true)
      *         // The line will point directly to the head node, not the cluster
      *         .addLine(a, b)
      *         // Set the head node position of the line to be cut by the cluster with id "cluster_0"
@@ -509,15 +506,11 @@ public class Line implements Comparable<Line>, Serializable {
      * Set the tail direction of the line according to which {@link Cluster} to clip. If attribute
      * {@link #tailclip(boolean)} is set to false, {@code ltail} would never take effect.
      *
-     * <p>To make this property take effect, first ensure that
-     * {@link Graphviz.GraphvizBuilder#compound(boolean)} is enabled.Then find the specified
-     * {@link Cluster} that you want the line segment to clipped, set the corresponding
+     * <p>To make this property take effect, set the corresponding
      * id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
      * attribute to the corresponding id. Here is a simple example:
      * <pre>{@code
      *     Graphviz.digraph()
-     *         // Make sure this compound is turned on
-     *         .compound(true)
      *         // The line will point directly to the tail node, not the cluster
      *         .addLine(b, a)
      *         // Set the tail node position of the line to be cut by the cluster with id "cluster_0"
@@ -690,9 +683,9 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Sets the tooltip text for the line.
+     * Sets the tooltip text for the edge.
      *
-     * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
+     * <p><strong>Note:</strong> The tooltip only takes effect if the edge has an {@code href} set
      * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
      *
      * @param tooltip the text to be displayed as the tooltip

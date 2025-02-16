@@ -63,7 +63,6 @@ public class ClusterTest extends GraphvizVisual {
         .scale(6)
         .tempNode(Node.builder().shape(NodeShapeEnum.TRIANGLE).build())
         .rankdir(Rankdir.TB)
-        .compound(true)
         .addLine(n1, n4)
         .addLine(Line.builder(n1, n2)
 //                     .label("1 --> 2")
@@ -309,7 +308,6 @@ public class ClusterTest extends GraphvizVisual {
     Node e = Node.builder().label("impl").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        .compound(true)
         .rankdir(Rankdir.LR)
         .tempNode(Node.builder().shape(NodeShapeEnum.RECT).build())
         .addLine(Line.builder(a, d).dir(Dir.BACK).label("requires").ltail("A").lhead("B").build())

@@ -1,6 +1,6 @@
 # Href
 
-The **href** attribute adds a **clickable hyperlink** to a node, making it interactive in `SVG` outputs.
+The **href** attribute (alias: **url**) adds a **clickable hyperlink** to a node, making it interactive in `SVG` outputs.
 
 ## Examples:
 

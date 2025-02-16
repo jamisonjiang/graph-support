@@ -528,17 +528,6 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set whether allow edges between clusters.
-     *
-     * @param compound allow edges between clusters
-     * @return graphviz builder
-     */
-    public GraphvizBuilder compound(boolean compound) {
-      graphAttrs.compound = compound;
-      return self();
-    }
-
-    /**
      * In the {@link Splines#ORTHO} route, an OVG (Orthogonal Visibility Graph) is used to perform
      * the A-start algorithm to find the route, and the OVG visualization is similar to a grid. Set
      * this value to true to print the OVG of the route. So it only takes effect under

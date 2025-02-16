@@ -1,11 +1,9 @@
 digraph Stammbaum{
     charset="UTF-8"
-    compound=true
     sep = 1000
     esep = 100
     size="150,150"
     margin="0.8"
-    splines="compound"
     ranksep=2.5
     pad=2
     labelloc="t"

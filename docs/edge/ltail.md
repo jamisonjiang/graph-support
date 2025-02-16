@@ -1,15 +1,15 @@
-# lhead
+# ltail
 
-The **lhead** attribute is used in **subgraph clustering** to specify that an edge **terminates inside a cluster** (subgraph). This helps visualize **hierarchical relationships** and ensures that the edge connects **to the entire cluster rather than a specific node inside it**.
+The **ltail** attribute is used in **subgraph clustering** to specify that an edge **originates from inside a cluster** (subgraph). This ensures that the edge appears to be coming **from the entire cluster rather than from a specific node inside it**.
 
 ------
 
 ## **Behavior**
 
 - **Works only when clusters (`subgraph cluster_x`) are defined**.
-- **Edges with `lhead="cluster_X"` will terminate inside the cluster** instead of a single node.
-- **Useful for grouping related nodes visually**.
-- **Works in combination with `ltail` (controlling where the edge starts).**
+- **Edges with `ltail="cluster_X"` will originate from the cluster boundary** instead of a single node.
+- **Useful for visually grouping related nodes and maintaining hierarchy clarity**.
+- **Often used together with `lhead` to define both the start (`ltail`) and end (`lhead`) of an edge**.
 
 ------
 
@@ -29,15 +29,15 @@ digraph G {
         b1; b2;
     }
 
-    a1 -> b1 [label="Edge to Cluster B", lhead="cluster_1"];
+    a1 -> b1 [label="Edge from Cluster A", ltail="cluster_0"];
 }
 ```
 
 ### **Explanation**
 
 - **`subgraph cluster_0` and `subgraph cluster_1`** → Define **two clusters** (`Cluster A` and `Cluster B`).
-- **`a1 -> b1 [lhead="cluster_1"]`** → The edge **targets the entire cluster_1** instead of a specific node (`b1`).
-- **Result** → The arrow points to the **border of Cluster B** rather than a node inside it.
+- **`a1 -> b1 [ltail="cluster_0"]`** → The edge **originates from the entire cluster_0** rather than from a specific node (`a1`).
+- **Result** → The edge **starts from the border of Cluster A** instead of appearing to come from a single node.
 
 ------
 
@@ -49,10 +49,10 @@ Node a2 = Node.builder().id("a2").build();
 Node b1 = Node.builder().id("b1").build();
 Node b2 = Node.builder().id("b2").build();
 
-// Edge terminates at the entire cluster_1
-Line edgeToCluster = Line.builder(a1, b1)
-    .label("Edge to Cluster B")
-    .lhead("cluster_1") // Targets the entire cluster instead of a single node
+// Edge originates from the entire cluster_0
+Line edgeFromCluster = Line.builder(a1, b1)
+    .label("Edge from Cluster A")
+    .ltail("cluster_0") // Edge originates from the cluster instead of a single node
     .build();
 
 Graphviz graph = Graphviz.digraph()
@@ -75,6 +75,6 @@ Graphviz graph = Graphviz.digraph()
     )
 
     // Add edge
-    .addLine(edgeToCluster)
+    .addLine(edgeFromCluster)
     .build();
 ```

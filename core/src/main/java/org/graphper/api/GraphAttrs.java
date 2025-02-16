@@ -77,8 +77,6 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   double fontSize = (double) Graphviz.PIXEL / 2;
 
-  boolean compound = false;
-
   boolean showGrid = false;
 
   String href;
@@ -169,10 +167,6 @@ public class GraphAttrs implements Serializable, Cloneable {
     return fontSize;
   }
 
-  public boolean isCompound() {
-    return compound;
-  }
-
   public boolean isShowGrid() {
     return showGrid;
   }
@@ -230,7 +224,7 @@ public class GraphAttrs implements Serializable, Cloneable {
     return Double.compare(that.nodeSep, nodeSep) == 0 && nslimit == that.nslimit
         && nslimit1 == that.nslimit1 && Double.compare(that.rankSep, rankSep) == 0
         && mclimit == that.mclimit && Double.compare(that.fontSize, fontSize) == 0
-        && compound == that.compound && showGrid == that.showGrid && maxiter == that.maxiter
+        && showGrid == that.showGrid && maxiter == that.maxiter
         && Double.compare(that.k, k) == 0 && overlap == that.overlap
         && Objects.equals(bgColor, that.bgColor) && splines == that.splines
         && Objects.equals(fontColor, that.fontColor) && rankdir == that.rankdir
@@ -247,8 +241,8 @@ public class GraphAttrs implements Serializable, Cloneable {
   public int hashCode() {
     return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, labelTag,
                         fontName, labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin,
-                        mclimit, fontSize, compound, showGrid, href, tooltip, table, assemble,
-                        maxiter, k, overlap, initPos);
+                        mclimit, fontSize, showGrid, href, tooltip, table, assemble, maxiter, k,
+                        overlap, initPos);
   }
 
   @Override
@@ -272,7 +266,6 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", margin=" + margin +
         ", mclimit=" + mclimit +
         ", fontSize=" + fontSize +
-        ", compound=" + compound +
         ", showGrid=" + showGrid +
         ", href='" + href + '\'' +
         ", tooltips='" + tooltip + '\'' +

@@ -18,15 +18,16 @@ package visual_case;
 
 import helper.GraphvizVisual;
 import org.graphper.api.Cluster;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
-import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rank;
+import org.graphper.api.attributes.Tend;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -256,8 +257,6 @@ public class DocCaseTest extends GraphvizVisual {
     Node c = Node.builder().label("c").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        // Make sure this compound is turned on
-        .compound(true)
         // The line will point directly to the head node, not the cluster
         .addLine(a, b)
         // Set the head node position of the line to be cut by the cluster with id "cluster_0"
@@ -283,8 +282,6 @@ public class DocCaseTest extends GraphvizVisual {
     Node c = Node.builder().label("c").build();
 
     Graphviz graphviz = Graphviz.digraph()
-        // Make sure this compound is turned on
-        .compound(true)
         // The line will point directly to the tail node, not the cluster
         .addLine(b, a)
         // Set the tail node position of the line to be cut by the cluster with id "cluster_0"
@@ -305,42 +302,23 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-    Node a = Node.builder().id("a").build();
-    Node b = Node.builder().id("b").build();
-    Node c = Node.builder().id("c").build();
-    Node d = Node.builder().id("d").build();
-    Node e = Node.builder().id("e").build();
+Node a = Node.builder().id("a").build();
+Node b = Node.builder().id("b").build();
 
-// Default direction (arrow at head)
-    Line forwardEdge = Line.builder(a, b)
-        .label("Forward (Default)")
-        .dir(Dir.FORWARD) // Default arrow at the head
-        .build();
+FloatLabel tailLabel = FloatLabel.builder()
+    .tend(Tend.TAIL)
+    .label("Tail Label")
+    .build();
 
-// Backward direction (arrow at the tail)
-    Line backwardEdge = Line.builder(a, c)
-        .label("Backward")
-        .dir(Dir.BACK) // Arrow at the tail
-        .build();
+// Edge with main label and tail label
+Line edgeWithTailLabel = Line.builder(a, b)
+    .label("Main Label")
+    .floatLabels(tailLabel)  // Label at the tail of the edge
+    .build();
 
-// Bidirectional (arrows at both ends)
-    Line bothDirectionsEdge = Line.builder(a, d)
-        .label("Both Directions")
-        .dir(Dir.BOTH) // Arrows at both ends
-        .build();
-
-// No arrows
-    Line noArrowsEdge = Line.builder(a, e)
-        .label("No Arrows")
-        .dir(Dir.NONE) // No arrows on the edge
-        .build();
-
-    Graphviz graph = Graphviz.digraph()
-        .addLine(forwardEdge)
-        .addLine(backwardEdge)
-        .addLine(bothDirectionsEdge)
-        .addLine(noArrowsEdge)
-        .build();
+Graphviz graph = Graphviz.digraph()
+    .addLine(edgeWithTailLabel)
+    .build();
 
     visual(graph);
   }

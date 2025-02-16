@@ -225,9 +225,6 @@ public class ParserUtils {
             case "fontsize":
                 setDouble(gb::fontSize, value);
                 break;
-            case "compound":
-                setBoolean(gb::compound, value);
-                break;
             case "showgrid":
                 setBoolean(gb::showGrid, value);
                 break;
@@ -514,7 +511,7 @@ public class ParserUtils {
 
         String taillabel = attrMap.get("taillabel");
         String headlabel = attrMap.get("headlabel");
-        if (StringUtils.isEmpty(taillabel) || StringUtils.isEmpty(headlabel)) {
+        if (StringUtils.isEmpty(taillabel) && StringUtils.isEmpty(headlabel)) {
             return;
         }
 

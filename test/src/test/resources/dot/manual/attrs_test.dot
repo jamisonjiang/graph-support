@@ -19,7 +19,6 @@ digraph G {
   margin=0.4
   href="https://www.youtube.com/"
   tooltip="wwwwwwwwwwwwwwwwwww"
-  compound=true
     subgraph cluster_0 {
       color=lightgrey;
       bgcolor=lightgrey;

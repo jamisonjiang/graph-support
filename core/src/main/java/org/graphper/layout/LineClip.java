@@ -25,7 +25,6 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
-import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
@@ -429,11 +428,6 @@ public abstract class LineClip extends LineHandler {
   }
 
   protected String getCompoundId(LineAttrs lineAttrs, boolean isTail) {
-    GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
-    if (!graphAttrs.isCompound()) {
-      return null;
-    }
-
     return isTail ? lineAttrs.getLtail() : lineAttrs.getLhead();
   }
 
