@@ -1,0 +1,35 @@
+# Tooltip 
+
+The **tooltip** attribute defines **hover text**, but it only works when the node has an **href (clickable link)** and is rendered in **SVG format**.
+
+## Examples:
+
+Dot
+
+```dot
+digraph G {
+    a [label="Hover Me", href="https://example.com", tooltip="This is a tooltip"];
+    b [label="No Tooltip", tooltip="This won't work"]; // Tooltip ignored (no href)
+}
+```
+
+- **`tooltip="text"`** → Displays hover text **only if `href` is set**.
+- **Works only in SVG output.**
+
+Java
+
+```java
+Node tooltipNode = Node.builder()
+    .label("Hover Me")
+    .href("https://example.com") // Tooltip requires href
+    .tooltip("This is a tooltip") // Set hover text
+    .build();
+
+Node noTooltipNode = Node.builder()
+    .label("No Tooltip")
+    .tooltip("This won't work") // Tooltip ignored (no href)
+    .build();
+```
+
+- **`tooltip(String text)`** → Sets hover text, but only works if `href` is also set.
+- **Only works in SVG output.**

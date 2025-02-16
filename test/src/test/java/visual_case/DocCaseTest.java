@@ -304,20 +304,24 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-// Node a with record fields and ports
-Node a = Node.builder().label("||{<p1>p1|{|<p2>p2}||}||").build();
+// Create individual nodes
+    Node a = Node.builder().id("a").build();
+    Node b = Node.builder().id("b").build();
+    Node c = Node.builder().id("c").build();
+    Node d = Node.builder().id("d").build();
+    Node e = Node.builder().id("e").build();
+    Node f = Node.builder().id("f").build();
 
-// Node b with record fields and ports
-Node b = Node.builder().label("|||{|||{||<k1>k1||}|||||{<t1>t1||}|}||").build();
+// Create edges (lines)
+    Line edge1 = Line.builder(c, d).id("edge_1").build();
+    Line edge2 = Line.builder(e, f).id("edge_1").build(); // Duplicate ID, only one edge will be rendered
 
-// Create the Graphviz object and add nodes and edges
-Graphviz graphviz = Graphviz.digraph()
-    .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build()) // Temporary node for record shape
-    .addLine(Line.builder(a, b).tailCell("p1").headCell("k1").build()) // Edge from p1 in 'a' to k1 in 'b'
-    .addLine(Line.builder(b, b).tailCell("t1").headCell("t1").build()) // Edge from t1 in 'b' to t1 in 'b'
-    .addLine(Line.builder(b, b).tailCell("t1").headCell("k1").build()) // Edge from t1 in 'b' to k1 in 'b'
-    .build();
-
+// Build the Graphviz graph
+    Graphviz graphviz = Graphviz.digraph()
+        .addLine(a, b)  // Simple direct connection
+        .addLine(edge1) // Explicitly set edge ID for c -> d
+        .addLine(edge2) // Duplicate edge ID, one will be used
+        .build();
 
     visual(graphviz);
   }

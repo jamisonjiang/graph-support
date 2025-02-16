@@ -5,13 +5,6 @@ Sets a unique identifier for the node. If not specified, it is automatically ass
 
 **Usage**:
 
-Java
-```java
-Node A = Node.builder().id("node_a").build();
-// If two nodes id are same, only one node can be rendered.
-Node a = Node.builder().id("node_A").build();
-```
-
 Dot
 ```dot
 digraph G {
@@ -23,3 +16,12 @@ digraph G {
     B[id="node_b"];
 }
 ```
+
+Java
+
+```java
+Node A = Node.builder().id("node_a").build();
+// If two nodes id are same, only one node can be rendered.
+Node a = Node.builder().id("node_A").build();
+```
+

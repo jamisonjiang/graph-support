@@ -308,6 +308,9 @@ public class Cluster extends GraphContainer implements Serializable {
     /**
      * Sets the tooltip text for the cluster.
      *
+     * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     *
      * @param tooltip the text to be displayed as the tooltip
      * @return cluster builder
      */

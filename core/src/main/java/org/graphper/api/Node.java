@@ -499,7 +499,10 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     /**
      * Sets the tooltip text for the Node.
      *
-     * @param tooltip the text to be displayed as the tooltip
+     * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     *
+     * @param tooltip the text to be displayed as the tooltip (only works when {@code href} is set)
      * @return node builder
      */
     public NodeBuilder tooltip(String tooltip) {
@@ -508,11 +511,34 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     }
 
     /**
-     * Set an image url to the node. In the output of svg, the link will be directly embedded, and
-     * the validity will not be checked. For other types of output, the link must be guaranteed to
-     * be valid, otherwise an error will be reported.
+     * Sets an image URL or local file path for the node.
      *
-     * @param image image url
+     * <p><strong>Behavior:</strong></p>
+     * <ul>
+     *   <li>For <strong>SVG output</strong>, the image URL is directly embedded without validation.</li>
+     *   <li>For <strong>other output formats</strong>, the image must be accessible; otherwise, an error will occur.</li>
+     * </ul>
+     *
+     * <p><strong>Security Warning:</strong></p>
+     * <ul>
+     *   <li><strong>Remote URL Risks:</strong> Loading images from untrusted URLs may expose the application to
+     *       <a href="https://owasp.org/www-community/attacks/Server_Side_Request_Forgery">Server-Side Request Forgery (SSRF)</a> attacks,
+     *       slow network requests, or malicious payloads.</li>
+     *   <li><strong>Local File Risks:</strong> If an unvalidated local file path is used, it may allow unauthorized access
+     *       to system files (Path Traversal vulnerability).</li>
+     *   <li><strong>Large Image Risks:</strong> Maliciously large images can cause high memory usage or
+     *       <a href="https://owasp.org/www-community/attacks/Denial_of_Service">Denial of Service (DoS) attacks</a>.</li>
+     * </ul>
+     *
+     * <p><strong>Recommended Security Practices:</strong></p>
+     * <ul>
+     *   <li>Use only trusted domains or pre-validated image URLs.</li>
+     *   <li>Restrict local file paths to a dedicated image directory.</li>
+     *   <li>Limit image file size to prevent excessive memory consumption.</li>
+     *   <li>Sanitize file extensions and content types to allow only valid image formats (e.g., PNG, JPG).</li>
+     * </ul>
+     *
+     * @param image the image URL or local file path
      * @return node builder
      */
     public NodeBuilder image(String image) {
