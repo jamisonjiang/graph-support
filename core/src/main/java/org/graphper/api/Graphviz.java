@@ -427,7 +427,7 @@ public class Graphviz extends GraphContainer implements Serializable {
      * @throws IllegalArgumentException nslimit1 less than 0
      */
     public GraphvizBuilder nslimit1(int nslimit1) {
-      Asserts.illegalArgument(nslimit1 < 0, "nslimit (" + nslimit1 + ") can not less than 0");
+      Asserts.illegalArgument(nslimit1 < 0, "nslimit1 (" + nslimit1 + ") can not less than 0");
       graphAttrs.nslimit1 = nslimit1;
       return self();
     }
