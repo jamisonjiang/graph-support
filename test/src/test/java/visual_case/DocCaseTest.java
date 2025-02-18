@@ -300,20 +300,18 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-// Define nodes
-  Node a = Node.builder().label("a").build();
-  Node b = Node.builder().label("b").build();
-  Node c = Node.builder().label("c").build();
-  Node d = Node.builder().label("d").build();
+Node e = Node.builder().label("e").build();
+Node f = Node.builder().label("f").build();
+Node g = Node.builder().label("g").build();
 
-  Graphviz graph = Graphviz.digraph()
-      .nslimit1(1)
-      .addLine(Line.builder(a, b).build())
-      .addLine(Line.builder(a, c).build())
-      .addLine(Line.builder(a, d).build())
-      .build();
+Subgraph subgraph = Subgraph.builder()
+    .rank(Rank.SAME)  // Aligns all nodes in the subgraph at the same level
+    .addNode(e, f, g)
+    .build();
 
-
+Graphviz graph = Graphviz.digraph()
+    .subgraph(subgraph)
+    .build();
 
     visual(graph);
   }
