@@ -16,8 +16,12 @@
 
 package visual_case;
 
+import static org.graphper.api.Html.table;
+import static org.graphper.api.Html.td;
+
 import helper.GraphvizVisual;
 import org.graphper.api.Cluster;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
@@ -26,6 +30,7 @@ import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rank;
+import org.graphper.api.attributes.Tend;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -300,18 +305,31 @@ public class DocCaseTest extends GraphvizVisual {
 
   @Test
   public void testDocAttrCase() {
-Node e = Node.builder().label("e").build();
-Node f = Node.builder().label("f").build();
-Node g = Node.builder().label("g").build();
+    Node a = Node.builder().id("a").build();
+    Node b = Node.builder().id("b").build();
 
-Subgraph subgraph = Subgraph.builder()
-    .rank(Rank.SAME)  // Aligns all nodes in the subgraph at the same level
-    .addNode(e, f, g)
-    .build();
+    FloatLabel tailLabel = FloatLabel.builder()
+        .tend(Tend.TAIL)
+        .table(
+            table()
+                .border(1)
+                .cellBorder(1)
+                .cellSpacing(0)
+                .tr(td().text("Row 1, Col 1"), td().text("Row 1, Col 2"))
+                .tr(td().text("Row 2, Col 1"), td().text("Row 2, Col 2"))
+        )
+        .build();
 
-Graphviz graph = Graphviz.digraph()
-    .subgraph(subgraph)
-    .build();
+// Edge with main label and tail label
+    Line edgeWithTailLabel = Line.builder(a, b)
+        .label("Main Label")
+        .floatLabels(tailLabel)  // Label at the tail of the edge
+        .build();
+
+    Graphviz graph = Graphviz.digraph()
+        .rankSep(2)
+        .addLine(edgeWithTailLabel)
+        .build();
 
     visual(graph);
   }
