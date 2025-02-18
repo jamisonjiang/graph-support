@@ -19,14 +19,6 @@ package org.graphper;
 import static org.graphper.CommandUnits.COMMAND_UNITS;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.attributes.Layout;
@@ -36,6 +28,11 @@ import org.graphper.parser.PostGraphComponents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The main entry point of the graph-support-cli.
+ *
+ * @author Jamison Jiang
+ */
 public class Main {
 
   private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -44,7 +41,7 @@ public class Main {
     try {
       Command command = newCommand(args);
       File output = command.getOutput();
-      Graphviz graphviz = DotParser.parse(getCharStream(command), new PostGraphComponents() {
+      Graphviz graphviz = DotParser.parse(command.getDotFile(), new PostGraphComponents() {
         @Override
         public void postGraphviz(GraphvizBuilder graphvizBuilder) {
           Layout layout = command.getLayout();
@@ -71,16 +68,6 @@ public class Main {
     } catch (Exception e) {
       log.error("Generate error:", e);
     }
-  }
-
-  private static CharStream getCharStream(Command command) throws IOException {
-    File dotFile = command.getDotFile();
-    InputStream is = Files.newInputStream(dotFile.toPath());
-    CharStream charStream;
-    try(Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-      charStream = CharStreams.fromReader(r, dotFile.getName());
-    }
-    return charStream;
   }
 
   private static Command newCommand(String[] args) throws WrongCommandException {

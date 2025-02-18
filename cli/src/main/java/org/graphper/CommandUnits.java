@@ -25,16 +25,28 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
 import org.graphper.api.attributes.Layout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * {@link CommandUnit} registration center.
+ *
+ * @author Jamison Jiang
+ */
 public class CommandUnits {
 
   private static final Logger log = LoggerFactory.getLogger(CommandUnits.class);
@@ -67,7 +79,7 @@ public class CommandUnits {
       if (!input.exists()) {
         throw new WrongCommandException("Error: dot file " + input.getPath() + " not exists");
       }
-      command.setDotFile(input);
+      command.setDotFile(getCharStream(input));
       return true;
     }
 
@@ -87,6 +99,9 @@ public class CommandUnits {
       }
 
       String value = arguments.advance();
+      if (value == null) {
+        throw new WrongCommandException("Error: don't have output path");
+      }
       File output = parseFile(value);
       File parentFile = output.getParentFile();
       if (parentFile == null) {
@@ -102,7 +117,7 @@ public class CommandUnits {
 
     @Override
     public String helpCommend() {
-      return "-ofile       - Write output to 'file'";
+      return "-oFile       - Write output to 'file'";
     }
   }
 
@@ -259,16 +274,26 @@ public class CommandUnits {
 
     @Override
     public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
-      return false;
+      String arg = arguments.current();
+      if (!"-s".equals(arg) && !"--script".equals(arg)) {
+        return false;
+      }
+
+      String script = arguments.advance();
+      if (script == null) {
+        throw new WrongCommandException("Error: don't have dot script");
+      }
+      command.setDotFile(CharStreams.fromString(script));
+      return true;
     }
 
     @Override
     public String helpCommend() {
-      return null;
+      return "-sScript     - Provide a DOT script string to generate a graph (instead of a file)";
     }
   }
 
-  public static File parseFile(String filePath) {
+  private static File parseFile(String filePath) {
     File file = new File(filePath);
     File directory = file.getParentFile();
     if (directory == null) {
@@ -280,5 +305,16 @@ public class CommandUnits {
     } catch (IOException e) {
       return file;
     }
+  }
+
+  private static CharStream getCharStream(File file) throws WrongCommandException {
+    CharStream charStream;
+    try (InputStream is = Files.newInputStream(file.toPath());
+        Reader r = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+      charStream = CharStreams.fromReader(r, file.getName());
+    } catch (IOException e) {
+      throw new WrongCommandException(e);
+    }
+    return charStream;
   }
 }

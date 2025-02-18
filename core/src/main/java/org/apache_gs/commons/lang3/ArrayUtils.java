@@ -1,11 +1,12 @@
 /*
- * Copyright 2022 The graph-support project
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,18 +22,26 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 /**
- * Operations on arrays, primitive arrays (like {@code int[]}) and
- * primitive wrapper arrays (like {@code Integer[]}).
- * <p>
- * This class tries to handle {@code null} input gracefully.
- * An exception will not be thrown for a {@code null}
- * array input. However, an Object array that contains a {@code null}
- * element may throw an exception. Each method documents its behavior.
- * </p>
- * <p>
- * #ThreadSafe#
- * </p>
+ * <p>Operations on arrays, primitive arrays (like <code>int[]</code>) and
+ * primitive wrapper arrays (like <code>Integer[]</code>).</p>
+ *
+ * <p>This class tries to handle <code>null</code> input gracefully.
+ * An exception will not be thrown for a <code>null</code>
+ * array input. However, an Object array that contains a <code>null</code>
+ * element may throw an exception. Each method documents its behaviour.</p>
+ *
+ * @author Stephen Colebourne
+ * @author Moritz Petersen
+ * @author <a href="mailto:fredrik@westermarck.com">Fredrik Westermarck</a>
+ * @author Nikolay Metchev
+ * @author Matthew Hawthorne
+ * @author Tim O'Brien
+ * @author Pete Gieser
+ * @author Gary Gregory
+ * @author <a href="mailto:equinus100@hotmail.com">Ashwin S</a>
+ * @author Maarten Coene
  * @since 2.0
+ * @version $Id: ArrayUtils.java 632503 2008-03-01 00:21:52Z ggregory $
  */
 public class ArrayUtils {
 

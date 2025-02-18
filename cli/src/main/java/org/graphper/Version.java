@@ -18,6 +18,11 @@ package org.graphper;
 
 import java.util.Properties;
 
+/**
+ * Utility class for retrieving version information from the application's dependencies.
+ *
+ * @author Jamison Jiang
+ */
 public class Version {
 
   private Version() {

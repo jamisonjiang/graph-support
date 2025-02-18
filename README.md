@@ -28,16 +28,20 @@
 
 1. **Download** the [latest CLI JAR](https://github.com/jamisonjiang/graph-support/releases/tag/1.5.0).
 
-2. Prepare a DOT file
+2. Render by file
 
-   ```dot
-   digraph { a -> b }
-   ```
+   * Prepare a DOT file
 
-3. Render
+   * Run
 
-   ```shell
-   java -jar graph-support-cli.jar example.dot -o example -Tpng
+     ```java
+     java -jar graph-support-cli.jar example.dot -o example -Tpng
+     ```
+
+3. Render by script string
+
+   ```java
+   java -jar graph-support-cli.jar -s "digraph {a->b->c->d}" -o test -Tpng
    ```
 
 4. Help

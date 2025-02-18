@@ -1,11 +1,12 @@
 /*
- * Copyright 2022 The graph-support project
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,19 +36,20 @@ import org.apache_gs.commons.text.translate.CsvTranslators.CsvEscaper;
 import org.apache_gs.commons.text.translate.CsvTranslators.CsvUnescaper;
 
 /**
- * <p>
- * Escapes and unescapes {@code String}s for Java, Java Script, HTML and XML.
- * </p>
+ * <p>Escapes and unescapes <code>String</code>s for
+ * Java, Java Script, HTML, XML, and SQL.</p>
  *
- * <p>
- * #ThreadSafe#
- * </p>
- *
- * <p>
- * This code has been adapted from Apache Commons Lang 3.5.
- * </p>
- *
- * @since 1.0
+ * @author Apache Jakarta Turbine
+ * @author Purple Technology
+ * @author <a href="mailto:alex@purpletech.com">Alexander Day Chaffee</a>
+ * @author Antony Riley
+ * @author Helge Tesgaard
+ * @author <a href="sean@boohai.com">Sean Brown</a>
+ * @author <a href="mailto:ggregory@seagullsw.com">Gary Gregory</a>
+ * @author Phil Steitz
+ * @author Pete Gieser
+ * @since 2.0
+ * @version $Id: StringEscapeUtils.java 612880 2008-01-17 17:34:43Z ggregory $
  */
 public class StringEscapeUtils {
 

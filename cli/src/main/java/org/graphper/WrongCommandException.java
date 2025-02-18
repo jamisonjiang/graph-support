@@ -16,6 +16,12 @@
 
 package org.graphper;
 
+/**
+ * Exception thrown when an invalid or unrecognized command is encountered.
+ * This is typically used in command-line argument parsing to indicate incorrect usage.
+ *
+ * @author Jamison Jiang
+ */
 public class WrongCommandException extends Exception {
 
   private static final long serialVersionUID = 7129182882393292716L;

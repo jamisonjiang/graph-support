@@ -16,9 +16,30 @@
 
 package org.graphper;
 
+/**
+ * Represents a command unit responsible for handling command-line arguments and executing specific
+ * actions related to graph generation. Implementations of this interface process command arguments
+ * and modify the command state.
+ *
+ * @author Jamison Jiang
+ */
 public interface CommandUnit {
 
+  /**
+   * Handles the provided arguments and modifies the given command accordingly.
+   *
+   * @param arguments The {@link Arguments} object containing parsed command-line arguments.
+   * @param command   The {@link Command} object to be modified based on the arguments.
+   * @return {@code true} if the command was successfully handled, {@code false} otherwise.
+   * @throws WrongCommandException if an invalid argument or command is encountered.
+   */
   boolean handle(Arguments arguments, Command command) throws WrongCommandException;
 
+  /**
+   * Provides a help description for this command unit.
+   *
+   * @return A string containing the help message for this command.
+   */
   String helpCommend();
 }
+

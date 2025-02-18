@@ -1,11 +1,12 @@
 /*
- * Copyright 2022 The graph-support project
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,8 +99,28 @@ package org.apache_gs.commons.lang3;
  * The symbol {@code *} is used to indicate any input including {@code null}.</p>
  *
  * <p>#ThreadSafe#</p>
- * @see String
+ * @see java.lang.String
+ * @author <a href="http://jakarta.apache.org/turbine/">Apache Jakarta Turbine</a>
+ * @author <a href="mailto:jon@latchkey.com">Jon S. Stevens</a>
+ * @author Daniel L. Rall
+ * @author <a href="mailto:gcoladonato@yahoo.com">Greg Coladonato</a>
+ * @author <a href="mailto:ed@apache.org">Ed Korthof</a>
+ * @author <a href="mailto:rand_mcneely@yahoo.com">Rand McNeely</a>
+ * @author Stephen Colebourne
+ * @author <a href="mailto:fredrik@westermarck.com">Fredrik Westermarck</a>
+ * @author Holger Krauth
+ * @author <a href="mailto:alex@purpletech.com">Alexander Day Chaffee</a>
+ * @author <a href="mailto:hps@intermeta.de">Henning P. Schmiedehausen</a>
+ * @author Arun Mammen Thomas
+ * @author Gary Gregory
+ * @author Phil Steitz
+ * @author Al Chou
+ * @author Michael Davey
+ * @author Reuben Sivan
+ * @author Chris Hyzer
+ * @author Scott Johnson
  * @since 1.0
+ * @version $Id: StringUtils.java 635447 2008-03-10 06:27:09Z bayard $
  */
 //@Immutable
 public class StringUtils {

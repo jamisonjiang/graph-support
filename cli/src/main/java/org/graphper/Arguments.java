@@ -16,24 +16,50 @@
 
 package org.graphper;
 
+/**
+ * A utility class to parse and manage command-line arguments. This class helps navigate through an
+ * array of arguments, providing functionality to access the current argument, the next argument,
+ * and advancing through the arguments.
+ *
+ * @author Jamison Jiang
+ */
 public class Arguments {
 
   private int currentIdx;
-
   private final String[] args;
 
+  /**
+   * Constructs an Arguments object using the provided arguments array.
+   *
+   * @param args The array of arguments to be parsed.
+   */
   public Arguments(String[] args) {
     this.args = args;
   }
 
+  /**
+   * Returns the current argument in the argument array.
+   *
+   * @return The current argument, or null if there is no current argument.
+   */
   public String current() {
     return currentExist() ? args[currentIdx] : null;
   }
 
+  /**
+   * Returns the next argument in the argument array.
+   *
+   * @return The next argument, or null if there is no next argument.
+   */
   public String next() {
     return nextExist() ? args[currentIdx + 1] : null;
   }
 
+  /**
+   * Advances to the next argument in the array.
+   *
+   * @return The argument after advancing, or null if there are no more arguments.
+   */
   public String advance() {
     if (nextExist()) {
       return args[++currentIdx];
@@ -44,10 +70,20 @@ public class Arguments {
     return null;
   }
 
+  /**
+   * Checks if the current argument exists in the array.
+   *
+   * @return true if the current argument exists, false otherwise.
+   */
   public boolean currentExist() {
     return args != null && currentIdx <= args.length - 1;
   }
 
+  /**
+   * Checks if the next argument exists in the array.
+   *
+   * @return true if the next argument exists, false otherwise.
+   */
   private boolean nextExist() {
     return args != null && currentIdx < args.length - 1;
   }

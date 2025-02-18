@@ -1,11 +1,12 @@
 /*
- * Copyright 2022 The graph-support project
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,15 +20,15 @@ import java.util.Objects;
 import org.graphper.util.Asserts;
 
 /**
- * Operations on char primitives and Character objects.
+ * <p>Operations on char primitives and Character objects.</p>
  *
- * <p>This class tries to handle {@code null} input gracefully.
- * An exception will not be thrown for a {@code null} input. Each method documents its behavior in
- * more detail.</p>
+ * <p>This class tries to handle <code>null</code> input gracefully.
+ * An exception will not be thrown for a <code>null</code> input.
+ * Each method documents its behaviour in more detail.</p>
  *
- * <p>#ThreadSafe#</p>
- *
+ * @author Stephen Colebourne
  * @since 2.1
+ * @version $Id: CharUtils.java 437554 2006-08-28 06:21:41Z bayard $
  */
 public class CharUtils {
 
