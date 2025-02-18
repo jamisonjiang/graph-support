@@ -45,6 +45,7 @@ public class CommandUnits {
   protected static final List<CommandUnit> COMMAND_UNITS = Arrays.asList(
       new Help(),
       new Debug(),
+      new Script(),
       new Version(),
       new DotInput(),
       new OutputFile(),
@@ -251,6 +252,19 @@ public class CommandUnits {
     @Override
     public String helpCommend() {
       return "-d           - Print debug info";
+    }
+  }
+
+  public static class Script implements CommandUnit {
+
+    @Override
+    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+      return false;
+    }
+
+    @Override
+    public String helpCommend() {
+      return null;
     }
   }
 

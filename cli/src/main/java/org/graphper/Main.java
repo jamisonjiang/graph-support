@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
@@ -43,15 +44,22 @@ public class Main {
     try {
       Command command = newCommand(args);
       File output = command.getOutput();
-      DotParser.parse(getCharStream(command), new PostGraphComponents() {
-            @Override
-            public void postGraphviz(GraphvizBuilder graphvizBuilder) {
-              Layout layout = command.getLayout();
-              if (layout != null) {
-                graphvizBuilder.layout(layout);
-              }
-            }
-          })
+      Graphviz graphviz = DotParser.parse(getCharStream(command), new PostGraphComponents() {
+        @Override
+        public void postGraphviz(GraphvizBuilder graphvizBuilder) {
+          Layout layout = command.getLayout();
+          if (layout != null) {
+            graphvizBuilder.layout(layout);
+          }
+        }
+      });
+
+      if (graphviz.isEmpty()) {
+        log.error("Graph is empty");
+        return;
+      }
+
+      graphviz
           .toFile(command.getFileType())
           .save(output.getParentFile().getAbsolutePath(), output.getName());
     } catch (StackOverflowError e) {
@@ -94,7 +102,7 @@ public class Main {
     }
 
     if (command.getDotFile() == null) {
-      throw new WrongCommandException("Error: No dot file");
+      throw new WrongCommandException("Error: No dot file/script");
     }
 
     if (command.getOutput() == null) {

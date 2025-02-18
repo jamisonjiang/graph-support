@@ -12,18 +12,6 @@ The **nslimit1** attribute controls the **maximum number of network simplex iter
 
 ------
 
-## **Key Differences Between `nslimit` and `nslimit1`**
-
-| Attribute      | Applies To                                      | Effect                                                       |
-| -------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| **`nslimit`**  | **All passes** of the network simplex algorithm | Limits total ranking iterations, affecting the final layout quality. |
-| **`nslimit1`** | **First pass only**                             | Limits iterations for the initial ranking phase, affecting how nodes are placed initially. |
-
-🔹 **If `nslimit1` is set too low, the initial ranking might be poor**, leading to **worse node placement** and more **edge crossings**.
- 🔹 **A higher `nslimit1`** allows the **first pass** to perform more **ranking adjustments**, leading to **better layouts**.
-
-------
-
 ## **Example: DOT Graph Showing `nslimit1` Effect**
 
 The following example demonstrates how `nslimit1` affects **initial node ranking** in a **large graph with multiple cycles and cross-links**.
