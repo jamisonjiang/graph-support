@@ -815,6 +815,15 @@ class MinCross {
         }
       }
 
+      orderByComponents(crossRank);
+      if (sameRankAdjacentRecord != null) {
+        rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord);
+      }
+    }
+
+    private void orderByComponents(CrossRank crossRank) {
+      // All nodes in same components update the order to average of reference components,
+      // this operation can break the local optimal dilemma to found a better global order.
       for (ComOrder component : components) {
         component.refreshByRefComs();
       }
@@ -830,10 +839,6 @@ class MinCross {
         return Integer.compare(li, ri);
       };
       crossRank.sort(comparator);
-
-      if (sameRankAdjacentRecord != null) {
-        rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord);
-      }
     }
 
     private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
