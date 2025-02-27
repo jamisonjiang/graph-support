@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import org.graphper.layout.Mark;
@@ -748,7 +747,7 @@ class FeasibleTree {
 
       if (cutVal < 0) {
         if (negativeLine == null) {
-          negativeLine = new LinkedBlockingQueue<>();
+          negativeLine = new LinkedList<>();
         }
         negativeLine.offer(treeLine);
       }
@@ -765,7 +764,7 @@ class FeasibleTree {
 
     private void offerCutQueen(DNode node) {
       if (cutQueen == null) {
-        cutQueen = new LinkedBlockingQueue<>();
+        cutQueen = new LinkedList<>();
       }
 
       CutValRecord cutValRecord = getCutValRecord(node);
