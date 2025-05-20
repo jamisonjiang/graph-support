@@ -1,5 +1,5 @@
-// Generated from org\graphper\parser\grammar\HTMLParser.g4 by ANTLR 4.9.3
 package org.graphper.parser.grammar;
+// Generated from /antlr4/org/graphper/parser/grammar/HTMLParser.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

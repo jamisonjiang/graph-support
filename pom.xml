@@ -22,7 +22,7 @@
 
   <groupId>org.graphper</groupId>
   <artifactId>graph-support</artifactId>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
   <packaging>pom</packaging>
 
   <name>${project.artifactId}</name>
@@ -77,7 +77,7 @@
     <gpg-version>1.6</gpg-version>
     <sonatype-version>1.6.7</sonatype-version>
     <log4j-version>1.8.0-alpha2</log4j-version>
-    <org.antlr-version>4.9.3</org.antlr-version>
+    <org.antlr-version>4.13.2</org.antlr-version>
   </properties>
 
   <dependencyManagement>
