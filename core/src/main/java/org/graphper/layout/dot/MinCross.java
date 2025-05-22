@@ -19,6 +19,7 @@ package org.graphper.layout.dot;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +45,6 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
-import org.graphper.layout.Mark;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
@@ -733,9 +733,11 @@ class MinCross {
     }
   }
 
-  private class InitSort extends Mark<DNode> {
+  private class InitSort {
 
     private SameRankAdjacentRecord sameRankAdjacentRecord;
+
+    private final Map<DNode, ComOrder> nodeComOrderMap;
 
     private final Map<Integer, Integer> rankAccessIndex;
 
@@ -745,13 +747,25 @@ class MinCross {
 
     private final GraphContainer graphContainer;
 
+    private final List<ComOrder> components;
+
     InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph, boolean isOutDirection) {
       this.isOutDirection = isOutDirection;
+      this.nodeComOrderMap = new HashMap<>();
       this.rankAccessIndex = new HashMap<>();
       this.graphContainer = graphContainer;
       this.crossRank = crossRank;
+      this.components = new ArrayList<>();
 
       initByNatureDsfOrder(crossRank, drawGraph, isOutDirection);
+    }
+
+    private boolean isMark(DNode node) {
+      return nodeComOrderMap.get(node) != null;
+    }
+
+    private void mark(DNode node, ComOrder comOrder) {
+      nodeComOrderMap.put(node, comOrder);
     }
 
     private void initByNatureDsfOrder(CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
@@ -787,6 +801,7 @@ class MinCross {
         }
       };
 
+      int componentNo = 0;
       for (int i = first; i != limit; i += addNum) {
         for (int j = 0; j < crossRank.rankSize(i); j++) {
           DNode node = crossRank.getNode(i, j);
@@ -794,17 +809,40 @@ class MinCross {
             continue;
           }
 
-          dfs(node, adjacentFunc);
+          ComOrder comOrder = new ComOrder(componentNo++);
+          components.add(comOrder);
+          dfs(node, adjacentFunc, comOrder);
         }
       }
 
+      orderByComponents(crossRank);
       if (sameRankAdjacentRecord != null) {
         rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord);
       }
     }
 
-    private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc) {
-      mark(from);
+    private void orderByComponents(CrossRank crossRank) {
+      // All nodes in same components update the order to average of reference components,
+      // this operation can break the local optimal dilemma to found a better global order.
+      for (ComOrder component : components) {
+        component.refreshByRefComs();
+      }
+
+      Comparator<DNode> comparator = (l, r) -> {
+        ComOrder lc = nodeComOrderMap.get(l);
+        ComOrder rc = nodeComOrderMap.get(r);
+        if (lc != rc) {
+          return lc.compareTo(rc);
+        }
+        int li = crossRank.getRankIndex(l);
+        int ri = l.getRankIndex();
+        return Integer.compare(li, ri);
+      };
+      crossRank.sort(comparator);
+    }
+
+    private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
+      mark(from, component);
 
       int idx = rankAccessIndex.getOrDefault(from.getRank(), 0);
       crossRank.exchange(from, crossRank.getNode(from.getRank(), idx));
@@ -833,7 +871,7 @@ class MinCross {
       Iterable<DLine> adjacent = adjacentFunc.apply(from);
       for (DLine dLine : adjacent) {
         DNode to = dLine.other(from);
-        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, to, dLine);
+        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, to, dLine, component);
       }
 
       /*
@@ -842,13 +880,13 @@ class MinCross {
        * guarantee the next rank merge node accessed first even no any edges between them.
        */
       if (clusterAdjRankNode != null) {
-        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, clusterAdjRankNode, null);
+        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, clusterAdjRankNode, null, component);
       }
     }
 
     private void toDfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc,
                        GraphContainer fromContainer, int fromMin,
-                       int fromMax, DNode to, DLine dLine) {
+                       int fromMax, DNode to, DLine dLine, ComOrder component) {
       /*
        * 1. Make sure cluster of to not intersect with cluster of from;
        * 2. Make sure only access head or tail node when to node in different cluster.
@@ -872,12 +910,14 @@ class MinCross {
         return;
       }
 
-
-      if (isMark(to)) {
+      ComOrder toCom = nodeComOrderMap.get(to);
+      if (toCom != null) {
+        // addComponent order
+        component.addRefCom(toCom);
         return;
       }
 
-      dfs(to, adjacentFunc);
+      dfs(to, adjacentFunc, component);
     }
 
     private boolean canNotAccessDiffCluster(DNode from, GraphContainer fromContainer,
@@ -1124,6 +1164,46 @@ class MinCross {
       }
 
       return new FlatPoint(height, width);
+    }
+  }
+
+  private static class ComOrder implements Comparable<ComOrder> {
+    private double order;
+    private List<ComOrder> refComs;
+
+    private ComOrder(double order) {
+      this.order = order;
+    }
+
+    private void addRefCom(ComOrder reference) {
+      if (refComs == null) {
+        refComs = new ArrayList<>();
+      }
+      refComs.add(reference);
+    }
+
+    private void refreshByRefComs() {
+      if (CollectionUtils.isEmpty(refComs)) {
+        return;
+      }
+
+      double newOrder =  0;
+      for (ComOrder refCom : refComs) {
+        newOrder += refCom.order;
+      }
+      newOrder /= refComs.size();
+      this.order = newOrder;
+    }
+
+    @Override
+    public int compareTo(ComOrder c) {
+      if (c == null) {
+        return -1;
+      }
+      if (c == this) {
+        return 0;
+      }
+      return Double.compare(order, c.order);
     }
   }
 }
