@@ -31,7 +31,9 @@ import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubgraphTest extends GraphvizVisual  {
 
 
