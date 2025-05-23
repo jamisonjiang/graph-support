@@ -173,6 +173,8 @@ abstract class AbstractCoordinate {
       expandClusterIfLabelOverflow(drawGraph.getGraphviz());
       refreshRankStartEnd();
       containerSizeInitReturnClusterLabelOverflow();
+    } else {
+      refreshGraphBorder(drawGraph);
     }
   }
 
@@ -592,6 +594,12 @@ abstract class AbstractCoordinate {
           drawGraph.updateXAxisRange(drawGraph.getMaxX() + labelSize.getWidth());
         } else {
           drawGraph.updateXAxisRange(drawGraph.getMinX() - labelSize.getWidth());
+        }
+
+        double overflowHeight = (labelSize.getHeight() - drawGraph.getHeight()) / 2;
+        if (overflowHeight > 0) {
+          drawGraph.updateYAxisRange(drawGraph.getMinY() - overflowHeight);
+          drawGraph.updateYAxisRange(drawGraph.getMaxY() + overflowHeight);
         }
       } else {
         double width = labelSize.getWidth() - drawGraph.width();

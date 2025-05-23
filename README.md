@@ -64,7 +64,7 @@ If you **do not need** DOT parsing, only the Core is required:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support-core</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -124,7 +124,7 @@ If you want to **parse** a `.dot` string or file, import the DOT module:
 <dependency>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support-dot</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
