@@ -173,7 +173,7 @@ abstract class AbstractCoordinate {
       expandClusterIfLabelOverflow(drawGraph.getGraphviz());
       refreshRankStartEnd();
       containerSizeInitReturnClusterLabelOverflow();
-    } else {
+    } else if (needFlip) {
       refreshGraphBorder(drawGraph);
     }
   }
