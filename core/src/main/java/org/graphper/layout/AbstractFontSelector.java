@@ -40,9 +40,18 @@ public abstract class AbstractFontSelector implements FontSelector {
   private LinkedHashSet<String> allAvailableFonts;
 
   protected AbstractFontSelector() {
-    initFontComparator();
-    Asserts.nullArgument(fontOrder, "Cannot found font comparator");
-    initDefaultFont();
+    // moved to #possiblyLoad()
+  }
+  
+  private boolean loaded = false;
+  
+  protected void possiblyLoad() {
+    if (loaded == false) {
+      initFontComparator();
+      Asserts.nullArgument(fontOrder, "Cannot found font comparator");
+      initDefaultFont();
+      loaded = true;
+    }
   }
 
   /**
@@ -62,6 +71,7 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   @Override
   public String defaultFont() {
+   possiblyLoad();
    return defaultFont;
   }
 
@@ -73,6 +83,7 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   @Override
   public boolean exists(String fontName) {
+    possiblyLoad();
     if (Objects.isNull(fontName)) {
       return false;
     }
@@ -82,6 +93,7 @@ public abstract class AbstractFontSelector implements FontSelector {
 
   @Override
   public String findFirstSupportFont(char c) {
+    possiblyLoad();
     for (String font : allAvailableFonts) {
       if (fontSupport(font, c)) {
         return font;
