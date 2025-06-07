@@ -40,13 +40,20 @@ public abstract class AbstractFontSelector implements FontSelector {
   private LinkedHashSet<String> allAvailableFonts;
 
   protected AbstractFontSelector() {
-    // moved to #possiblyLoad()
   }
   
-  private boolean loaded = false;
+  private volatile boolean loaded = false;
   
   protected void possiblyLoad() {
-    if (loaded == false) {
+    if (loaded) {
+      return;
+    }
+
+    synchronized (this) {
+      if (loaded) {
+        return;
+      }
+
       initFontComparator();
       Asserts.nullArgument(fontOrder, "Cannot found font comparator");
       initDefaultFont();

@@ -16,21 +16,21 @@
 
 package org.graphper.layout.dot;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
-import org.graphper.def.FlatPoint;
-import org.graphper.draw.ContainerDrawProp;
 
-class CoordinateV2 extends AbstractCoordinate {
+/**
+ * Classic coordinate implementation for DOT layout.
+ * 
+ * <p>This implementation uses the traditional network simplex approach to achieve
+ * global optimal x-position, providing the highest quality layout but may take
+ * longer for large graphs.
+ */
+class ClassicCoordinate extends AbstractCoordinate {
 
   private DotDigraph auxDotDigraph;
 
-  private Map<GraphContainer, ContainerContent> containerContentMap;
-
-  public CoordinateV2(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
+  public ClassicCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                       EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
 
@@ -39,9 +39,6 @@ class CoordinateV2 extends AbstractCoordinate {
 
     // Final x coordinate setting
     positive();
-
-    // help gc
-    clear();
   }
 
   @Override
@@ -54,7 +51,15 @@ class CoordinateV2 extends AbstractCoordinate {
     return getContainerContent(container).rightNode.getAuxRank();
   }
 
-  @Override
+  // ----------------------------------------------------- private method -----------------------------------------------------
+
+  private DotDigraph createAuxGraph() {
+    auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
+    addClusterBorderEdge(auxDotDigraph, dotAttachment.getGraphviz());
+    accessNodes(this::nodeConsumer, null);
+    return auxDotDigraph;
+  }
+
   protected void nodeConsumer(DNode node) {
     /*
      * 1.Break an edge that spans between two ranks
@@ -96,44 +101,6 @@ class CoordinateV2 extends AbstractCoordinate {
 
     // Avoid separate nodes
     auxDotDigraph.add(node);
-  }
-
-  // ----------------------------------------------------- private method -----------------------------------------------------
-
-  private DotDigraph createAuxGraph() {
-    auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
-    addClusterBorderEdge(auxDotDigraph, dotAttachment.getGraphviz());
-    accessNodes();
-    return auxDotDigraph;
-  }
-
-  private ContainerContent addClusterBorderEdge(DotDigraph auxDotDigraph,
-                                                GraphContainer container) {
-    if (!dotAttachment.haveClusters()) {
-      return null;
-    }
-
-    if (containerContentMap == null) {
-      containerContentMap = new HashMap<>();
-    }
-    ContainerContent containerContent = containerContentMap.computeIfAbsent(container,
-                                                                            ContainerContent::new);
-    auxDotDigraph.addEdge(new DLine(containerContent.leftNode, containerContent.rightNode,
-                                    null, null, 128D, containerContent.minlen()));
-
-    for (Cluster cluster : dotAttachment.clusters(container)) {
-      ContainerContent childCC = addClusterBorderEdge(auxDotDigraph, cluster);
-      if (childCC == null) {
-        continue;
-      }
-
-      auxDotDigraph.addEdge(new DLine(containerContent.leftNode, childCC.leftNode,
-                                      null, null, 0, containerContent.leftMargin));
-      auxDotDigraph.addEdge(new DLine(childCC.rightNode, containerContent.rightNode,
-                                      null, null, 0, containerContent.rightMargin));
-    }
-
-    return containerContent;
   }
 
   private void crossRankAuxEdge(DNode node) {
@@ -180,11 +147,11 @@ class CoordinateV2 extends AbstractCoordinate {
         int limit = crossLineLimit(dLine);
 
         if (limit < 0) {
-          e1 = new DLine(auxNode, node, null, null, weight, -limit);
-          e2 = new DLine(auxNode, other, null, null, weight, 0);
+          e1 = new DLine(auxNode, node, null, weight, -limit);
+          e2 = new DLine(auxNode, other, null, weight, 0);
         } else {
-          e1 = new DLine(auxNode, node, null, null, weight, 0);
-          e2 = new DLine(auxNode, other, null, null, weight, limit);
+          e1 = new DLine(auxNode, node, null, weight, 0);
+          e2 = new DLine(auxNode, other, null, weight, limit);
         }
 
         if (limit != 0) {
@@ -192,8 +159,8 @@ class CoordinateV2 extends AbstractCoordinate {
           other.markNotAdjustMid();
         }
       } else {
-        e1 = new DLine(auxNode, node, null, null, weight, 0);
-        e2 = new DLine(auxNode, other, null, null, weight, 0);
+        e1 = new DLine(auxNode, node, null, weight, 0);
+        e2 = new DLine(auxNode, other, null, weight, 0);
       }
 
       auxDotDigraph.addEdge(e1);
@@ -287,59 +254,4 @@ class CoordinateV2 extends AbstractCoordinate {
                                     false));
   }
 
-  private ContainerContent getContainerContent(GraphContainer container) {
-    return containerContentMap.get(container);
-  }
-
-  private void clear() {
-    auxDotDigraph = null;
-    containerContentMap = null;
-  }
-
-  private class ContainerContent {
-
-    private final int leftMargin;
-
-    private final int rightMargin;
-
-    private final DNode leftNode;
-
-    private final DNode rightNode;
-
-    private final GraphContainer container;
-
-    private ContainerContent(GraphContainer container) {
-      this.container = container;
-      this.leftNode = newClusterNode();
-      this.rightNode = newClusterNode();
-      this.leftMargin = margin(true);
-      this.rightMargin = margin(false);
-    }
-
-    private int minlen() {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      FlatPoint labelSize = containerDrawProp.getLabelSize();
-      if (labelSize == null) {
-        return 0;
-      }
-
-      return needFlip ? (int) labelSize.getHeight() : (int) labelSize.getWidth();
-    }
-
-    private int margin(boolean left) {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      if (!needFlip) {
-        return (int) containerDrawProp.getHorMargin();
-      }
-
-      return flipGetMargin(container, left, false);
-    }
-
-    private DNode newClusterNode() {
-      DNode node = new DNode(null, 0, 1, 0);
-      node.setContainer(container);
-      node.switchAuxModel();
-      return node;
-    }
-  }
 }

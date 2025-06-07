@@ -22,15 +22,57 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.graphper.api.Graphviz;
+import org.graphper.draw.ExecuteException;
 import org.graphper.parser.DotParser;
 import org.junit.jupiter.api.Test;
 
 public class DotCasesTest extends GraphvizVisual {
 
   @Test
-  public void testCase() throws IOException {
-    String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
-    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+  public void testCase() throws IOException, ExecuteException {
+    Graphviz graphviz;
+//    String dot = DocumentUtils.getDotTestFile("/manual/massive-network-simple.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
+    String dot = DocumentUtils.getDotTestFile("/random/1756624825512_5358.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case18.dot");
+//    String dot = DocumentUtils.getDotTestFile("/random/121.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
+//    String dot = DocumentUtils.getDotTestFile("big_fdp_case.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/biggraph.dot");
+//    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+
+//    System.setProperty("layout", "dotq");
+    graphviz = DotParser.parse("digraph {"
+                                   + "layout=dotq;"
+                                   + "subgraph cluster_0 {"
+                                   + "a -> a;"
+                                   + "a -> a;"
+                                   + "a -> a;"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "}"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "}");
+//    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
+
+//    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
+    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+
+//    graphviz.toFile(FileType.SVG).save("E:\\demo", "test1");
     visual(graphviz);
   }
 

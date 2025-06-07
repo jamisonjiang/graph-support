@@ -6,9 +6,9 @@ The **rank** attribute controls the **relative positioning of nodes within a sub
 
 ## **Behavior**
 
-- **Applies only to `subgraph` elements or anonymous `{}` groups** in hierarchical layouts (`dot`).
+- **Applies only to `subgraph` elements or anonymous `{}` groups** in hierarchical layouts (`dot` and `dotq`).
 - **Forces all nodes in the group to be placed at the same rank (level).**
-- **Only works in `dot` layout**, **not in `fdp`, `sfdp`, `neato`, etc.**
+- **Only works in `dot` and `dotq` layouts**, **not in `fdp`, `sfdp`, `neato`, etc.**
 - Common values:
   - `"same"` → Nodes are placed at the **same level**.
   - `"min"` → Nodes are placed at the **lowest possible level**.
@@ -18,12 +18,13 @@ The **rank** attribute controls the **relative positioning of nodes within a sub
 
 ------
 
-## **Usage in DOT**
+## **Usage in DOT and DOTQ**
 
 ### **Using an Anonymous Group (`{}`) to Force Same Rank**
 
 ```dot
 digraph G {
+    layout=dotq;  // Use optimized DOT layout
     a -> b;
     b -> c;
     c -> d;
@@ -40,6 +41,7 @@ digraph G {
 
 ```dot
 digraph G {
+    layout=dot;   // Use classic DOT layout
     a -> b;
     b -> c;
     c -> d;
@@ -59,6 +61,7 @@ digraph G {
 
 ```dot
 digraph G {
+    layout=dotq;  // Use optimized DOT layout
     a -> b;
     b -> c;
     c -> d;
@@ -75,6 +78,7 @@ digraph G {
 
 ```dot
 digraph G {
+    layout=dot;   // Use classic DOT layout
     a -> b;
     b -> c;
     c -> d;
@@ -106,7 +110,15 @@ Subgraph subgraph = Subgraph.builder()
     .addNode(e, f, g)
     .build();
 
-Graphviz graph = Graphviz.digraph()
+// Using DOT layout (classic, highest quality)
+Graphviz graphDot = Graphviz.digraph()
+    .layout(Layout.DOT)
+    .subgraph(subgraph)
+    .build();
+
+// Using DOTQ layout (optimized, faster)
+Graphviz graphDotq = Graphviz.digraph()
+    .layout(Layout.DOTQ)
     .subgraph(subgraph)
     .build();
 ```

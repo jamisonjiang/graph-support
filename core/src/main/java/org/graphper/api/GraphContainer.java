@@ -16,6 +16,7 @@
 
 package org.graphper.api;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import org.graphper.api.Cluster.IntegrationClusterBuilder;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Subgraph.IntegrationSubgraphBuilder;
 import org.graphper.def.UnaryConcatIterable;
-import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
@@ -49,7 +49,7 @@ import org.graphper.util.CollectionUtils;
  * @see Graphviz
  */
 @SuppressWarnings("all")
-public abstract class GraphContainer extends VertexIndex {
+public abstract class GraphContainer implements Serializable {
 
   // Container Id
   protected String id;

@@ -32,7 +32,6 @@ import org.graphper.api.Subgraph;
 import org.graphper.api.attributes.Rank;
 import org.graphper.def.Graph.VertexGraph;
 import org.graphper.def.UndirectedGraph;
-import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -279,7 +278,7 @@ class SubgraphMerge {
   /**
    * The node of Subgraph is used to judge the connection of subgraph.
    */
-  private static class SubNode extends VertexIndex {
+  private static class SubNode {
 
     private static final long serialVersionUID = 6756911716157476290L;
 

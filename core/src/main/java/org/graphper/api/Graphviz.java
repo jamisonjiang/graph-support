@@ -268,7 +268,7 @@ public class Graphviz extends GraphContainer implements Serializable {
      *     .bottom(italic("Bottom Text Example"))
      *     .font("Bigger", fontAttrs().pointSize(50))
      *     .verticalCenter(italic(bold("Centered Text Example")));
-
+     *
      * Graphviz graphviz = Graphviz.digraph()
      *     .labelTag(tag)
      *     // ...additional builder configuration...
@@ -389,8 +389,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the distance between nodes. In {@link Layout#DOT} layout, it means the distance between
-     * two nodes of the same rank.
+     * Set the distance between nodes. In {@link Layout#DOT} and {@link Layout#DOTQ} layouts, it
+     * means the distance between two nodes of the same rank.
      *
      * @param nodeSep the distance between two node
      * @return graphviz builder
@@ -403,9 +403,10 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * In the {@link Layout#DOT}, use the network simplex to calculate the x-coordinate of the node,
-     * so nslimit represents the maximum number of iterations of the network simplex method, the
-     * default maximum number of iterations is 100000.
+     * In the {@link Layout#DOT} and {@link Layout#DOTQ}, use the network simplex to calculate the
+     * x-coordinate of the node, so nslimit represents the maximum number of iterations of the
+     * network simplex method, the default maximum number of iterations is 100000 for DOT and 5000
+     * for DOTQ.
      *
      * @param nslimit iterations times of network simplex of x-coordinate
      * @return graphviz builder
@@ -418,9 +419,9 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * In the {@link Layout#DOT}, calculate the hierarchical distribution of nodes using the network
-     * simplex, so nslimit1 represents the maximum number of iterations of the network simplex, the
-     * default maximum number of iterations is {@link Integer#MAX_VALUE}.
+     * In the {@link Layout#DOT} and {@link Layout#DOTQ}, calculate the hierarchical distribution of
+     * nodes using the network simplex, so nslimit1 represents the maximum number of iterations of
+     * the network simplex, the default maximum number of iterations is {@link Integer#MAX_VALUE}.
      *
      * @param nslimit1 iterations times of network simplex of x-coordinate
      * @return graphviz builder
@@ -433,7 +434,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the interval distance of the rank, only valid for {@link Layout#DOT}.
+     * Set the interval distance of the rank, only valid for {@link Layout#DOT} and
+     * {@link Layout#DOTQ}.
      *
      * @param rankSep interval distance of the rank
      * @return graphviz builder
@@ -501,8 +503,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * In the {@link Layout#DOT}, multiple iterations will be used to minimize crossings between
-     * lines, use this value to control the number of iterations.
+     * In the {@link Layout#DOT} and {@link Layout#DOTQ}, multiple iterations will be used to
+     * minimize crossings between lines, use this value to control the number of iterations.
      *
      * @param mclimit crossover lines reduces the number of iterations
      * @return graphviz builder

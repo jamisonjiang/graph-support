@@ -20,14 +20,12 @@ import helper.DocumentUtils;
 import helper.SerialHelper;
 import java.io.IOException;
 import org.graphper.api.GraphResource;
-import org.graphper.draw.DrawGraph;
-import org.graphper.draw.ExecuteException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.draw.svg.SvgRenderEngine;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DrawGraphTest {
 

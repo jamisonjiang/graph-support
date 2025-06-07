@@ -22,6 +22,7 @@ import org.graphper.layout.fdp.FdpLayoutEngine;
 import org.graphper.layout.fdp.GFdpLayoutEngine;
 import org.graphper.layout.fdp.JFdpLayoutEngine;
 import org.graphper.util.Asserts;
+import org.apache_gs.commons.lang3.StringUtils;
 
 /**
  * Layout engine enumeration.
@@ -34,8 +35,20 @@ public enum Layout {
    * Hierarchical or layered drawings of directed graphs. The layout algorithm aims edges in the
    * same direction (top to bottom, or left to right) and then attempts to avoid edge crossings and
    * reduce edge length.
+   *
+   * <p>This is the classic DOT algorithm that pursues global optimal x-position, providing the
+   * highest quality layout but may take longer for large graphs.
    */
-  DOT(new DotLayoutEngine()),
+  DOT(new DotLayoutEngine(false)),
+
+  /**
+   * Optimized hierarchical or layered drawings of directed graphs. Similar to DOT but with improved
+   * performance for large graphs through optimized x-position calculation.
+   *
+   * <p>This algorithm provides faster layout times while maintaining good visual quality,
+   * making it suitable for large graphs where classic DOT performance is insufficient.
+   */
+  DOTQ(new DotLayoutEngine(true)),
 
   /**
    * A standard force-directed placement (FDP) layout engine.
@@ -78,5 +91,18 @@ public enum Layout {
    */
   public LayoutEngine getLayoutEngine() {
     return layoutEngine;
+  }
+
+  public static Layout layout(String layout) {
+    if (StringUtils.isEmpty(layout)) {
+      return Layout.DOT;
+    }
+
+    for (Layout value : values()) {
+      if (value.name().equalsIgnoreCase(layout)) {
+        return value;
+      }
+    }
+    return Layout.DOT;
   }
 }

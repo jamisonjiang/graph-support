@@ -39,7 +39,7 @@ public class SubgraphTest extends GraphvizVisual  {
 
   @BeforeAll
   public void init() {
-    System.setProperty("rankdir", "LR");
+    System.setProperty("graph.rankdir", "LR");
   }
 
   @Test

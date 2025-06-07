@@ -31,7 +31,6 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Port;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
-import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
 import org.graphper.util.FontUtils;
 
@@ -40,7 +39,7 @@ import org.graphper.util.FontUtils;
  *
  * @author Jamison Jiang
  */
-public class Node extends VertexIndex implements Comparable<Node>, Serializable {
+public class Node implements Comparable<Node>, Serializable {
 
   private static final long serialVersionUID = 4616284202432237469L;
 
@@ -221,12 +220,12 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     }
 
     /**
-     * Assigns an HTML-like {@link LabelTag} structure as this node's label, allowing for
-     * advanced text styling such as bold, italics, and nested formatting.
+     * Assigns an HTML-like {@link LabelTag} structure as this node's label, allowing for advanced
+     * text styling such as bold, italics, and nested formatting.
      * <p>
-     * This method overrides any plain text label set via {@link #label(String)}.
-     * If you need a richly formatted label (e.g., multi-line text, nested tags),
-     * use {@code labelTag} rather than a simple string label.
+     * This method overrides any plain text label set via {@link #label(String)}. If you need a
+     * richly formatted label (e.g., multi-line text, nested tags), use {@code labelTag} rather than
+     * a simple string label.
      * </p>
      *
      * <p><b>Example Usage:</b></p>
@@ -577,10 +576,9 @@ public class Node extends VertexIndex implements Comparable<Node>, Serializable 
     }
 
     /**
-     * Assigns an HTML-like {@link Table} structure as this node's label, replacing
-     * the simple textual label set via {@link #label(String)}. This allows for a
-     * more complex arrangement of row and column cells, effectively converting the
-     * node label into a small "table."
+     * Assigns an HTML-like {@link Table} structure as this node's label, replacing the simple
+     * textual label set via {@link #label(String)}. This allows for a more complex arrangement of
+     * row and column cells, effectively converting the node label into a small "table."
      *
      * <p><b>Example Usage:</b></p>
      * <pre>{@code

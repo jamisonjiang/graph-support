@@ -28,7 +28,8 @@ import java.util.stream.StreamSupport;
  * @param <V> the type of vertex
  * @author Jamison Jiang
  * @see Graph Undirected graph
- * @see Digraph Directed graph
+ * @see Digraph Single out direction directed graph
+ * @see Dedigraph Dual in-out direation directed graph
  * @see EdgeOpGraph Edge manipulation graph
  * @see VertexOpGraph Vertex manipulation graph
  */
@@ -53,7 +54,6 @@ public interface BaseGraph<V> extends Iterable<V> {
    *
    * @param v vertex to be added to this graph
    * @return <tt>true</tt> if this graph changed as a result of the call
-   * @throws NullPointerException if the specified vertex is null
    */
   boolean add(V v);
 
@@ -66,7 +66,23 @@ public interface BaseGraph<V> extends Iterable<V> {
   boolean remove(Object v);
 
   /**
+   * Returns {@code true} if this graph contains the specified vertex.
+   *
+   * @param v the vertex whose presence in this graph is to be tested
+   * @return {@code true} if this graph contains the specified vertex, {@code false} otherwise
+   */
+  boolean contains(V v);
+
+  /**
    * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.
+   *
+   * <p>The meaning of "degree" varies depending on the graph type:
+   * <ul>
+   * <li>For undirected graphs ({@link Graph}): degree indicates all neighbor nodes connected to the vertex</li>
+   * <li>For bidirectional directed graphs ({@link EdgeDedigraph}, {@link VertexDedigraph}):
+   * degree indicates all neighbor nodes (sum of in-degree and out-degree)</li>
+   * <li>For single-direction directed graphs ({@link Digraph}): degree indicates the out-degree (outgoing neighbors only)</li>
+   * </ul>
    *
    * @param v vertex to be queried
    * @return degree of this vertex in current graph
@@ -90,6 +106,14 @@ public interface BaseGraph<V> extends Iterable<V> {
    * @return start node
    */
   V start();
+
+  /**
+   * Return the previous v in the linked list. This provides efficient backward traversal.
+   *
+   * @param v the v to find the previous v for
+   * @return the previous v or null if v is the first or doesn't exist
+   */
+  V pre(V v);
 
   /**
    * Return next node in current graph and sequence strategy considered by different attribute
@@ -131,14 +155,6 @@ public interface BaseGraph<V> extends Iterable<V> {
    * @return an array containing all the vertices
    */
   V[] toArray();
-
-  /**
-   * Returns a copy of the {@code BaseGraph}. For the specific copy strategy (deep clone or shallow
-   * clone) and features, please use it flexibly according to different implementation classes.
-   *
-   * @return a copy of current graph
-   */
-  BaseGraph<V> copy();
 
   /**
    * Removes all the vertices and edges from this graph.

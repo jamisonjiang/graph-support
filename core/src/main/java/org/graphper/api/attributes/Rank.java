@@ -21,7 +21,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Subgraph;
 
 /**
- * Rank constraints on the nodes in {@link Subgraph}, only valid for {@link Layout#DOT}.
+ * Rank constraints on the nodes in {@link Subgraph}, only valid for {@link Layout#DOT} and {@link Layout#DOTQ}.
  *
  * <p> The effective range of this attribute is the <strong>closest effective container</strong> of
  * the node. Here is an example of what is the <strong>closest effective container</strong> for a

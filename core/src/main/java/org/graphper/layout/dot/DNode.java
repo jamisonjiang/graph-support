@@ -19,10 +19,10 @@ package org.graphper.layout.dot;
 import java.util.Objects;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Line;
-import org.graphper.api.Node;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.ANode;
 
 class DNode extends ANode implements Box, ShapePosition {
@@ -62,21 +62,21 @@ class DNode extends ANode implements Box, ShapePosition {
 
   private final DLine flatLabelLine;
 
-  DNode(Node node, double width, double height, double nodeSep) {
-    this(node, width, height, nodeSep, null, null);
+  DNode(NodeDrawProp nodeDrawProp, double width, double height, double nodeSep) {
+    this(nodeDrawProp, width, height, nodeSep, null, null);
   }
 
-  DNode(Node node, double width, double height, double nodeSep, Line labelLine) {
-    this(node, width, height, nodeSep, labelLine, null);
+  DNode(NodeDrawProp nodeDrawProp, double width, double height, double nodeSep, Line labelLine) {
+    this(nodeDrawProp, width, height, nodeSep, labelLine, null);
   }
 
-  DNode(Node node, double width, double height, double nodeSep, DLine labelLine) {
-    this(node, width, height, nodeSep, null, labelLine);
+  DNode(NodeDrawProp nodeDrawProp, double width, double height, double nodeSep, DLine labelLine) {
+    this(nodeDrawProp, width, height, nodeSep, null, labelLine);
   }
 
-  private DNode(Node node, double width, double height, double nodeSep, Line labelLine,
+  private DNode(NodeDrawProp nodeDrawProp, double width, double height, double nodeSep, Line labelLine,
                 DLine flatLabelLine) {
-    super(node);
+    super(nodeDrawProp);
     this.width = width;
     this.height = height;
     this.nodeSep = nodeSep;
@@ -140,6 +140,10 @@ class DNode extends ANode implements Box, ShapePosition {
     } else {
       throw new IllegalStateException("Node unknown status");
     }
+  }
+
+  int getRealRank() {
+    return rank;
   }
 
   void setRank(int rank) {
@@ -274,15 +278,15 @@ class DNode extends ANode implements Box, ShapePosition {
   }
 
   String name() {
-    if (isVirtual() || nodeAttrs == null) {
+    if (isVirtual() || getNodeAttrs() == null) {
       if (isLabelNode()) {
         return labelLine.lineAttrs().getLabel();
       } else {
         return String.valueOf(hashCode());
       }
     } else {
-      return nodeAttrs.getLabel() != null
-          ? nodeAttrs.getLabel() : "none";
+      return getNodeAttrs().getLabel() != null
+          ? getNodeAttrs().getLabel() : "none";
     }
   }
 
@@ -309,7 +313,7 @@ class DNode extends ANode implements Box, ShapePosition {
     if (line == null || line.isVirtual() || isVirtual()) {
       return false;
     }
-    return Objects.equals(node, line.getLine().tail());
+    return Objects.equals(getNode(), line.getLine().tail());
   }
 
   @Override

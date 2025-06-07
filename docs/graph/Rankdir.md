@@ -13,13 +13,16 @@ The **rankdir** attribute controls the **direction of graph layout**, determinin
 | `LR`           | **Left to Right** | Nodes are arranged **horizontally** from left to right. |
 | `RL`           | **Right to Left** | Nodes are arranged **horizontally** from right to left. |
 
+**Note**: This attribute is **only valid for `DOT` and `DOTQ` layouts** (hierarchical layouts). It is ignored in other layout engines like FDP, JFDP, and GFDP.
+
 ------
 
-## **Example Usage in DOT**
+## **Example Usage in DOT and DOTQ**
 
 ```dot
 digraph G {
-    rankdir=LR;  // Left to Right layout
+    layout=dotq;     // Use optimized DOT layout
+    rankdir=LR;      // Left to Right layout
 
     A -> B;
     B -> C;
@@ -30,6 +33,7 @@ digraph G {
 ### **Explanation**:
 
 - The **`rankdir=LR`** setting **forces a horizontal layout**, making edges **flow from left to right** instead of the default top-to-bottom arrangement.
+- Works with both **`layout=dot`** (classic) and **`layout=dotq`** (optimized) layouts.
 
 ------
 
@@ -41,7 +45,18 @@ Node b = Node.builder().label("b").build();
 Node c = Node.builder().label("c").build();
 Node d = Node.builder().label("d").build();
 
-Graphviz graph = Graphviz.digraph()
+// Using DOT layout
+Graphviz graphDot = Graphviz.digraph()
+    .layout(Layout.DOT)
+    .rankdir(Rankdir.LR) // Equivalent to rankdir=LR
+    .addLine(Line.builder(a, b).build())
+    .addLine(Line.builder(b, c).build())
+    .addLine(Line.builder(c, d).build())
+    .build();
+
+// Using DOTQ layout
+Graphviz graphDotq = Graphviz.digraph()
+    .layout(Layout.DOTQ)
     .rankdir(Rankdir.LR) // Equivalent to rankdir=LR
     .addLine(Line.builder(a, b).build())
     .addLine(Line.builder(b, c).build())
@@ -53,6 +68,7 @@ Graphviz graph = Graphviz.digraph()
 
 - **`.rankDir(Rankdir.LEFT_TO_RIGHT)`** → Sets the **graph direction** to **Left to Right (LR)**.
 - **Nodes A → B → C → D** will be arranged **horizontally**, just like in the DOT example.
+- Works with both **`Layout.DOT`** and **`Layout.DOTQ`** layouts.
 
 ------
 

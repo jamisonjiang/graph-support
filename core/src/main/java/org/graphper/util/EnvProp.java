@@ -17,6 +17,7 @@
 package org.graphper.util;
 
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.api.attributes.Layout;
 
 public final class EnvProp {
 
@@ -35,7 +36,11 @@ public final class EnvProp {
   }
 
   public static Rankdir defaultRankdir() {
-    return Rankdir.rankdir(System.getProperty("rankdir"));
+    return Rankdir.rankdir(System.getProperty("graph.rankdir"));
+  }
+
+  public static Layout defaultLayout() {
+    return Layout.layout(System.getProperty("graph.layout"));
   }
 
   public static boolean useV1Coordinate() {

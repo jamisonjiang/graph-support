@@ -27,6 +27,7 @@ import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.NodeShape;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
 import org.graphper.util.Asserts;
 import org.graphper.util.FontUtils;
@@ -165,10 +166,12 @@ public class Cluster extends GraphContainer implements Serializable {
      * Set the shape of the cluster, for the shapes supported by default, please check
      * {@link ClusterShapeEnum}.
      *
-     * <p>Cluster shapes except {@link ClusterShapeEnum#RECT} no guarantee that cluster container
-     * will surround all nodes under {@link Layout#DOT} engine but will try best estimated the
-     * container size by {@link ClusterShape#minContainerSize(double, double)} method, but still
-     * have the following principles as much as possible surround all nodes:
+     * <p>Unlike {@link NodeShape}, other cluster shapes except {@link ClusterShapeEnum#RECT} no
+     * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and
+     * {@link Layout#DOTQ} engines but will try best estimated the container size by
+     * {@link ClusterShape#minContainerSize(double, double)} method, but still have the following
+     * principles as much as possible surround all nodes if you want to {@code ClusterShape} works
+     * well under {@link Layout#DOT} and {@link Layout#DOTQ} engines:
      * <ul>
      *   <li>The gap between internal box and external box is as small ass possible, it means output
      *   of {@link ClusterShape#minContainerSize(double, double)} of current shape close enough than input.

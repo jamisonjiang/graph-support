@@ -16,6 +16,9 @@
 
 package org.graphper.def;
 
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
  * The de-directed graph that operates in the vertex dimension.
  *
@@ -23,14 +26,6 @@ package org.graphper.def;
  * @author Jamison Jiang
  */
 public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<V> {
-
-  /**
-   * Returns a copy of the {@code VertexDedigraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  VertexDedigraph<V> copy();
 
   /**
    * Returns a de-directed graph reversed from the current directed graph.
@@ -44,12 +39,12 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
    * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
    * current vertex represents an edge.
    *
-   * <p>For a de-directed graph, "adjacent" contains edges in both directions. The function seems
-   * to fall back to the state of {@link org.graphper.def.Graph.VertexGraph#adjacent(Object)} from
-   * {@link org.graphper.def.Digraph.VertexDigraph#adjacent(Object)}.
+   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor vertices 
+   * connected to the specified vertex in both directions (both incoming and outgoing neighbors). 
+   * This is different from single-direction directed graphs where adjacent returns out-neighbors only.
    *
    * @param v vertex to be queried
-   * @return all adjacent vertices
+   * @return all adjacent vertices (both incoming and outgoing neighbors)
    */
   @Override
   Iterable<V> adjacent(Object v);
@@ -71,4 +66,34 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
    * @return all outgoing adjacent vertices
    */
   Iterable<V> outAdjacent(Object v);
+
+  /**
+   * Performs the given action for each incoming adjacent vertex of the specified vertex until all
+   * incoming adjacent vertices have been processed or the action throws an exception.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachInAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    for (V adjacent : inAdjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
+   * outgoing adjacent vertices have been processed or the action throws an exception.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachOutAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    for (V adjacent : outAdjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
 }

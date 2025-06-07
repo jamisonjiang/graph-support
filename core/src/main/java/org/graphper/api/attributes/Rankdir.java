@@ -19,7 +19,7 @@ package org.graphper.api.attributes;
 import org.apache_gs.commons.lang3.StringUtils;
 
 /**
- * Sets direction of graph layout, only valid for {@link Layout#DOT}.
+ * Sets direction of graph layout, only valid for {@link Layout#DOT} and {@link Layout#DOTQ}.
  *
  * @author Jamison Jiang
  */
@@ -50,10 +50,11 @@ public enum Rankdir {
       return Rankdir.TB;
     }
 
-    try {
-      return valueOf(rankdir);
-    } catch (Exception e) {
-      return Rankdir.TB;
+    for (Rankdir value : values()) {
+      if (value.name().equalsIgnoreCase(rankdir)) {
+        return value;
+      }
     }
+    return Rankdir.TB;
   }
 }

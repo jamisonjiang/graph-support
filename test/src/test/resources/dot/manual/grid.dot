@@ -2,7 +2,6 @@ graph grid {
 	fontname="Helvetica,Arial,sans-serif"
 	node [fontname="Helvetica,Arial,sans-serif"]
 	edge [fontname="Helvetica,Arial,sans-serif"]
-	layout=dot
 	labelloc = "t"
 	node [shape=plaintext]
 	A0 -- B1 -- C2 -- D3 -- E4 -- F5 -- G6 -- H7

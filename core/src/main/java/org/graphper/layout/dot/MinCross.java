@@ -37,7 +37,6 @@ import java.util.function.Function;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
-import org.graphper.api.Line;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterShapeEnum;
 import org.graphper.def.DedirectedEdgeGraph;
@@ -45,8 +44,10 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
+import org.graphper.layout.dot.RootCrossRank.CrossSnapshot;
 import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
@@ -72,11 +73,14 @@ class MinCross {
 
   private final DotAttachment dotAttachment;
 
+  private final boolean useQuickMode;
+
   private MinCrossDedigraph digraphProxy;
 
-  MinCross(RankContent rankContent, DotAttachment dotAttachment) {
+  MinCross(RankContent rankContent, DotAttachment dotAttachment, boolean useQuickMode) {
     this.rankContent = rankContent;
     this.dotAttachment = dotAttachment;
+    this.useQuickMode = useQuickMode;
 
     // Cut the line which span over than 2
     reduceLongEdges();
@@ -91,6 +95,7 @@ class MinCross {
     syncRankOrder();
 
     this.rootCrossRank = null;
+    this.clusterExpand = null;
   }
 
   public EdgeDedigraph<DNode, DLine> getDigraphProxy() {
@@ -231,8 +236,7 @@ class MinCross {
         lineMap.put(to, edge);
       } else {
         digraphProxy.addEdge(
-            new DLine(from, to, edge.getLine(),
-                      edge.lineAttrs(), edge.weight(), edge.limit()),
+            new DLine(from, to, edge.getLineDrawProp(), edge.weight(), edge.limit()),
             dotAttachment.getDrawGraph()
         );
       }
@@ -251,6 +255,7 @@ class MinCross {
   }
 
   private void dotMincross() {
+    long start = System.currentTimeMillis();
     if (clusterExpand != null) {
       clusterExpand.cluster = dotAttachment.getGraphviz();
     }
@@ -258,6 +263,10 @@ class MinCross {
 
     for (Cluster cluster : dotAttachment.clusters(dotAttachment.getGraphviz())) {
       mincrossCluster(cluster);
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
     }
   }
 
@@ -312,6 +321,7 @@ class MinCross {
       return;
     }
 
+    checkClustersContinuity();
     Graphviz graphviz = dotAttachment.getGraphviz();
     ClusterMerge clusterMerge = new ClusterMerge();
     clusterExpand = new ClusterExpand(clusterMerge);
@@ -336,6 +346,58 @@ class MinCross {
           rootCrossRank.addNode(fromClusterNode);
         }
       }
+    }
+  }
+
+  private void checkClustersContinuity() {
+    /*
+     * We hope every rank in cluster should have one node as least to avoid cluster overlap,
+     * otherwise position process lost reference point for cluster space between two clusters
+     */
+    Map<Cluster, TreeSet<Integer>> clusterRankContinuity = new HashMap<>();
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+
+      for (int j = 0; j < rankNode.size(); j++) {
+        updateClusterContinuity(rankNode.get(j), clusterRankContinuity);
+      }
+    }
+
+    for (Entry<Cluster, TreeSet<Integer>> entry : clusterRankContinuity.entrySet()) {
+      Cluster cluster = entry.getKey();
+      TreeSet<Integer> ranks = entry.getValue();
+
+      Integer pre = null;
+      for (Integer rank : ranks) {
+        if (pre != null && !Objects.equals(pre, rank - 1)) {
+          // Find empty rank in cluster and insert one node
+          for (int i = pre + 1; i < rank; i++) {
+            RankNode rankNode = rankContent.get(i);
+            DNode node = new DNode(null, 0 , 0,0);
+            node.setContainer(cluster);
+            node.setRank(i);
+            rankNode.add(node);
+            node.setRankIndex(rankNode.size() - 1);
+            digraphProxy.add(node);
+          }
+        }
+        pre = rank;
+      }
+    }
+  }
+
+  private void updateClusterContinuity(DNode n, Map<Cluster, TreeSet<Integer>> clusterRankContinuity) {
+    if (!n.getContainer().isCluster()) {
+      return;
+    }
+
+    Graphviz graphviz = dotAttachment.getGraphviz();
+    GraphContainer container = n.getContainer();
+
+    while (container != null && container.isCluster()) {
+      Cluster cluster = (Cluster) container;
+      clusterRankContinuity.computeIfAbsent(cluster, c -> new TreeSet<>()).add(n.getRank());
+      container = graphviz.effectiveFather(container);
     }
   }
 
@@ -386,7 +448,7 @@ class MinCross {
     if (from != fromClusterNode || to != toCLusterNode) {
       if (!nodes.contains(toCLusterNode) && fromClusterNode != toCLusterNode) {
         nodes.add(toCLusterNode);
-        line = new DLine(fromClusterNode, toCLusterNode, null, null, line.weight(), line.limit());
+        line = new DLine(fromClusterNode, toCLusterNode, null, line.weight(), line.limit());
         rootCrossRank.addEdge(line);
       }
     } else {
@@ -405,8 +467,9 @@ class MinCross {
     GraphContainer container = n.getContainer();
 
     while (container != null && container.isCluster()) {
+      Cluster cluster = (Cluster) container;
       ClusterRankRange range = clusterExpand.clusterMerge.clusterRankRange
-          .computeIfAbsent((Cluster) container, c -> new ClusterRankRange());
+          .computeIfAbsent(cluster, c -> new ClusterRankRange());
 
       range.minRank = Math.min(range.minRank, rank);
       range.maxRank = Math.max(range.maxRank, rank);
@@ -438,98 +501,84 @@ class MinCross {
   }
 
   private void mincross(int startPass, int endPass) {
-    int maxThisPass;
-    int trying;
-    int minCrossNum = rootCrossRank.currentCrossNum();
-    int currentNum = minCrossNum;
-    BasicCrossRank tmp;
-    BasicCrossRank optimal = rootCrossRank.getBasicCrossRank();
-    int minQuit = dotAttachment.getDrawGraph().getGraphviz().graphAttrs().getMclimit();
     int maxIter = 24;
+    int minQuit = dotAttachment.getDrawGraph().getGraphviz().graphAttrs().getMclimit();
+    CrossSnapshot optimal = rootCrossRank.crossSnapshot();
 
     /*
-     * 1. Use the dsf initialize the default order to avoid obvious cross;
+     * 1. Use the dfs initialize the default order to avoid obvious cross;
      * 2. Select less cross sequence between top-bottom and bottom-top access.
      */
-    BasicCrossRank c = optimal.clone();
+    BasicCrossRank c = optimal.getCrossRank().clone();
     new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true);
-    int cn = getCrossNum(c);
-    if (cn <= minCrossNum) {
-      optimal = c;
-      minCrossNum = currentNum = cn;
-      rootCrossRank.setBasicCrossRank(optimal);
+    CrossSnapshot cn = rootCrossRank.tryCacheCrossNum(c);
+    if (c.container().haveChildCluster() || cn.getCrossNum() <= optimal.getCrossNum()) {
+      optimal = cn;
+      rootCrossRank.updateCross(cn);
     }
 
-    BasicCrossRank p = optimal.clone();
-    new InitSort(p, p.container(), dotAttachment.getDrawGraph(), false);
-    cn = getCrossNum(p);
-    if (cn < minCrossNum) {
-      optimal = p;
-      minCrossNum = currentNum = cn;
-      rootCrossRank.setBasicCrossRank(optimal);
+    c = optimal.getCrossRank().clone();
+    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), false);
+    cn = rootCrossRank.tryCacheCrossNum(c);
+    if (cn.getCrossNum() < optimal.getCrossNum()) {
+      optimal = cn;
+      rootCrossRank.updateCross(cn);
     }
 
-    // Repeat the medium sort method and transport process
+    if (useQuickMode) {
+      logQuickModeStep(0);
+      flatOrder(optimal.getCrossRank());
+      logQuickModeStep(1);
+      mincrossStep(0);
+      logQuickModeStep(2);
+      mincrossStep(1);
+      logQuickModeStep(3);
+    } else {
+      runDotMincrossProcess(startPass, endPass, maxIter, minQuit, optimal);
+    }
+
+    rootCrossRank.transpose(false);
+    rootCrossRank.syncChildOrder();
+  }
+
+  private void logQuickModeStep(int time) {
+    if (log.isDebugEnabled()) {
+      CrossSnapshot crossSnapshot = rootCrossRank.crossSnapshot();
+      log.debug("trying {} best_cross {}", time, crossSnapshot.getCrossNum());
+    }
+  }
+
+  private CrossSnapshot runDotMincrossProcess(int startPass, int endPass, int maxIter, int minQuit, CrossSnapshot optimal) {
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
-        maxThisPass = Math.min(4, maxIter);
-
-        if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
-            || optimal.container().haveChildCluster())) {
-          BasicCrossRank repl = optimal.clone();
-
-          tmp = rootCrossRank.getBasicCrossRank();
-          rootCrossRank.setBasicCrossRank(repl);
-          if (minCrossNum >= (currentNum = rootCrossRank.currentCrossNum())) {
-            optimal = repl;
-          } else {
-            rootCrossRank.setBasicCrossRank(tmp);
-          }
-        }
-
-        flatOrder(optimal);
-        rootCrossRank.setBasicCrossRank(optimal);
-        minCrossNum = rootCrossRank.currentCrossNum();
-      } else {
-        maxThisPass = maxIter;
+        flatOrder(optimal.getCrossRank());
+        optimal = rootCrossRank.crossSnapshot();
       }
 
-      optimal = optimal.clone();
-
-      trying = 0;
-      for (int i = 0; i < maxThisPass; i++) {
+      int trying = 0;
+      for (int i = 0; i < maxIter; i++) {
         if (log.isDebugEnabled()) {
-          log.debug("pass {} iter {} trying {} cur_cross {} best_cross {}", pass, i, trying,
-                    currentNum, minCrossNum);
+          log.debug("pass {} iter {} trying {} best_cross {}", pass, i, trying, optimal.getCrossNum());
         }
 
-        if (trying++ >= minQuit || minCrossNum == 0) {
+        if (trying++ >= minQuit || optimal.getCrossNum() == 0) {
           break;
         }
 
+        int preOptimalCrossNum = optimal.getCrossNum();
         mincrossStep(i);
+        optimal = rootCrossRank.crossSnapshot();
 
-        // If the number of intersections is less than the minimum number of
-        // intersections at this time, update the optimal sort.
-        if (minCrossNum > (currentNum = rootCrossRank.currentCrossNum())) {
-          optimal = rootCrossRank.getBasicCrossRank().clone();
-
-          if (currentNum < CONVERGENCE * minCrossNum) {
-            trying = 0;
-          }
-
-          minCrossNum = currentNum;
+        if (preOptimalCrossNum * CONVERGENCE <= optimal.getCrossNum()) {
+            trying++;
         }
       }
 
-      if (minCrossNum == 0) {
+      if (optimal.getCrossNum() == 0) {
         break;
       }
     }
-
-    rootCrossRank.setBasicCrossRank(optimal);
-    rootCrossRank.transpose(false);
-    rootCrossRank.syncChildOrder();
+    return optimal;
   }
 
   private void mincrossStep(int iterNum) {
@@ -537,16 +586,11 @@ class MinCross {
     rootCrossRank.transpose(iterNum % 4 >= 2);
   }
 
-  private int getCrossNum(BasicCrossRank basicCrossRank) {
-    BasicCrossRank tmp = rootCrossRank.getBasicCrossRank();
-    rootCrossRank.setBasicCrossRank(basicCrossRank);
-    int n = rootCrossRank.currentCrossNum();
-    rootCrossRank.setBasicCrossRank(tmp);
-    return n;
-  }
-
   private void flatOrder(CrossRank crossRank) {
     SameRankAdjacentRecord sameRankAdjacentRecord = rootCrossRank.getSameRankAdjacentRecord();
+    if (sameRankAdjacentRecord == null) {
+      return;
+    }
 
     int[] no = {0};
     int connectNo = 0;
@@ -558,11 +602,12 @@ class MinCross {
       for (int j = 0; j < crossRank.rankSize(i); j++) {
         DNode node = crossRank.getNode(i, j);
 
-        if (mark.contains(node) || (sameRankAdjacentRecord != null
-            && sameRankAdjacentRecord.haveIn(node))) {
+        if (mark.contains(node) || sameRankAdjacentRecord.haveIn(node)) {
           continue;
         }
 
+        rootCrossRank.setCacheExpired(j - 1);
+        rootCrossRank.setCacheExpired(j);
         postOrder(connectNo++, no, node, mark, postOrderRecord);
       }
     }
@@ -579,7 +624,7 @@ class MinCross {
       Integer rightPost = postOrderRecord.get(right).getValue();
 
       return rightPost.compareTo(leftPost);
-    });
+    }, true);
   }
 
   private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,
@@ -831,21 +876,16 @@ class MinCross {
       Comparator<DNode> comparator = (l, r) -> {
         ComOrder lc = nodeComOrderMap.get(l);
         ComOrder rc = nodeComOrderMap.get(r);
-        if (lc != rc) {
-          return lc.compareTo(rc);
-        }
-        int li = crossRank.getRankIndex(l);
-        int ri = l.getRankIndex();
-        return Integer.compare(li, ri);
+        return lc.compareTo(rc);
       };
-      crossRank.sort(comparator);
+      crossRank.sort(comparator, false);
     }
 
     private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
       mark(from, component);
 
       int idx = rankAccessIndex.getOrDefault(from.getRank(), 0);
-      crossRank.exchange(from, crossRank.getNode(from.getRank(), idx));
+      crossRank.exchange(from, crossRank.getNode(from.getRank(), idx), false);
       rankAccessIndex.put(from.getRank(), idx + 1);
 
       GraphContainer fromContainer = dotAttachment
@@ -978,8 +1018,8 @@ class MinCross {
     }
 
     private int lineComp(DLine left, DLine right, DNode node, DrawGraph drawGraph) {
-      double leftComNo = PortHelper.portCompareNo(left.getLine(), node, drawGraph);
-      double rightComNo = PortHelper.portCompareNo(right.getLine(), node, drawGraph);
+      double leftComNo = PortHelper.portCompareNo(left.getLineDrawProp(), node, drawGraph);
+      double rightComNo = PortHelper.portCompareNo(right.getLineDrawProp(), node, drawGraph);
       return Double.compare(leftComNo, rightComNo);
     }
   }
@@ -996,8 +1036,8 @@ class MinCross {
 
     void addEdge(DLine dLine, DrawGraph drawGraph) {
       this.addEdge(dLine);
-      markNodeHavePort(dLine.getLine(), dLine.from(), drawGraph, false);
-      markNodeHavePort(dLine.getLine(), dLine.to(), drawGraph, true);
+      markNodeHavePort(dLine.getLineDrawProp(), dLine.from(), drawGraph, false);
+      markNodeHavePort(dLine.getLineDrawProp(), dLine.to(), drawGraph, true);
     }
 
     boolean inHavePort(DNode node) {
@@ -1016,7 +1056,7 @@ class MinCross {
       return inOrOutHavePort != null && inOrOutHavePort.outHavePort;
     }
 
-    private void markNodeHavePort(Line line, DNode node, DrawGraph drawGraph, boolean isIn) {
+    private void markNodeHavePort(LineDrawProp line, DNode node, DrawGraph drawGraph, boolean isIn) {
       double compareNo = PortHelper.portCompareNo(line, node, drawGraph);
       if (compareNo == 0) {
         return;

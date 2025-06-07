@@ -60,4 +60,13 @@ public abstract class AbstractUndirectedEdge<V, E extends AbstractUndirectedEdge
   public int hashCode() {
     return super.hashCode() + AbstractUndirectedEdge.class.hashCode();
   }
+
+  @Override
+  public String toString() {
+    return "AbstractUndirectedEdge{" +
+        "left=" + left +
+        ", right=" + right +
+        ", weight=" + weight +
+        '}';
+  }
 }

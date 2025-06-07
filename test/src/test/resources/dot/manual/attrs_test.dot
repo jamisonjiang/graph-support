@@ -1,6 +1,5 @@
 digraph G {
   psvg=t
-  layout=dot
   size="7"
     label=<<TABLE>
     <TR>
