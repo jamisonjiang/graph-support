@@ -29,7 +29,9 @@ public class DotCasesTest extends GraphvizVisual {
 
   @Test
   public void testCase() throws IOException {
-    String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
+    String dot = DocumentUtils.getDotTestFile("/manual/case19.dot");
     Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
     visual(graphviz);
   }

@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -49,7 +50,7 @@ class RootCrossRank implements CrossRank {
   private final EdgeDedigraph<DNode, DLine> digraphProxy;
 
   // Cross Number Cache
-  private final Map<Integer, RankCrossCache> rankCrossCacheMap;
+  private CrossCache crossCache;
 
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
@@ -60,7 +61,7 @@ class RootCrossRank implements CrossRank {
     this.drawGraph = drawGraph;
     this.root = new BasicCrossRank(drawGraph.getGraphviz());
     this.digraphProxy = new DedirectedEdgeGraph<>();
-    this.rankCrossCacheMap = new HashMap<>();
+    this.crossCache = new CrossCache();
     this.clusterMerge = clusterMerge;
   }
 
@@ -70,10 +71,19 @@ class RootCrossRank implements CrossRank {
     this.drawGraph = drawGraph;
     this.root = new BasicCrossRank(drawGraph.getGraphviz());
     this.digraphProxy = digraphProxy;
-    this.rankCrossCacheMap = new HashMap<>();
+    this.crossCache = new CrossCache();
     for (DNode node : digraphProxy) {
       addNode(node, Boolean.FALSE);
     }
+  }
+
+  void updateCross(CrossSnapshot crossSnapshot) {
+    if (Objects.isNull(crossSnapshot)) {
+      return;
+    }
+
+    setBasicCrossRank(crossSnapshot.crossRank);
+    this.crossCache = crossSnapshot.crossCache;
   }
 
   void setBasicCrossRank(BasicCrossRank basicCrossRank) {
@@ -82,13 +92,20 @@ class RootCrossRank implements CrossRank {
     }
     this.childCrossRank = basicCrossRank;
 
-    setCacheExpired();
+    for (int i = basicCrossRank.minRank() - 1; i < basicCrossRank.maxRank(); i++) {
+      setCacheExpired(i);
+    }
   }
 
   void setCacheExpired() {
     for (int i = minRank(); i <= maxRank(); i++) {
       setCacheExpired(i);
     }
+    crossCache.setCacheExpired();
+  }
+
+  void setCacheExpired(int rank) {
+    crossCache.setCacheExpired(rank);
   }
 
   void setSameRankAdjacentRecord(
@@ -365,7 +382,6 @@ class RootCrossRank implements CrossRank {
   }
 
   int currentCrossNum() {
-    setCacheExpired();
     int num = 0;
     for (int i = minRank(); i <= maxRank(); i++) {
       RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
@@ -379,6 +395,41 @@ class RootCrossRank implements CrossRank {
       }
     }
     return num;
+  }
+
+  CrossSnapshot crossSnapshot() {
+    return cacheCrossNum(getBasicCrossRank());
+  }
+
+  CrossSnapshot cacheCrossNum(BasicCrossRank basicCrossRank) {
+    BasicCrossRank originalBasicRank = getBasicCrossRank();
+    CrossCache originalCache = this.crossCache;
+
+    if (basicCrossRank == originalBasicRank) {
+      return new CrossSnapshot(originalCache, originalBasicRank);
+    }
+
+    CrossCache newCache = new CrossCache(crossCache);
+    this.crossCache = newCache;
+    setBasicCrossRank(basicCrossRank);
+
+    int num = 0;
+    for (int i = minRank(); i <= maxRank(); i++) {
+      RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
+
+      if (rankCrossCache.effective) {
+        num += rankCrossCache.crossNum;
+      } else {
+        rankCrossCache.crossNum = computeCrossNum(i);
+        rankCrossCache.effective = true;
+        num += rankCrossCache.crossNum;
+      }
+    }
+    newCache.crossNum = num;
+
+    setBasicCrossRank(originalBasicRank);
+    this.crossCache = originalCache;
+    return new CrossSnapshot(newCache, basicCrossRank);
   }
 
   // ----------------------------------------- private ---------------------------------------------
@@ -475,8 +526,8 @@ class RootCrossRank implements CrossRank {
     int[] rightCrossRecord = new int[3];
 
     int rv = 0;
-
-    for (int i = 0; i < calcCrossRank().rankSize(rank) - 1; i++) {
+    int rankSize = calcCrossRank().rankSize(rank);
+    for (int i = 0; i < rankSize - 1; i++) {
       DNode v = calcCrossRank().getNode(rank, i);
       DNode w = calcCrossRank().getNode(rank, i + 1);
 
@@ -505,22 +556,6 @@ class RootCrossRank implements CrossRank {
     return rv;
   }
 
-
-  private void setCacheExpired(int rank) {
-    RankCrossCache rankCrossCache = rankCrossCacheMap.get(rank);
-    if (rankCrossCache == null) {
-      return;
-    }
-
-    rankCrossCache.effective = false;
-
-    rankCrossCache = rankCrossCacheMap.get(rank - 1);
-    if (rankCrossCache == null) {
-      return;
-    }
-
-    rankCrossCache.effective = false;
-  }
 
   private boolean canExchange(DNode left, DNode right) {
     if (possibleClusterIntersect(left, right)) {
@@ -604,7 +639,7 @@ class RootCrossRank implements CrossRank {
     int right;
 
     // Number of times to traverse nodes
-    for (int i = rank; i <= endIndex; i++) {
+//    for (int i = rank; i <= endIndex; i++) {
       left = 0;
 
       while (left < endIndex) {
@@ -649,7 +684,7 @@ class RootCrossRank implements CrossRank {
 
         left = right;
       }
-    }
+//    }
   }
 
   private void crossing(DNode left, DNode right, int[] result) {
@@ -665,6 +700,13 @@ class RootCrossRank implements CrossRank {
     // If left and right are in order, calculate the number of intersections at the current position,
     // otherwise you need to exchange the two vertices to calculate
     boolean needExchange = leftSortIndex > rightSortIndex;
+
+    if (!needExchange) {
+      RankCrossCache rankCrossCache = crossCache.getRankCacheIfAbsent(left.getRank());
+      if (rankCrossCache.effective) {
+        return;
+      }
+    }
 
     if (needExchange) {
       exchange(left, right);
@@ -684,10 +726,14 @@ class RootCrossRank implements CrossRank {
   }
 
   private RankCrossCache getRankCacheIfAbsent(int rank) {
-    return rankCrossCacheMap.computeIfAbsent(rank, r -> new RankCrossCache());
+    return crossCache.getRankCacheIfAbsent(rank);
   }
 
   private int computeCrossNum(int rank) {
+    if (rank == maxRank()) {
+      return 0;
+    }
+
     int crossNum = 0;
     int rankSize = rankSize(rank);
     for (int i = 0; i < rankSize; i++) {
@@ -828,7 +874,65 @@ class RootCrossRank implements CrossRank {
     GraphContainer container();
   }
 
-  private static class RankCrossCache implements Cloneable {
+  class CrossCache {
+
+    private int crossNum;
+
+    private Map<Integer, RankCrossCache> rankCrossCacheMap;
+
+    public CrossCache() {
+      this.rankCrossCacheMap = new HashMap<>();
+    }
+
+    CrossCache(CrossCache crossCache) {
+      if (crossCache == null) {
+        return;
+      }
+
+      if (crossCache.rankCrossCacheMap == null) {
+        return;
+      }
+
+      this.rankCrossCacheMap = new HashMap<>(crossCache.rankCrossCacheMap.size());
+      for (Entry<Integer, RankCrossCache> entry : crossCache.rankCrossCacheMap.entrySet()) {
+        Integer rank = entry.getKey();
+        RankCrossCache rankCache = entry.getValue();
+        this.rankCrossCacheMap.put(rank, rankCache.clone());
+      }
+    }
+
+    void setCacheExpired() {
+      for (int i = minRank(); i <= maxRank(); i++) {
+        setCacheExpired(i);
+      }
+    }
+
+    void setCacheExpired(int rank) {
+      RankCrossCache rankCrossCache = rankCrossCacheMap.get(rank);
+      if (rankCrossCache == null) {
+        return;
+      }
+
+      rankCrossCache.effective = false;
+
+      rankCrossCache = rankCrossCacheMap.get(rank - 1);
+      if (rankCrossCache == null) {
+        return;
+      }
+
+      rankCrossCache.effective = false;
+    }
+
+    RankCrossCache getRankCacheIfAbsent(int rank) {
+      return rankCrossCacheMap.computeIfAbsent(rank, r -> new RankCrossCache());
+    }
+
+    int getCrossNum() {
+      return crossNum;
+    }
+  }
+
+  static class RankCrossCache implements Cloneable {
 
     private int crossNum;
 
@@ -847,6 +951,31 @@ class RootCrossRank implements CrossRank {
         crossCache.effective = effective;
         return crossCache;
       }
+    }
+  }
+
+  static class CrossSnapshot {
+    private final CrossCache crossCache;
+
+    private final BasicCrossRank crossRank;
+
+    public CrossSnapshot(CrossCache crossCache, BasicCrossRank crossRank) {
+      Objects.requireNonNull(crossCache);
+      Objects.requireNonNull(crossRank);
+      this.crossCache = crossCache;
+      this.crossRank = crossRank;
+    }
+
+    int getCrossNum() {
+      return crossCache.getCrossNum();
+    }
+
+    CrossCache getCrossCache() {
+      return crossCache;
+    }
+
+    BasicCrossRank getCrossRank() {
+      return crossRank;
     }
   }
 }
