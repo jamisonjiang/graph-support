@@ -195,6 +195,24 @@ abstract class AdjVertexGraph<V> extends AbstractBaseGraph.AbstractVertexOpBase<
     return adjacent(v, false);
   }
 
+  /**
+   * Performs the given action for each adjacent vertex of the specified vertex until all adjacent
+   * vertices have been processed or the action throws an exception. This method uses Bag#forEach
+   * directly to avoid creating intermediate iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    VertexBag<V> bag = (VertexBag<V>) adjacent(v, false);
+    if (bag != VertexBag.EMPTY) {
+      bag.forEach(action);
+    }
+  }
+
   @Override
   public void forEach(Consumer<? super V> action) {
     Objects.requireNonNull(action);

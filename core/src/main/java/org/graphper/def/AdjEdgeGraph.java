@@ -191,6 +191,24 @@ abstract class AdjEdgeGraph<V, E extends BaseEdge<V, E>> extends
   }
 
   /**
+   * Performs the given action for each adjacent edge of the specified vertex until all adjacent
+   * edges have been processed or the action throws an exception. This method uses Bag#forEach
+   * directly to avoid creating intermediate iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    EdgeBag<V, E> bag = (EdgeBag<V, E>) adjacent(v, false);
+    if (bag != EdgeBag.EMPTY) {
+      bag.forEach(action);
+    }
+  }
+
+  /**
    * Returns all edges in the graph.
    *
    * @return all edges in the graph

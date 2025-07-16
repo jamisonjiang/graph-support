@@ -18,6 +18,7 @@ package org.graphper.def;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Bidirectional directed graph for vertex operations.
@@ -173,5 +174,37 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
   @Override
   public Iterable<V> outAdjacent(Object v) {
     return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+  }
+
+  /**
+   * Performs the given action for each incoming adjacent vertex of the specified vertex until all
+   * incoming adjacent vertices have been processed or the action throws an exception. This method
+   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachInAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    reDigraph.forEachAdjacent(v, action);
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
+   * outgoing adjacent vertices have been processed or the action throws an exception. This method
+   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachOutAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    digraph.forEachAdjacent(v, action);
   }
 }

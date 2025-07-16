@@ -16,6 +16,9 @@
 
 package org.graphper.def;
 
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
  * The de-directed graph that operates in the vertex dimension.
  *
@@ -71,4 +74,36 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
    * @return all outgoing adjacent vertices
    */
   Iterable<V> outAdjacent(Object v);
+
+  /**
+   * Performs the given action for each incoming adjacent vertex of the specified vertex until all
+   * incoming adjacent vertices have been processed or the action throws an exception. This method
+   * avoids creating intermediate iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachInAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    for (V adjacent : inAdjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
+   * outgoing adjacent vertices have been processed or the action throws an exception. This method
+   * avoids creating intermediate iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachOutAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    for (V adjacent : outAdjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
 }

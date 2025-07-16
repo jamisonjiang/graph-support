@@ -324,6 +324,41 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
     return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
   }
 
+  /**
+   * Performs the given action for each incoming adjacent edge of the specified vertex until all
+   * incoming adjacent edges have been processed or the action throws an exception. This method
+   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachInAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    // Use thread-local reusable consumer to avoid creating new consumer objects
+    ReverseEdgeConsumer<V, E> wrapper = (ReverseEdgeConsumer<V, E>) THREAD_LOCAL_CONSUMER.get();
+    wrapper.setDelegate(action);
+    reDigraph.forEachAdjacent(v, wrapper);
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent edge of the specified vertex until all
+   * outgoing adjacent edges have been processed or the action throws an exception. This method
+   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachOutAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    digraph.forEachAdjacent(v, action);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -353,6 +388,24 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
       return v;
     });
   }
+
+  // Reusable consumer wrapper to avoid GC pressure
+  private static class ReverseEdgeConsumer<V, E extends DirectedEdge<V, E>> implements Consumer<ReverseEdge<V, E>> {
+    private Consumer<E> delegate;
+    
+    public void setDelegate(Consumer<E> delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void accept(ReverseEdge<V, E> reverseEdge) {
+      delegate.accept(reverseEdge.edge);
+    }
+  }
+  
+  // Thread-local reusable consumer to avoid synchronization overhead
+  private static final ThreadLocal<ReverseEdgeConsumer<?, ?>> THREAD_LOCAL_CONSUMER = 
+      ThreadLocal.withInitial(ReverseEdgeConsumer::new);
 
   // ------------------------------------------- Subclass -------------------------------------------
 

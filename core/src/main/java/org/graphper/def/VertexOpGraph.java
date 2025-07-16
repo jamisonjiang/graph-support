@@ -16,6 +16,9 @@
 
 package org.graphper.def;
 
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
  * The graph that operates in the vertex dimension, which means that an edge cannot carry any
  * information other than two vertices.
@@ -59,4 +62,20 @@ public interface VertexOpGraph<V> extends BaseGraph<V> {
    * @return all adjacent vertices
    */
   Iterable<V> adjacent(Object v);
+
+  /**
+   * Performs the given action for each adjacent vertex of the specified vertex until all adjacent
+   * vertices have been processed or the action throws an exception. This method avoids creating
+   * intermediate iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    for (V adjacent : adjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
 }

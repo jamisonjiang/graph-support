@@ -31,8 +31,10 @@ public class DotCasesTest extends GraphvizVisual {
   public void testCase() throws IOException {
 //    String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
-    String dot = DocumentUtils.getDotTestFile("/manual/case19.dot");
-    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+//    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
+//    String dot = DocumentUtils.getDotTestFile("big_fdp_case.dot");
+//    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+    Graphviz graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
     visual(graphviz);
   }
 
