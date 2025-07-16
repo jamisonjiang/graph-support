@@ -39,6 +39,7 @@ import org.graphper.util.CollectionUtils;
 class RootCrossRank implements CrossRank {
 
   private static final int MIN_CROSS_SCALE = 256;
+
   private final DrawGraph drawGraph;
 
   private final BasicCrossRank root;
@@ -381,21 +382,21 @@ class RootCrossRank implements CrossRank {
     } while (delta >= 1);
   }
 
-  int currentCrossNum() {
-    int num = 0;
-    for (int i = minRank(); i <= maxRank(); i++) {
-      RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
-
-      if (rankCrossCache.effective) {
-        num += rankCrossCache.crossNum;
-      } else {
-        rankCrossCache.crossNum = computeCrossNum(i);
-        rankCrossCache.effective = true;
-        num += rankCrossCache.crossNum;
-      }
-    }
-    return num;
-  }
+//  int currentCrossNum() {
+//    int num = 0;
+//    for (int i = minRank(); i <= maxRank(); i++) {
+//      RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
+//
+//      if (rankCrossCache.effective) {
+//        num += rankCrossCache.crossNum;
+//      } else {
+//        rankCrossCache.crossNum = computeCrossNum(i);
+//        rankCrossCache.effective = true;
+//        num += rankCrossCache.crossNum;
+//      }
+//    }
+//    return num;
+//  }
 
   CrossSnapshot crossSnapshot() {
     return cacheCrossNum(getBasicCrossRank());
@@ -406,6 +407,10 @@ class RootCrossRank implements CrossRank {
     CrossCache originalCache = this.crossCache;
 
     if (basicCrossRank == originalBasicRank) {
+      if (!this.crossCache.isEffective()) {
+        crossNum(originalCache);
+      }
+
       return new CrossSnapshot(originalCache, originalBasicRank);
     }
 
@@ -413,9 +418,17 @@ class RootCrossRank implements CrossRank {
     this.crossCache = newCache;
     setBasicCrossRank(basicCrossRank);
 
+    crossNum(newCache);
+
+    setBasicCrossRank(originalBasicRank);
+    this.crossCache = originalCache;
+    return new CrossSnapshot(newCache, basicCrossRank);
+  }
+
+  private void crossNum(CrossCache cache) {
     int num = 0;
     for (int i = minRank(); i <= maxRank(); i++) {
-      RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
+      RankCrossCache rankCrossCache = cache.getRankCacheIfAbsent(i);
 
       if (rankCrossCache.effective) {
         num += rankCrossCache.crossNum;
@@ -425,11 +438,7 @@ class RootCrossRank implements CrossRank {
         num += rankCrossCache.crossNum;
       }
     }
-    newCache.crossNum = num;
-
-    setBasicCrossRank(originalBasicRank);
-    this.crossCache = originalCache;
-    return new CrossSnapshot(newCache, basicCrossRank);
+    cache.crossNum = num;
   }
 
   // ----------------------------------------- private ---------------------------------------------
@@ -546,16 +555,30 @@ class RootCrossRank implements CrossRank {
       if (leftCrossRecord[2] > rightCrossRecord[2]
           || (leftCrossRecord[2] > 0 && reverse && leftCrossRecord[2] == rightCrossRecord[2])
       ) {
-        rv += (leftCrossRecord[2] - rightCrossRecord[2]);
+        int delta = leftCrossRecord[2] - rightCrossRecord[2];
+        rv += delta;
         exchange(v, w);
 
-        setCacheExpired(rank);
+//        setCacheExpired(rank);
+        updateRankCache(v.getRank() - 1, rightCrossRecord[0] - leftCrossRecord[0]);
+        updateRankCache(v.getRank(), rightCrossRecord[1] - leftCrossRecord[1]);
+        crossCache.crossNum -= delta;
       }
     }
 
     return rv;
   }
 
+  private void updateRankCache(int rank, int delta) {
+    if (rank < minRank() || delta == 0) {
+      return;
+    }
+
+    RankCrossCache rankCache = crossCache.getRankCacheIfAbsent(rank);
+    if (rankCache.effective) {
+      rankCache.crossNum += delta;
+    }
+  }
 
   private boolean canExchange(DNode left, DNode right) {
     if (possibleClusterIntersect(left, right)) {
@@ -701,13 +724,6 @@ class RootCrossRank implements CrossRank {
     // otherwise you need to exchange the two vertices to calculate
     boolean needExchange = leftSortIndex > rightSortIndex;
 
-    if (!needExchange) {
-      RankCrossCache rankCrossCache = crossCache.getRankCacheIfAbsent(left.getRank());
-      if (rankCrossCache.effective) {
-        return;
-      }
-    }
-
     if (needExchange) {
       exchange(left, right);
     }
@@ -723,10 +739,6 @@ class RootCrossRank implements CrossRank {
     if (needExchange) {
       exchange(left, right);
     }
-  }
-
-  private RankCrossCache getRankCacheIfAbsent(int rank) {
-    return crossCache.getRankCacheIfAbsent(rank);
   }
 
   private int computeCrossNum(int rank) {
@@ -929,6 +941,20 @@ class RootCrossRank implements CrossRank {
 
     int getCrossNum() {
       return crossNum;
+    }
+
+    boolean isEffective() {
+      if (rankCrossCacheMap.isEmpty()) {
+        return false;
+      }
+
+      for (RankCrossCache cache : rankCrossCacheMap.values()) {
+        if (!cache.effective) {
+          return false;
+        }
+      }
+
+      return true;
     }
   }
 

@@ -92,6 +92,7 @@ class MinCross {
     syncRankOrder();
 
     this.rootCrossRank = null;
+    this.clusterExpand = null;
   }
 
   public EdgeDedigraph<DNode, DLine> getDigraphProxy() {
@@ -499,7 +500,7 @@ class MinCross {
 //      optimal = optimal.clone();
 
       trying = 0;
-      maxThisPass = maxIter;
+      maxThisPass = 6;
       for (int i = 0; i < maxThisPass; i++) {
         if (log.isDebugEnabled()) {
           log.debug("pass {} iter {} trying {} best_cross {}", pass, i, trying, optimal.getCrossNum());
@@ -823,12 +824,12 @@ class MinCross {
       Comparator<DNode> comparator = (l, r) -> {
         ComOrder lc = nodeComOrderMap.get(l);
         ComOrder rc = nodeComOrderMap.get(r);
-        if (lc != rc) {
-          return lc.compareTo(rc);
-        }
-        int li = crossRank.getRankIndex(l);
-        int ri = l.getRankIndex();
-        return Integer.compare(li, ri);
+        return lc.compareTo(rc);
+//        if (lc != rc) {
+//        }
+//        int li = crossRank.getRankIndex(l);
+//        int ri = l.getRankIndex();
+//        return Integer.compare(li, ri);
       };
       crossRank.sort(comparator);
     }
