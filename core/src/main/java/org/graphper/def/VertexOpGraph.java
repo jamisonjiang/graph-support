@@ -65,8 +65,7 @@ public interface VertexOpGraph<V> extends BaseGraph<V> {
 
   /**
    * Performs the given action for each adjacent vertex of the specified vertex until all adjacent
-   * vertices have been processed or the action throws an exception. This method avoids creating
-   * intermediate iterable objects, reducing GC pressure.
+   * vertices have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each adjacent vertex

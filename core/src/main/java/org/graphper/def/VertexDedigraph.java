@@ -77,8 +77,7 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
 
   /**
    * Performs the given action for each incoming adjacent vertex of the specified vertex until all
-   * incoming adjacent vertices have been processed or the action throws an exception. This method
-   * avoids creating intermediate iterable objects, reducing GC pressure.
+   * incoming adjacent vertices have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each incoming adjacent vertex
@@ -93,8 +92,7 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
 
   /**
    * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
-   * outgoing adjacent vertices have been processed or the action throws an exception. This method
-   * avoids creating intermediate iterable objects, reducing GC pressure.
+   * outgoing adjacent vertices have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each outgoing adjacent vertex

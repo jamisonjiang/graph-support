@@ -76,8 +76,7 @@ public interface EdgeDedigraph<V, E extends DirectedEdge<V, E>>
 
   /**
    * Performs the given action for each incoming adjacent edge of the specified vertex until all
-   * incoming adjacent edges have been processed or the action throws an exception. This method
-   * avoids creating intermediate iterable objects, reducing GC pressure.
+   * incoming adjacent edges have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each incoming adjacent edge
@@ -92,8 +91,7 @@ public interface EdgeDedigraph<V, E extends DirectedEdge<V, E>>
 
   /**
    * Performs the given action for each outgoing adjacent edge of the specified vertex until all
-   * outgoing adjacent edges have been processed or the action throws an exception. This method
-   * avoids creating intermediate iterable objects, reducing GC pressure.
+   * outgoing adjacent edges have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each outgoing adjacent edge

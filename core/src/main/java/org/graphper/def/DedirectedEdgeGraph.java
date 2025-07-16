@@ -335,25 +335,19 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    * @throws NullPointerException if the specified action is null
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void forEachInAdjacent(Object v, Consumer<E> action) {
     Objects.requireNonNull(action);
-    
+
     // Magic optimization: directly access Bag to avoid consumer creation
-    if (reDigraph instanceof AdjEdgeGraph) {
-      AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>> bag = 
-          (AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>>) reDigraph.adjacent(v);
-      if (bag != AdjEdgeGraph.EdgeBag.EMPTY) {
-        // Primitive linked list iteration to avoid iterator object creation
-        Bag.Node<ReverseEdge<V, E>> current = bag.header;
-        while (current != null) {
-          action.accept(current.value.edge);
-          current = current.next;
-        }
+    AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>> bag =
+        (AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>>) reDigraph.adjacent(v);
+    if (bag != AdjEdgeGraph.EdgeBag.EMPTY) {
+      // Primitive linked list iteration to avoid iterator object creation
+      Bag.Node<ReverseEdge<V, E>> current = bag.header;
+      while (current != null) {
+        action.accept(current.value.edge);
+        current = current.next;
       }
-    } else {
-      // Fallback to default implementation
-      reDigraph.forEachAdjacent(v, reverseEdge -> action.accept(reverseEdge.edge));
     }
   }
 
@@ -368,26 +362,9 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    * @throws NullPointerException if the specified action is null
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void forEachOutAdjacent(Object v, Consumer<E> action) {
     Objects.requireNonNull(action);
-    
-    // Magic optimization: directly access Bag to avoid consumer creation
-    if (digraph instanceof AdjEdgeGraph) {
-      AdjEdgeGraph.EdgeBag<V, E> bag = 
-          (AdjEdgeGraph.EdgeBag<V, E>) digraph.adjacent(v);
-      if (bag != AdjEdgeGraph.EdgeBag.EMPTY) {
-        // Primitive linked list iteration to avoid iterator object creation
-        Bag.Node<E> current = bag.header;
-        while (current != null) {
-          action.accept(current.value);
-          current = current.next;
-        }
-      }
-    } else {
-      // Fallback to default implementation
-      digraph.forEachAdjacent(v, action);
-    }
+    digraph.forEachAdjacent(v, action);
   }
 
   @Override

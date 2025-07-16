@@ -64,8 +64,7 @@ public interface EdgeOpGraph<V, E extends BaseEdge<V, E>> extends BaseGraph<V> {
 
   /**
    * Performs the given action for each adjacent edge of the specified vertex until all adjacent
-   * edges have been processed or the action throws an exception. This method avoids creating
-   * intermediate iterable objects, reducing GC pressure.
+   * edges have been processed or the action throws an exception.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each adjacent edge
