@@ -187,9 +187,26 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * @throws NullPointerException if the specified action is null
    */
   @Override
+  @SuppressWarnings("unchecked")
   public void forEachInAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
-    reDigraph.forEachAdjacent(v, action);
+    
+    // Magic optimization: directly access Bag to avoid consumer creation
+    if (reDigraph instanceof AdjVertexGraph) {
+      AdjVertexGraph.VertexBag<V> bag = 
+          (AdjVertexGraph.VertexBag<V>) reDigraph.adjacent(v);
+      if (bag != AdjVertexGraph.VertexBag.EMPTY) {
+        // Primitive linked list iteration to avoid iterator object creation
+        Bag.Node<V> current = bag.header;
+        while (current != null) {
+          action.accept(current.value);
+          current = current.next;
+        }
+      }
+    } else {
+      // Fallback to default implementation
+      reDigraph.forEachAdjacent(v, action);
+    }
   }
 
   /**
@@ -203,8 +220,25 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * @throws NullPointerException if the specified action is null
    */
   @Override
+  @SuppressWarnings("unchecked")
   public void forEachOutAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
-    digraph.forEachAdjacent(v, action);
+    
+    // Magic optimization: directly access Bag to avoid consumer creation
+    if (digraph instanceof AdjVertexGraph) {
+      AdjVertexGraph.VertexBag<V> bag = 
+          (AdjVertexGraph.VertexBag<V>) digraph.adjacent(v);
+      if (bag != AdjVertexGraph.VertexBag.EMPTY) {
+        // Primitive linked list iteration to avoid iterator object creation
+        Bag.Node<V> current = bag.header;
+        while (current != null) {
+          action.accept(current.value);
+          current = current.next;
+        }
+      }
+    } else {
+      // Fallback to default implementation
+      digraph.forEachAdjacent(v, action);
+    }
   }
 }

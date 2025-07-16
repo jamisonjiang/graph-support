@@ -278,7 +278,7 @@ class Bag<V, E> implements Iterable<E>, Serializable {
   /**
    * A doubly linked list for retrieving all adjacent vertices of a vertex
    */
-  private static final class Node<E> implements Serializable {
+  static final class Node<E> implements Serializable {
 
     private static final long serialVersionUID = 6069018214912306217L;
 

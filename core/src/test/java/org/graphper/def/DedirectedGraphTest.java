@@ -268,4 +268,210 @@ public class DedirectedGraphTest {
 
         });
   }
+
+  @Test
+  public void testForEachAdjacent() {
+    // Setup test graph
+    digraph.addEdge(n1, n2);
+    digraph.addEdge(n2, n3);
+    digraph.addEdge(n3, n1);
+    digraph.addEdge(n1, n4);
+    
+    // Test forEachAdjacent for n1 (should include both in and out adjacent)
+    java.util.List<GNode> adjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachAdjacent(n1, adjacentNodes::add);
+    
+    // n1 should be adjacent to: n2 (out), n4 (out), n3 (in)
+    Assertions.assertEquals(3, adjacentNodes.size());
+    Assertions.assertTrue(adjacentNodes.contains(n2));
+    Assertions.assertTrue(adjacentNodes.contains(n4));
+    Assertions.assertTrue(adjacentNodes.contains(n3));
+    
+    // Test forEachAdjacent for n2 (should include both in and out adjacent)
+    adjacentNodes.clear();
+    digraph.forEachAdjacent(n2, adjacentNodes::add);
+    
+    // n2 should be adjacent to: n3 (out), n1 (in)
+    Assertions.assertEquals(2, adjacentNodes.size());
+    Assertions.assertTrue(adjacentNodes.contains(n3));
+    Assertions.assertTrue(adjacentNodes.contains(n1));
+    
+    // Test forEachAdjacent for non-existent node
+    adjacentNodes.clear();
+    digraph.forEachAdjacent(n7, adjacentNodes::add);
+    Assertions.assertEquals(0, adjacentNodes.size());
+  }
+
+  @Test
+  public void testForEachInAdjacent() {
+    // Setup test graph
+    digraph.addEdge(n1, n2);
+    digraph.addEdge(n2, n3);
+    digraph.addEdge(n3, n1);
+    digraph.addEdge(n4, n1);
+    
+    // Test forEachInAdjacent for n1 (should include only incoming edges)
+    java.util.List<GNode> inAdjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachInAdjacent(n1, inAdjacentNodes::add);
+    
+    // n1 should have incoming edges from: n3, n4
+    Assertions.assertEquals(2, inAdjacentNodes.size());
+    Assertions.assertTrue(inAdjacentNodes.contains(n3));
+    Assertions.assertTrue(inAdjacentNodes.contains(n4));
+    
+    // Test forEachInAdjacent for n2 (should include only incoming edges)
+    inAdjacentNodes.clear();
+    digraph.forEachInAdjacent(n2, inAdjacentNodes::add);
+    
+    // n2 should have incoming edges from: n1
+    Assertions.assertEquals(1, inAdjacentNodes.size());
+    Assertions.assertTrue(inAdjacentNodes.contains(n1));
+    
+    // Test forEachInAdjacent for node with no incoming edges
+    inAdjacentNodes.clear();
+    digraph.forEachInAdjacent(n4, inAdjacentNodes::add);
+    Assertions.assertEquals(0, inAdjacentNodes.size());
+    
+    // Test forEachInAdjacent for non-existent node
+    inAdjacentNodes.clear();
+    digraph.forEachInAdjacent(n7, inAdjacentNodes::add);
+    Assertions.assertEquals(0, inAdjacentNodes.size());
+  }
+
+  @Test
+  public void testForEachOutAdjacent() {
+    // Setup test graph
+    digraph.addEdge(n1, n2);
+    digraph.addEdge(n1, n3);
+    digraph.addEdge(n2, n4);
+    digraph.addEdge(n3, n4);
+    
+    // Test forEachOutAdjacent for n1 (should include only outgoing edges)
+    java.util.List<GNode> outAdjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachOutAdjacent(n1, outAdjacentNodes::add);
+    
+    // n1 should have outgoing edges to: n2, n3
+    Assertions.assertEquals(2, outAdjacentNodes.size());
+    Assertions.assertTrue(outAdjacentNodes.contains(n2));
+    Assertions.assertTrue(outAdjacentNodes.contains(n3));
+    
+    // Test forEachOutAdjacent for n2 (should include only outgoing edges)
+    outAdjacentNodes.clear();
+    digraph.forEachOutAdjacent(n2, outAdjacentNodes::add);
+    
+    // n2 should have outgoing edges to: n4
+    Assertions.assertEquals(1, outAdjacentNodes.size());
+    Assertions.assertTrue(outAdjacentNodes.contains(n4));
+    
+    // Test forEachOutAdjacent for node with no outgoing edges
+    outAdjacentNodes.clear();
+    digraph.forEachOutAdjacent(n4, outAdjacentNodes::add);
+    Assertions.assertEquals(0, outAdjacentNodes.size());
+    
+    // Test forEachOutAdjacent for non-existent node
+    outAdjacentNodes.clear();
+    digraph.forEachOutAdjacent(n7, outAdjacentNodes::add);
+    Assertions.assertEquals(0, outAdjacentNodes.size());
+  }
+
+  @Test
+  public void testForEachAdjacentNullPointerException() {
+    // Test that null consumer throws NullPointerException
+    Assertions.assertThrows(NullPointerException.class, () -> {
+      digraph.forEachAdjacent(n1, null);
+    });
+    
+    Assertions.assertThrows(NullPointerException.class, () -> {
+      digraph.forEachInAdjacent(n1, null);
+    });
+    
+    Assertions.assertThrows(NullPointerException.class, () -> {
+      digraph.forEachOutAdjacent(n1, null);
+    });
+  }
+
+  @Test
+  public void testForEachAdjacentWithSelfLoop() {
+    // Setup test graph with self-loop
+    digraph.addEdge(n1, n1);
+    digraph.addEdge(n1, n2);
+    
+    // Test forEachAdjacent with self-loop
+    java.util.List<GNode> adjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachAdjacent(n1, adjacentNodes::add);
+    
+    // n1 should be adjacent to: n1 (self-loop appears twice: once as in, once as out), n2 (out)
+    Assertions.assertEquals(3, adjacentNodes.size());
+    long n1Count = adjacentNodes.stream().filter(n -> n.equals(n1)).count();
+    Assertions.assertEquals(2, n1Count); // Self-loop appears twice
+    Assertions.assertTrue(adjacentNodes.contains(n2));
+    
+    // Test forEachInAdjacent with self-loop
+    java.util.List<GNode> inAdjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachInAdjacent(n1, inAdjacentNodes::add);
+    
+    // n1 should have incoming edge from itself
+    Assertions.assertEquals(1, inAdjacentNodes.size());
+    Assertions.assertTrue(inAdjacentNodes.contains(n1));
+    
+    // Test forEachOutAdjacent with self-loop
+    java.util.List<GNode> outAdjacentNodes = new java.util.ArrayList<>();
+    digraph.forEachOutAdjacent(n1, outAdjacentNodes::add);
+    
+    // n1 should have outgoing edges to itself and n2
+    Assertions.assertEquals(2, outAdjacentNodes.size());
+    Assertions.assertTrue(outAdjacentNodes.contains(n1));
+    Assertions.assertTrue(outAdjacentNodes.contains(n2));
+  }
+
+  @Test
+  public void testForEachAdjacentConsistencyWithIterable() {
+    // Setup test graph
+    digraph.addEdge(n1, n2);
+    digraph.addEdge(n2, n3);
+    digraph.addEdge(n3, n1);
+    digraph.addEdge(n4, n1);
+    
+    // Test that forEachAdjacent produces same results as iterating over adjacent()
+    java.util.List<GNode> forEachResult = new java.util.ArrayList<>();
+    java.util.List<GNode> iterableResult = new java.util.ArrayList<>();
+    
+    digraph.forEachAdjacent(n1, forEachResult::add);
+    for (GNode node : digraph.adjacent(n1)) {
+      iterableResult.add(node);
+    }
+    
+    Assertions.assertEquals(iterableResult.size(), forEachResult.size());
+    for (GNode node : iterableResult) {
+      Assertions.assertTrue(forEachResult.contains(node));
+    }
+    
+    // Test forEachInAdjacent consistency
+    forEachResult.clear();
+    iterableResult.clear();
+    
+    digraph.forEachInAdjacent(n1, forEachResult::add);
+    for (GNode node : digraph.inAdjacent(n1)) {
+      iterableResult.add(node);
+    }
+    
+    Assertions.assertEquals(iterableResult.size(), forEachResult.size());
+    for (GNode node : iterableResult) {
+      Assertions.assertTrue(forEachResult.contains(node));
+    }
+    
+    // Test forEachOutAdjacent consistency
+    forEachResult.clear();
+    iterableResult.clear();
+    
+    digraph.forEachOutAdjacent(n1, forEachResult::add);
+    for (GNode node : digraph.outAdjacent(n1)) {
+      iterableResult.add(node);
+    }
+    
+    Assertions.assertEquals(iterableResult.size(), forEachResult.size());
+    for (GNode node : iterableResult) {
+      Assertions.assertTrue(forEachResult.contains(node));
+    }
+  }
 }
