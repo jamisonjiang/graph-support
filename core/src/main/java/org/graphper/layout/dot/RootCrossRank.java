@@ -53,6 +53,9 @@ class RootCrossRank implements CrossRank {
   // Cross Number Cache
   private CrossCache crossCache;
 
+  // Reusable consumer for cross calculations
+  private final CrossCalc crossCalc;
+
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
   private ClusterMerge clusterMerge;
@@ -63,6 +66,7 @@ class RootCrossRank implements CrossRank {
     this.root = new BasicCrossRank(drawGraph.getGraphviz());
     this.digraphProxy = new DedirectedEdgeGraph<>();
     this.crossCache = new CrossCache();
+    this.crossCalc = new CrossCalc();
     this.clusterMerge = clusterMerge;
   }
 
@@ -73,6 +77,7 @@ class RootCrossRank implements CrossRank {
     this.root = new BasicCrossRank(drawGraph.getGraphviz());
     this.digraphProxy = digraphProxy;
     this.crossCache = new CrossCache();
+    this.crossCalc = new CrossCalc();
     for (DNode node : digraphProxy) {
       addNode(node, Boolean.FALSE);
     }
@@ -374,10 +379,19 @@ class RootCrossRank implements CrossRank {
    */
   void transpose(boolean reverse) {
     int delta;
+    int[] leftCrossRecord = new int[3];
+    int[] rightCrossRecord = new int[3];
+
     do {
       delta = 0;
       for (int j = calcCrossRank().minRank(); j <= calcCrossRank().maxRank(); j++) {
-        delta += transposeStep(j, reverse);
+        leftCrossRecord[0] = 0;
+        leftCrossRecord[1] = 0;
+        leftCrossRecord[2] = 0;
+        rightCrossRecord[0] = 0;
+        rightCrossRecord[1] = 0;
+        rightCrossRecord[2] = 0;
+        delta += transposeStep(j, reverse, leftCrossRecord, rightCrossRecord);
       }
     } while (delta >= 1);
   }
@@ -530,9 +544,9 @@ class RootCrossRank implements CrossRank {
     }
   }
 
-  private int transposeStep(int rank, boolean reverse) {
-    int[] leftCrossRecord = new int[3];
-    int[] rightCrossRecord = new int[3];
+  private int transposeStep(int rank, boolean reverse,
+                            int[] leftCrossRecord,
+                            int[] rightCrossRecord) {
 
     int rv = 0;
     int rankSize = calcCrossRank().rankSize(rank);
@@ -771,29 +785,11 @@ class RootCrossRank implements CrossRank {
   }
 
   private int inCross(DNode n, DNode w) {
-    int count = 0;
-    for (DLine l1 : digraphProxy.inAdjacent(n)) {
-      for (DLine l2 : digraphProxy.inAdjacent(w)) {
-        if (isCross(l1, l2)) {
-          count++;
-        }
-      }
-    }
-
-    return count;
+    return crossCalc.inCross(n, w);
   }
 
   private int outCross(DNode n, DNode w) {
-    int count = 0;
-    for (DLine l1 : digraphProxy.outAdjacent(n)) {
-      for (DLine l2 : digraphProxy.outAdjacent(w)) {
-        if (isCross(l1, l2)) {
-          count++;
-        }
-      }
-    }
-
-    return count;
+    return crossCalc.outCross(n, w);
   }
 
   private boolean isCross(DLine line1, DLine line2) {
@@ -1002,6 +998,61 @@ class RootCrossRank implements CrossRank {
 
     BasicCrossRank getCrossRank() {
       return crossRank;
+    }
+  }
+
+  /**
+   * Reusable consumer for cross calculations to avoid creating consumer objects
+   */
+  private class CrossCalc {
+    private DNode w;
+    private int crossNum;
+    private DLine currentL1; // Current line from outer loop
+    
+    private final Consumer<DLine> inOuterConsumer = this::inOuterAccept;
+    private final Consumer<DLine> innerConsumer = this::innerAccept;
+    private final Consumer<DLine> outOuterConsumer = this::outOuterAccept;
+
+    int inCross(DNode n, DNode w) {
+      this.w = w;
+      this.crossNum = 0;
+      
+      digraphProxy.forEachInAdjacent(n, inOuterConsumer);
+      int result = crossNum;
+      reset();
+      return result;
+    }
+
+    int outCross(DNode n, DNode w) {
+      this.w = w;
+      this.crossNum = 0;
+      
+      digraphProxy.forEachOutAdjacent(n, outOuterConsumer);
+      int result = crossNum;
+      reset();
+      return result;
+    }
+
+    private void inOuterAccept(DLine l1) {
+      this.currentL1 = l1;
+      digraphProxy.forEachInAdjacent(w, innerConsumer);
+    }
+
+    private void outOuterAccept(DLine l1) {
+      this.currentL1 = l1;
+      digraphProxy.forEachOutAdjacent(w, innerConsumer);
+    }
+
+    private void innerAccept(DLine l2) {
+      if (isCross(currentL1, l2)) {
+        crossNum++;
+      }
+    }
+
+    void reset() {
+      this.w = null;
+      this.crossNum = 0;
+      this.currentL1 = null;
     }
   }
 }
