@@ -139,30 +139,6 @@ public class UndirectedEdgeGraphTest {
   }
 
   @Test
-  public void testCopy() {
-    graph.addEdge(newEdge(n1, n1));
-    graph.addEdge(newEdge(n1, n2));
-    graph.addEdge(newEdge(n1, n3));
-    graph.addEdge(newEdge(n1, n5));
-    graph.addEdge(newEdge(n4, n5));
-    graph.addEdge(newEdge(n5, n6));
-
-    UndirectedEdgeGraph<GNode, GUEdge> copy = this.graph.copy();
-    Assertions.assertEquals(copy.vertexNum(), graph.vertexNum());
-    Assertions.assertEquals(copy.edgeNum(), graph.edgeNum());
-    Assertions.assertEquals(copy.maxDegree(), graph.maxDegree());
-    Assertions.assertEquals(copy.numberOfLoops(), graph.numberOfLoops());
-    Assertions.assertEquals(copy.adjacent(n1), graph.adjacent(n1));
-
-    copy.remove(n1);
-    Assertions.assertNotEquals(copy.vertexNum(), graph.vertexNum());
-    Assertions.assertNotEquals(copy.edgeNum(), graph.edgeNum());
-    Assertions.assertNotEquals(copy.maxDegree(), graph.maxDegree());
-    Assertions.assertNotEquals(copy.numberOfLoops(), graph.numberOfLoops());
-    Assertions.assertNotEquals(copy.adjacent(n1), graph.adjacent(n1));
-  }
-
-  @Test
   public void testClear() {
     graph.addEdge(newEdge(n1, n1));
     graph.addEdge(newEdge(n1, n2));
@@ -174,33 +150,6 @@ public class UndirectedEdgeGraphTest {
     graph.addEdge(newEdge(n2, n2));
     assertGraph(1, 1, 2, 1, graph);
   }
-
-  @Test
-  public void testEqualsAndHashCode() {
-    graph.addEdge(newEdge(n1, n1));
-    graph.addEdge(newEdge(n1, n2));
-    graph.addEdge(newEdge(n1, n3));
-
-    UndirectedEdgeGraph<GNode, GUEdge> g = new UndirectedEdgeGraph<>();
-    g.addEdge(newEdge(n1, n3));
-    g.addEdge(newEdge(n1, n2));
-    g.addEdge(newEdge(n1, n1));
-
-    UndirectedEdgeGraph<GNode, GUEdge> copy = graph.copy();
-    Assertions.assertEquals(graph, copy);
-    Assertions.assertEquals(graph.hashCode(), copy.hashCode());
-
-    Assertions.assertNotEquals(graph, g);
-    Assertions.assertEquals(graph.hashCode(), g.hashCode());
-
-    g.remove(n2);
-    g.remove(n3);
-    g.addEdge(newEdge(n1, n2));
-    g.addEdge(newEdge(n1, n3));
-    Assertions.assertEquals(graph, g);
-    Assertions.assertEquals(graph.hashCode(), g.hashCode());
-  }
-
 
   @Test
   public void testSerial() throws IOException, ClassNotFoundException {

@@ -28,14 +28,6 @@ import java.util.function.Consumer;
 public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<V> {
 
   /**
-   * Returns a copy of the {@code VertexDedigraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  VertexDedigraph<V> copy();
-
-  /**
    * Returns a de-directed graph reversed from the current directed graph.
    *
    * @return de-directed graph reversed from the current directed graph
@@ -47,12 +39,12 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
    * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
    * current vertex represents an edge.
    *
-   * <p>For a de-directed graph, "adjacent" contains edges in both directions. The function seems
-   * to fall back to the state of {@link org.graphper.def.Graph.VertexGraph#adjacent(Object)} from
-   * {@link org.graphper.def.Digraph.VertexDigraph#adjacent(Object)}.
+   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor vertices 
+   * connected to the specified vertex in both directions (both incoming and outgoing neighbors). 
+   * This is different from single-direction directed graphs where adjacent returns out-neighbors only.
    *
    * @param v vertex to be queried
-   * @return all adjacent vertices
+   * @return all adjacent vertices (both incoming and outgoing neighbors)
    */
   @Override
   Iterable<V> adjacent(Object v);

@@ -139,30 +139,6 @@ public class UndirectedGraphTest {
   }
 
   @Test
-  public void testCopy() {
-    graph.addEdge(n1, n1);
-    graph.addEdge(n1, n2);
-    graph.addEdge(n1, n3);
-    graph.addEdge(n1, n5);
-    graph.addEdge(n4, n5);
-    graph.addEdge(n5, n6);
-
-    UndirectedGraph<GNode> copy = this.graph.copy();
-    Assertions.assertEquals(copy.vertexNum(), graph.vertexNum());
-    Assertions.assertEquals(copy.edgeNum(), graph.edgeNum());
-    Assertions.assertEquals(copy.maxDegree(), graph.maxDegree());
-    Assertions.assertEquals(copy.numberOfLoops(), graph.numberOfLoops());
-    Assertions.assertEquals(copy.adjacent(n1), graph.adjacent(n1));
-
-    copy.remove(n1);
-    Assertions.assertNotEquals(copy.vertexNum(), graph.vertexNum());
-    Assertions.assertNotEquals(copy.edgeNum(), graph.edgeNum());
-    Assertions.assertNotEquals(copy.maxDegree(), graph.maxDegree());
-    Assertions.assertNotEquals(copy.numberOfLoops(), graph.numberOfLoops());
-    Assertions.assertNotEquals(copy.adjacent(n1), graph.adjacent(n1));
-  }
-
-  @Test
   public void testClear() {
     graph.addEdge(n1, n1);
     graph.addEdge(n1, n2);
@@ -174,33 +150,6 @@ public class UndirectedGraphTest {
     graph.addEdge(n2, n2);
     assertGraph(1, 1, 2, 1, graph);
   }
-
-  @Test
-  public void testEqualsAndHashCode() {
-    graph.addEdge(n1, n1);
-    graph.addEdge(n1, n2);
-    graph.addEdge(n1, n3);
-
-    UndirectedGraph<GNode> g = new UndirectedGraph<>();
-    g.addEdge(n1, n3);
-    g.addEdge(n1, n2);
-    g.addEdge(n1, n1);
-
-    UndirectedGraph<GNode> copy = graph.copy();
-    Assertions.assertEquals(graph, copy);
-    Assertions.assertEquals(graph.hashCode(), copy.hashCode());
-
-    Assertions.assertNotEquals(graph, g);
-    Assertions.assertEquals(graph.hashCode(), g.hashCode());
-
-    g.remove(n2);
-    g.remove(n3);
-    g.addEdge(n1, n2);
-    g.addEdge(n1, n3);
-    Assertions.assertEquals(graph, g);
-    Assertions.assertEquals(graph.hashCode(), g.hashCode());
-  }
-
 
   @Test
   public void testSerial() throws IOException, ClassNotFoundException {

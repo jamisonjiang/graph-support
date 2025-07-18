@@ -1,0 +1,6 @@
+1. AdjacencyList is uneditable for classes that out of package org.graphper.def,
+because have some attributes like edgeNum/selfloop/degree, feature like undirect graph addEdge,
+both adjacencylist of from and target nodes need insert edge, remove is the same, both of from and
+target adjacencylist need remove this edge, so if we open add/remove api out of package, it gonna be
+broke this rule, so the add/remove methods only remain for inner package class to operate
+2.

@@ -31,9 +31,9 @@ import org.graphper.util.CollectionUtils;
 /**
  * A bidirectional directed graph of edge operations.
  *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code DirectedEdgeGraph}, the vertex is
- * searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
+ * <p>This implementation uses Map-based edge storage for efficient O(1) vertex lookups
+ * and better cache locality with array-based edge storage. The vertex type can be any object
+ * and vertex operations have <tt>O(1)</tt> complexity.
  *
  * @param <V> the type of vertex
  * @param <E> the type of directed edge
@@ -106,26 +106,6 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
 
     this.reverseEdgeMap = new HashMap<>(digraph.edgeNum());
     reDigraph.forEachEdges(edge -> putEdgeMap(edge.edge, edge));
-  }
-
-  @Override
-  public void clear() {
-    super.clear();
-    if (reverseEdgeMap != null) {
-      reverseEdgeMap.clear();
-    }
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<ReverseEdge<V, E>> inIte(Object v) {
-    return reDigraph.adjacent(v);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<E> outIte(Object v) {
-    return digraph.adjacent(v);
   }
 
   /**
@@ -257,16 +237,6 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
   }
 
   /**
-   * Returns a copy of the {@code DedirectedEdgeGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  public DedirectedEdgeGraph<V, E> copy() {
-    return new DedirectedEdgeGraph<>(digraph.copy(), reDigraph.copy());
-  }
-
-  /**
    * Returns a directed graph reversed from the current directed graph.
    *
    * @return directed graph reversed from the current directed graph
@@ -337,17 +307,13 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
   @Override
   public void forEachInAdjacent(Object v, Consumer<E> action) {
     Objects.requireNonNull(action);
+    AdjacencyList<V, ReverseEdge<V, E>> adj = reDigraph.edgeMap.get(v);
+    if (adj == null) {
+      return;
+    }
 
-    // Magic optimization: directly access Bag to avoid consumer creation
-    AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>> bag =
-        (AdjEdgeGraph.EdgeBag<V, ReverseEdge<V, E>>) reDigraph.adjacent(v);
-    if (bag != AdjEdgeGraph.EdgeBag.EMPTY) {
-      // Primitive linked list iteration to avoid iterator object creation
-      Bag.Node<ReverseEdge<V, E>> current = bag.header;
-      while (current != null) {
-        action.accept(current.value.edge);
-        current = current.next;
-      }
+    for (int i = 0; i < adj.getDegree(); i++) {
+      action.accept(adj.get(i).edge);
     }
   }
 

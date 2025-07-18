@@ -30,14 +30,6 @@ public interface EdgeDedigraph<V, E extends DirectedEdge<V, E>>
     extends Dedigraph<V>, Digraph.EdgeDigraph<V, E> {
 
   /**
-   * Returns a copy of the {@code EdgeDedigraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  EdgeDedigraph<V, E> copy();
-
-  /**
    * Returns a directed graph reversed from the current directed graph.
    *
    * @return directed graph reversed from the current directed graph
@@ -48,12 +40,12 @@ public interface EdgeDedigraph<V, E extends DirectedEdge<V, E>>
   /**
    * Returns all edges adjacent to the specified vertex.
    *
-   * <p>For a de-directed graph, "adjacent" contains edges in both directions. The function seems
-   * to fall back to the state of {@link org.graphper.def.Graph.EdgeGraph#adjacent(Object)} from
-   * {@link org.graphper.def.Digraph.EdgeDigraph#adjacent(Object)}.
+   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor edges 
+   * connected to the specified vertex in both directions (both incoming and outgoing edges). 
+   * This is different from single-direction directed graphs where adjacent returns outgoing edges only.
    *
    * @param v vertex to be queried
-   * @return all adjacent edges
+   * @return all adjacent edges (both incoming and outgoing)
    */
   @Override
   Iterable<E> adjacent(Object v);

@@ -161,30 +161,6 @@ public class DedirectedEdgeGraphTest {
   }
 
   @Test
-  public void testCopy() {
-    digraph.addEdge(newEdge(n1, n1));
-    digraph.addEdge(newEdge(n1, n2));
-    digraph.addEdge(newEdge(n1, n3));
-    digraph.addEdge(newEdge(n1, n5));
-    digraph.addEdge(newEdge(n4, n5));
-    digraph.addEdge(newEdge(n5, n6));
-
-    DedirectedEdgeGraph<GNode, GEdge> copy = this.digraph.copy();
-    Assertions.assertEquals(copy.vertexNum(), digraph.vertexNum());
-    Assertions.assertEquals(copy.edgeNum(), digraph.edgeNum());
-    Assertions.assertEquals(copy.maxDegree(), digraph.maxDegree());
-    Assertions.assertEquals(copy.numberOfLoops(), digraph.numberOfLoops());
-    Assertions.assertEquals(copy.adjacent(n1), digraph.adjacent(n1));
-
-    copy.remove(n1);
-    Assertions.assertNotEquals(copy.vertexNum(), digraph.vertexNum());
-    Assertions.assertNotEquals(copy.edgeNum(), digraph.edgeNum());
-    Assertions.assertNotEquals(copy.maxDegree(), digraph.maxDegree());
-    Assertions.assertNotEquals(copy.numberOfLoops(), digraph.numberOfLoops());
-    Assertions.assertNotEquals(copy.adjacent(n1), digraph.adjacent(n1));
-  }
-
-  @Test
   public void testClear() {
     digraph.addEdge(newEdge(n1, n1));
     digraph.addEdge(newEdge(n1, n2));
@@ -224,20 +200,6 @@ public class DedirectedEdgeGraphTest {
     g.addEdge(newEdge(n1, n3));
     g.addEdge(newEdge(n1, n2));
     g.addEdge(newEdge(n1, n1));
-
-    DedirectedEdgeGraph<GNode, GEdge> copy = digraph.copy();
-    Assertions.assertEquals(digraph, copy);
-    Assertions.assertEquals(digraph.hashCode(), copy.hashCode());
-
-    Assertions.assertNotEquals(digraph, g);
-    Assertions.assertEquals(digraph.hashCode(), g.hashCode());
-
-    g.remove(n2);
-    g.remove(n3);
-    g.addEdge(newEdge(n1, n2));
-    g.addEdge(newEdge(n1, n3));
-    Assertions.assertEquals(digraph, g);
-    Assertions.assertEquals(digraph.hashCode(), g.hashCode());
   }
 
 

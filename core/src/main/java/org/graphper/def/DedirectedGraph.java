@@ -16,16 +16,15 @@
 
 package org.graphper.def;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * Bidirectional directed graph for vertex operations.
  *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code DirectedEdgeGraph}, the vertex is
- * searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
+ * <p>This implementation uses Map-based adjacency storage for efficient O(1) vertex lookups
+ * and better cache locality with array-based adjacency storage. The vertex type can be any object
+ * and vertex operations have <tt>O(1)</tt> complexity.
  *
  * @param <V> the type of vertex
  * @author Jamison Jiang
@@ -49,52 +48,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
     this(new DirectedGraph<>(capacity), new DirectedGraph<>(capacity));
   }
 
-  /**
-   * Initialize with vertex array.
-   *
-   * @param vertices vertex array
-   * @throws IllegalArgumentException vertex array is empty
-   */
-  public DedirectedGraph(V[] vertices) {
-    this(new DirectedGraph<>(vertices), new DirectedGraph<>(vertices));
-  }
-
   private DedirectedGraph(DirectedGraph<V> digraph, DirectedGraph<V> reDigraph) {
     super(digraph, reDigraph);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<V> inIte(Object v) {
-    return reDigraph.adjacent(v);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<V> outIte(Object v) {
-    return digraph.adjacent(v);
-  }
-
-  /**
-   * Return next node in current graph and sequence strategy considered by different attribute
-   * graphs, return null if graph iteration finished.
-   *
-   * @param v vertex to be queried
-   * @return next node in current graph
-   */
-  @Override
-  public V next(V v) {
-    return digraph.next(v);
-  }
-
-  /**
-   * Returns a copy of the {@code DedirectedGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  public DedirectedGraph<V> copy() {
-    return new DedirectedGraph<>(digraph.copy(), reDigraph.copy());
   }
 
   /**
@@ -161,7 +116,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> inAdjacent(Object v) {
-    return new UnaryConcatIterable<>(reDigraph.adjacent(v), Collections.emptyList());
+    return reDigraph.adjacent(v);
   }
 
   /**
@@ -173,7 +128,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> outAdjacent(Object v) {
-    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return digraph.adjacent(v);
   }
 
   /**
@@ -187,25 +142,15 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * @throws NullPointerException if the specified action is null
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void forEachInAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
-    
-    // Magic optimization: directly access Bag to avoid consumer creation
-    if (reDigraph instanceof AdjVertexGraph) {
-      AdjVertexGraph.VertexBag<V> bag = 
-          (AdjVertexGraph.VertexBag<V>) reDigraph.adjacent(v);
-      if (bag != AdjVertexGraph.VertexBag.EMPTY) {
-        // Primitive linked list iteration to avoid iterator object creation
-        Bag.Node<V> current = bag.header;
-        while (current != null) {
-          action.accept(current.value);
-          current = current.next;
-        }
-      }
-    } else {
-      // Fallback to default implementation
-      reDigraph.forEachAdjacent(v, action);
+    AdjacencyList<V, V> adj = reDigraph.edgeMap.get(v);
+    if (adj == null) {
+      return;
+    }
+
+    for (int i = 0; i < adj.getDegree(); i++) {
+      action.accept(adj.get(i));
     }
   }
 
@@ -220,25 +165,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * @throws NullPointerException if the specified action is null
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void forEachOutAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
-    
-    // Magic optimization: directly access Bag to avoid consumer creation
-    if (digraph instanceof AdjVertexGraph) {
-      AdjVertexGraph.VertexBag<V> bag = 
-          (AdjVertexGraph.VertexBag<V>) digraph.adjacent(v);
-      if (bag != AdjVertexGraph.VertexBag.EMPTY) {
-        // Primitive linked list iteration to avoid iterator object creation
-        Bag.Node<V> current = bag.header;
-        while (current != null) {
-          action.accept(current.value);
-          current = current.next;
-        }
-      }
-    } else {
-      // Fallback to default implementation
-      digraph.forEachAdjacent(v, action);
-    }
+    digraph.forEachAdjacent(v, action);
   }
 }

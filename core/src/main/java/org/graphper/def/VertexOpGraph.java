@@ -29,14 +29,6 @@ import java.util.function.Consumer;
 public interface VertexOpGraph<V> extends BaseGraph<V> {
 
   /**
-   * Returns a copy of the {@code VertexOpGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  VertexOpGraph<V> copy();
-
-  /**
    * Adds an edge to the graph, which may or may not be directed.
    *
    * @param v vertex of edge endpoint

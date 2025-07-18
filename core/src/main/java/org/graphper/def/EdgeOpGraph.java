@@ -31,14 +31,6 @@ import java.util.function.Consumer;
 public interface EdgeOpGraph<V, E extends BaseEdge<V, E>> extends BaseGraph<V> {
 
   /**
-   * Returns a copy of the {@code EdgeOpGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  EdgeOpGraph<V, E> copy();
-
-  /**
    * Adds an edge to the graph, which may or may not be directed.
    *
    * @param e edge to be added to this graph

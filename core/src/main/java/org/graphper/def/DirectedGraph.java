@@ -16,275 +16,105 @@
 
 package org.graphper.def;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
- * Vertex directed graph based on {@link AdjVertexGraph}.
- *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code DirectedGraph}, the vertex is
- * searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
+ * Vertex directed graph based on {@link AbstractAdjGraph}.
  *
  * @param <V> the type of vertex
  * @author Jamison Jiang
  */
-public class DirectedGraph<V> extends AdjVertexGraph<V>
+public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
     implements Digraph.VertexDigraph<V> {
 
-  private static final long serialVersionUID = 1062819133746040326L;
+  private static final long serialVersionUID = -7910958796521952955L;
 
-  /**
-   * Returns a directed graph reversed from the current directed graph.
-   */
   public DirectedGraph() {
     super();
   }
 
-  /**
-   * Construct a graph with a specified capacity.
-   *
-   * @param capacity specified capacity
-   * @throws IllegalArgumentException Capacity is less than or equal to 0
-   */
   public DirectedGraph(int capacity) {
     super(capacity);
   }
 
-  /**
-   * Initialize with vertex array.
-   *
-   * @param vertices vertex array
-   * @throws IllegalArgumentException vertex array is empty
-   */
-  public DirectedGraph(V[] vertices) {
-    super(vertices);
-  }
-
-  /**
-   * Adds a directed edge to the graph.
-   *
-   * @param source the source vertex of directed edge
-   * @param target the target vertex of directed edge
-   * @throws NullPointerException if the specified endpoint vertex is null
-   */
   @Override
-  public void addEdge(V source, V target) {
-    if (source == null || target == null) {
-      throw new NullPointerException();
-    }
-    VertexBag<V> bagSource = (VertexBag<V>) adjacent(source);
-    if (bagSource == VertexBag.EMPTY) {
-      bagSource = addBag(source);
-    }
-    VertexBag<V> bagTarget = (VertexBag<V>) adjacent(target);
-    if (bagTarget == VertexBag.EMPTY) {
-      bagTarget = addBag(target);
-    }
-    bagSource.add(target);
-    bagTarget.degree++; // Increase the in-degree of bagTarget
-    if (bagSource == bagTarget) {
-      bagSource.loopNum++;
-    }
+  public void addEdge(V v, V w) {
+    Objects.requireNonNull(v, "Vertex v cannot be null");
+    Objects.requireNonNull(w, "Vertex w cannot be null");
+
+    // Add vertices if they don't exist
+    add(v);
+    add(w);
+
+    // Get adjacency list for source vertex
+    AdjacencyList<V, V> adjV = edgeMap.get(v);
+
+    // Add edge only in the direction v -> w for directed graph
+    adjV.add(w);
     edgeNum++;
   }
 
-  /**
-   * Removes a directed edge to the graph. If the graph changes due to removing this edge, return
-   * true.
-   *
-   * @param source the source vertex of directed edge
-   * @param target the target vertex of directed edge
-   * @return <tt>true</tt> if this graph changed as a result of the call
-   */
   @Override
-  public boolean removeEdge(Object source, Object target) {
-    VertexBag<V> bagSource, bagTarget;
-    if ((bagSource = (VertexBag<V>) adjacent(source)) == VertexBag.EMPTY
-        || (bagTarget = (VertexBag<V>) adjacent(target)) == VertexBag.EMPTY) {
+  public boolean removeEdge(Object v, Object w) {
+    if (v == null || w == null) {
       return false;
     }
-    if (!bagSource.remove(target)) {
+
+    AdjacencyList<V, V> adjV = edgeMap.get(v);
+    if (adjV == null) {
       return false;
     }
-    bagTarget.degree--; // Reduce the entry of bagTarget
-    if (bagSource == bagTarget) {
-      bagSource.loopNum--;
+
+    if (adjV.removeIf(adj -> Objects.equals(adj, w))) {
+      edgeNum--;
+      return true;
     }
-    edgeNum--;
-    return true;
+
+    return false;
   }
 
-  /**
-   * Remove a vertex from the graph. If the graph changes due to removing this vertex, return true.
-   *
-   * @param vertex vertex to be removed from this graph, if present
-   * @return <tt>true</tt> if this contains the specified vertex
-   */
   @Override
-  public boolean remove(Object vertex) {
-    int index = 0;
-    VertexBag<V> bag = null, tBag;
-    if (vertex instanceof VertexIndex) {
-      Integer i = ((VertexIndex) vertex).getGraphIndex()
-          .get(checkAndReturnGraphRef());
-      if (i != null
-          && i >= 0
-          && i < vertexNum
-          && Objects.equals(bags[i].vertex, vertex)
-      ) {
-        bag = bags[index = i];
-      }
-    } else {
-      for (; index < vertexNum; index++) {
-        if (Objects.equals((bag = bags[index]).vertex, vertex)) {
-          break;
-        }
-      }
-      if (index == vertexNum) {
-        return false;
-      }
-    }
-    if (bag == null) {
-      return false;
-    }
-    // The number of edges of the deleted vertex
-    int bagEdges = bag.degree - bag.loopNum;
-    for (V v : bag) {
-      tBag = (VertexBag<V>) adjacent(v);
-      if (tBag != bag && tBag != VertexBag.EMPTY) {
-        tBag.degree--; // Reduce the in-degree of tBag
-      }
-    }
-    if (index != vertexNum) {
-      System.arraycopy(bags, index + 1, bags, index, vertexNum - index - 1);
-    }
-    int nv = --vertexNum;
-    // update index and remove edge pointing to removed vertex
-    for (int i = 0; i < nv; i++) {
-      if (bags[i].vertex instanceof VertexIndex) {
-        ((VertexIndex) bags[i].vertex).getGraphIndex().put(checkAndReturnGraphRef(), i);
-      }
-      bags[i].remove(bag.vertex);
-    }
-    bags[nv] = null;
-    edgeNum -= bagEdges;
-    modCount++;
-    bag.bModCount++;
-    return true;
+  public Iterable<V> adjacent(Object v) {
+    AdjacencyList<V, V> adj = edgeMap.get(v);
+    return adj != null ? adj : new AdjacencyList<>((V) v);
   }
 
-  /**
-   * Returns a copy of the {@code DirectedGraph}.
-   *
-   * @return a copy of current graph
-   */
   @Override
-  public DirectedGraph<V> copy() {
-    DirectedGraph<V> directedGraph = new DirectedGraph<>(this.bags.length);
-    directedGraph.bags = bagRepl();
-    directedGraph.vertexNum = vertexNum;
-    directedGraph.edgeNum = edgeNum;
-    if (vertexNum > 0
-        && directedGraph.bags[0].vertex instanceof VertexIndex) {
-      VertexIndex.GraphRef gf = directedGraph.checkAndReturnGraphRef();
-      for (int i = 0; i < directedGraph.vertexNum; i++) {
-        VertexIndex v = ((VertexIndex) directedGraph.bags[i].vertex);
-        v.getGraphIndex().put(gf, v.index(checkAndReturnGraphRef()));
-      }
+  public void forEachAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    AdjacencyList<V, V> adj = edgeMap.get(v);
+    if (adj != null) {
+      adj.forEach(action);
     }
-    return directedGraph;
   }
 
-  /**
-   * Returns a directed graph reversed from the current directed graph.
-   *
-   * <p>Since for directed graphs, some methods are directional (such as {@link #adjacent}),
-   * choosing an inversion graph can usually get some bidirectional properties.
-   *
-   * @return directed graph reversed from the current directed graph
-   */
   @Override
   public DirectedGraph<V> reverse() {
-    DirectedGraph<V> digraph = new DirectedGraph<>(toArray());
-    for (int i = 0; i < vertexNum; i++) {
-      VertexBag<V> bag = bags[i];
-      V v = bag.vertex;
-      for (V w : bag) {
-        digraph.addEdge(w, v);
-      }
-      digraph.add(v);
+    DirectedGraph<V> reversed = new DirectedGraph<>(vertexNum());
+
+    // Copy all vertices
+    for (V vertex : this) {
+      reversed.add(vertex);
     }
-    return digraph;
-  }
 
-  @Override
-  public Iterator<V> iterator() {
-    return new DirectionIterator();
-  }
-
-  private class DirectionIterator extends AdjIterator {
-
-    @Override
-    public void remove() {
-      checkIsConcurrentModify();
-      if (index == 0) {
-        throw new IllegalStateException();
+    // Copy all edges in reverse direction
+    for (V vertex : this) {
+      for (V adjacent : adjacent(vertex)) {
+        reversed.addEdge(adjacent, vertex);
       }
-      VertexBag<V> bag = bags[index - 1], tBag;
-
-      if (bag == null) {
-        throw new NoSuchElementException();
-      }
-
-      // The number of edges of the deleted vertex
-      int bagEdges = bag.degree - bag.loopNum;
-      for (V v : bag) {
-        tBag = (VertexBag<V>) adjacent(v);
-        if (tBag != bag && tBag != VertexBag.EMPTY) {
-          tBag.degree--; // Reduce the in-degree of tBag
-        }
-      }
-      if (index != vertexNum) {
-        System.arraycopy(bags, index, bags, index - 1, vertexNum - index);
-      }
-      int nv = --vertexNum;
-      // Update index and remove edge pointing to removed vertex
-      for (int i = 0; i < nv; i++) {
-        if (bags[i].vertex instanceof VertexIndex) {
-          ((VertexIndex) bags[i].vertex).getGraphIndex().put(checkAndReturnGraphRef(), i);
-        }
-        bags[i].remove(bag.vertex);
-      }
-      bags[nv] = null;
-      index--;
-      exceptModCount++;
-      modCount++;
-      edgeNum -= bagEdges;
     }
+
+    return reversed;
   }
 
   @Override
-  public boolean equals(Object o) {
-    return super.equals(o) && this.getClass() == o.getClass();
+  protected AdjacencyList<V, V> newAdjacentList(V v) {
+    return AdjacencyList.forDirectedVertices(v);
   }
 
   @Override
-  public int hashCode() {
-    return super.hashCode() + this.getClass().hashCode();
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder print = new StringBuilder("vertices " + vertexNum() + ", edges:\n");
-    for (V v : this) {
-      print.append("[").append(v).append("] ");
-      for (V n : adjacent(v)) {
-        print.append(v).append("->").append(n).append(" ");
-      }
-      print.append("\n");
-    }
-    return print.toString();
+  protected boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
+    return adj.removeIf(adjacent -> Objects.equals(adjacent, v));
   }
 }
