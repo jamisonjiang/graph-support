@@ -17,6 +17,7 @@
 package org.graphper.def;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -114,7 +115,37 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
   }
 
   @Override
-  protected boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
-    return adj.removeIf(adjacent -> Objects.equals(adjacent, v));
+  protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
+    AtomicInteger removeNum = new AtomicInteger(0);
+    adj.removeIf(adjacent -> {
+      if (Objects.equals(adjacent, v)) {
+        removeNum.incrementAndGet();
+        return true;
+      }
+      return false;
+    });
+    edgeNum -= removeNum.get();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + DirectedGraph.class.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "DirectedGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }

@@ -82,7 +82,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    * @param owner the vertex this adjacency list belongs to
    * @param selfLoopChecker function to check if an adjacent object is a self-loop
    */
-  public AdjacencyList(V owner, Function<T, Boolean> selfLoopChecker) {
+  AdjacencyList(V owner, Function<T, Boolean> selfLoopChecker) {
     this.inner = new ArrayList<>();
     this.owner = owner;
     this.selfLoopCount = 0;
@@ -120,6 +120,10 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   // Basic operations
+
+  public int size() {
+    return inner.size();
+  }
 
   public boolean isEmpty() {
     return inner.isEmpty();
@@ -392,6 +396,28 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
       delegate.remove();
       canRemove = false;
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    @SuppressWarnings("unchecked")
+    AdjacencyList<V, T> other = (AdjacencyList<V, T>) obj;
+    
+    return Objects.equals(owner, other.owner) &&
+           selfLoopCount == other.selfLoopCount &&
+           Objects.equals(inner, other.inner);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(owner, selfLoopCount, inner);
   }
 
   @Override

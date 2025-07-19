@@ -107,7 +107,29 @@ public class UndirectedGraph<V> extends AbstractAdjGraph<V, V>
   }
 
   @Override
-  protected boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
-    return adj.removeIf(adjacent -> Objects.equals(adjacent, v));
+  protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
+    adj.removeIf(adjacent -> Objects.equals(adjacent, v));
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + UndirectedGraph.class.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "UndirectedGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }

@@ -149,7 +149,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
       return;
     }
 
-    for (int i = 0; i < adj.getDegree(); i++) {
+    for (int i = 0; i < adj.size(); i++) {
       action.accept(adj.get(i));
     }
   }
@@ -168,5 +168,35 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
   public void forEachOutAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
     digraph.forEachAdjacent(v, action);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    DedirectedGraph<?> that = (DedirectedGraph<?>) o;
+    return Objects.equals(digraph, that.digraph) && Objects.equals(reDigraph, that.reDigraph);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), digraph, reDigraph);
+  }
+
+  @Override
+  public String toString() {
+    return "DedirectedGraph{" +
+        "vertexNum=" + vertexNum() +
+        ", edgeNum=" + edgeNum() +
+        ", digraph=" + digraph +
+        ", reDigraph=" + reDigraph +
+        '}';
   }
 }

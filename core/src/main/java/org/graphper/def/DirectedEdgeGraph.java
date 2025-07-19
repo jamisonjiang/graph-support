@@ -19,6 +19,7 @@ package org.graphper.def;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -156,8 +157,16 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
   }
 
   @Override
-  protected boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
-    return adj.removeIf(edge -> Objects.equals(edge.from(), v) || Objects.equals(edge.to(), v));
+  protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
+    AtomicInteger removeNum = new AtomicInteger(0);
+    adj.removeIf(adjacent -> {
+      if (Objects.equals(adjacent.other(v), v)) {
+        removeNum.incrementAndGet();
+        return true;
+      }
+      return false;
+    });
+    edgeNum -= removeNum.get();
   }
 
   /**
@@ -203,6 +212,28 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
       nextEdge = currentEdgeIterator.next();
       hasNext = true;
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + DirectedEdgeGraph.class.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "DirectedEdgeGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }
 

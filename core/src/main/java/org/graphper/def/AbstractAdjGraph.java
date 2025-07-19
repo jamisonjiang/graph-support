@@ -142,9 +142,8 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
    *
    * @param v   the vertex that was removed from the graph
    * @param adj the adjacency list to potentially adjust
-   * @return {@code true} if the adjacency list was modified, {@code false} otherwise
    */
-  protected abstract boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj);
+  protected abstract void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj);
 
   /**
    * Returns the maximum of all degrees of all vertices in the graph.
@@ -248,7 +247,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     adjToRemove.unlinkFromList();
 
     edgeMap.forEach((k, a) -> adjustAdjWhenRemoveNode((V) vertex, a));
-    edgeNum -= adjToRemove.getDegree();
+    edgeNum -= adjToRemove.size();
     return true;
   }
 
@@ -408,6 +407,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
 
       entryIterator.remove();
       edgeMap.forEach((k, a) -> adjustAdjWhenRemoveNode(v, a));
+      edgeNum -= adjToRemove.size();
       current = null;
     }
   }
@@ -427,7 +427,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
       out.writeObject(vertex);
 
       // Write the number of edges for this vertex
-      out.writeInt(adjacency.getDegree());
+      out.writeInt(adjacency.size());
 
       // Write all edges for this vertex
       for (E edge : adjacency) {
@@ -479,5 +479,92 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
         tail = adjacency;
       }
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    @SuppressWarnings("unchecked")
+    AbstractAdjGraph<V, E> other = (AbstractAdjGraph<V, E>) obj;
+    
+    // Check basic properties
+    if (edgeNum != other.edgeNum || vertexNum() != other.vertexNum()) {
+      return false;
+    }
+    
+    // Check if all vertices and their adjacencies are equal
+    if (!Objects.equals(edgeMap.keySet(), other.edgeMap.keySet())) {
+      return false;
+    }
+    
+    // Check adjacency lists for each vertex
+    for (V vertex : edgeMap.keySet()) {
+      AdjacencyList<V, E> thisAdj = edgeMap.get(vertex);
+      AdjacencyList<V, E> otherAdj = other.edgeMap.get(vertex);
+      
+      if (!Objects.equals(thisAdj, otherAdj)) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(edgeNum, getClass());
+    
+    // Include vertices and their adjacencies in hash
+    for (Map.Entry<V, AdjacencyList<V, E>> entry : edgeMap.entrySet()) {
+      result = 31 * result + Objects.hashCode(entry.getKey());
+      result = 31 * result + Objects.hashCode(entry.getValue());
+    }
+    
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName()).append("{");
+    sb.append("vertices=").append(vertexNum());
+    sb.append(", edges=").append(edgeNum);
+    sb.append(", maxDegree=").append(maxDegree());
+    sb.append(", averageDegree=").append(String.format("%.2f", averageDegree()));
+    
+    if (!edgeMap.isEmpty()) {
+      sb.append(", adjacency={");
+      boolean firstVertex = true;
+      for (Map.Entry<V, AdjacencyList<V, E>> entry : edgeMap.entrySet()) {
+        V vertex = entry.getKey();
+        AdjacencyList<V, E> adjacency = entry.getValue();
+        
+        if (!firstVertex) {
+          sb.append(", ");
+        }
+        sb.append(vertex).append(":[");
+        
+        boolean firstNeighbor = true;
+        for (E neighbor : adjacency) {
+          if (!firstNeighbor) {
+            sb.append(", ");
+          }
+          sb.append(neighbor);
+          firstNeighbor = false;
+        }
+        sb.append("]");
+        firstVertex = false;
+      }
+      sb.append("}");
+    }
+    
+    sb.append("}");
+    return sb.toString();
   }
 }

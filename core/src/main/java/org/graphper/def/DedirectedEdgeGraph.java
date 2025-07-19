@@ -312,7 +312,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
       return;
     }
 
-    for (int i = 0; i < adj.getDegree(); i++) {
+    for (int i = 0; i < adj.size(); i++) {
       action.accept(adj.get(i).edge);
     }
   }
@@ -345,12 +345,25 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
       return false;
     }
     DedirectedEdgeGraph<?, ?> that = (DedirectedEdgeGraph<?, ?>) o;
-    return Objects.equals(reverseEdgeMap, that.reverseEdgeMap);
+    return Objects.equals(digraph, that.digraph) && 
+           Objects.equals(reDigraph, that.reDigraph) && 
+           Objects.equals(reverseEdgeMap, that.reverseEdgeMap);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), reverseEdgeMap);
+    return Objects.hash(super.hashCode(), digraph, reDigraph, reverseEdgeMap);
+  }
+
+  @Override
+  public String toString() {
+    return "DedirectedEdgeGraph{" +
+        "vertexNum=" + vertexNum() +
+        ", edgeNum=" + edgeNum() +
+        ", digraph=" + digraph +
+        ", reDigraph=" + reDigraph +
+        ", reverseEdgeMap=" + reverseEdgeMap +
+        '}';
   }
 
   private void putEdgeMap(E edge, ReverseEdge<V, E> reverseEdge) {

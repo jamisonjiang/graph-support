@@ -52,7 +52,7 @@ public class DirectedGraphTest {
     digraph.addEdge(n3, n4);
     digraph.addEdge(n4, n4);
 
-    assertGraph(4, 3, 3, 1, digraph);
+    assertGraph(4, 3, 1, 1, digraph);
     Assertions.assertEquals(1, digraph.selfLoops(n4));
 
     Assertions.assertEquals(n2, digraph.next(n1));
@@ -70,21 +70,21 @@ public class DirectedGraphTest {
     digraph.addEdge(n4, n5);
     digraph.addEdge(n5, n6);
 
-    assertGraph(6, 5, 4, 1, digraph);
+    assertGraph(6, 5, 2, 1, digraph);
 
-    digraph.remove(n1);
-    assertGraph(5, 4, 4, 1, digraph);
+    digraph.remove(n5);
+    assertGraph(5, 3, 1, 1, digraph);
 
     digraph.removeEdge(n4, n4);
-    assertGraph(5, 3, 2, 0, digraph);
+    assertGraph(5, 2, 1, 0, digraph);
 
     digraph.removeEdge(n4, n5);
     assertGraph(5, 2, 1, 0, digraph);
 
+    digraph.remove(n1);
     digraph.remove(n2);
     digraph.remove(n3);
     digraph.remove(n4);
-    digraph.remove(n5);
     digraph.remove(n6);
     assertGraph(0, 0, 0, 0, digraph);
   }
@@ -122,9 +122,9 @@ public class DirectedGraphTest {
     digraph.addEdge(n4, n5);
     digraph.addEdge(n5, n6);
 
-    Assertions.assertEquals(5, digraph.degree(n1));
+    Assertions.assertEquals(4, digraph.degree(n1));
     assertAdjEquals(digraph, n1, n1, n2, n3, n5);
-    Assertions.assertEquals(3, digraph.degree(n5));
+    Assertions.assertEquals(1, digraph.degree(n5));
     assertAdjEquals(digraph, n4, n5);
     Assertions.assertEquals(0, digraph.degree(n7));
     Assertions.assertEquals(1, digraph.selfLoops(n1));
@@ -154,7 +154,7 @@ public class DirectedGraphTest {
     assertGraph(0, 0, 0, 0, digraph);
 
     digraph.addEdge(n2, n2);
-    assertGraph(1, 1, 2, 1, digraph);
+    assertGraph(1, 1, 1, 1, digraph);
   }
 
   @Test
@@ -167,8 +167,8 @@ public class DirectedGraphTest {
     digraph.add(n7);
 
     DirectedGraph<GNode> reverse = digraph.reverse();
-    assertGraph(7, 5, 4, 1, digraph);
-    assertGraph(7, 5, 4, 1, reverse);
+    assertGraph(7, 5, 3, 1, digraph);
+    assertGraph(7, 5, 1, 1, reverse);
     assertAdjEquals(digraph, n1, n1, n2, n3);
     assertAdjEquals(reverse, n1, n1);
     assertAdjEquals(reverse, n4);
@@ -184,15 +184,15 @@ public class DirectedGraphTest {
         DocumentUtils.getTestSerialPath() + this.getClass().getName(), digraph,
         g -> {
           Assertions.assertEquals(digraph, g);
-          assertGraph(3, 3, 4, 1, digraph);
-          assertGraph(3, 3, 4, 1, g);
+          assertGraph(3, 3, 3, 1, digraph);
+          assertGraph(3, 3, 3, 1, g);
           g.addEdge(n4, n5);
-          assertGraph(5, 4, 4, 1, g);
+          assertGraph(5, 4, 3, 1, g);
           // The n1 node can not be founded from deserializable graph
           g.remove(n1);
-          assertGraph(5, 4, 4, 1, g);
+          assertGraph(4, 1, 1, 0, g);
           g.add(n1);
-          assertGraph(6, 4, 4, 1, g);
+          assertGraph(5, 1, 1, 0, g);
         });
   }
 }

@@ -138,9 +138,9 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
   }
 
   @Override
-  protected boolean adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
-    return adj.removeIf(
-        edge -> Objects.equals(edge.either(), v) || Objects.equals(edge.other(edge.either()), v));
+  protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
+    adj.removeIf(edge -> Objects.equals(edge.either(), v)
+        || Objects.equals(edge.other(edge.either()), v));
   }
 
   /**
@@ -186,5 +186,27 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
       nextEdge = currentEdgeIterator.next();
       hasNext = true;
     }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + UndirectedEdgeGraph.class.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "UndirectedEdgeGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }
