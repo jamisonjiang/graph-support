@@ -144,14 +144,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
   @Override
   public void forEachInAdjacent(Object v, Consumer<V> action) {
     Objects.requireNonNull(action);
-    AdjacencyList<V, V> adj = reDigraph.edgeMap.get(v);
-    if (adj == null) {
-      return;
-    }
-
-    for (int i = 0; i < adj.size(); i++) {
-      action.accept(adj.get(i));
-    }
+    reDigraph.forEachAdjacent(v, action);
   }
 
   /**
