@@ -58,6 +58,11 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   private final Function<T, Boolean> selfLoopChecker;
 
   /**
+   * Whether this adjacency list is for an undirected graph.
+   */
+  private final boolean isUndirected;
+
+  /**
    * Previous vertex in the linked list for efficient traversal.
    */
   private transient AdjacencyList<V, T> pre;
@@ -83,11 +88,23 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    * @param selfLoopChecker function to check if an adjacent object is a self-loop
    */
   AdjacencyList(V owner, Function<T, Boolean> selfLoopChecker) {
+    this(owner, selfLoopChecker, false);
+  }
+
+  /**
+   * Construct adjacency list with custom self-loop checker and undirected flag.
+   *
+   * @param owner the vertex this adjacency list belongs to
+   * @param selfLoopChecker function to check if an adjacent object is a self-loop
+   * @param isUndirected whether this adjacency list is for an undirected graph
+   */
+  private AdjacencyList(V owner, Function<T, Boolean> selfLoopChecker, boolean isUndirected) {
     this.inner = new ArrayList<>();
     this.owner = owner;
     this.selfLoopCount = 0;
     this.pre = null;
     this.next = null;
+    this.isUndirected = isUndirected;
     
     // Default self-loop checker for vertices
     if (selfLoopChecker == null) {
@@ -105,11 +122,24 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    * @param selfLoopChecker function to check if an adjacent object is a self-loop
    */
   public AdjacencyList(V owner, int initialCapacity, Function<T, Boolean> selfLoopChecker) {
+    this(owner, initialCapacity, selfLoopChecker, false);
+  }
+
+  /**
+   * Construct adjacency list with initial capacity and undirected flag.
+   *
+   * @param owner the vertex this adjacency list belongs to
+   * @param initialCapacity initial capacity of the list
+   * @param selfLoopChecker function to check if an adjacent object is a self-loop
+   * @param isUndirected whether this adjacency list is for an undirected graph
+   */
+  private AdjacencyList(V owner, int initialCapacity, Function<T, Boolean> selfLoopChecker, boolean isUndirected) {
     this.inner = new ArrayList<>(initialCapacity);
     this.owner = owner;
     this.selfLoopCount = 0;
     this.pre = null;
     this.next = null;
+    this.isUndirected = isUndirected;
     
     // Default self-loop checker for vertices
     if (selfLoopChecker == null) {
@@ -153,9 +183,15 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
 
   /**
    * Get the degree.
+   * For undirected graphs, the degree includes the self-loop count.
+   * For directed graphs, the degree is simply the number of adjacent elements.
    */
   public int getDegree() {
-    return inner.size();
+    if (isUndirected) {
+      return inner.size() + selfLoopCount;
+    } else {
+      return inner.size();
+    }
   }
 
   /**
@@ -170,6 +206,13 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    */
   public boolean hasSelfLoop() {
     return selfLoopCount > 0;
+  }
+
+  /**
+   * Check if this adjacency list is for an undirected graph.
+   */
+  public boolean isUndirected() {
+    return isUndirected;
   }
 
   // Linked list navigation methods
@@ -319,7 +362,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    * Create a new adjacency list for vertices.
    */
   public static <V> AdjacencyList<V, V> forUndirectedVertices(V owner) {
-    return new AdjacencyList<>(owner, null);
+    return new AdjacencyList<>(owner, null, true);
   }
 
   /**
@@ -340,7 +383,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
       V other = edge.other(owner);
       return Objects.equals(owner, other);
     };
-    return new AdjacencyList<>(owner, selfLoopChecker);
+    return new AdjacencyList<>(owner, selfLoopChecker, true);
   }
 
   /**
@@ -412,12 +455,13 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     
     return Objects.equals(owner, other.owner) &&
            selfLoopCount == other.selfLoopCount &&
+           isUndirected == other.isUndirected &&
            Objects.equals(inner, other.inner);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(owner, selfLoopCount, inner);
+    return Objects.hash(owner, selfLoopCount, isUndirected, inner);
   }
 
   @Override
@@ -425,6 +469,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     return "AdjacencyList{" +
         "owner=" + owner +
         ", selfLoopCount=" + selfLoopCount +
+        ", isUndirected=" + isUndirected +
         ", degree=" + getDegree() +
         ", elements=" + inner +
         '}';

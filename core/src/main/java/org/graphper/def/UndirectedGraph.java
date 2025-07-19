@@ -52,8 +52,11 @@ public class UndirectedGraph<V> extends AbstractAdjGraph<V, V>
     AdjacencyList<V, V> adjW = edgeMap.get(w);
 
     // Add edge in both directions for undirected graph
+    // For self-loops, only add once since adjV and adjW are the same
     adjV.add(w);
-    adjW.add(v);
+    if (!Objects.equals(v, w)) {
+      adjW.add(v);
+    }
     edgeNum++;
   }
 

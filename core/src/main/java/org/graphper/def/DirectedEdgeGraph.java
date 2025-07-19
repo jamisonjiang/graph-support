@@ -142,7 +142,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
     // Copy all edges in reverse direction
     for (V vertex : this) {
       for (E edge : adjacent(vertex)) {
-        E reversedEdge = reverseEdge(edge);
+        E reversedEdge = edge.reverse();
         reversed.addEdge(reversedEdge);
       }
 
@@ -160,7 +160,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
     AtomicInteger removeNum = new AtomicInteger(0);
     adj.removeIf(adjacent -> {
-      if (Objects.equals(adjacent.other(v), v)) {
+      if (Objects.equals(adjacent.from(), v) || Objects.equals(adjacent.to(), v)) {
         removeNum.incrementAndGet();
         return true;
       }

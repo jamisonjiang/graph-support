@@ -117,7 +117,7 @@ public class UndirectedGraphTest {
     graph.addEdge(n5, n6);
 
     Assertions.assertEquals(5, graph.degree(n1));
-    assertAdjEquals(graph, n1, n1, n1, n2, n3, n5);
+    assertAdjEquals(graph, n1, n1, n2, n3, n5);
     Assertions.assertEquals(3, graph.degree(n5));
     assertAdjEquals(graph, n4, n5);
     Assertions.assertEquals(0, graph.degree(n7));
@@ -165,11 +165,11 @@ public class UndirectedGraphTest {
           assertGraph(3, 3, 4, 1, g);
           g.addEdge(n4, n5);
           assertGraph(5, 4, 4, 1, g);
-          // The n1 node can not be founded from deserializable graph
+
           g.remove(n1);
-          assertGraph(5, 4, 4, 1, g);
+          assertGraph(4, 1, 1, 0, g);
           g.add(n1);
-          assertGraph(6, 4, 4, 1, g);
+          assertGraph(5, 1, 1, 0, g);
         });
   }
 }

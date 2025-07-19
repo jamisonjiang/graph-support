@@ -217,11 +217,11 @@ public class DedirectedEdgeGraphTest {
           assertGraph(3, 3, 4, 1, g);
           g.addEdge(newEdge(n4, n5));
           assertGraph(5, 4, 4, 1, g);
-          // The n1 node can not be founded from deserializable graph
+          
           g.remove(n1);
-          assertGraph(5, 4, 4, 1, g);
+          assertGraph(4, 1, 1, 0, g);
           g.add(n1);
-          assertGraph(6, 4, 4, 1, g);
+          assertGraph(5, 1, 1, 0, g);
         });
   }
 

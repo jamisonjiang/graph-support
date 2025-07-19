@@ -188,7 +188,7 @@ public class DirectedGraphTest {
           assertGraph(3, 3, 3, 1, g);
           g.addEdge(n4, n5);
           assertGraph(5, 4, 3, 1, g);
-          // The n1 node can not be founded from deserializable graph
+          
           g.remove(n1);
           assertGraph(4, 1, 1, 0, g);
           g.add(n1);

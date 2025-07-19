@@ -16,6 +16,7 @@
 
 package org.graphper.api;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ import org.graphper.util.CollectionUtils;
  * @see Graphviz
  */
 @SuppressWarnings("all")
-public abstract class GraphContainer {
+public abstract class GraphContainer implements Serializable {
 
   // Container Id
   protected String id;
