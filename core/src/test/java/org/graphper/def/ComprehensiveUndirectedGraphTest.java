@@ -496,6 +496,372 @@ public class ComprehensiveUndirectedGraphTest {
     Assertions.assertNull(graph.pre(n8));
   }
 
+  // ==================== Navigation with Edge Operations Tests ====================
+
+  @Test
+  void testNextAfterEdgeOperations() {
+    // Setup initial graph with vertices
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+    graph.add(n5);
+
+    // Verify initial navigation
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    // Add edges and verify navigation still works
+    graph.addEdge(n1, n3);
+    graph.addEdge(n2, n4);
+    graph.addEdge(n3, n5);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    // Remove edges and verify navigation still works
+    graph.removeEdge(n1, n3);
+    graph.removeEdge(n2, n4);
+    graph.removeEdge(n3, n5);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    // Add more edges and verify navigation
+    graph.addEdge(n1, n5);
+    graph.addEdge(n2, n3);
+    graph.addEdge(n4, n5);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+  }
+
+  @Test
+  void testPreAfterEdgeOperations() {
+    // Setup initial graph with vertices
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+    graph.add(n5);
+
+    // Verify initial navigation
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Add edges and verify navigation still works
+    graph.addEdge(n1, n3);
+    graph.addEdge(n2, n4);
+    graph.addEdge(n3, n5);
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Remove edges and verify navigation still works
+    graph.removeEdge(n1, n3);
+    graph.removeEdge(n2, n4);
+    graph.removeEdge(n3, n5);
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Add more edges and verify navigation
+    graph.addEdge(n1, n5);
+    graph.addEdge(n2, n3);
+    graph.addEdge(n4, n5);
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+  }
+
+  @Test
+  void testNavigationAfterVertexRemoval() {
+    // Setup graph with vertices and edges
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+    graph.add(n5);
+    graph.addEdge(n1, n2);
+    graph.addEdge(n2, n3);
+    graph.addEdge(n3, n4);
+    graph.addEdge(n4, n5);
+
+    // Verify initial navigation
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    // Remove middle vertex and verify navigation
+    graph.remove(n3);
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n4, graph.next(n2));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    // Verify pre navigation after removal
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Remove first vertex and verify navigation
+    graph.remove(n1);
+    Assertions.assertEquals(n4, graph.next(n2));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    Assertions.assertNull(graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Remove last vertex and verify navigation
+    graph.remove(n5);
+    Assertions.assertEquals(n4, graph.next(n2));
+    Assertions.assertNull(graph.next(n4));
+
+    Assertions.assertNull(graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n4));
+  }
+
+  @Test
+  void testNavigationAfterVertexAddition() {
+    // Setup initial graph
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+
+    // Verify initial navigation
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertNull(graph.next(n3));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+
+    // Add new vertices and verify navigation
+    graph.add(n4);
+    graph.add(n5);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+
+    // Add edges and verify navigation still works
+    graph.addEdge(n1, n4);
+    graph.addEdge(n2, n5);
+    graph.addEdge(n3, n5);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertNull(graph.next(n5));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+    Assertions.assertEquals(n4, graph.pre(n5));
+  }
+
+  @Test
+  void testNavigationWithSelfLoops() {
+    // Setup graph with vertices
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+
+    // Add self-loops and verify navigation
+    graph.addEdge(n1, n1);
+    graph.addEdge(n2, n2);
+    graph.addEdge(n3, n3);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertNull(graph.next(n4));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+
+    // Remove self-loops and verify navigation
+    graph.removeEdge(n1, n1);
+    graph.removeEdge(n2, n2);
+    graph.removeEdge(n3, n3);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertNull(graph.next(n4));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+    Assertions.assertEquals(n3, graph.pre(n4));
+  }
+
+  @Test
+  void testNavigationWithComplexEdgeOperations() {
+    // Setup graph with vertices
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+    graph.add(n5);
+    graph.add(n6);
+    graph.add(n7);
+    graph.add(n8);
+
+    // Verify initial navigation
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertEquals(n6, graph.next(n5));
+    Assertions.assertEquals(n7, graph.next(n6));
+    Assertions.assertEquals(n8, graph.next(n7));
+    Assertions.assertNull(graph.next(n8));
+
+    // Add complex edge pattern
+    graph.addEdge(n1, n3);
+    graph.addEdge(n2, n4);
+    graph.addEdge(n3, n5);
+    graph.addEdge(n4, n6);
+    graph.addEdge(n5, n7);
+    graph.addEdge(n6, n8);
+    graph.addEdge(n1, n5);
+    graph.addEdge(n2, n6);
+    graph.addEdge(n3, n7);
+    graph.addEdge(n4, n8);
+
+    // Verify navigation still works
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertEquals(n6, graph.next(n5));
+    Assertions.assertEquals(n7, graph.next(n6));
+    Assertions.assertEquals(n8, graph.next(n7));
+    Assertions.assertNull(graph.next(n8));
+
+    // Remove some edges and verify navigation
+    graph.removeEdge(n1, n3);
+    graph.removeEdge(n2, n4);
+    graph.removeEdge(n3, n5);
+    graph.removeEdge(n4, n6);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertEquals(n6, graph.next(n5));
+    Assertions.assertEquals(n7, graph.next(n6));
+    Assertions.assertEquals(n8, graph.next(n7));
+    Assertions.assertNull(graph.next(n8));
+
+    // Add more edges and verify navigation
+    graph.addEdge(n1, n7);
+    graph.addEdge(n2, n8);
+    graph.addEdge(n3, n6);
+    graph.addEdge(n4, n7);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertEquals(n5, graph.next(n4));
+    Assertions.assertEquals(n6, graph.next(n5));
+    Assertions.assertEquals(n7, graph.next(n6));
+    Assertions.assertEquals(n8, graph.next(n7));
+    Assertions.assertNull(graph.next(n8));
+  }
+
+  @Test
+  void testNavigationAfterClear() {
+    // Setup graph with vertices and edges
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+    graph.add(n4);
+    graph.addEdge(n1, n2);
+    graph.addEdge(n2, n3);
+    graph.addEdge(n3, n4);
+
+    // Verify initial navigation
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertEquals(n4, graph.next(n3));
+    Assertions.assertNull(graph.next(n4));
+
+    // Clear graph and verify navigation
+    graph.clear();
+    Assertions.assertNull(graph.next(n1));
+    Assertions.assertNull(graph.pre(n1));
+
+    // Add vertices back and verify navigation
+    graph.add(n1);
+    graph.add(n2);
+    graph.add(n3);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertNull(graph.next(n3));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+
+    // Add edges and verify navigation
+    graph.addEdge(n1, n3);
+    graph.addEdge(n2, n3);
+
+    Assertions.assertEquals(n2, graph.next(n1));
+    Assertions.assertEquals(n3, graph.next(n2));
+    Assertions.assertNull(graph.next(n3));
+
+    Assertions.assertNull(graph.pre(n1));
+    Assertions.assertEquals(n1, graph.pre(n2));
+    Assertions.assertEquals(n2, graph.pre(n3));
+  }
+
   // ==================== Array and Utility Tests ====================
 
   @Test
