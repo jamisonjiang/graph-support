@@ -34,7 +34,6 @@ import org.graphper.api.attributes.Port;
 import org.graphper.api.ext.Box;
 import org.graphper.def.DedirectedGraph;
 import org.graphper.def.FlatPoint;
-import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.Maze.GuideInfo;
@@ -1264,7 +1263,7 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
     }
   }
 
-  private static class EdgeSeg extends VertexIndex implements Comparable<EdgeSeg> {
+  private static class EdgeSeg implements Comparable<EdgeSeg> {
 
     private static final long serialVersionUID = -941291526419206546L;
 

@@ -28,12 +28,11 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Splines;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
-import org.graphper.def.VertexIndex;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
-public class ANode extends VertexIndex implements Box, ShapePosition {
+public class ANode implements Box, ShapePosition {
 
   private static final long serialVersionUID = 4047797184917587337L;
 

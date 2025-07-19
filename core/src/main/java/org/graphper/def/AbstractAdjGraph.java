@@ -320,7 +320,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     for (AdjacencyList<V, E> adjacency : edgeMap.values()) {
       loops += adjacency.getSelfLoopCount();
     }
-    return loops / 2; // Each loop is counted twice
+    return loops;
   }
 
   @Override

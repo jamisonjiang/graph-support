@@ -31,7 +31,6 @@ import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Port;
 import org.graphper.def.FlatPoint.UnmodifyFlatPoint;
-import org.graphper.def.VertexIndex;
 import org.graphper.util.Asserts;
 import org.graphper.util.FontUtils;
 
@@ -40,7 +39,7 @@ import org.graphper.util.FontUtils;
  *
  * @author Jamison Jiang
  */
-public class Node extends VertexIndex implements Comparable<Node>, Serializable {
+public class Node implements Comparable<Node>, Serializable {
 
   private static final long serialVersionUID = 4616284202432237469L;
 

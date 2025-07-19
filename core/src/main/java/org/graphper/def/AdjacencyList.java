@@ -344,7 +344,9 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    */
   public static <V, E extends DirectedEdge<V, E>> AdjacencyList<V, E> forDirectedEdges(V owner) {
     Function<E, Boolean> selfLoopChecker = (E edge) -> {
-      if (edge == null) return false;
+      if (edge == null) {
+        return false;
+      }
       return Objects.equals(edge.from(), edge.to());
     };
     

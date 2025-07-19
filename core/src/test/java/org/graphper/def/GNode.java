@@ -19,7 +19,7 @@ package org.graphper.def;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class GNode extends VertexIndex implements Serializable {
+public class GNode implements Serializable {
 
   private final String value;
 
