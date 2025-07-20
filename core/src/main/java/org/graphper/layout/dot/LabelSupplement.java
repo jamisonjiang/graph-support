@@ -178,12 +178,12 @@ class LabelSupplement {
 
       addLines.add(
           new DLine(edge.from(), virtual,
-                    edge.getLine(), edge.lineAttrs(),
+                    edge.getLineDrawProp(),
                     edge.weight(), edge.limit())
       );
       addLines.add(
           new DLine(virtual, edge.to(),
-                    edge.getLine(), edge.lineAttrs(),
+                    edge.getLineDrawProp(),
                     edge.weight(), edge.limit())
       );
 
@@ -493,12 +493,12 @@ class LabelSupplement {
     digraphProxy.removeEdge(removeLine);
     digraphProxy.addEdge(
         new DLine(removeLine.from(), virtual,
-                  removeLine.getLine(), removeLine.lineAttrs(),
+                  removeLine.getLineDrawProp(),
                   removeLine.weight(), removeLine.limit())
     );
     digraphProxy.addEdge(
         new DLine(virtual, removeLine.to(),
-                  removeLine.getLine(), removeLine.lineAttrs(),
+                  removeLine.getLineDrawProp(),
                   removeLine.weight(), removeLine.limit())
     );
     next.add(virtual);
@@ -524,12 +524,12 @@ class LabelSupplement {
 
     digraphProxy.addEdge(
         new DLine(flatLabelNode, flatLabelLine.from(),
-                  flatLabelLine.getLine(), flatLabelLine.lineAttrs(),
+                  flatLabelLine.getLineDrawProp(),
                   flatLabelLine.weight(), flatLabelLine.limit())
     );
     digraphProxy.addEdge(
         new DLine(flatLabelNode, flatLabelLine.to(),
-                  flatLabelLine.getLine(), flatLabelLine.lineAttrs(),
+                  flatLabelLine.getLineDrawProp(),
                   flatLabelLine.weight(), flatLabelLine.limit())
     );
   }

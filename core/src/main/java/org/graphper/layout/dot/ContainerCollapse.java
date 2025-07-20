@@ -370,7 +370,7 @@ class ContainerCollapse {
       to = toSubMergeNode != null ? toSubMergeNode.getNode() : to;
 
       if (clusterMerge == null) {
-        digraph.addEdge(new DLine(from, to, null, null, weight, minlen));
+        digraph.addEdge(new DLine(from, to, null, weight, minlen));
         continue;
       }
 
@@ -383,7 +383,7 @@ class ContainerCollapse {
 
       // Do not have any cluster delegate node
       if (isDirect(fm, tm)) {
-        digraph.addEdge(new DLine(from, to, null, null, weight, minlen));
+        digraph.addEdge(new DLine(from, to, null, weight, minlen));
         continue;
       }
 
@@ -405,9 +405,9 @@ class ContainerCollapse {
        * 1.The line(aux -> from)'s minlen is zero
        * 2.The line(aux -> to)'s minlen is primitive minlen add the value that original node level minus the smallest level in the cluster
        */
-      digraph.addEdge(new DLine(aux, fm, null, null, weight * 10, 0));
+      digraph.addEdge(new DLine(aux, fm, null, weight * 10, 0));
       digraph.addEdge(
-          new DLine(aux, to, null, null, weight, minlen + from.getRank() - fm.getRank()));
+          new DLine(aux, to, null, weight, minlen + from.getRank() - fm.getRank()));
       return;
     }
 
@@ -427,11 +427,11 @@ class ContainerCollapse {
      * 2.The line(aux -> to)'s minlen is zero
      */
     if (r > 0) {
-      digraph.addEdge(new DLine(aux, fm, null, null, weight * 10, 0));
-      digraph.addEdge(new DLine(aux, tm, null, null, weight, r));
+      digraph.addEdge(new DLine(aux, fm, null, weight * 10, 0));
+      digraph.addEdge(new DLine(aux, tm, null, weight, r));
     } else {
-      digraph.addEdge(new DLine(aux, fm, null, null, weight * 10, -r));
-      digraph.addEdge(new DLine(aux, tm, null, null, weight, 0));
+      digraph.addEdge(new DLine(aux, fm, null, weight * 10, -r));
+      digraph.addEdge(new DLine(aux, tm, null, weight, 0));
     }
   }
 

@@ -119,7 +119,7 @@ class CoordinateV2 extends AbstractCoordinate {
     ContainerContent containerContent = containerContentMap.computeIfAbsent(container,
                                                                             ContainerContent::new);
     auxDotDigraph.addEdge(new DLine(containerContent.leftNode, containerContent.rightNode,
-                                    null, null, 128D, containerContent.minlen()));
+                                    null, 128D, containerContent.minlen()));
 
     for (Cluster cluster : dotAttachment.clusters(container)) {
       ContainerContent childCC = addClusterBorderEdge(auxDotDigraph, cluster);
@@ -128,9 +128,9 @@ class CoordinateV2 extends AbstractCoordinate {
       }
 
       auxDotDigraph.addEdge(new DLine(containerContent.leftNode, childCC.leftNode,
-                                      null, null, 0, containerContent.leftMargin));
+                                      null, 0, containerContent.leftMargin));
       auxDotDigraph.addEdge(new DLine(childCC.rightNode, containerContent.rightNode,
-                                      null, null, 0, containerContent.rightMargin));
+                                      null, 0, containerContent.rightMargin));
     }
 
     return containerContent;
@@ -180,11 +180,11 @@ class CoordinateV2 extends AbstractCoordinate {
         int limit = crossLineLimit(dLine);
 
         if (limit < 0) {
-          e1 = new DLine(auxNode, node, null, null, weight, -limit);
-          e2 = new DLine(auxNode, other, null, null, weight, 0);
+          e1 = new DLine(auxNode, node, null, weight, -limit);
+          e2 = new DLine(auxNode, other, null, weight, 0);
         } else {
-          e1 = new DLine(auxNode, node, null, null, weight, 0);
-          e2 = new DLine(auxNode, other, null, null, weight, limit);
+          e1 = new DLine(auxNode, node, null, weight, 0);
+          e2 = new DLine(auxNode, other, null, weight, limit);
         }
 
         if (limit != 0) {
@@ -192,8 +192,8 @@ class CoordinateV2 extends AbstractCoordinate {
           other.markNotAdjustMid();
         }
       } else {
-        e1 = new DLine(auxNode, node, null, null, weight, 0);
-        e2 = new DLine(auxNode, other, null, null, weight, 0);
+        e1 = new DLine(auxNode, node, null, weight, 0);
+        e2 = new DLine(auxNode, other, null, weight, 0);
       }
 
       auxDotDigraph.addEdge(e1);

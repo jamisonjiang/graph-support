@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,13 +31,14 @@ import org.graphper.api.ext.Box;
 import org.graphper.api.ext.ShapePosition;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
+import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.CollectionUtils;
 
-public class ANode implements Box, ShapePosition {
+public class ANode implements Box, ShapePosition, Serializable {
 
   private static final long serialVersionUID = 4047797184917587337L;
 
-  protected final Node node;
+  protected final NodeDrawProp nodeDrawProp;
 
   protected double x;
 
@@ -49,8 +51,6 @@ public class ANode implements Box, ShapePosition {
   // Distance between nodes
   protected double nodeSep;
 
-  protected NodeAttrs nodeAttrs;
-
   // The parent container, if it is null, it means the root container
   protected GraphContainer container;
 
@@ -59,8 +59,8 @@ public class ANode implements Box, ShapePosition {
 
   protected NodeSizeExpander nodeSizeExpander;
 
-  public ANode(Node node) {
-    this.node = node;
+  public ANode(NodeDrawProp nodeDrawProp) {
+    this.nodeDrawProp = nodeDrawProp;
   }
 
   public void setContainer(GraphContainer container) {
@@ -72,11 +72,11 @@ public class ANode implements Box, ShapePosition {
   }
 
   public Node getNode() {
-    return node;
+    return nodeDrawProp != null ? nodeDrawProp.getNode() : null;
   }
 
   public boolean isVirtual() {
-    return node == null;
+    return nodeDrawProp == null;
   }
 
   @Override
@@ -169,11 +169,11 @@ public class ANode implements Box, ShapePosition {
 
   @Override
   public NodeShape shapeProp() {
-    if (isVirtual() || nodeAttrs == null) {
+    if (isVirtual() || nodeDrawProp == null) {
       return NodeShapeEnum.ELLIPSE;
     }
 
-    return nodeAttrs.getShape();
+    return nodeDrawProp.nodeAttrs().getShape();
   }
 
   public double getAreaWidth() {
@@ -215,12 +215,14 @@ public class ANode implements Box, ShapePosition {
   }
 
   public NodeAttrs getNodeAttrs() {
-    return nodeAttrs;
+    return nodeDrawProp != null ? nodeDrawProp.nodeAttrs() : null;
   }
 
-  public void setNodeAttrs(NodeAttrs nodeAttrs) {
-    this.nodeAttrs = nodeAttrs;
-  }
+//  public void setNodeAttrs(NodeAttrs nodeAttrs) {
+//    if (nodeDrawProp != null) {
+//      nodeDrawProp.setNodeAttrs(nodeAttrs);
+//    }
+//  }
 
   public double getNodeSep() {
     return nodeSep;
@@ -280,5 +282,9 @@ public class ANode implements Box, ShapePosition {
 
   public NodeSizeExpander getNodeSizeExpander() {
     return nodeSizeExpander;
+  }
+
+  public NodeDrawProp getNodeDrawProp() {
+    return nodeDrawProp;
   }
 }

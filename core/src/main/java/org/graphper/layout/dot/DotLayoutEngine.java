@@ -136,7 +136,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
       nodeDrawProp.flip(drawGraph.rankdir());
 
-      dn = dotAttachment.mappingToDNode(node);
+      dn = dotAttachment.mappingToDNode(nodeDrawProp);
     }
 
     if (parentContainer.isSubgraph()) {
@@ -145,7 +145,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
     }
 
-    dn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
     dotAttachment.put(node, dn);
     parentContainer = dotAttachment.getDotDigraph().add(dn, parentContainer);
 
@@ -177,7 +176,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       labelSize.flip();
     }
 
-    DLine dLine = new DLine(source, target, line, lineAttrs,
+    DLine dLine = new DLine(source, target, lineDrawProp,
                             lineAttrs.getWeight() == null ? line.weight() : lineAttrs.getWeight(),
                             lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1, labelSize);
 

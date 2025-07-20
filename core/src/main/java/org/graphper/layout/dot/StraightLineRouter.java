@@ -172,10 +172,10 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
       Map<DNode, DLine> adjLine = lineRecord.computeIfAbsent(n1, n -> new LinkedHashMap<>());
       DLine dLine = adjLine.get(n2);
       if (dLine == null) {
-        dLine = new DLine(n1, n2, line, lineAttrs, 0, 0);
+        dLine = new DLine(n1, n2, lineDrawProp, 0, 0);
         adjLine.put(n2, dLine);
       } else {
-        dLine.addParallelEdge(new DLine(n1, n2, line, lineAttrs, 0, 0));
+        dLine.addParallelEdge(new DLine(n1, n2, lineDrawProp, 0, 0));
       }
 
       if (dLine.getParallelNums() == 2) {

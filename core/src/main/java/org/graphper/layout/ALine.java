@@ -22,28 +22,25 @@ import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.def.AbstractDirectedEdge;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
 public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirectedEdge<N, E> {
 
   private static final long serialVersionUID = 7155243474988517017L;
-  protected final Line line;
-
-  protected final LineAttrs lineAttrs;
+  protected final LineDrawProp lineDrawProp;
 
   // All parallel lines
   protected List<E> parallelLineRecord;
 
-  public ALine(N from, N to, Line line, LineAttrs lineAttrs) {
+  public ALine(N from, N to, LineDrawProp lineDrawProp) {
     super(from, to);
-    this.line = line;
-    this.lineAttrs = lineAttrs;
+    this.lineDrawProp = lineDrawProp;
   }
 
-  public ALine(N from, N to, double weight, Line line, LineAttrs lineAttrs) {
+  public ALine(N from, N to, double weight, LineDrawProp lineDrawProp) {
     super(from, to, weight);
-    this.line = line;
-    this.lineAttrs = lineAttrs;
+    this.lineDrawProp = lineDrawProp;
   }
 
   @Override
@@ -57,11 +54,11 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
   }
 
   public Line getLine() {
-    return line;
+    return lineDrawProp != null ? lineDrawProp.getLine() : null;
   }
 
   public boolean isVirtual() {
-    return line == null;
+    return lineDrawProp == null;
   }
 
   /**
@@ -92,7 +89,7 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
   }
 
   public LineAttrs lineAttrs() {
-    return lineAttrs;
+    return lineDrawProp != null ? lineDrawProp.lineAttrs() : null;
   }
 
   public boolean isHide() {
@@ -101,5 +98,9 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     }
 
     return lineAttrs().getStyles().contains(LineStyle.INVIS);
+  }
+
+  public LineDrawProp getLineDrawProp() {
+    return lineDrawProp;
   }
 }

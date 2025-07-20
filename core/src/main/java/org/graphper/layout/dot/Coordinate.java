@@ -137,11 +137,11 @@ class Coordinate extends AbstractCoordinate {
         int limit = crossLineLimit(dLine);
 
         if (limit < 0) {
-          e1 = new DLine(auxNode, node, null, null, weight, -limit);
-          e2 = new DLine(auxNode, other, null, null, weight, 0);
+          e1 = new DLine(auxNode, node, null, weight, -limit);
+          e2 = new DLine(auxNode, other, null, weight, 0);
         } else {
-          e1 = new DLine(auxNode, node, null, null, weight, 0);
-          e2 = new DLine(auxNode, other, null, null, weight, limit);
+          e1 = new DLine(auxNode, node, null, weight, 0);
+          e2 = new DLine(auxNode, other, null, weight, limit);
         }
 
         if (limit != 0) {
@@ -149,8 +149,8 @@ class Coordinate extends AbstractCoordinate {
           other.markNotAdjustMid();
         }
       } else {
-        e1 = new DLine(auxNode, node, null, null, weight, 0);
-        e2 = new DLine(auxNode, other, null, null, weight, 0);
+        e1 = new DLine(auxNode, node, null, weight, 0);
+        e2 = new DLine(auxNode, other, null, weight, 0);
       }
 
       auxDotDigraph.addEdge(e1);

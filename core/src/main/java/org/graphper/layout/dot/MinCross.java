@@ -233,8 +233,7 @@ class MinCross {
         lineMap.put(to, edge);
       } else {
         digraphProxy.addEdge(
-            new DLine(from, to, edge.getLine(),
-                      edge.lineAttrs(), edge.weight(), edge.limit()),
+            new DLine(from, to, edge.getLineDrawProp(), edge.weight(), edge.limit()),
             dotAttachment.getDrawGraph()
         );
       }
@@ -406,7 +405,7 @@ class MinCross {
     if (from != fromClusterNode || to != toCLusterNode) {
       if (!nodes.contains(toCLusterNode) && fromClusterNode != toCLusterNode) {
         nodes.add(toCLusterNode);
-        line = new DLine(fromClusterNode, toCLusterNode, null, null, line.weight(), line.limit());
+        line = new DLine(fromClusterNode, toCLusterNode, null, line.weight(), line.limit());
         rootCrossRank.addEdge(line);
       }
     } else {
