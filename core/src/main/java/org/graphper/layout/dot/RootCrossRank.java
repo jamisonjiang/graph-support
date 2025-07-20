@@ -192,20 +192,20 @@ class RootCrossRank implements CrossRank {
   }
 
   @Override
-  public void sort(Comparator<DNode> comparator) {
+  public void sort(Comparator<DNode> comparator, boolean needSyncRankIdx) {
     if (childCrossRank != null) {
-      childCrossRank.sort(comparator);
+      childCrossRank.sort(comparator, needSyncRankIdx);
     } else {
-      root.sort(comparator);
+      root.sort(comparator, needSyncRankIdx);
     }
   }
 
   @Override
-  public void sort(int rank, Comparator<DNode> comparator) {
+  public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
     if (childCrossRank != null) {
-      childCrossRank.sort(rank, comparator);
+      childCrossRank.sort(rank, comparator, needSyncRankIdx);
     } else {
-      root.sort(rank, comparator);
+      root.sort(rank, comparator, needSyncRankIdx);
     }
   }
 
@@ -425,7 +425,7 @@ class RootCrossRank implements CrossRank {
     CrossCache originalCache = this.crossCache;
 
     if (basicCrossRank == originalBasicRank) {
-      if (!this.crossCache.isEffective()) {
+      if (!originalCache.isEffective()) {
         crossNum(originalCache, true);
       }
 

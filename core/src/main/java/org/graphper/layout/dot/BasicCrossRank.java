@@ -137,14 +137,14 @@ class BasicCrossRank implements CrossRank, Cloneable {
   }
 
   @Override
-  public void sort(Comparator<DNode> comparator) {
+  public void sort(Comparator<DNode> comparator, boolean needSyncRankIdx) {
     for (int i = minRank(); i <= maxRank(); i++) {
-      sort(i, comparator);
+      sort(i, comparator, needSyncRankIdx);
     }
   }
 
   @Override
-  public void sort(int rank, Comparator<DNode> comparator) {
+  public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
     List<DNode> nodes = rankNode.get(rank);
 
     if (CollectionUtils.isEmpty(nodes)) {
@@ -154,7 +154,11 @@ class BasicCrossRank implements CrossRank, Cloneable {
     nodes.sort(comparator);
 
     for (int j = 0; j < nodes.size(); j++) {
-      nodeRankIndex.put(nodes.get(j), j);
+      DNode node = nodes.get(j);
+      nodeRankIndex.put(node, j);
+      if (needSyncRankIdx) {
+        node.setRankIndex(j);
+      }
     }
   }
 

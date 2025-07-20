@@ -37,9 +37,9 @@ interface CrossRank {
 
   void exchange(DNode v, DNode w);
 
-  void sort(Comparator<DNode> comparator);
+  void sort(Comparator<DNode> comparator, boolean needSyncRankIdx);
 
-  void sort(int rank, Comparator<DNode> comparator);
+  void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx);
 
   GraphContainer container();
 }

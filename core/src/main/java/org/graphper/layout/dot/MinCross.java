@@ -487,9 +487,9 @@ class MinCross {
     // Repeat the medium sort method and transport process
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
-/*        maxThisPass = Math.min(4, maxIter);
+        maxThisPass = Math.min(4, maxIter);
 
-        if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
+        /*if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
             || optimal.getCrossRank().container().haveChildCluster())) {
           BasicCrossRank repl = optimal.getCrossRank().clone();
 
@@ -500,11 +500,12 @@ class MinCross {
           } else {
             rootCrossRank.setBasicCrossRank(tmp);
           }
-        }
+        }*/
 
         flatOrder(optimal.getCrossRank());
-        rootCrossRank.setBasicCrossRank(optimal);
-        minCrossNum = rootCrossRank.currentCrossNum()*/;
+        optimal = rootCrossRank.crossSnapshot();
+//        rootCrossRank.setBasicCrossRank(optimal);
+//        minCrossNum = rootCrossRank.currentCrossNum();
       } else {
         maxThisPass = maxIter;
       }
@@ -552,6 +553,9 @@ class MinCross {
 
   private void flatOrder(CrossRank crossRank) {
     SameRankAdjacentRecord sameRankAdjacentRecord = rootCrossRank.getSameRankAdjacentRecord();
+    if (sameRankAdjacentRecord == null) {
+      return;
+    }
 
     int[] no = {0};
     int connectNo = 0;
@@ -563,11 +567,12 @@ class MinCross {
       for (int j = 0; j < crossRank.rankSize(i); j++) {
         DNode node = crossRank.getNode(i, j);
 
-        if (mark.contains(node) || (sameRankAdjacentRecord != null
-            && sameRankAdjacentRecord.haveIn(node))) {
+        if (mark.contains(node) || sameRankAdjacentRecord.haveIn(node)) {
           continue;
         }
 
+        rootCrossRank.setCacheExpired(j - 1);
+        rootCrossRank.setCacheExpired(j);
         postOrder(connectNo++, no, node, mark, postOrderRecord);
       }
     }
@@ -584,7 +589,7 @@ class MinCross {
       Integer rightPost = postOrderRecord.get(right).getValue();
 
       return rightPost.compareTo(leftPost);
-    });
+    }, true);
   }
 
   private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,
@@ -837,13 +842,8 @@ class MinCross {
         ComOrder lc = nodeComOrderMap.get(l);
         ComOrder rc = nodeComOrderMap.get(r);
         return lc.compareTo(rc);
-//        if (lc != rc) {
-//        }
-//        int li = crossRank.getRankIndex(l);
-//        int ri = l.getRankIndex();
-//        return Integer.compare(li, ri);
       };
-      crossRank.sort(comparator);
+      crossRank.sort(comparator, false);
     }
 
     private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
