@@ -99,8 +99,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       for (int i = 1; i <= line.getParallelNums(); i++) {
         DLine edge = line.parallelLine(i - 1);
         addFlatEdgeBoxes(line, lineRouterBoxes, i);
-        lineCompute(edge.getLine(), drawGraph.getLineDrawProp(edge.getLine()),
-                    lineRouterBoxes, line.from(), line.to());
+        lineCompute(edge.getLineDrawProp(), lineRouterBoxes, line.from(), line.to());
         lineRouterBoxes.clear();
       }
     } else {
@@ -113,7 +112,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       if (ports[0] != null && ports[1] != null) {
         // Specific real line segment calculation, both ends are real nodes.
-        lineCompute(line.getLine(), lineDrawProp, lineRouterBoxes, ports[0], ports[1]);
+        lineCompute(line.getLineDrawProp(), lineRouterBoxes, ports[0], ports[1]);
         lineRouterBoxes.clear();
       }
     }
@@ -128,8 +127,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     DLine line = (DLine) parallelLines.get(0);
     DNode from = line.from();
     DNode to = line.to();
-    Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), line.getLine(), drawGraph);
-    Port toPort = PortHelper.getLineEndPointPort(to.getNode(), line.getLine(), drawGraph);
+    Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+    Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
 
     if ((fromPort == null && toPort == null) || parallelLines.size() > 1) {
       symmetryParallelLine(parallelLines);
@@ -207,13 +206,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       for (int i = 0; i < parallelLines.size(); i++) {
         ALine parallelLine = parallelLines.get(i);
-        Line edge = parallelLine.getLine();
+        LineDrawProp edge = parallelLine.getLineDrawProp();
 
         routerBoxes.add(fromBox);
         routerBoxes.add(new RouterBox(wall, wall + distUnit, startY, endY));
         routerBoxes.add(toBox);
 
-        lineCompute(edge, drawGraph.getLineDrawProp(edge), routerBoxes, from, to);
+        lineCompute(edge, routerBoxes, from, to);
         routerBoxes.clear();
         if (parallelLines.size() % 2 == 0 && i == parallelLines.size() / 2 - 1) {
           wall += (2 * distUnit);
@@ -275,8 +274,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       boolean alternateDraw = isSameRank;
       Boolean upDirect = null;
       if (alternateDraw) {
-        Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), line.getLine(), drawGraph);
-        Port toPort = PortHelper.getLineEndPointPort(to.getNode(), line.getLine(), drawGraph);
+        Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+        Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
         FlatPoint fromPoint = PortHelper.getPortPoint(from, fromPort);
         FlatPoint toPoint = PortHelper.getPortPoint(to, toPort);
         upDirect = fromPoint.getY() - shapePosition.getY() + toPoint.getY() - to.getY() <= 0;
@@ -390,8 +389,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       drawGraph.updateYAxisRange(itemsMinY);
       drawGraph.updateYAxisRange(itemsMaxY);
-      lineCompute(parallelLineParam.line.getLine(), parallelLineParam.line,
-                  parallelLineParam.routerBoxes, parallelLineParam.from, parallelLineParam.to);
+      lineCompute(parallelLineParam.line, parallelLineParam.routerBoxes,
+                  parallelLineParam.from, parallelLineParam.to);
     }
   }
 
@@ -527,14 +526,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     return pre;
   }
 
-  private void lineCompute(Line line, LineDrawProp lineDrawProp,
-                           List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
-    if (CollectionUtils.isEmpty(lineRouterBoxes) || CollectionUtils.isNotEmpty(lineDrawProp)) {
+  private void lineCompute(LineDrawProp line, List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
+    if (CollectionUtils.isEmpty(lineRouterBoxes) || CollectionUtils.isNotEmpty(line)) {
       return;
     }
 
     List<RouterBox> originRouterBoxes = splitPortBox(from.getRank() != to.getRank(),
-                                                     lineDrawProp, lineRouterBoxes);
+                                                     line, lineRouterBoxes);
 
     List<ThroughPoint> throughPoints = null;
     RouterBox pre = null;
@@ -546,7 +544,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       if (node == null) {
         continue;
       } else if (pre == null) {
-        lineDrawProp.setIsHeadStart(node.getNode());
+        line.setIsHeadStart(node.getNode());
       }
 
       if (pre != null) {
@@ -594,15 +592,15 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       throughPoints.add(end);
     }
 
-    if (Objects.equals(lineDrawProp.lineAttrs().getShowboxes(), Boolean.TRUE)) {
-      lineDrawProp.setBoxes(new ArrayList<>(lineRouterBoxes));
+    if (Objects.equals(line.lineAttrs().getShowboxes(), Boolean.TRUE)) {
+      line.setBoxes(new ArrayList<>(lineRouterBoxes));
     }
 
     if (CollectionUtils.isNotEmpty(throughPoints)) {
       ThroughParam throughParam = new ThroughParam();
-      throughParam.line = line;
+      throughParam.line = line.getLine();
       throughParam.lineRouterBoxes = lineRouterBoxes;
-      throughParam.lineDrawProp = lineDrawProp;
+      throughParam.lineDrawProp = line;
       throughParam.from = from;
       throughParam.to = to;
       throughParam.throughPoints = throughPoints;
@@ -929,12 +927,12 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       return Collections.emptyList();
     }
 
-    Port port = PortHelper.getLineEndPointPort(node.getNode(), lineProp.getLine(), drawGraph);
+    Port port = PortHelper.getLineEndPointPort(node.getNodeDrawProp(), lineProp, drawGraph);
     if (port == null) {
       return Collections.emptyList();
     }
 
-    FlatPoint point = PortHelper.getPortPointWithoutClip(lineProp.getLine(), node, drawGraph);
+    FlatPoint point = PortHelper.getPortPointWithoutClip(lineProp, node, drawGraph);
     if (!routerBox.in(point)) {
       return Collections.emptyList();
     }
@@ -943,7 +941,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       Box cellBox = node;
       NodeDrawProp nodeProp = drawGraph.getNodeDrawProp(node.getNode());
       Cell cell = nodeProp.getCell();
-      String cellId = PortHelper.getCellId(lineProp.getLine(), node, lineProp);
+      String cellId = PortHelper.getCellId(node, lineProp);
       if (cell != null && (cell = ((RootCell) cell).getCellById(cellId)) != null) {
         cellBox = cell.getCellBox(node);
       }
@@ -1092,7 +1090,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         || ValueUtils.approximate(point.getY(), node.getDownBorder(), 1);
   }
 
-  private ThroughPoint getLineEndPoint(DNode n, Line line, int boxIdx) {
+  private ThroughPoint getLineEndPoint(DNode n, LineDrawProp line, int boxIdx) {
     if (n.isVirtual()) {
       return new ThroughPoint(n.getX(), n.getY(), boxIdx);
     }

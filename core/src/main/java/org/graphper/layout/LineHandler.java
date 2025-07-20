@@ -119,8 +119,8 @@ public class LineHandler {
       LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(edge.getLine());
       ANode from = edge.from();
       ANode to = edge.to();
-      Port fromPort = PortHelper.getLineEndPointPort(from.getNode(), edge.getLine(), drawGraph);
-      Port toPort = PortHelper.getLineEndPointPort(to.getNode(), edge.getLine(), drawGraph);
+      Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
+      Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
       String headCell = lineDrawProp.lineAttrs().getHeadCell();
       String tailCell = lineDrawProp.lineAttrs().getTailCell();
 
@@ -142,8 +142,8 @@ public class LineHandler {
     ANode from = parallelLine.from();
     ANode to = parallelLine.to();
 
-    FlatPoint fromPoint = PortHelper.getPortPoint(parallelLine.getLine(), from, drawGraph);
-    FlatPoint toPoint = PortHelper.getPortPoint(parallelLine.getLine(), to, drawGraph);
+    FlatPoint fromPoint = PortHelper.getPortPoint(parallelLine.getLineDrawProp(), from, drawGraph);
+    FlatPoint toPoint = PortHelper.getPortPoint(parallelLine.getLineDrawProp(), to, drawGraph);
 
     double hypotenuseLen = hypotenuseLen(distUnit, no, size);
 

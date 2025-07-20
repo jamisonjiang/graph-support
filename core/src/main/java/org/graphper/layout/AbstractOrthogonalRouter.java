@@ -195,8 +195,8 @@ public abstract class AbstractOrthogonalRouter extends LineClip {
 
     Target target = targetConstructor.newTarget(headCell);
     Asserts.nullArgument(target, "target");
-    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
-    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
+    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp, tail, drawGraph);
+    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp, head, drawGraph);
 
     if (log.isDebugEnabled()) {
       Node tn = tail.getNode();

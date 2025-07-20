@@ -76,10 +76,10 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
             continue;
           }
 
-          lineDrawProp.add(PortHelper.getPortPoint(line.getLine(), line.from(), drawGraph));
+          lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), line.from(), drawGraph));
           lineSegmentConsumer(line, l -> {
             if (!l.to().isVirtual()) {
-              lineDrawProp.add(PortHelper.getPortPoint(line.getLine(), l.to(), drawGraph));
+              lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), l.to(), drawGraph));
               to[0] = l.to();
             }
             if (l.to().isLabelNode()) {
@@ -122,9 +122,9 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
 
       if (line.from().getRank() != node.getRank()) {
         DNode tail = line.from().getNode() == line.getLine().tail() ? line.from() : line.to();
-        lineDrawProp.add(PortHelper.getPortPoint(line.getLine(), tail, drawGraph));
+        lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), tail, drawGraph));
         lineDrawProp.add(new FlatPoint(node.getX(), node.getY()));
-        lineDrawProp.add(PortHelper.getPortPoint(line.getLine(), line.other(tail), drawGraph));
+        lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), line.other(tail), drawGraph));
       }
     }
   }

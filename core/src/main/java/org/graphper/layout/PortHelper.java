@@ -19,7 +19,6 @@ package org.graphper.layout;
 import static org.graphper.layout.StraightPathClip.straightLineClipShape;
 
 import java.util.Objects;
-import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.NodeShape;
@@ -53,26 +52,26 @@ public class PortHelper {
     return new FlatPoint(node.getX() + port.horOffset(node), node.getY() + port.verOffset(node));
   }
 
-  public static Port getLineEndPointPort(Node node, Line line, DrawGraph drawGraph) {
+  public static Port getLineEndPointPort(NodeDrawProp node, LineDrawProp line, DrawGraph drawGraph) {
     return getLineEndPointPort(node, line, drawGraph, true);
   }
 
-  public static Port getLineEndPointPort(Node node, Line line, DrawGraph drawGraph,
-                                         boolean needMove) {
+  public static Port getLineEndPointPort(NodeDrawProp node, LineDrawProp line,
+                                         DrawGraph drawGraph, boolean needMove) {
     if (node == null || line == null || drawGraph == null) {
       return null;
     }
 
-    LineAttrs lineAttrs = drawGraph.lineAttrs(line);
+    LineAttrs lineAttrs = line.lineAttrs();
     Asserts.illegalArgument(lineAttrs == null, "can not find lineAttrs");
-    if (Objects.equals(node, line.tail())) {
+    if (Objects.equals(node, line.getLine().tail())) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getTailPort());
       }
 
       return lineAttrs.getTailPort();
     }
-    if (Objects.equals(node, line.head())) {
+    if (Objects.equals(node, line.getLine().head())) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getHeadPort());
       }
@@ -82,12 +81,12 @@ public class PortHelper {
     return null;
   }
 
-  public static PortPoint getPortPoint(Line line, ANode node,
+  public static PortPoint getPortPoint(LineDrawProp line, ANode node,
                                        DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, true);
   }
 
-  public static PortPoint getPortPointWithoutClip(Line line, ANode node,
+  public static PortPoint getPortPointWithoutClip(LineDrawProp line, ANode node,
                                                   DrawGraph drawGraph) {
     return getPortPoint(line, node, drawGraph, false);
   }
@@ -96,7 +95,7 @@ public class PortHelper {
     return endPoint(true, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static PortPoint getPortPoint(Line line, ANode node, DrawGraph drawGraph,
+  public static PortPoint getPortPoint(LineDrawProp line, ANode node, DrawGraph drawGraph,
                                        boolean portClipNode) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
@@ -105,23 +104,18 @@ public class PortHelper {
       return new PortPoint(node.getX(), node.getY(), false, null);
     }
 
-    LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(line);
-    if (lineDrawProp == null) {
-      return new PortPoint(node.getX(), node.getY(), false, null);
-    }
+    String cellId = getCellId(node, line);
 
-    String cellId = getCellId(line, node, lineDrawProp);
-
-    Port port = getLineEndPointPort(node.getNode(), line, drawGraph, false);
+    Port port = getLineEndPointPort(node.getNodeDrawProp(), line, drawGraph, false);
     return endPoint(portClipNode, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static String getCellId(Line line, ANode node, LineDrawProp lineDrawProp) {
+  public static String getCellId(ANode node, LineDrawProp lineDrawProp) {
     String cellId = null;
-    if (node.getNode() == line.tail()) {
+    if (node.getNode() == lineDrawProp.getLine().tail()) {
       cellId = lineDrawProp.lineAttrs().getTailCell();
     }
-    if (node.getNode() == line.head()) {
+    if (node.getNode() == lineDrawProp.getLine().head()) {
       cellId = lineDrawProp.lineAttrs().getHeadCell();
     }
     return cellId;
@@ -285,8 +279,8 @@ public class PortHelper {
     NodeDrawProp nodeDrawProp = node.getNodeDrawProp();
     Asserts.nullArgument(nodeDrawProp, "nodeDrawProp");
 
-    String cellId = getCellId(line.getLine(), node, line);
-    Port port = getLineEndPointPort(node.getNode(), line.getLine(), drawGraph, true);
+    String cellId = getCellId(node, line);
+    Port port = getLineEndPointPort(node.getNodeDrawProp(), line, drawGraph, true);
 
     Cell cell = null;
     RootCell rootCell = nodeDrawProp.getCell();

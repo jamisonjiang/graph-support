@@ -210,11 +210,11 @@ abstract class AbstractCoordinate {
     FlatPoint fromPoint = null;
     FlatPoint toPoint = null;
     if (!from.isVirtual()) {
-      fromPoint = PortHelper.getPortPoint(line.getLine(), from,
+      fromPoint = PortHelper.getPortPoint(line.getLineDrawProp(), from,
                                           dotAttachment.getDrawGraph());
     }
     if (!to.isVirtual()) {
-      toPoint = PortHelper.getPortPoint(line.getLine(), to,
+      toPoint = PortHelper.getPortPoint(line.getLineDrawProp(), to,
                                         dotAttachment.getDrawGraph());
     }
     return (int) ((fromPoint == null ? 0 : fromPoint.getX())
