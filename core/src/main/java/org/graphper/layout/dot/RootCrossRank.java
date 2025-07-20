@@ -553,10 +553,12 @@ class RootCrossRank implements CrossRank {
                             int[] rightCrossRecord) {
 
     int rv = 0;
-    int rankSize = calcCrossRank().rankSize(rank);
+    CrossRank crossRank = calcCrossRank();
+    int rankSize = crossRank.rankSize(rank);
+
     for (int i = 0; i < rankSize - 1; i++) {
-      DNode v = calcCrossRank().getNode(rank, i);
-      DNode w = calcCrossRank().getNode(rank, i + 1);
+      DNode v = crossRank.getNode(rank, i);
+      DNode w = crossRank.getNode(rank, i + 1);
 
       if (!canExchange(v, w)) {
         continue;
@@ -566,7 +568,7 @@ class RootCrossRank implements CrossRank {
       crossing(w, v, rightCrossRecord);
 
       if (leftCrossRecord[2] == rightCrossRecord[2] && i > 0
-          && !canExchange(calcCrossRank().getNode(rank, i - 1), v)) {
+          && !canExchange(crossRank.getNode(rank, i - 1), v)) {
         continue;
       }
 

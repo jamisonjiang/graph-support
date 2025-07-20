@@ -64,14 +64,14 @@ public class PortHelper {
 
     LineAttrs lineAttrs = line.lineAttrs();
     Asserts.illegalArgument(lineAttrs == null, "can not find lineAttrs");
-    if (Objects.equals(node, line.getLine().tail())) {
+    if (node.getNode() == line.getLine().tail()) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getTailPort());
       }
 
       return lineAttrs.getTailPort();
     }
-    if (Objects.equals(node, line.getLine().head())) {
+    if (node.getNode() == line.getLine().head()) {
       if (needMove) {
         return FlipShifterStrategy.movePort(drawGraph, lineAttrs.getHeadPort());
       }
@@ -276,13 +276,11 @@ public class PortHelper {
       return 0;
     }
 
-    NodeDrawProp nodeDrawProp = node.getNodeDrawProp();
-    Asserts.nullArgument(nodeDrawProp, "nodeDrawProp");
-
     String cellId = getCellId(node, line);
     Port port = getLineEndPointPort(node.getNodeDrawProp(), line, drawGraph, true);
 
     Cell cell = null;
+    NodeDrawProp nodeDrawProp = node.getNodeDrawProp();
     RootCell rootCell = nodeDrawProp.getCell();
     if (rootCell != null) {
       cell = rootCell.getCellById(cellId);
