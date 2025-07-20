@@ -548,6 +548,6 @@ class LabelSupplement {
   }
 
   private double getPortPoint(DLine line, DNode node) {
-    return PortHelper.portCompareNo(line.getLine(), node, dotAttachment.getDrawGraph());
+    return PortHelper.portCompareNo(line.getLineDrawProp(), node, dotAttachment.getDrawGraph());
   }
 }

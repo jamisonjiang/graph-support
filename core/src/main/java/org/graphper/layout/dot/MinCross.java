@@ -37,7 +37,6 @@ import java.util.function.Function;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
-import org.graphper.api.Line;
 import org.graphper.api.attributes.ClusterShape;
 import org.graphper.api.attributes.ClusterShapeEnum;
 import org.graphper.def.DedirectedEdgeGraph;
@@ -45,6 +44,7 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.RootCrossRank.CrossSnapshot;
@@ -983,8 +983,8 @@ class MinCross {
     }
 
     private int lineComp(DLine left, DLine right, DNode node, DrawGraph drawGraph) {
-      double leftComNo = PortHelper.portCompareNo(left.getLine(), node, drawGraph);
-      double rightComNo = PortHelper.portCompareNo(right.getLine(), node, drawGraph);
+      double leftComNo = PortHelper.portCompareNo(left.getLineDrawProp(), node, drawGraph);
+      double rightComNo = PortHelper.portCompareNo(right.getLineDrawProp(), node, drawGraph);
       return Double.compare(leftComNo, rightComNo);
     }
   }
@@ -1001,8 +1001,8 @@ class MinCross {
 
     void addEdge(DLine dLine, DrawGraph drawGraph) {
       this.addEdge(dLine);
-      markNodeHavePort(dLine.getLine(), dLine.from(), drawGraph, false);
-      markNodeHavePort(dLine.getLine(), dLine.to(), drawGraph, true);
+      markNodeHavePort(dLine.getLineDrawProp(), dLine.from(), drawGraph, false);
+      markNodeHavePort(dLine.getLineDrawProp(), dLine.to(), drawGraph, true);
     }
 
     boolean inHavePort(DNode node) {
@@ -1021,7 +1021,7 @@ class MinCross {
       return inOrOutHavePort != null && inOrOutHavePort.outHavePort;
     }
 
-    private void markNodeHavePort(Line line, DNode node, DrawGraph drawGraph, boolean isIn) {
+    private void markNodeHavePort(LineDrawProp line, DNode node, DrawGraph drawGraph, boolean isIn) {
       double compareNo = PortHelper.portCompareNo(line, node, drawGraph);
       if (compareNo == 0) {
         return;

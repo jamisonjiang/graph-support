@@ -872,7 +872,7 @@ class RootCrossRank implements CrossRank {
   }
 
   private double getCompareNo(DLine line, DNode node) {
-    return PortHelper.portCompareNo(line.getLine(), node, drawGraph);
+    return PortHelper.portCompareNo(line.getLineDrawProp(), node, drawGraph);
   }
 
   private int comparePointX(double p1, double p2) {
