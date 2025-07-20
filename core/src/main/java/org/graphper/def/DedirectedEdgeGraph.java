@@ -19,7 +19,6 @@ package org.graphper.def;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,10 +29,6 @@ import org.graphper.util.CollectionUtils;
 
 /**
  * A bidirectional directed graph of edge operations.
- *
- * <p>This implementation uses Map-based edge storage for efficient O(1) vertex lookups
- * and better cache locality with array-based edge storage. The vertex type can be any object
- * and vertex operations have <tt>O(1)</tt> complexity.
  *
  * @param <V> the type of vertex
  * @param <E> the type of directed edge
@@ -291,7 +286,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    */
   @Override
   public Iterable<E> outAdjacent(Object v) {
-    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return digraph.adjacent(v);
   }
 
   /**

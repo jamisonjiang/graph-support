@@ -22,10 +22,6 @@ import java.util.function.Consumer;
 /**
  * Bidirectional directed graph for vertex operations.
  *
- * <p>This implementation uses Map-based adjacency storage for efficient O(1) vertex lookups
- * and better cache locality with array-based adjacency storage. The vertex type can be any object
- * and vertex operations have <tt>O(1)</tt> complexity.
- *
  * @param <V> the type of vertex
  * @author Jamison Jiang
  */

@@ -132,6 +132,8 @@ class BasicCrossRank implements CrossRank, Cloneable {
 
     nodeRankIndex.put(v, wi);
     nodeRankIndex.put(w, vi);
+    v.setRankIndex(wi);
+    w.setRankIndex(vi);
   }
 
   @Override

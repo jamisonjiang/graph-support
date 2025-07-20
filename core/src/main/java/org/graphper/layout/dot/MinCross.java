@@ -33,7 +33,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
@@ -254,12 +253,12 @@ class MinCross {
   }
 
   private void dotMincross() {
-    try {
-      System.out.println("------------------------");
-      TimeUnit.SECONDS.sleep(20);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+//    try {
+//      System.out.println("------------------------");
+//      TimeUnit.SECONDS.sleep(20);
+//    } catch (InterruptedException e) {
+//      throw new RuntimeException(e);
+//    }
     long start = System.currentTimeMillis();
     if (clusterExpand != null) {
       clusterExpand.cluster = dotAttachment.getGraphviz();
@@ -274,12 +273,12 @@ class MinCross {
       log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
     }
 
-    try {
-      System.out.println("------------------------");
-      TimeUnit.SECONDS.sleep(20);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+//    try {
+//      System.out.println("------------------------");
+//      TimeUnit.SECONDS.sleep(20);
+//    } catch (InterruptedException e) {
+//      throw new RuntimeException(e);
+//    }
   }
 
   private void mincrossCluster(Cluster cluster) {

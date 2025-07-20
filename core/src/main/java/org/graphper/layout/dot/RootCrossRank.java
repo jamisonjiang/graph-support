@@ -100,6 +100,10 @@ class RootCrossRank implements CrossRank {
 
     for (int i = basicCrossRank.minRank() - 1; i < basicCrossRank.maxRank(); i++) {
       setCacheExpired(i);
+      int size = rankSize(i);
+      for (int j = 0; j < size; j++) {
+        getNode(i, j).setRankIndex(j);
+      }
     }
   }
 
@@ -422,7 +426,7 @@ class RootCrossRank implements CrossRank {
 
     if (basicCrossRank == originalBasicRank) {
       if (!this.crossCache.isEffective()) {
-        crossNum(originalCache);
+        crossNum(originalCache, true);
       }
 
       return new CrossSnapshot(originalCache, originalBasicRank);
@@ -432,14 +436,14 @@ class RootCrossRank implements CrossRank {
     this.crossCache = newCache;
     setBasicCrossRank(basicCrossRank);
 
-    crossNum(newCache);
+    crossNum(newCache, false);
 
     setBasicCrossRank(originalBasicRank);
     this.crossCache = originalCache;
     return new CrossSnapshot(newCache, basicCrossRank);
   }
 
-  private void crossNum(CrossCache cache) {
+  private void crossNum(CrossCache cache, boolean refreshRankIdx) {
     int num = 0;
     for (int i = minRank(); i <= maxRank(); i++) {
       RankCrossCache rankCrossCache = cache.getRankCacheIfAbsent(i);
@@ -447,7 +451,7 @@ class RootCrossRank implements CrossRank {
       if (rankCrossCache.effective) {
         num += rankCrossCache.crossNum;
       } else {
-        rankCrossCache.crossNum = computeCrossNum(i);
+        rankCrossCache.crossNum = computeCrossNum(i, refreshRankIdx);
         rankCrossCache.effective = true;
         num += rankCrossCache.crossNum;
       }
@@ -731,15 +735,19 @@ class RootCrossRank implements CrossRank {
           "Inconsistent hierarchy of vertices," + left + "," + right);
     }
 
-    int leftSortIndex = calcCrossRank().getRankIndex(left);
-    int rightSortIndex = calcCrossRank().getRankIndex(right);
+//    int leftSortIndex = calcCrossRank().getRankIndex(left);
+//    int rightSortIndex = calcCrossRank().getRankIndex(right);
+    int leftSortIndex = left.getRankIndex();
+    int rightSortIndex = right.getRankIndex();
 
     // If left and right are in order, calculate the number of intersections at the current position,
     // otherwise you need to exchange the two vertices to calculate
     boolean needExchange = leftSortIndex > rightSortIndex;
 
     if (needExchange) {
-      exchange(left, right);
+//      exchange(left, right);
+      left.setRankIndex(rightSortIndex);
+      right.setRankIndex(leftSortIndex);
     }
 
     if (h != minRank()) {
@@ -751,11 +759,13 @@ class RootCrossRank implements CrossRank {
     result[2] = result[0] + result[1];
 
     if (needExchange) {
-      exchange(left, right);
+//      exchange(left, right);
+      left.setRankIndex(leftSortIndex);
+      right.setRankIndex(rightSortIndex);
     }
   }
 
-  private int computeCrossNum(int rank) {
+  private int computeCrossNum(int rank, boolean refreshRankIdx) {
     if (rank == maxRank()) {
       return 0;
     }
@@ -764,8 +774,16 @@ class RootCrossRank implements CrossRank {
     int rankSize = rankSize(rank);
     for (int i = 0; i < rankSize; i++) {
       DNode current = getNode(rank, i);
+      if (refreshRankIdx) {
+        current.setRankIndex(i);
+      }
+
       for (int j = i + 1; j < rankSize; j++) {
         DNode next = getNode(rank, j);
+        if (refreshRankIdx) {
+          next.setRankIndex(j);
+        }
+
         // current node adjacent nodes
         Iterable<DLine> curIter = digraphProxy.outAdjacent(current);
         // next node adjacent nodes
@@ -773,7 +791,7 @@ class RootCrossRank implements CrossRank {
 
         for (DLine curAdjLine : curIter) {
           for (DLine nextAdjLine : nextIter) {
-            if (isCross(curAdjLine, nextAdjLine)) {
+            if (isCross(curAdjLine, nextAdjLine, false)) {
               crossNum++;
             }
           }
@@ -792,7 +810,7 @@ class RootCrossRank implements CrossRank {
     return crossCalc.outCross(n, w);
   }
 
-  private boolean isCross(DLine line1, DLine line2) {
+  private boolean isCross(DLine line1, DLine line2, boolean useRankIdx) {
     DNode u = line1.from();
     DNode x = line1.to();
     DNode v = line2.from();
@@ -808,19 +826,20 @@ class RootCrossRank implements CrossRank {
         double vp = getCompareNo(line2, v);
 
         if (x.getRank() == u.getRank()) {
-          return comparePointX(up, vp) < 0 == getRankIndex(x) < getRankIndex(y);
+          return comparePointX(up, vp) < 0 == lessRankIdx(x, y, useRankIdx);
         }
-        return locationTag(up, vp) * locationTag(y, x)
-            + locationTag(vp, up) * locationTag(x, y) == 1;
+        return locationTag(up, vp) * locationTag(y, x, useRankIdx)
+            + locationTag(vp, up) * locationTag(x, y, useRankIdx) == 1;
       }
 
       double xp = getCompareNo(line1, x);
       double yp = getCompareNo(line2, y);
 
       if (u.getRank() == x.getRank()) {
-        return comparePointX(xp, yp) < 0 == getRankIndex(u) < getRankIndex(v);
+        return comparePointX(xp, yp) < 0 == lessRankIdx(u, v, useRankIdx);
       }
-      return locationTag(u, v) * locationTag(yp, xp) + locationTag(v, u) * locationTag(xp, yp) == 1;
+      return locationTag(u, v, useRankIdx) * locationTag(yp, xp)
+          + locationTag(v, u, useRankIdx) * locationTag(xp, yp) == 1;
     }
 
     boolean line1InSameRank = u.getRank() == x.getRank();
@@ -830,15 +849,26 @@ class RootCrossRank implements CrossRank {
       return false;
     }
 
-    return locationTag(u, v) * locationTag(y, x) + locationTag(v, u) * locationTag(x, y) == 1;
+    return locationTag(u, v, useRankIdx) * locationTag(y, x, useRankIdx)
+        + locationTag(v, u, useRankIdx) * locationTag(x, y, useRankIdx) == 1;
   }
 
-  private int locationTag(DNode v, DNode w) {
+  private int locationTag(DNode v, DNode w, boolean useRankIdx) {
+    if (useRankIdx) {
+      return v.getRankIndex() < w.getRankIndex() ? 1 : 0;
+    }
     return getRankIndex(v) < getRankIndex(w) ? 1 : 0;
   }
 
   private int locationTag(double o1, double o2) {
     return o1 < o2 ? 1 : 0;
+  }
+
+  private boolean lessRankIdx(DNode n, DNode w, boolean useRankIdx) {
+    if (useRankIdx) {
+      return n.getRankIndex() < w.getRankIndex();
+    }
+    return getRankIndex(n) < getRankIndex(w);
   }
 
   private double getCompareNo(DLine line, DNode node) {
@@ -1044,7 +1074,7 @@ class RootCrossRank implements CrossRank {
     }
 
     private void innerAccept(DLine l2) {
-      if (isCross(currentL1, l2)) {
+      if (isCross(currentL1, l2, true)) {
         crossNum++;
       }
     }
