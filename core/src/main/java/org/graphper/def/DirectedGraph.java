@@ -67,7 +67,7 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
       return false;
     }
 
-    if (adjV.removeIf(adj -> Objects.equals(adj, w))) {
+    if (adjV.removeFirstIf(adj -> Objects.equals(adj, w))) {
       edgeNum--;
       return true;
     }
@@ -117,7 +117,7 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
     AtomicInteger removeNum = new AtomicInteger(0);
-    adj.removeIf(adjacent -> {
+    adj.removeFirstIf(adjacent -> {
       if (Objects.equals(adjacent, v)) {
         removeNum.incrementAndGet();
         return true;

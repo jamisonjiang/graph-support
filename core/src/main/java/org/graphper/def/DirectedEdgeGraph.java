@@ -92,7 +92,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
       return false;
     }
 
-    if (adjFrom.removeIf(edge -> Objects.equals(edge, e))) {
+    if (adjFrom.removeFirstIf(edge -> Objects.equals(edge, e))) {
       edgeNum--;
       return true;
     }
@@ -159,7 +159,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
     AtomicInteger removeNum = new AtomicInteger(0);
-    adj.removeIf(adjacent -> {
+    adj.removeFirstIf(adjacent -> {
       if (Objects.equals(adjacent.from(), v) || Objects.equals(adjacent.to(), v)) {
         removeNum.incrementAndGet();
         return true;

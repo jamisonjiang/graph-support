@@ -249,7 +249,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     return true;
   }
 
-  boolean removeIf(Predicate<? super T> filter) {
+  boolean removeFirstIf(Predicate<? super T> filter) {
     boolean modified = false;
     Iterator<T> iterator = new MetadataUpdatingIterator(inner.iterator(), true);
     while (iterator.hasNext()) {
@@ -258,6 +258,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
         iterator.remove();
         updateMetadataOnRemove(element);
         modified = true;
+        break;
       }
     }
     return modified;

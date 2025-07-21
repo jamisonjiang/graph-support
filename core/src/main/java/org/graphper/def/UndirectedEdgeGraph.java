@@ -99,8 +99,8 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
       return false;
     }
 
-    boolean removedV = adjV.removeIf(edge -> Objects.equals(edge, e));
-    boolean removedW = adjW.removeIf(edge -> Objects.equals(edge, e));
+    boolean removedV = adjV.removeFirstIf(edge -> Objects.equals(edge, e));
+    boolean removedW = adjW.removeFirstIf(edge -> Objects.equals(edge, e));
 
     if (removedV || removedW) {
       edgeNum--;
@@ -142,7 +142,7 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
 
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
-    adj.removeIf(edge -> Objects.equals(edge.either(), v)
+    adj.removeFirstIf(edge -> Objects.equals(edge.either(), v)
         || Objects.equals(edge.other(edge.either()), v));
   }
 
