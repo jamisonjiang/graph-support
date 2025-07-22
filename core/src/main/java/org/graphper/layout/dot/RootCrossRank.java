@@ -16,7 +16,7 @@
 
 package org.graphper.layout.dot;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
-import java.util.function.Predicate;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
@@ -93,16 +92,30 @@ class RootCrossRank implements CrossRank {
   }
 
   void setBasicCrossRank(BasicCrossRank basicCrossRank) {
+    setBasicCrossRank(basicCrossRank, false, true);
+  }
+
+  void setBasicCrossRank(BasicCrossRank basicCrossRank, boolean remainCache,
+                         boolean needRefreshNodeIdx) {
     if (basicCrossRank == childCrossRank) {
       return;
     }
     this.childCrossRank = basicCrossRank;
+    if (remainCache) {
+      return;
+    }
 
-    for (int i = basicCrossRank.minRank() - 1; i < basicCrossRank.maxRank(); i++) {
+    int minRank = basicCrossRank.minRank();
+    int maxRank = basicCrossRank.maxRank();
+    for (int i = minRank - 1; i <= maxRank; i++) {
       setCacheExpired(i);
-      int size = rankSize(i);
-      for (int j = 0; j < size; j++) {
-        getNode(i, j).setRankIndex(j);
+
+      if (i >= minRank && needRefreshNodeIdx) {
+        int size = rankSize(i);
+        for (int j = 0; j < size; j++) {
+          DNode node = getNode(i, j);
+          node.setRankIndex(j);
+        }
       }
     }
   }
@@ -160,6 +173,11 @@ class RootCrossRank implements CrossRank {
   }
 
   @Override
+  public List<DNode> getNodes(int rank) {
+    return childCrossRank == null ? root.getNodes(rank) :childCrossRank.getNodes(rank);
+  }
+
+  @Override
   public DNode getNode(int rank, int rankIdx) {
     if (childCrossRank == null) {
       return root.getNode(rank, rankIdx);
@@ -187,8 +205,8 @@ class RootCrossRank implements CrossRank {
   }
 
   @Override
-  public void exchange(DNode v, DNode w) {
-    crossRank().exchange(v, w);
+  public void exchange(DNode v, DNode w, boolean needSyncRankIdx) {
+    crossRank().exchange(v, w, needSyncRankIdx);
   }
 
   @Override
@@ -250,7 +268,7 @@ class RootCrossRank implements CrossRank {
     for (DNode expandNode : expandNodes) {
       digraphProxy.remove(expandNode);
 
-      List<DNode> nodes = root.rankNode.get(expandNode.getRank());
+      List<DNode> nodes = root.getNodes(expandNode.getRank());
       Asserts.illegalArgument(
           CollectionUtils.isEmpty(nodes),
           "Illegal expand node, root not contain"
@@ -293,9 +311,17 @@ class RootCrossRank implements CrossRank {
     for (int i = childCrossRank.minRank(); i <= childCrossRank.maxRank(); i++) {
       int rankSize = childCrossRank.rankSize(i);
       int rankStartIdx = getChildRankStartIndex(i);
+      List<DNode> rootRankNodes = root.getNodes(i);
+      if (CollectionUtils.isEmpty(rootRankNodes)) {
+        continue;
+      }
+
       for (int j = 0; j < rankSize; j++) {
         DNode node = childCrossRank.getNode(i, j);
-        root.exchange(node, root.getNode(i, rankStartIdx + j));
+        int rankIdx = rankStartIdx + j;
+        rootRankNodes.set(rankIdx, node);
+        root.nodeRankIndex.put(node, rankIdx);
+        node.setRankIndex(rankIdx);
       }
     }
   }
@@ -307,6 +333,10 @@ class RootCrossRank implements CrossRank {
    * @param i times
    */
   void vmedian(int i) {
+    BasicCrossRank original = getBasicCrossRank();
+    BasicCrossRank repl = original.clone();
+    setBasicCrossRank(repl, true, false);
+
     Consumer<DNode> positiveAction = v -> {
       double v1 = medianValue(v, true);
       v.setMedian(v1);
@@ -317,62 +347,13 @@ class RootCrossRank implements CrossRank {
     };
 
     IntConsumer rankIndexAction = this::sortRankVertex;
-
     accessRankNode(i, positiveAction, reverseAction, rankIndexAction);
-  }
 
-  void adjPostion(Consumer<DNode> adjAction, DNode node, boolean direction, boolean isProxy) {
-    Objects.requireNonNull(adjAction);
-    Objects.requireNonNull(node);
-
-    /*
-     * The action of this adjacent vertex will be carried out according to the following rules：
-     * 1.If it is accessed from the upper and lower levels of the proxy graph,
-     * directly obtain the adjacent level vertices (regardless of whether they are virtual vertices) and consume
-     * 2.If it is the upper and lower levels of the original image, it will be handed over to a recursive adjacent level access logic - NodeAction,
-     * which will get the first real node accessed
-     * */
-    Predicate<DNode> nodeAction = v -> {
-      if (!isProxy && v.isVirtual()) {
-
-        // The upper and lower levels of the original image are accessed. If the vertices of the adjacent level are virtual vertices,
-        // access to the adjacent vertices of this virtual vertex will be skipped.
-        class NodeAction implements Predicate<DNode> {
-
-          // Record the first real vertex visited
-          private DNode adjRealNode;
-
-          @Override
-          public boolean test(DNode vertex) {
-            if (vertex.isVirtual()) {
-              // virtual vertex recursive call
-              adjNodeAccess(direction, vertex, this);
-            } else {
-              // direct assignment of real vertices
-              adjRealNode = vertex;
-            }
-
-            // Jump out of the reachability matrix retrieval directly after finding the real vertex
-            return false;
-          }
-
-          public DNode getAdjRealNode() {
-            return adjRealNode;
-          }
-        }
-
-        NodeAction action = new NodeAction();
-        adjNodeAccess(direction, v, action);
-
-        v = action.getAdjRealNode();
-      }
-
-      adjAction.accept(v);
-
-      return true;
-    };
-
-    adjNodeAccess(direction, node, nodeAction);
+    setBasicCrossRank(original, true, false);
+    CrossSnapshot medianTry = tryCacheCrossNum(repl);
+    if (medianTry.getCrossNum() < crossCache.crossNum) {
+      updateCross(medianTry);
+    }
   }
 
   /**
@@ -385,10 +366,11 @@ class RootCrossRank implements CrossRank {
     int delta;
     int[] leftCrossRecord = new int[3];
     int[] rightCrossRecord = new int[3];
+    CrossRank crossRank = calcCrossRank();
 
     do {
       delta = 0;
-      for (int j = calcCrossRank().minRank(); j <= calcCrossRank().maxRank(); j++) {
+      for (int j = crossRank.minRank(); j <= crossRank.maxRank(); j++) {
         leftCrossRecord[0] = 0;
         leftCrossRecord[1] = 0;
         leftCrossRecord[2] = 0;
@@ -400,27 +382,11 @@ class RootCrossRank implements CrossRank {
     } while (delta >= 1);
   }
 
-//  int currentCrossNum() {
-//    int num = 0;
-//    for (int i = minRank(); i <= maxRank(); i++) {
-//      RankCrossCache rankCrossCache = getRankCacheIfAbsent(i);
-//
-//      if (rankCrossCache.effective) {
-//        num += rankCrossCache.crossNum;
-//      } else {
-//        rankCrossCache.crossNum = computeCrossNum(i);
-//        rankCrossCache.effective = true;
-//        num += rankCrossCache.crossNum;
-//      }
-//    }
-//    return num;
-//  }
-
   CrossSnapshot crossSnapshot() {
-    return cacheCrossNum(getBasicCrossRank());
+    return tryCacheCrossNum(getBasicCrossRank());
   }
 
-  CrossSnapshot cacheCrossNum(BasicCrossRank basicCrossRank) {
+  CrossSnapshot tryCacheCrossNum(BasicCrossRank basicCrossRank) {
     BasicCrossRank originalBasicRank = getBasicCrossRank();
     CrossCache originalCache = this.crossCache;
 
@@ -434,18 +400,18 @@ class RootCrossRank implements CrossRank {
 
     CrossCache newCache = new CrossCache(crossCache);
     this.crossCache = newCache;
-    setBasicCrossRank(basicCrossRank);
-
+    setBasicCrossRank(basicCrossRank, false, false);
     crossNum(newCache, false);
 
-    setBasicCrossRank(originalBasicRank);
     this.crossCache = originalCache;
+    setBasicCrossRank(originalBasicRank, true, false);
+
     return new CrossSnapshot(newCache, basicCrossRank);
   }
 
   private void crossNum(CrossCache cache, boolean refreshRankIdx) {
     int num = 0;
-    for (int i = minRank(); i <= maxRank(); i++) {
+    for (int i = minRank(); i <= maxRank() - 1; i++) {
       RankCrossCache rankCrossCache = cache.getRankCacheIfAbsent(i);
 
       if (rankCrossCache.effective) {
@@ -462,30 +428,30 @@ class RootCrossRank implements CrossRank {
   // ----------------------------------------- private ---------------------------------------------
 
   private double medianValue(DNode v, boolean direction) {
-    List<Double> positions = adjPostion(v, direction);
+    int[] positions = adjPosition(v, direction);
 
-    if (CollectionUtils.isEmpty(positions)) {
-      return -1.0;
+    if (positions == null) {
+      return -1;
     }
 
-    if (positions.size() == 1) {
-      return positions.get(0);
+    if (positions.length == 1) {
+      return positions[0];
     }
 
-    if (positions.size() == 2) {
-      return (positions.get(0) + positions.get(1)) / 2;
+    if (positions.length == 2) {
+      return (positions[0] + positions[1]) / 2.0;
     }
 
-    positions.sort(Double::compareTo);
-    int rightIndex = positions.size() / 2;
-    if ((positions.size() % 2) == 1) {
-      return positions.get(rightIndex);
+    Arrays.sort(positions);
+    int rightIndex = positions.length / 2;
+    if ((positions.length % 2) == 1) {
+      return positions[rightIndex];
     }
 
-    Double l = positions.get(rightIndex - 1);
-    Double r = positions.get(rightIndex);
-    double left = l - positions.get(0);
-    double right = positions.get(positions.size() - 1) - r;
+    double l = positions[rightIndex - 1];
+    double r = positions[rightIndex];
+    double left = l - positions[0];
+    double right = positions[positions.length - 1] - r;
 
     if (left == right) {
       return (l + r) / 2;
@@ -494,14 +460,33 @@ class RootCrossRank implements CrossRank {
     return (l * right + r * left) / (left + right);
   }
 
-  private List<Double> adjPostion(DNode v, boolean direction) {
-    List<Double> positions = new ArrayList<>();
-    Consumer<DNode> adjAction = vertex ->
-        positions.add((double) (getRankIndex(vertex)) * MIN_CROSS_SCALE);
+  private int[] adjPosition(DNode v, boolean direction) {
+    int degree;
+    if (direction) {
+      degree = digraphProxy.inDegree(v);
+    } else {
+      degree = digraphProxy.outDegree(v);
+    }
 
-    adjPostion(adjAction, v, direction, true);
+    if (degree == 0) {
+      return null;
+    }
 
-    return positions;
+    int i = 0;
+    int[] adjPos = new int[degree];
+    if (direction) {
+      for (DLine line : digraphProxy.inAdjacent(v)) {
+        DNode w = line.other(v);
+        adjPos[i++] = getRankIndex(w);
+      }
+    } else {
+      for (DLine line : digraphProxy.outAdjacent(v)) {
+        DNode w = line.other(v);
+        adjPos[i++] = getRankIndex(w);
+      }
+    }
+
+    return adjPos;
   }
 
   /**
@@ -518,15 +503,16 @@ class RootCrossRank implements CrossRank {
     Objects.requireNonNull(positiveAction);
     Objects.requireNonNull(reverseAction);
 
+    CrossRank crossRank = calcCrossRank();
     // positive direction
     if (i % 2 == 0) {
-      for (int j = calcCrossRank().minRank(); j <= calcCrossRank().maxRank(); j++) {
+      for (int j = crossRank.minRank() + 1; j <= crossRank.maxRank(); j++) {
         rankNodesHandle(positiveAction, rankIndexAction, j);
       }
     }
     // reverse direction
     else {
-      for (int j = calcCrossRank().maxRank(); j >= calcCrossRank().minRank(); j--) {
+      for (int j = crossRank.maxRank() - 1; j >= crossRank.minRank(); j--) {
         rankNodesHandle(reverseAction, rankIndexAction, j);
       }
     }
@@ -535,12 +521,14 @@ class RootCrossRank implements CrossRank {
   private void rankNodesHandle(Consumer<DNode> positiveAction,
                                IntConsumer rankIndexAction,
                                int rank) {
-    if (calcCrossRank().rankSize(rank) <= 1) {
+    CrossRank crossRank = calcCrossRank();
+    int rankSize = crossRank.rankSize(rank);
+    if (rankSize <= 1) {
       return;
     }
 
-    for (int i = 0; i < calcCrossRank().rankSize(rank); i++) {
-      positiveAction.accept(calcCrossRank().getNode(rank, i));
+    for (int i = 0; i < rankSize; i++) {
+      positiveAction.accept(crossRank.getNode(rank, i));
     }
 
     if (rankIndexAction != null) {
@@ -567,19 +555,13 @@ class RootCrossRank implements CrossRank {
       crossing(v, w, leftCrossRecord);
       crossing(w, v, rightCrossRecord);
 
-      if (leftCrossRecord[2] == rightCrossRecord[2] && i > 0
-          && !canExchange(crossRank.getNode(rank, i - 1), v)) {
-        continue;
-      }
-
       if (leftCrossRecord[2] > rightCrossRecord[2]
           || (leftCrossRecord[2] > 0 && reverse && leftCrossRecord[2] == rightCrossRecord[2])
       ) {
         int delta = leftCrossRecord[2] - rightCrossRecord[2];
         rv += delta;
-        exchange(v, w);
+        exchange(v, w, true);
 
-//        setCacheExpired(rank);
         updateRankCache(v.getRank() - 1, rightCrossRecord[0] - leftCrossRecord[0]);
         updateRankCache(v.getRank(), rightCrossRecord[1] - leftCrossRecord[1]);
         crossCache.crossNum -= delta;
@@ -634,10 +616,6 @@ class RootCrossRank implements CrossRank {
       return false;
     }
 
-    if (!isAdj(left, right) && left.getContainer() != right.getContainer()) {
-      return true;
-    }
-
     GraphContainer container = childCrossRank.container;
     GraphContainer leftDirC = DotAttachment
         .clusterDirectContainer(drawGraph.getGraphviz(), container, left);
@@ -652,82 +630,29 @@ class RootCrossRank implements CrossRank {
         && !clusterMerge.isSingleRankCluster(rightDirC);
   }
 
-  private boolean isAdj(DNode left, DNode right) {
-    int leftIdx = getRankIndex(left);
-    int rightIdx = getRankIndex(right);
-    return Math.abs(leftIdx - rightIdx) == 1;
-  }
+  private void sortRankVertex(int rank) {
+    CrossRank crossRank = calcCrossRank();
+    List<DNode> nodes = crossRank.getNodes(rank);
+    int last = nodes.size() - 1;
 
-  private void adjNodeAccess(boolean direction,
-                             DNode node,
-                             Predicate<DNode> nodeActionAndReturnNeedContinue) {
-    Iterable<DLine> dLines = direction
-        ? digraphProxy.inAdjacent(node)
-        : digraphProxy.outAdjacent(node);
+    for (int i = 0; i < last; i++) {
+      for (int j = 0; j < last - i; j++) {
+        DNode n = nodes.get(j);
+        DNode w = nodes.get(j + 1);
 
-    for (DLine line : dLines) {
-      // get adjacent vertices
-      DNode vertexInfo = line.other(node);
+        if (w.getMedian() < 0) {
+          j++;
+          continue;
+        }
+        if (!canExchange(n, w)) {
+          continue;
+        }
 
-      // Consume vertices and jump out if you don't need to access the next value
-      if (Objects.equals(nodeActionAndReturnNeedContinue.test(vertexInfo), Boolean.FALSE)) {
-        break;
+        if (n.getMedian() >= w.getMedian()) {
+          exchange(n, w, false);
+        }
       }
     }
-  }
-
-  private void sortRankVertex(int rank) {
-    int endIndex = calcCrossRank().rankSize(rank) - 1;
-    int left;
-    int right;
-
-    // Number of times to traverse nodes
-//    for (int i = rank; i <= endIndex; i++) {
-      left = 0;
-
-      while (left < endIndex) {
-        DNode leftNode = calcCrossRank().getNode(rank, left);
-        DNode rightNode = null;
-
-        // Find the first one on the left whose median value is greater than 0 in the hierarchy
-        while (left < endIndex && leftNode.getMedian() < 0) {
-          left++;
-        }
-
-        if (left >= endIndex) {
-          break;
-        }
-
-        boolean canExchange = true;
-        // The right side of left starts to find the first node that can be compared
-        for (right = left + 1; right <= endIndex; right++) {
-          rightNode = calcCrossRank().getNode(rank, right);
-
-          if (!canExchange(leftNode, rightNode)) {
-            canExchange = false;
-            break;
-          }
-
-          if (rightNode.getMedian() >= 0) {
-            break;
-          }
-        }
-
-        if (right > endIndex) {
-          break;
-        }
-
-        double lm = leftNode.getMedian();
-        double rm = rightNode.getMedian();
-
-        if (lm >= rm && canExchange) {
-          setCacheExpired(rank);
-          exchange(leftNode, rightNode);
-        }
-
-        left = right;
-      }
-//    }
   }
 
   private void crossing(DNode left, DNode right, int[] result) {
@@ -737,8 +662,6 @@ class RootCrossRank implements CrossRank {
           "Inconsistent hierarchy of vertices," + left + "," + right);
     }
 
-//    int leftSortIndex = calcCrossRank().getRankIndex(left);
-//    int rightSortIndex = calcCrossRank().getRankIndex(right);
     int leftSortIndex = left.getRankIndex();
     int rightSortIndex = right.getRankIndex();
 
@@ -747,7 +670,6 @@ class RootCrossRank implements CrossRank {
     boolean needExchange = leftSortIndex > rightSortIndex;
 
     if (needExchange) {
-//      exchange(left, right);
       left.setRankIndex(rightSortIndex);
       right.setRankIndex(leftSortIndex);
     }
@@ -761,7 +683,6 @@ class RootCrossRank implements CrossRank {
     result[2] = result[0] + result[1];
 
     if (needExchange) {
-//      exchange(left, right);
       left.setRankIndex(leftSortIndex);
       right.setRankIndex(rightSortIndex);
     }
@@ -903,6 +824,21 @@ class RootCrossRank implements CrossRank {
       return 0;
     }
     return idx;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = minRank(); i <= maxRank(); i++) {
+      int size = rankSize(i);
+      for (int j = 0; j < size; j++) {
+        DNode node = getNode(i, j);
+        sb.append(node.name()).append(",");
+      }
+      sb.append("\n");
+    }
+
+    return sb.toString();
   }
 
   interface ExpandInfoProvider {

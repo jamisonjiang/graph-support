@@ -29,7 +29,10 @@ public class DotCasesTest extends GraphvizVisual {
 
   @Test
   public void testCase() throws IOException {
-    String dot = DocumentUtils.getDotTestFile("/manual/stringCase.dot");
+//    String dot = DocumentUtils.getDotTestFile("/random/1436.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
+    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
 //    String dot = DocumentUtils.getDotTestFile("big_fdp_case.dot");

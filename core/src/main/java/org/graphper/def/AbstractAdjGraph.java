@@ -536,7 +536,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     sb.append("vertices=").append(vertexNum());
     sb.append(", edges=").append(edgeNum);
     sb.append(", maxDegree=").append(maxDegree());
-    sb.append(", averageDegree=").append(String.format("%.2f", averageDegree()));
+    sb.append(", averageDegree=").append(String.format("%.2f", averageDegree())).append("\n");
     
     if (!edgeMap.isEmpty()) {
       sb.append(", adjacency={");
@@ -561,7 +561,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
         sb.append("]");
         firstVertex = false;
       }
-      sb.append("}");
+      sb.append("}\n");
     }
     
     sb.append("}");

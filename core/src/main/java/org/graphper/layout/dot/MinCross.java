@@ -63,8 +63,6 @@ class MinCross {
 
   private static final Logger log = LoggerFactory.getLogger(MinCross.class);
 
-  private static final double CONVERGENCE = 0.995D;
-
   private RootCrossRank rootCrossRank;
 
   private ClusterExpand clusterExpand;
@@ -252,12 +250,6 @@ class MinCross {
   }
 
   private void dotMincross() {
-//    try {
-//      System.out.println("------------------------");
-//      TimeUnit.SECONDS.sleep(20);
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e);
-//    }
     long start = System.currentTimeMillis();
     if (clusterExpand != null) {
       clusterExpand.cluster = dotAttachment.getGraphviz();
@@ -271,13 +263,6 @@ class MinCross {
     if (log.isDebugEnabled()) {
       log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
     }
-
-//    try {
-//      System.out.println("------------------------");
-//      TimeUnit.SECONDS.sleep(20);
-//    } catch (InterruptedException e) {
-//      throw new RuntimeException(e);
-//    }
   }
 
   private void mincrossCluster(Cluster cluster) {
@@ -457,9 +442,6 @@ class MinCross {
   }
 
   private void mincross(int startPass, int endPass) {
-    int maxThisPass;
-    int trying;
-
     int maxIter = 24;
     int minQuit = dotAttachment.getDrawGraph().getGraphviz().graphAttrs().getMclimit();
     CrossSnapshot optimal = rootCrossRank.crossSnapshot();
@@ -470,7 +452,7 @@ class MinCross {
      */
     BasicCrossRank c = optimal.getCrossRank().clone();
     new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true);
-    CrossSnapshot cn = rootCrossRank.cacheCrossNum(c);
+    CrossSnapshot cn = rootCrossRank.tryCacheCrossNum(c);
     if (cn.getCrossNum() <= optimal.getCrossNum()) {
       optimal = cn;
       rootCrossRank.updateCross(cn);
@@ -478,7 +460,7 @@ class MinCross {
 
     c = optimal.getCrossRank().clone();
     new InitSort(c, c.container(), dotAttachment.getDrawGraph(), false);
-    cn = rootCrossRank.cacheCrossNum(c);
+    cn = rootCrossRank.tryCacheCrossNum(c);
     if (cn.getCrossNum() < optimal.getCrossNum()) {
       optimal = cn;
       rootCrossRank.updateCross(cn);
@@ -487,34 +469,12 @@ class MinCross {
     // Repeat the medium sort method and transport process
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
-        maxThisPass = Math.min(4, maxIter);
-
-        /*if (pass == 1 && (rootCrossRank.getSameRankAdjacentRecord() != null
-            || optimal.getCrossRank().container().haveChildCluster())) {
-          BasicCrossRank repl = optimal.getCrossRank().clone();
-
-          BasicCrossRank tmp = rootCrossRank.getBasicCrossRank();
-          rootCrossRank.setBasicCrossRank(repl);
-          if (optimal.getCrossNum() >= (currentNum = rootCrossRank.currentCrossNum())) {
-            optimal = repl;
-          } else {
-            rootCrossRank.setBasicCrossRank(tmp);
-          }
-        }*/
-
         flatOrder(optimal.getCrossRank());
         optimal = rootCrossRank.crossSnapshot();
-//        rootCrossRank.setBasicCrossRank(optimal);
-//        minCrossNum = rootCrossRank.currentCrossNum();
-      } else {
-        maxThisPass = maxIter;
       }
 
-//      optimal = optimal.clone();
-
-      trying = 0;
-      maxThisPass = maxIter;
-      for (int i = 0; i < maxThisPass; i++) {
+      int trying = 0;
+      for (int i = 0; i < maxIter; i++) {
         if (log.isDebugEnabled()) {
           log.debug("pass {} iter {} trying {} best_cross {}", pass, i, trying, optimal.getCrossNum());
         }
@@ -524,16 +484,7 @@ class MinCross {
         }
 
         mincrossStep(i);
-
-//        if (optimal.getCrossNum() > (currentNum = rootCrossRank.currentCrossNum())) {
-//          optimal = rootCrossRank.;
-//
-//          if (currentNum < CONVERGENCE * minCrossNum) {
-//            trying = 0;
-//          }
-//
-//          minCrossNum = currentNum;
-//        }
+        optimal = rootCrossRank.crossSnapshot();
       }
 
       if (optimal.getCrossNum() == 0) {
@@ -541,13 +492,12 @@ class MinCross {
       }
     }
 
-//    rootCrossRank.setBasicCrossRank(optimal);
     rootCrossRank.transpose(false);
     rootCrossRank.syncChildOrder();
   }
 
   private void mincrossStep(int iterNum) {
-//    rootCrossRank.vmedian(iterNum);
+    rootCrossRank.vmedian(iterNum);
     rootCrossRank.transpose(iterNum % 4 >= 2);
   }
 
@@ -850,7 +800,7 @@ class MinCross {
       mark(from, component);
 
       int idx = rankAccessIndex.getOrDefault(from.getRank(), 0);
-      crossRank.exchange(from, crossRank.getNode(from.getRank(), idx));
+      crossRank.exchange(from, crossRank.getNode(from.getRank(), idx), false);
       rankAccessIndex.put(from.getRank(), idx + 1);
 
       GraphContainer fromContainer = dotAttachment

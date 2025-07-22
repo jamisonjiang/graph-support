@@ -47,12 +47,12 @@ digraph rusty {
             rc_t [label="Rc<T>", shape=box]
             mutable1 -> no1 [arrowhead=none]
             mutable1 -> yes1 [arrowhead=none]
-            subgraph cluster_val {
+            subgraph cluster_val1 {
                 label=Val
                 rc_cell_t [label="Rc<Cell<T>>", shape=box]
                 yes1 -> rc_cell_t
             }
-            subgraph cluster_ref {
+            subgraph cluster_ref1 {
                 label=Ref
                 rc_refcell_t [label="Rc<RefCell<T>>", shape=box]
                 yes1 -> rc_refcell_t
@@ -67,12 +67,12 @@ digraph rusty {
             arc_t [label="Arc<T>", shape=box]
             mutable2 -> no2 [arrowhead=none]
             mutable2 -> yes2 [arrowhead=none]
-            subgraph cluster_atomics {
+            subgraph cluster_atomics1 {
                 label=Atomics
                 arc_atomic_t [label="Arc<Atomic<T>>", shape=box]
                 yes2 -> arc_atomic_t
             }
-            subgraph cluster_locks {
+            subgraph cluster_locks1 {
                 label=Locks
                 arc_mutex_t [label="Arc<Mutex<T>>", shape=box]
                 arc_rwlock_t [label="Arc<RwLock<T>>", shape=box]

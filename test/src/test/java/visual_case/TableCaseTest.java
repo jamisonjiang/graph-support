@@ -795,7 +795,6 @@ public class TableCaseTest extends GraphvizVisual {
     boolean findTable = false;
     boolean findTd = false;
     for (NodeDrawProp node : drawGraph.nodes()) {
-      System.out.println();
       String nodeId = drawGraph.nodeId(node.getNode());
       if (nodeId.equalsIgnoreCase("Table")) {
         findTable = true;
