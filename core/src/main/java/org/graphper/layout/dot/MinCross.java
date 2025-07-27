@@ -63,6 +63,8 @@ class MinCross {
 
   private static final Logger log = LoggerFactory.getLogger(MinCross.class);
 
+  private static final double CONVERGENCE = 0.995D;
+
   private RootCrossRank rootCrossRank;
 
   private ClusterExpand clusterExpand;
@@ -483,8 +485,13 @@ class MinCross {
           break;
         }
 
+        int preOptimalCrossNum = optimal.getCrossNum();
         mincrossStep(i);
         optimal = rootCrossRank.crossSnapshot();
+
+        if (preOptimalCrossNum * CONVERGENCE <= optimal.getCrossNum()) {
+            trying++;
+        }
       }
 
       if (optimal.getCrossNum() == 0) {
