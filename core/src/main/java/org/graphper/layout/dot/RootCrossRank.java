@@ -37,8 +37,6 @@ import org.graphper.util.CollectionUtils;
 
 class RootCrossRank implements CrossRank {
 
-  private static final int MIN_CROSS_SCALE = 256;
-
   private final DrawGraph drawGraph;
 
   private final BasicCrossRank root;
