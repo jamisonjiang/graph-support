@@ -345,9 +345,10 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
   public void forEach(Consumer<? super V> action) {
     Objects.requireNonNull(action, "Action cannot be null");
 
-    for (Map.Entry<V, AdjacencyList<V, E>> entry : edgeMap.entrySet()) {
-      V vertex = entry.getKey();
-      action.accept(vertex);
+    AdjacencyList<V, E> current = head;
+    while (current != null) {
+      action.accept(current.getOwner());
+      current = current.getNext();
     }
   }
 
@@ -364,16 +365,19 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
    */
   private class VertexIterator implements Iterator<V> {
 
-    private final Iterator<Map.Entry<V, AdjacencyList<V, E>>> entryIterator;
-    private Map.Entry<V, AdjacencyList<V, E>> current;
+    private AdjacencyList<V, E> current;
+    private AdjacencyList<V, E> next;
+    private boolean canRemove;
 
     VertexIterator() {
-      this.entryIterator = edgeMap.entrySet().iterator();
+      this.current = null;
+      this.next = head;
+      this.canRemove = false;
     }
 
     @Override
     public boolean hasNext() {
-      return entryIterator.hasNext();
+      return next != null;
     }
 
     @Override
@@ -381,18 +385,20 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
       if (!hasNext()) {
         throw new NoSuchElementException();
       }
-      current = entryIterator.next();
-      return current.getKey();
+      current = next;
+      next = next.getNext();
+      canRemove = true;
+      return current.getOwner();
     }
 
     @Override
     public void remove() {
-      if (current == null) {
+      if (!canRemove) {
         throw new IllegalStateException();
       }
 
-      V v = current.getKey();
-      AdjacencyList<V, E> adjToRemove = current.getValue();
+      V v = current.getOwner();
+      AdjacencyList<V, E> adjToRemove = current;
 
       // Update head and tail pointers if necessary
       if (adjToRemove == head) {
@@ -405,10 +411,12 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
       // Remove from linked list
       adjToRemove.unlinkFromList();
 
-      entryIterator.remove();
+      edgeMap.remove(v);
       edgeMap.forEach((k, a) -> adjustAdjWhenRemoveNode(v, a));
       edgeNum -= adjToRemove.size();
+      
       current = null;
+      canRemove = false;
     }
   }
 

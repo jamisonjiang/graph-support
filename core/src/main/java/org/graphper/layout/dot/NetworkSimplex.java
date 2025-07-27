@@ -472,7 +472,8 @@ class NetworkSimplex {
 
     // Calculate from the head of the node list composed of the edge paths that change the cut value.
     DNode current = calcCutvalHead;
-    for (ULine updateCutvalLine : updateCutvalLines) {
+    for (int i = 0; i < updateCutvalLines.size(); i++) {
+      ULine updateCutvalLine = updateCutvalLines.get(i);
       double cutval = FeasibleTree.calcCutValByAdjTreeLine(
           feasibleTree.graph(),
           current,
