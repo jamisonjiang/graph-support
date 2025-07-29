@@ -142,6 +142,10 @@ class DNode extends ANode implements Box, ShapePosition {
     }
   }
 
+  int getRealRank() {
+    return rank;
+  }
+
   void setRank(int rank) {
     if (isNormalModel()) {
       this.rank = rank;

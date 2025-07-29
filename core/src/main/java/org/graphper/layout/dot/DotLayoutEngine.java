@@ -262,7 +262,8 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     if (EnvProp.useV1Coordinate()) {
       new Coordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     } else {
-      new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+//      new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+      new CoordinateV3(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     }
 
     // If cell not set port, auto generate port for line to get more reasonable routing
