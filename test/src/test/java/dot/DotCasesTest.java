@@ -32,17 +32,17 @@ public class DotCasesTest extends GraphvizVisual {
 //    String dot = DocumentUtils.getDotTestFile("/random/1436.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
-    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
 //    String dot = DocumentUtils.getDotTestFile("big_fdp_case.dot");
-    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+//    Graphviz graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
-//    Graphviz graphviz = DotParser.parse("digraph {"
-//                                            + "a -> b; a -> c; a -> d;"
-//                                            + "b -> e; c -> f; d -> g;"
-//                                            + "c[label=\"11111111111111111\"]"
-//                                            + "}");
+    Graphviz graphviz = DotParser.parse("digraph {"
+                                            + "a -> b; a -> c; a -> d; a -> g;"
+                                            + "b -> e; c -> f; d -> g;"
+                                            + "c[label=\"11111111111111111\"]"
+                                            + "}");
 //    Graphviz graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
     visual(graphviz);
   }

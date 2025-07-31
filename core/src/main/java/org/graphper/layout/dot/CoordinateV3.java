@@ -105,22 +105,22 @@ class CoordinateV3 extends AbstractCoordinate {
     double bestLength = xlength(xcoord);
 
     // Steps 4-12: Iterative improvement
-//    for (int i = 0; i < MAX_ITERATIONS; i++) {
-    for (int i = 0; i <= 1; i++) {
+    for (int i = 0; i < MAX_ITERATIONS; i++) {
+//    for (int i = 0; i <= 1; i++) {
       // Step 5: Median position heuristic
       medianpos(i, xcoord);
 
       // Step 6: Minimize edge lengths
-//      minedge(i, xcoord);
+      minedge(i, xcoord);
 
       // Step 7: Minimize node positions
 //      minnode(i, xcoord);
 
       // Step 8: Minimize path lengths (straighten virtual chains)
-//      minpath(i, xcoord);
+      minpath(i, xcoord);
 
       // Step 9: Pack and compact
-//      packcut(i, xcoord);
+      packcut(i, xcoord);
 
       // Steps 10-11: Save best result
       double currentLength = xlength(xcoord);
@@ -220,7 +220,7 @@ class CoordinateV3 extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          double medianPos = calculateMedianPosition(node, layer, false, xcoord);
+          double medianPos = calculateMedianPosition(node, false, xcoord, false);
           int nodeIndex = calculateGlobalIndex(node);
           if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
             // Apply median position while respecting spacing constraints
@@ -235,7 +235,7 @@ class CoordinateV3 extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          double medianPos = calculateMedianPosition(node, layer, true, xcoord);
+          double medianPos = calculateMedianPosition(node, true, xcoord, false);
           int nodeIndex = calculateGlobalIndex(node);
           if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
             // Apply median position while respecting spacing constraints
@@ -295,12 +295,25 @@ class CoordinateV3 extends AbstractCoordinate {
   /**
    * Calculate median position for a node based on neighbors
    */
-  private double calculateMedianPosition(DNode node, int layer, boolean upward, double[] xcoord) {
+  private double calculateMedianPosition(DNode node, boolean upward,
+                                         double[] xcoord, boolean realAdj) {
     List<Double> neighborPositions = new ArrayList<>();
+    Set<DNode> accessNodes = new HashSet<>();
 
     if (upward) {
       for (DLine edge : proxyDigraph.outAdjacent(node)) {
         DNode adjNode = edge.other(node);
+
+        while (realAdj && adjNode.isVirtual()) {
+          for (DLine l : proxyDigraph.outAdjacent(adjNode)) {
+            adjNode = l.other(adjNode);
+          }
+          if (accessNodes.contains(adjNode)) {
+            break;
+          }
+          accessNodes.add(adjNode);
+        }
+
         if (adjNode.getRealRank() != node.getRealRank()) {
           int adjIndex = calculateGlobalIndex(adjNode);
           if (adjIndex >= 0 && adjIndex < xcoord.length) {
@@ -311,6 +324,17 @@ class CoordinateV3 extends AbstractCoordinate {
     } else {
       for (DLine edge : proxyDigraph.inAdjacent(node)) {
         DNode adjNode = edge.other(node);
+
+        while (realAdj && adjNode.isVirtual()) {
+          for (DLine l : proxyDigraph.inAdjacent(adjNode)) {
+            adjNode = l.other(adjNode);
+          }
+          if (accessNodes.contains(adjNode)) {
+            break;
+          }
+          accessNodes.add(adjNode);
+        }
+
         if (adjNode.getRealRank() != node.getRealRank()) {
           int ajdIndex = calculateGlobalIndex(adjNode);
           if (ajdIndex >= 0 && ajdIndex < xcoord.length) {
@@ -342,25 +366,38 @@ class CoordinateV3 extends AbstractCoordinate {
    * two real nodes"
    */
   private void minedge(int iteration, double[] xcoord) {
-    DotDigraph dotDigraph = dotAttachment.getDotDigraph();
-    for (DLine edge : dotDigraph.edges()) {
-      DNode from = edge.from();
-      DNode to = edge.to();
+// Alternate direction based on iteration: even = downward, odd = upward
+    boolean downward = (iteration % 2 == 0);
+//    downward = false;
 
-      // Only consider edges between real nodes
-      if (!from.isVirtual() && !to.isVirtual()) {
-        int fromIndex = calculateGlobalIndex(from);
-        int toIndex = calculateGlobalIndex(to);
+    if (downward) {
+      // Process downward (top to bottom) for even iterations
+      for (int layer = rankContent.minRank(); layer <= rankContent.maxRank(); layer++) {
+        RankNode rankNode = rankContent.get(layer);
 
-        if (fromIndex >= 0 && toIndex >= 0 && fromIndex < xcoord.length
-            && toIndex < xcoord.length) {
-          // Place edge as close as possible to median of adjacent nodes
-          double medianPos = (xcoord[fromIndex] + xcoord[toIndex]) / 2.0;
+        for (DNode node : rankNode) {
+          double medianPos = calculateMedianPosition(node, false, xcoord, true);
+          int nodeIndex = calculateGlobalIndex(node);
+          if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
+            // Apply median position while respecting spacing constraints
+            double constrainedPos = applySpacingConstraints(node, medianPos, layer, xcoord);
+            xcoord[nodeIndex] = constrainedPos;
+          }
+        }
+      }
+    } else {
+      // Process upward (bottom to top) for odd iterations
+      for (int layer = rankContent.maxRank(); layer >= rankContent.minRank(); layer--) {
+        RankNode rankNode = rankContent.get(layer);
 
-          // Adjust both nodes towards the median
-          double adjustment = 0.1; // Small adjustment factor
-          xcoord[fromIndex] += (medianPos - xcoord[fromIndex]) * adjustment;
-          xcoord[toIndex] += (medianPos - xcoord[toIndex]) * adjustment;
+        for (DNode node : rankNode) {
+          double medianPos = calculateMedianPosition(node, true, xcoord, true);
+          int nodeIndex = calculateGlobalIndex(node);
+          if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
+            // Apply median position while respecting spacing constraints
+            double constrainedPos = applySpacingConstraints(node, medianPos, layer, xcoord);
+            xcoord[nodeIndex] = constrainedPos;
+          }
         }
       }
     }
