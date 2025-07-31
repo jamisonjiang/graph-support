@@ -96,42 +96,288 @@ class CoordinateV3 extends AbstractCoordinate {
   // ----------------------------------------------------- private method -----------------------------------------------------
 
   /**
-   * Main x-coordinate algorithm based on TSE93 paper 4.1 Heuristic Approach
+   * Main x-coordinate algorithm based on Dagre's position.js implementation
+   * Implements the Sugiyama algorithm with conflict detection, vertical alignment, and horizontal compaction
    */
   private void sugiyamaXPositioning() {
-    // Step 2: Initial x-coordinates
+    // Step 1: Initialize x-coordinates
     double[] xcoord = initXcoord();
-    double[] xbest = xcoord.clone();
-    double bestLength = xlength(xcoord);
+    
+    // Step 2: Apply Dagre-style position algorithm
+    applyDagrePositioning(xcoord);
+    
+    // Step 3: Apply final coordinates
+    applyCoordinates(xcoord);
+  }
 
-    // Steps 4-12: Iterative improvement
-    for (int i = 0; i < MAX_ITERATIONS; i++) {
-//    for (int i = 0; i <= 1; i++) {
-      // Step 5: Median position heuristic
-      medianpos(i, xcoord);
+  /**
+   * Apply Dagre-style positioning algorithm
+   */
+  private void applyDagrePositioning(double[] xcoord) {
+    // Phase 1: Find and resolve conflicts
+    Map<DNode, Set<DNode>> conflicts = findConflicts();
+    
+    // Phase 2: Vertical alignment
+    Map<DNode, DNode> alignment = verticalAlignment(conflicts);
+    
+    // Phase 3: Horizontal compaction
+    horizontalCompaction(alignment, xcoord);
+  }
 
-      // Step 6: Minimize edge lengths
-      minedge(i, xcoord);
-
-      // Step 7: Minimize node positions
-//      minnode(i, xcoord);
-
-      // Step 8: Minimize path lengths (straighten virtual chains)
-      minpath(i, xcoord);
-
-      // Step 9: Pack and compact
-      packcut(i, xcoord);
-
-      // Steps 10-11: Save best result
-      double currentLength = xlength(xcoord);
-      if (currentLength < bestLength) {
-        xbest = xcoord.clone();
-        bestLength = currentLength;
+  /**
+   * Find conflicts between nodes (Type 1 and Type 2 conflicts)
+   */
+  private Map<DNode, Set<DNode>> findConflicts() {
+    Map<DNode, Set<DNode>> conflicts = new HashMap<>();
+    
+    // Find Type 1 conflicts (nodes in same rank that are adjacent in the graph)
+    for (int layer = rankContent.minRank(); layer <= rankContent.maxRank(); layer++) {
+      RankNode rankNode = rankContent.get(layer);
+      
+      for (int i = 0; i < rankNode.size(); i++) {
+        DNode node1 = rankNode.get(i);
+        for (int j = i + 1; j < rankNode.size(); j++) {
+          DNode node2 = rankNode.get(j);
+          
+          // Check if nodes are connected through edges
+          if (areNodesConnected(node1, node2)) {
+            addConflict(conflicts, node1, node2);
+          }
+        }
       }
     }
+    
+    return conflicts;
+  }
 
-    // Step 13: Apply best coordinates
-    applyCoordinates(xbest);
+  /**
+   * Check if two nodes are connected through edges
+   */
+  private boolean areNodesConnected(DNode node1, DNode node2) {
+    // Check if there's a path between node1 and node2 through edges
+    for (DLine edge : proxyDigraph.outAdjacent(node1)) {
+      DNode other = edge.other(node1);
+      if (other == node2) {
+        return true;
+      }
+    }
+    
+    for (DLine edge : proxyDigraph.inAdjacent(node1)) {
+      DNode other = edge.other(node1);
+      if (other == node2) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Add conflict between two nodes
+   */
+  private void addConflict(Map<DNode, Set<DNode>> conflicts, DNode node1, DNode node2) {
+    conflicts.computeIfAbsent(node1, k -> new HashSet<>()).add(node2);
+    conflicts.computeIfAbsent(node2, k -> new HashSet<>()).add(node1);
+  }
+
+  /**
+   * Perform vertical alignment based on conflicts
+   */
+  private Map<DNode, DNode> verticalAlignment(Map<DNode, Set<DNode>> conflicts) {
+    Map<DNode, DNode> alignment = new HashMap<>();
+    
+    // Process each rank from top to bottom
+    for (int layer = rankContent.minRank(); layer <= rankContent.maxRank(); layer++) {
+      RankNode rankNode = rankContent.get(layer);
+      
+      for (DNode node : rankNode) {
+        if (!alignment.containsKey(node)) {
+          // Find the best alignment for this node
+          DNode alignedNode = findBestAlignment(node, layer, conflicts, alignment);
+          if (alignedNode != null) {
+            alignment.put(node, alignedNode);
+          }
+        }
+      }
+    }
+    
+    return alignment;
+  }
+
+  /**
+   * Find the best alignment for a node
+   */
+  private DNode findBestAlignment(DNode node, int layer, Map<DNode, Set<DNode>> conflicts, 
+                                 Map<DNode, DNode> alignment) {
+    // Look for nodes in adjacent ranks that this node can align with
+    List<DNode> candidates = new ArrayList<>();
+    
+    // Check nodes in the rank above
+    if (layer > rankContent.minRank()) {
+      RankNode prevRank = rankContent.get(layer - 1);
+      for (DNode prevNode : prevRank) {
+        if (!conflicts.containsKey(node) || !conflicts.get(node).contains(prevNode)) {
+          candidates.add(prevNode);
+        }
+      }
+    }
+    
+    // Check nodes in the rank below
+    if (layer < rankContent.maxRank()) {
+      RankNode nextRank = rankContent.get(layer + 1);
+      for (DNode nextNode : nextRank) {
+        if (!conflicts.containsKey(node) || !conflicts.get(node).contains(nextNode)) {
+          candidates.add(nextNode);
+        }
+      }
+    }
+    
+    // Choose the best candidate based on position similarity
+    if (!candidates.isEmpty()) {
+      return findClosestNode(node, candidates);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Find the closest node based on x-coordinates
+   */
+  private DNode findClosestNode(DNode target, List<DNode> candidates) {
+    if (candidates.isEmpty()) {
+      return null;
+    }
+    
+    DNode closest = candidates.get(0);
+    double minDistance = Double.MAX_VALUE;
+    
+    for (DNode candidate : candidates) {
+      double distance = Math.abs(target.getAuxRank() - candidate.getAuxRank());
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = candidate;
+      }
+    }
+    
+    return closest;
+  }
+
+  /**
+   * Perform horizontal compaction based on alignment
+   */
+  private void horizontalCompaction(Map<DNode, DNode> alignment, double[] xcoord) {
+    // Group nodes by their alignment
+    Map<DNode, Set<DNode>> groups = buildAlignmentGroups(alignment);
+    
+    // Compact each group
+    for (Set<DNode> group : groups.values()) {
+      compactGroup(group, xcoord);
+    }
+  }
+
+  /**
+   * Build groups of aligned nodes
+   */
+  private Map<DNode, Set<DNode>> buildAlignmentGroups(Map<DNode, DNode> alignment) {
+    Map<DNode, Set<DNode>> groups = new HashMap<>();
+    
+    for (Map.Entry<DNode, DNode> entry : alignment.entrySet()) {
+      DNode node = entry.getKey();
+      DNode alignedNode = entry.getValue();
+      
+      // Find the root of the alignment chain
+      DNode root = findAlignmentRoot(alignedNode, alignment);
+      
+      groups.computeIfAbsent(root, k -> new HashSet<>()).add(node);
+    }
+    
+    return groups;
+  }
+
+  /**
+   * Find the root of an alignment chain
+   */
+  private DNode findAlignmentRoot(DNode node, Map<DNode, DNode> alignment) {
+    DNode current = node;
+    Set<DNode> visited = new HashSet<>();
+    
+    while (current != null && !visited.contains(current)) {
+      visited.add(current);
+      current = alignment.get(current);
+    }
+    
+    return current != null ? current : node;
+  }
+
+  /**
+   * Compact a group of aligned nodes
+   */
+  private void compactGroup(Set<DNode> group, double[] xcoord) {
+    if (group.isEmpty()) {
+      return;
+    }
+    
+    // Calculate the optimal position for the group
+    double optimalPosition = calculateGroupOptimalPosition(group, xcoord);
+    
+    // Apply the position to all nodes in the group
+    for (DNode node : group) {
+      int nodeIndex = calculateGlobalIndex(node);
+      if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
+        // Apply spacing constraints
+        double constrainedPos = applySpacingConstraints(node, optimalPosition, node.getRealRank(), xcoord);
+        xcoord[nodeIndex] = constrainedPos;
+      }
+    }
+  }
+
+  /**
+   * Calculate optimal position for a group of aligned nodes
+   */
+  private double calculateGroupOptimalPosition(Set<DNode> group, double[] xcoord) {
+    if (group.isEmpty()) {
+      return 0.0;
+    }
+    
+    // Calculate weighted average position of the group
+    double weightedSum = 0.0;
+    double totalWeight = 0.0;
+    
+    for (DNode node : group) {
+      int nodeIndex = calculateGlobalIndex(node);
+      if (nodeIndex >= 0 && nodeIndex < xcoord.length) {
+        double weight = calculateNodeWeight(node);
+        weightedSum += xcoord[nodeIndex] * weight;
+        totalWeight += weight;
+      }
+    }
+    
+    return totalWeight > 0 ? weightedSum / totalWeight : 0.0;
+  }
+
+  /**
+   * Calculate weight for a node (based on connectivity and importance)
+   */
+  private double calculateNodeWeight(DNode node) {
+    double weight = 1.0;
+    
+    // Increase weight for real nodes
+    if (!node.isVirtual()) {
+      weight *= 2.0;
+    }
+    
+    // Increase weight based on connectivity
+    int inDegree = 0;
+    for (DLine edge : proxyDigraph.inAdjacent(node)) {
+      inDegree++;
+    }
+    int outDegree = 0;
+    for (DLine edge : proxyDigraph.outAdjacent(node)) {
+      outDegree++;
+    }
+    weight += (inDegree + outDegree) * 0.1;
+    
+    return weight;
   }
 
   /**
