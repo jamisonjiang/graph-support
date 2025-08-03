@@ -46,11 +46,11 @@ public class DotCasesTest extends GraphvizVisual {
                                             + "b -> e; c -> f; d -> g; g -> h; a -> h;"
                                             + "c[label=\"11111111111111111\"]"
                                             + "}");
-//    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
+    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 
-    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
-    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+//    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
+//    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
     graphviz.toFile(FileType.SVG).save("E:\\demo", "test");
 //    visual(graphviz);

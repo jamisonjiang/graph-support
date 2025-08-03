@@ -125,6 +125,9 @@ class CoordinateV3 extends AbstractCoordinate {
 
       node.setAuxRank(block.getRank());
     }
+
+    medianpos(0);
+    medianpos(1);
   }
 
   private void dfs(DNode v, Map<DNode, DNode> mark, DNode block,
@@ -181,23 +184,110 @@ class CoordinateV3 extends AbstractCoordinate {
     return false;
   }
 
-  /**
-   * Calculate global index for a node by adding offset of previous ranks
-   */
-  private int calculateGlobalIndex(DNode node) {
-    int globalIndex = 0;
+  private void medianpos(int iteration) {
+    // Alternate direction based on iteration: even = downward, odd = upward
+    boolean downward = (iteration % 2 == 0);
 
-    // Add offset from previous ranks
-    for (int layer = rankContent.minRank(); layer < node.getRealRank(); layer++) {
-      RankNode rankNode = rankContent.get(layer);
-      globalIndex += rankNode.size();
+    if (downward) {
+      // Process downward (top to bottom) for even iterations
+      for (int layer = rankContent.minRank(); layer <= rankContent.maxRank(); layer++) {
+        RankNode rankNode = rankContent.get(layer);
+
+        for (DNode node : rankNode) {
+          if (node.isVirtual()) {
+            continue;
+          }
+          double medianPos = calculateMedianPosition(node, false);
+          double constrainedPos = applySpacingConstraints(node, medianPos);
+          node.setAuxRank((int) constrainedPos);
+        }
+      }
+    } else {
+      // Process upward (bottom to top) for odd iterations
+      for (int layer = rankContent.maxRank(); layer >= rankContent.minRank(); layer--) {
+        RankNode rankNode = rankContent.get(layer);
+
+        for (DNode node : rankNode) {
+          if (node.isVirtual()) {
+            continue;
+          }
+          double medianPos = calculateMedianPosition(node, true);
+          double constrainedPos = applySpacingConstraints(node, medianPos);
+          node.setAuxRank((int) constrainedPos);
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculate median position for a node based on neighbors
+   */
+  private double calculateMedianPosition(DNode node, boolean upward) {
+    List<Double> neighborPositions = new ArrayList<>();
+
+    if (upward) {
+      for (DLine edge : proxyDigraph.outAdjacent(node)) {
+        DNode adjNode = edge.other(node);
+
+        if (adjNode.getRealRank() != node.getRealRank()) {
+          neighborPositions.add((double) adjNode.getAuxRank());
+        }
+      }
+    } else {
+      for (DLine edge : proxyDigraph.inAdjacent(node)) {
+        DNode adjNode = edge.other(node);
+
+        if (adjNode.getRealRank() != node.getRealRank()) {
+          neighborPositions.add((double) adjNode.getAuxRank());
+        }
+      }
     }
 
-    // Add the node's index within its current rank
-    globalIndex += node.getRankIndex();
+    if (neighborPositions.isEmpty()) {
+      return node.getAuxRank();
+    }
 
-    return globalIndex;
+    // Sort and return median
+    neighborPositions.sort(Double::compareTo);
+    int medianIndex = neighborPositions.size() / 2;
+
+    // If there are two medians, take their mean for symmetry
+    if (neighborPositions.size() % 2 == 0 && medianIndex > 0) {
+      return (neighborPositions.get(medianIndex - 1) + neighborPositions.get(medianIndex)) / 2.0;
+    } else {
+      return neighborPositions.get(medianIndex);
+    }
   }
+
+  /**
+   * Apply spacing constraints to ensure no node overlap Returns the constrained position that
+   * respects minimum spacing requirements
+   */
+  private double applySpacingConstraints(DNode node, double desiredPos) {
+    DNode pre = rankContent.rankPreNode(node);
+    DNode next = rankContent.rankNextNode(node);
+
+    if (pre == null && next == null) {
+      return desiredPos;
+    }
+
+    if (pre != null) {
+      double limit = pre.getAuxRank() + pre.rightWidth() + pre.getNodeSep() + node.leftWidth();
+      if (desiredPos < limit) {
+        return limit;
+      }
+    }
+
+    if (next != null) {
+      double limit = next.getAuxRank() - (node.rightWidth() + node.getNodeSep() + next.leftWidth());
+      if (desiredPos > limit) {
+        return limit;
+      }
+    }
+
+    return desiredPos;
+  }
+
 
   /**
    * Initialize container content for cluster handling
