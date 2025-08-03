@@ -16,11 +16,12 @@
 
 package org.graphper.layout.dot;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
@@ -28,22 +29,9 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.layout.dot.RankContent.RankNode;
 
-/**
- * CoordinateV3 implements the Sugiyama algorithm for x-position calculation. This provides a more
- * efficient alternative to Network Simplex with O(V + E) complexity per iteration instead of
- * O(V²).
- * <p>
- * The algorithm uses iterative barycenter/median positioning to minimize edge crossings and
- * optimize node placement within each rank.
- */
 class CoordinateV3 extends AbstractCoordinate {
 
-  private static final int MAX_ITERATIONS = 8; // As specified in TSE93 paper
-  private static final double EPSILON = 0.1;
-  private static final double CONVERGENCE_THRESHOLD = 0.5;
-
   private Map<GraphContainer, ContainerContent> containerContentMap;
-  private Map<DNode, Integer> nodeIndexMap; // Add node to index mapping
 
   public CoordinateV3(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                       EdgeDedigraph<DNode, DLine> proxyDigraph) {
@@ -55,8 +43,8 @@ class CoordinateV3 extends AbstractCoordinate {
       initializeContainerContent();
     }
 
-    // Apply Sugiyama algorithm for x-position calculation
-    sugiyamaXPositioning();
+    // Mix dot network-simplex and Brandes/Köpf algorithm to x-position
+    blockNetworkSimplex();
 
     // Final x coordinate setting
     positive();
@@ -95,23 +83,8 @@ class CoordinateV3 extends AbstractCoordinate {
    * Main x-coordinate algorithm based on Brandes-Köpf algorithm
    * Implements the complete BK algorithm with conflict detection, four-direction alignment, and block-based compaction
    */
-  private void sugiyamaXPositioning() {
-    // Step 1: Initialize x-coordinates
-    double[] xcoord = initXcoord();
-    
-    // Step 2: Apply Brandes-Köpf algorithm
-    applyBrandesKopfPositioning(xcoord);
-  }
-
-  /**
-   * Apply Brandes-Köpf positioning algorithm
-   * Based on "Fast and Simple Horizontal Coordinate Assignment" by Brandes and Köpf
-   * This is a proper implementation following the Dagre bk.js algorithm
-   */
-  private void applyBrandesKopfPositioning(double[] xcoord) {
-    // Phase 1: Find conflicts (Type 1 and Type 2)
-    Map<DNode, Set<DNode>> conflicts = findType1Conflicts();
-    setType2Conflicts(conflicts);
+  private void blockNetworkSimplex() {
+    Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts = new HashMap<>();
 
     int blockSize = 0;
     Map<DNode, DNode> nodeBlocks = new HashMap<>();
@@ -122,7 +95,7 @@ class CoordinateV3 extends AbstractCoordinate {
 
       blockSize++;
       DNode block = new DNode(null, 0, 0 , 0);
-      dfs(node, nodeBlocks, conflicts, block);
+      dfs(node, nodeBlocks, block, conflicts);
     }
 
     DotDigraph blockGraph = new DotDigraph(blockSize);
@@ -154,150 +127,58 @@ class CoordinateV3 extends AbstractCoordinate {
     }
   }
 
-  private void dfs(DNode v, Map<DNode, DNode> mark,
-                   Map<DNode, Set<DNode>> conflict,
-                   DNode block) {
+  private void dfs(DNode v, Map<DNode, DNode> mark, DNode block,
+                   Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts) {
     if (mark.containsKey(v)) {
       return;
     }
 
     mark.put(v, block);
     block.setHeight(Math.max(block.getHeight(), v.getWidth()));
+    List<SimpleEntry<DNode, DNode>> rankConflicts = conflicts.get(v.getRealRank());
+
+    DNode successor = null;
     for (DLine edge : proxyDigraph.outAdjacent(v)) {
-      DNode w = edge.other(v);
-      if (hasConflict(v, w, conflict)) {
+      DNode other = edge.other(v);
+      if (hasConflict(rankConflicts, v, other)) {
         continue;
       }
 
-      dfs(w, mark, conflict, block);
-    }
-  }
-
-  /**
-   * Find Type 1 conflicts: non-inner segments crossing inner segments
-   * Inner segments are edges with both incident nodes being dummy nodes
-   * This is a proper implementation following the Dagre bk.js algorithm
-   */
-  private Map<DNode, Set<DNode>> findType1Conflicts() {
-    Map<DNode, Set<DNode>> conflicts = new HashMap<>();
-
-    for (int i = rankContent.minRank() + 1; i <= rankContent.maxRank(); i++) {
-      RankNode prevLayer = rankContent.get(i - 1);
-      RankNode currentLayer = rankContent.get(i);
-      
-      int k0 = 0;
-      int scanPos = 0;
-      
-      for (int j = 0; j < currentLayer.size(); j++) {
-        DNode v = currentLayer.get(j);
-        DNode w = findOtherInnerSegmentNode(v);
-        int k1 = w != null ? w.getRankIndex() : prevLayer.size();
-        
-        if (w != null || j == currentLayer.size() - 1) {
-          // Scan nodes from scanPos to j for conflicts
-          for (int k = scanPos; k <= j; k++) {
-            DNode scanNode = currentLayer.get(k);
-            for (DLine edge : proxyDigraph.inAdjacent(scanNode)) {
-              DNode u = edge.other(scanNode);
-              int uPos = u.getRankIndex();
-              
-              // Check if this creates a Type 1 conflict
-              if ((uPos < k0 || k1 < uPos) && 
-                  !(u.isVirtual() && scanNode.isVirtual())) {
-                addConflict(conflicts, u, scanNode);
-              }
-            }
-          }
-
-          scanPos = j + 1;
-          k0 = k1;
-        }
-      }
-    }
-    
-    return conflicts;
-  }
-
-  /**
-   * Find the other node in an inner segment (both nodes are dummy)
-   */
-  private DNode findOtherInnerSegmentNode(DNode v) {
-    if (v.isVirtual()) {
-      for (DLine edge : proxyDigraph.inAdjacent(v)) {
-        DNode u = edge.other(v);
-        if (u.isVirtual()) {
-          return u;
-        }
-      }
-    }
-    return null;
-  }
-
-  private void setType2Conflicts(Map<DNode, Set<DNode>> conflicts) {
-    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
-      RankNode layer = rankContent.get(i);
-      
-      for (DNode v : layer) {
-        if (!v.isVirtual()) {
-          continue;
-        }
-
-        // Check for conflicts with border nodes
-        for (DLine edge : proxyDigraph.inAdjacent(v)) {
-          DNode u = edge.other(v);
-          if (!u.isVirtual()) {
-            // This is a border node, check for conflicts
-            for (DNode w : layer) {
-              if (w != v && !w.isVirtual()) {
-                addConflict(conflicts, u, w);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private boolean hasConflict(DNode v, DNode w, Map<DNode, Set<DNode>> type1Conflicts) {
-    Set<DNode> vConflicts = type1Conflicts.get(v);
-    return vConflicts != null && vConflicts.contains(w);
-  }
-
-  /**
-   * Add conflict between two nodes
-   */
-  private void addConflict(Map<DNode, Set<DNode>> conflicts, DNode node1, DNode node2) {
-    conflicts.computeIfAbsent(node1, k -> new HashSet<>()).add(node2);
-    conflicts.computeIfAbsent(node2, k -> new HashSet<>()).add(node1);
-  }
-
-  /**
-   * Step 2: Initialize x-coordinates as described in TSE93 paper "For each rank, the left-most node
-   * is assigned coordinate 0. The coordinate of the next node is then assigned a value sufficient
-   * to satisfy the minimal separation from the previous one"
-   */
-  private double[] initXcoord() {
-    // Count total nodes to determine array size
-    int totalNodes = proxyDigraph.vertexNum();
-    double[] xcoord = new double[totalNodes];
-
-    int idx = 0;
-    // Pack nodes as far left as possible on each rank
-    for (int layer = rankContent.minRank(); layer <= rankContent.maxRank(); layer++) {
-      RankNode rankNode = rankContent.get(layer);
-      double currentX = 0;
-
-      for (int j = 0; j < rankNode.size(); j++) {
-        DNode node = rankNode.get(j);
-        node.switchAuxModel();
-
-        currentX += node.leftWidth();
-        xcoord[idx++] = currentX;
-        currentX += (node.getNodeSep() + node.rightWidth());
+      if (successor == null || (!successor.isVirtual() && other.isVirtual())
+          || successor.getRankIndex() < other.getRankIndex()) {
+        successor = other;
       }
     }
 
-    return xcoord;
+    if (successor != null) {
+      if (rankConflicts == null) {
+        rankConflicts = new ArrayList<>();
+        conflicts.put(v.getRealRank(), rankConflicts);
+      }
+      rankConflicts.add(new SimpleEntry<>(v, successor));
+      dfs(successor, mark, block, conflicts);
+    }
+  }
+
+  private boolean hasConflict(List<SimpleEntry<DNode, DNode>> rankConflicts, DNode from, DNode to) {
+    if (rankConflicts == null) {
+      return false;
+    }
+
+    if (from == to || from.getRealRank() == to.getRealRank()) {
+      return true;
+    }
+
+    for (SimpleEntry<DNode, DNode> conflict : rankConflicts) {
+      DNode f = conflict.getKey();
+      DNode t = conflict.getValue();
+
+      if (f.getRankIndex() < from.getRankIndex() != t.getRankIndex() < to.getRankIndex()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -316,29 +197,6 @@ class CoordinateV3 extends AbstractCoordinate {
     globalIndex += node.getRankIndex();
 
     return globalIndex;
-  }
-
-  /**
-   * Calculate the objective function value (total edge length)
-   */
-  private double xlength(double[] xcoord) {
-    double totalLength = 0.0;
-
-    for (DLine edge : proxyDigraph.edges()) {
-      DNode from = edge.from();
-      DNode to = edge.to();
-
-      // Use global index
-      int fromIndex = calculateGlobalIndex(from);
-      int toIndex = calculateGlobalIndex(to);
-
-      if (fromIndex >= 0 && toIndex >= 0 && fromIndex < xcoord.length && toIndex < xcoord.length) {
-        double length = Math.abs(xcoord[fromIndex] - xcoord[toIndex]);
-        totalLength += length * edge.weight();
-      }
-    }
-
-    return totalLength;
   }
 
   /**

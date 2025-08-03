@@ -43,7 +43,7 @@ public class DotCasesTest extends GraphvizVisual {
 
     graphviz = DotParser.parse("digraph {"
                                             + "a -> b; a -> c; a -> d; a -> g;"
-                                            + "b -> e; c -> f; d -> g;"
+                                            + "b -> e; c -> f; d -> g; g -> h; a -> h;"
                                             + "c[label=\"11111111111111111\"]"
                                             + "}");
 //    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
