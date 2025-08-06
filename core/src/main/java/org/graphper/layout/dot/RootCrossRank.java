@@ -554,7 +554,9 @@ class RootCrossRank implements CrossRank {
       crossing(w, v, rightCrossRecord);
 
       if (leftCrossRecord[2] > rightCrossRecord[2]
-          || (leftCrossRecord[2] > 0 && reverse && leftCrossRecord[2] == rightCrossRecord[2])
+          || (leftCrossRecord[2] > 0 && reverse
+          && leftCrossRecord[2] == rightCrossRecord[2]
+          && !v.isVirtual() && !w.isVirtual())
       ) {
         int delta = leftCrossRecord[2] - rightCrossRecord[2];
         rv += delta;

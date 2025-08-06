@@ -1,0 +1,556 @@
+digraph MassiveNetworkNoSubgraph {
+  // Graph settings
+  rankdir=TB;
+  node [shape=box, style=filled, fillcolor=lightblue, fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  // Graph title
+  label="Massive Network Graph (No Subgraphs) - 195 nodes, 596 edges";
+  labelloc="t";
+  fontsize=16;
+  fontname="Arial Bold";
+
+  // Hub nodes (central nodes) - no subgraph clusters
+  hub0 [label="H0", shape=ellipse, fillcolor=gold, style=filled];
+  hub1 [label="H1", shape=ellipse, fillcolor=gold, style=filled];
+  hub2 [label="H2", shape=ellipse, fillcolor=gold, style=filled];
+  hub3 [label="H3", shape=ellipse, fillcolor=gold, style=filled];
+  hub4 [label="H4", shape=ellipse, fillcolor=gold, style=filled];
+  hub5 [label="H5", shape=ellipse, fillcolor=gold, style=filled];
+  hub6 [label="H6", shape=ellipse, fillcolor=gold, style=filled];
+  hub7 [label="H7", shape=ellipse, fillcolor=gold, style=filled];
+  hub8 [label="H8", shape=ellipse, fillcolor=gold, style=filled];
+  hub9 [label="H9", shape=ellipse, fillcolor=gold, style=filled];
+  hub10 [label="H10", shape=ellipse, fillcolor=gold, style=filled];
+  hub11 [label="H11", shape=ellipse, fillcolor=gold, style=filled];
+  hub12 [label="H12", shape=ellipse, fillcolor=gold, style=filled];
+  hub13 [label="H13", shape=ellipse, fillcolor=gold, style=filled];
+  hub14 [label="H14", shape=ellipse, fillcolor=gold, style=filled];
+
+  // Spoke nodes (12 per hub) - no subgraph clusters
+  // Hub 0 spokes
+  spoke0_0 [label="S0.0", fillcolor=lightgreen];
+  spoke0_1 [label="S0.1", fillcolor=lightgreen];
+  spoke0_2 [label="S0.2", fillcolor=lightgreen];
+  spoke0_3 [label="S0.3", fillcolor=lightgreen];
+  spoke0_4 [label="S0.4", fillcolor=lightgreen];
+  spoke0_5 [label="S0.5", fillcolor=lightgreen];
+  spoke0_6 [label="S0.6", fillcolor=lightgreen];
+  spoke0_7 [label="S0.7", fillcolor=lightgreen];
+  spoke0_8 [label="S0.8", fillcolor=lightgreen];
+  spoke0_9 [label="S0.9", fillcolor=lightgreen];
+  spoke0_10 [label="S0.10", fillcolor=lightgreen];
+  spoke0_11 [label="S0.11", fillcolor=lightgreen];
+
+  // Hub 1 spokes
+  spoke1_0 [label="S1.0", fillcolor=lightgreen];
+  spoke1_1 [label="S1.1", fillcolor=lightgreen];
+  spoke1_2 [label="S1.2", fillcolor=lightgreen];
+  spoke1_3 [label="S1.3", fillcolor=lightgreen];
+  spoke1_4 [label="S1.4", fillcolor=lightgreen];
+  spoke1_5 [label="S1.5", fillcolor=lightgreen];
+  spoke1_6 [label="S1.6", fillcolor=lightgreen];
+  spoke1_7 [label="S1.7", fillcolor=lightgreen];
+  spoke1_8 [label="S1.8", fillcolor=lightgreen];
+  spoke1_9 [label="S1.9", fillcolor=lightgreen];
+  spoke1_10 [label="S1.10", fillcolor=lightgreen];
+  spoke1_11 [label="S1.11", fillcolor=lightgreen];
+
+  // Hub 2 spokes
+  spoke2_0 [label="S2.0", fillcolor=lightgreen];
+  spoke2_1 [label="S2.1", fillcolor=lightgreen];
+  spoke2_2 [label="S2.2", fillcolor=lightgreen];
+  spoke2_3 [label="S2.3", fillcolor=lightgreen];
+  spoke2_4 [label="S2.4", fillcolor=lightgreen];
+  spoke2_5 [label="S2.5", fillcolor=lightgreen];
+  spoke2_6 [label="S2.6", fillcolor=lightgreen];
+  spoke2_7 [label="S2.7", fillcolor=lightgreen];
+  spoke2_8 [label="S2.8", fillcolor=lightgreen];
+  spoke2_9 [label="S2.9", fillcolor=lightgreen];
+  spoke2_10 [label="S2.10", fillcolor=lightgreen];
+  spoke2_11 [label="S2.11", fillcolor=lightgreen];
+
+  // Hub 3 spokes
+  spoke3_0 [label="S3.0", fillcolor=lightgreen];
+  spoke3_1 [label="S3.1", fillcolor=lightgreen];
+  spoke3_2 [label="S3.2", fillcolor=lightgreen];
+  spoke3_3 [label="S3.3", fillcolor=lightgreen];
+  spoke3_4 [label="S3.4", fillcolor=lightgreen];
+  spoke3_5 [label="S3.5", fillcolor=lightgreen];
+  spoke3_6 [label="S3.6", fillcolor=lightgreen];
+  spoke3_7 [label="S3.7", fillcolor=lightgreen];
+  spoke3_8 [label="S3.8", fillcolor=lightgreen];
+  spoke3_9 [label="S3.9", fillcolor=lightgreen];
+  spoke3_10 [label="S3.10", fillcolor=lightgreen];
+  spoke3_11 [label="S3.11", fillcolor=lightgreen];
+
+  // Hub 4 spokes
+  spoke4_0 [label="S4.0", fillcolor=lightgreen];
+  spoke4_1 [label="S4.1", fillcolor=lightgreen];
+  spoke4_2 [label="S4.2", fillcolor=lightgreen];
+  spoke4_3 [label="S4.3", fillcolor=lightgreen];
+  spoke4_4 [label="S4.4", fillcolor=lightgreen];
+  spoke4_5 [label="S4.5", fillcolor=lightgreen];
+  spoke4_6 [label="S4.6", fillcolor=lightgreen];
+  spoke4_7 [label="S4.7", fillcolor=lightgreen];
+  spoke4_8 [label="S4.8", fillcolor=lightgreen];
+  spoke4_9 [label="S4.9", fillcolor=lightgreen];
+  spoke4_10 [label="S4.10", fillcolor=lightgreen];
+  spoke4_11 [label="S4.11", fillcolor=lightgreen];
+
+  // Hub 5 spokes
+  spoke5_0 [label="S5.0", fillcolor=lightgreen];
+  spoke5_1 [label="S5.1", fillcolor=lightgreen];
+  spoke5_2 [label="S5.2", fillcolor=lightgreen];
+  spoke5_3 [label="S5.3", fillcolor=lightgreen];
+  spoke5_4 [label="S5.4", fillcolor=lightgreen];
+  spoke5_5 [label="S5.5", fillcolor=lightgreen];
+  spoke5_6 [label="S5.6", fillcolor=lightgreen];
+  spoke5_7 [label="S5.7", fillcolor=lightgreen];
+  spoke5_8 [label="S5.8", fillcolor=lightgreen];
+  spoke5_9 [label="S5.9", fillcolor=lightgreen];
+  spoke5_10 [label="S5.10", fillcolor=lightgreen];
+  spoke5_11 [label="S5.11", fillcolor=lightgreen];
+
+  // Hub 6 spokes
+  spoke6_0 [label="S6.0", fillcolor=lightgreen];
+  spoke6_1 [label="S6.1", fillcolor=lightgreen];
+  spoke6_2 [label="S6.2", fillcolor=lightgreen];
+  spoke6_3 [label="S6.3", fillcolor=lightgreen];
+  spoke6_4 [label="S6.4", fillcolor=lightgreen];
+  spoke6_5 [label="S6.5", fillcolor=lightgreen];
+  spoke6_6 [label="S6.6", fillcolor=lightgreen];
+  spoke6_7 [label="S6.7", fillcolor=lightgreen];
+  spoke6_8 [label="S6.8", fillcolor=lightgreen];
+  spoke6_9 [label="S6.9", fillcolor=lightgreen];
+  spoke6_10 [label="S6.10", fillcolor=lightgreen];
+  spoke6_11 [label="S6.11", fillcolor=lightgreen];
+
+  // Hub 7 spokes
+  spoke7_0 [label="S7.0", fillcolor=lightgreen];
+  spoke7_1 [label="S7.1", fillcolor=lightgreen];
+  spoke7_2 [label="S7.2", fillcolor=lightgreen];
+  spoke7_3 [label="S7.3", fillcolor=lightgreen];
+  spoke7_4 [label="S7.4", fillcolor=lightgreen];
+  spoke7_5 [label="S7.5", fillcolor=lightgreen];
+  spoke7_6 [label="S7.6", fillcolor=lightgreen];
+  spoke7_7 [label="S7.7", fillcolor=lightgreen];
+  spoke7_8 [label="S7.8", fillcolor=lightgreen];
+  spoke7_9 [label="S7.9", fillcolor=lightgreen];
+  spoke7_10 [label="S7.10", fillcolor=lightgreen];
+  spoke7_11 [label="S7.11", fillcolor=lightgreen];
+
+  // Hub 8 spokes
+  spoke8_0 [label="S8.0", fillcolor=lightgreen];
+  spoke8_1 [label="S8.1", fillcolor=lightgreen];
+  spoke8_2 [label="S8.2", fillcolor=lightgreen];
+  spoke8_3 [label="S8.3", fillcolor=lightgreen];
+  spoke8_4 [label="S8.4", fillcolor=lightgreen];
+  spoke8_5 [label="S8.5", fillcolor=lightgreen];
+  spoke8_6 [label="S8.6", fillcolor=lightgreen];
+  spoke8_7 [label="S8.7", fillcolor=lightgreen];
+  spoke8_8 [label="S8.8", fillcolor=lightgreen];
+  spoke8_9 [label="S8.9", fillcolor=lightgreen];
+  spoke8_10 [label="S8.10", fillcolor=lightgreen];
+  spoke8_11 [label="S8.11", fillcolor=lightgreen];
+
+  // Hub 9 spokes
+  spoke9_0 [label="S9.0", fillcolor=lightgreen];
+  spoke9_1 [label="S9.1", fillcolor=lightgreen];
+  spoke9_2 [label="S9.2", fillcolor=lightgreen];
+  spoke9_3 [label="S9.3", fillcolor=lightgreen];
+  spoke9_4 [label="S9.4", fillcolor=lightgreen];
+  spoke9_5 [label="S9.5", fillcolor=lightgreen];
+  spoke9_6 [label="S9.6", fillcolor=lightgreen];
+  spoke9_7 [label="S9.7", fillcolor=lightgreen];
+  spoke9_8 [label="S9.8", fillcolor=lightgreen];
+  spoke9_9 [label="S9.9", fillcolor=lightgreen];
+  spoke9_10 [label="S9.10", fillcolor=lightgreen];
+  spoke9_11 [label="S9.11", fillcolor=lightgreen];
+
+  // Hub 10 spokes
+  spoke10_0 [label="S10.0", fillcolor=lightgreen];
+  spoke10_1 [label="S10.1", fillcolor=lightgreen];
+  spoke10_2 [label="S10.2", fillcolor=lightgreen];
+  spoke10_3 [label="S10.3", fillcolor=lightgreen];
+  spoke10_4 [label="S10.4", fillcolor=lightgreen];
+  spoke10_5 [label="S10.5", fillcolor=lightgreen];
+  spoke10_6 [label="S10.6", fillcolor=lightgreen];
+  spoke10_7 [label="S10.7", fillcolor=lightgreen];
+  spoke10_8 [label="S10.8", fillcolor=lightgreen];
+  spoke10_9 [label="S10.9", fillcolor=lightgreen];
+  spoke10_10 [label="S10.10", fillcolor=lightgreen];
+  spoke10_11 [label="S10.11", fillcolor=lightgreen];
+
+  // Hub 11 spokes
+  spoke11_0 [label="S11.0", fillcolor=lightgreen];
+  spoke11_1 [label="S11.1", fillcolor=lightgreen];
+  spoke11_2 [label="S11.2", fillcolor=lightgreen];
+  spoke11_3 [label="S11.3", fillcolor=lightgreen];
+  spoke11_4 [label="S11.4", fillcolor=lightgreen];
+  spoke11_5 [label="S11.5", fillcolor=lightgreen];
+  spoke11_6 [label="S11.6", fillcolor=lightgreen];
+  spoke11_7 [label="S11.7", fillcolor=lightgreen];
+  spoke11_8 [label="S11.8", fillcolor=lightgreen];
+  spoke11_9 [label="S11.9", fillcolor=lightgreen];
+  spoke11_10 [label="S11.10", fillcolor=lightgreen];
+  spoke11_11 [label="S11.11", fillcolor=lightgreen];
+
+  // Hub 12 spokes
+  spoke12_0 [label="S12.0", fillcolor=lightgreen];
+  spoke12_1 [label="S12.1", fillcolor=lightgreen];
+  spoke12_2 [label="S12.2", fillcolor=lightgreen];
+  spoke12_3 [label="S12.3", fillcolor=lightgreen];
+  spoke12_4 [label="S12.4", fillcolor=lightgreen];
+  spoke12_5 [label="S12.5", fillcolor=lightgreen];
+  spoke12_6 [label="S12.6", fillcolor=lightgreen];
+  spoke12_7 [label="S12.7", fillcolor=lightgreen];
+  spoke12_8 [label="S12.8", fillcolor=lightgreen];
+  spoke12_9 [label="S12.9", fillcolor=lightgreen];
+  spoke12_10 [label="S12.10", fillcolor=lightgreen];
+  spoke12_11 [label="S12.11", fillcolor=lightgreen];
+
+  // Hub 13 spokes
+  spoke13_0 [label="S13.0", fillcolor=lightgreen];
+  spoke13_1 [label="S13.1", fillcolor=lightgreen];
+  spoke13_2 [label="S13.2", fillcolor=lightgreen];
+  spoke13_3 [label="S13.3", fillcolor=lightgreen];
+  spoke13_4 [label="S13.4", fillcolor=lightgreen];
+  spoke13_5 [label="S13.5", fillcolor=lightgreen];
+  spoke13_6 [label="S13.6", fillcolor=lightgreen];
+  spoke13_7 [label="S13.7", fillcolor=lightgreen];
+  spoke13_8 [label="S13.8", fillcolor=lightgreen];
+  spoke13_9 [label="S13.9", fillcolor=lightgreen];
+  spoke13_10 [label="S13.10", fillcolor=lightgreen];
+  spoke13_11 [label="S13.11", fillcolor=lightgreen];
+
+  // Hub 14 spokes
+  spoke14_0 [label="S14.0", fillcolor=lightgreen];
+  spoke14_1 [label="S14.1", fillcolor=lightgreen];
+  spoke14_2 [label="S14.2", fillcolor=lightgreen];
+  spoke14_3 [label="S14.3", fillcolor=lightgreen];
+  spoke14_4 [label="S14.4", fillcolor=lightgreen];
+  spoke14_5 [label="S14.5", fillcolor=lightgreen];
+  spoke14_6 [label="S14.6", fillcolor=lightgreen];
+  spoke14_7 [label="S14.7", fillcolor=lightgreen];
+  spoke14_8 [label="S14.8", fillcolor=lightgreen];
+  spoke14_9 [label="S14.9", fillcolor=lightgreen];
+  spoke14_10 [label="S14.10", fillcolor=lightgreen];
+  spoke14_11 [label="S14.11", fillcolor=lightgreen];
+
+  // Spoke to hub connections (all 180 spokes connect to their hub)
+  // Hub 0 spokes
+  spoke0_0 -> hub0;
+  spoke0_1 -> hub0;
+  spoke0_2 -> hub0;
+  spoke0_3 -> hub0;
+  spoke0_4 -> hub0;
+  spoke0_5 -> hub0;
+  spoke0_6 -> hub0;
+  spoke0_7 -> hub0;
+  spoke0_8 -> hub0;
+  spoke0_9 -> hub0;
+  spoke0_10 -> hub0;
+  spoke0_11 -> hub0;
+
+  // Hub 1 spokes
+  spoke1_0 -> hub1;
+  spoke1_1 -> hub1;
+  spoke1_2 -> hub1;
+  spoke1_3 -> hub1;
+  spoke1_4 -> hub1;
+  spoke1_5 -> hub1;
+  spoke1_6 -> hub1;
+  spoke1_7 -> hub1;
+  spoke1_8 -> hub1;
+  spoke1_9 -> hub1;
+  spoke1_10 -> hub1;
+  spoke1_11 -> hub1;
+
+  // Hub 2 spokes
+  spoke2_0 -> hub2;
+  spoke2_1 -> hub2;
+  spoke2_2 -> hub2;
+  spoke2_3 -> hub2;
+  spoke2_4 -> hub2;
+  spoke2_5 -> hub2;
+  spoke2_6 -> hub2;
+  spoke2_7 -> hub2;
+  spoke2_8 -> hub2;
+  spoke2_9 -> hub2;
+  spoke2_10 -> hub2;
+  spoke2_11 -> hub2;
+
+  // Hub 3 spokes
+  spoke3_0 -> hub3;
+  spoke3_1 -> hub3;
+  spoke3_2 -> hub3;
+  spoke3_3 -> hub3;
+  spoke3_4 -> hub3;
+  spoke3_5 -> hub3;
+  spoke3_6 -> hub3;
+  spoke3_7 -> hub3;
+  spoke3_8 -> hub3;
+  spoke3_9 -> hub3;
+  spoke3_10 -> hub3;
+  spoke3_11 -> hub3;
+
+  // Hub 4 spokes
+  spoke4_0 -> hub4;
+  spoke4_1 -> hub4;
+  spoke4_2 -> hub4;
+  spoke4_3 -> hub4;
+  spoke4_4 -> hub4;
+  spoke4_5 -> hub4;
+  spoke4_6 -> hub4;
+  spoke4_7 -> hub4;
+  spoke4_8 -> hub4;
+  spoke4_9 -> hub4;
+  spoke4_10 -> hub4;
+  spoke4_11 -> hub4;
+
+  // Hub 5 spokes
+  spoke5_0 -> hub5;
+  spoke5_1 -> hub5;
+  spoke5_2 -> hub5;
+  spoke5_3 -> hub5;
+  spoke5_4 -> hub5;
+  spoke5_5 -> hub5;
+  spoke5_6 -> hub5;
+  spoke5_7 -> hub5;
+  spoke5_8 -> hub5;
+  spoke5_9 -> hub5;
+  spoke5_10 -> hub5;
+  spoke5_11 -> hub5;
+
+  // Hub 6 spokes
+  spoke6_0 -> hub6;
+  spoke6_1 -> hub6;
+  spoke6_2 -> hub6;
+  spoke6_3 -> hub6;
+  spoke6_4 -> hub6;
+  spoke6_5 -> hub6;
+  spoke6_6 -> hub6;
+  spoke6_7 -> hub6;
+  spoke6_8 -> hub6;
+  spoke6_9 -> hub6;
+  spoke6_10 -> hub6;
+  spoke6_11 -> hub6;
+
+  // Hub 7 spokes
+  spoke7_0 -> hub7;
+  spoke7_1 -> hub7;
+  spoke7_2 -> hub7;
+  spoke7_3 -> hub7;
+  spoke7_4 -> hub7;
+  spoke7_5 -> hub7;
+  spoke7_6 -> hub7;
+  spoke7_7 -> hub7;
+  spoke7_8 -> hub7;
+  spoke7_9 -> hub7;
+  spoke7_10 -> hub7;
+  spoke7_11 -> hub7;
+
+  // Hub 8 spokes
+  spoke8_0 -> hub8;
+  spoke8_1 -> hub8;
+  spoke8_2 -> hub8;
+  spoke8_3 -> hub8;
+  spoke8_4 -> hub8;
+  spoke8_5 -> hub8;
+  spoke8_6 -> hub8;
+  spoke8_7 -> hub8;
+  spoke8_8 -> hub8;
+  spoke8_9 -> hub8;
+  spoke8_10 -> hub8;
+  spoke8_11 -> hub8;
+
+  // Hub 9 spokes
+  spoke9_0 -> hub9;
+  spoke9_1 -> hub9;
+  spoke9_2 -> hub9;
+  spoke9_3 -> hub9;
+  spoke9_4 -> hub9;
+  spoke9_5 -> hub9;
+  spoke9_6 -> hub9;
+  spoke9_7 -> hub9;
+  spoke9_8 -> hub9;
+  spoke9_9 -> hub9;
+  spoke9_10 -> hub9;
+  spoke9_11 -> hub9;
+
+  // Hub 10 spokes
+  spoke10_0 -> hub10;
+  spoke10_1 -> hub10;
+  spoke10_2 -> hub10;
+  spoke10_3 -> hub10;
+  spoke10_4 -> hub10;
+  spoke10_5 -> hub10;
+  spoke10_6 -> hub10;
+  spoke10_7 -> hub10;
+  spoke10_8 -> hub10;
+  spoke10_9 -> hub10;
+  spoke10_10 -> hub10;
+  spoke10_11 -> hub10;
+
+  // Hub 11 spokes
+  spoke11_0 -> hub11;
+  spoke11_1 -> hub11;
+  spoke11_2 -> hub11;
+  spoke11_3 -> hub11;
+  spoke11_4 -> hub11;
+  spoke11_5 -> hub11;
+  spoke11_6 -> hub11;
+  spoke11_7 -> hub11;
+  spoke11_8 -> hub11;
+  spoke11_9 -> hub11;
+  spoke11_10 -> hub11;
+  spoke11_11 -> hub11;
+
+  // Hub 12 spokes
+  spoke12_0 -> hub12;
+  spoke12_1 -> hub12;
+  spoke12_2 -> hub12;
+  spoke12_3 -> hub12;
+  spoke12_4 -> hub12;
+  spoke12_5 -> hub12;
+  spoke12_6 -> hub12;
+  spoke12_7 -> hub12;
+  spoke12_8 -> hub12;
+  spoke12_9 -> hub12;
+  spoke12_10 -> hub12;
+  spoke12_11 -> hub12;
+
+  // Hub 13 spokes
+  spoke13_0 -> hub13;
+  spoke13_1 -> hub13;
+  spoke13_2 -> hub13;
+  spoke13_3 -> hub13;
+  spoke13_4 -> hub13;
+  spoke13_5 -> hub13;
+  spoke13_6 -> hub13;
+  spoke13_7 -> hub13;
+  spoke13_8 -> hub13;
+  spoke13_9 -> hub13;
+  spoke13_10 -> hub13;
+  spoke13_11 -> hub13;
+
+  // Hub 14 spokes
+  spoke14_0 -> hub14;
+  spoke14_1 -> hub14;
+  spoke14_2 -> hub14;
+  spoke14_3 -> hub14;
+  spoke14_4 -> hub14;
+  spoke14_5 -> hub14;
+  spoke14_6 -> hub14;
+  spoke14_7 -> hub14;
+  spoke14_8 -> hub14;
+  spoke14_9 -> hub14;
+  spoke14_10 -> hub14;
+  spoke14_11 -> hub14;
+
+  // Inter-spoke connections (random connections between spokes)
+  // Sample of inter-spoke connections (showing a subset for readability)
+  spoke0_0 -> spoke1_2;
+  spoke0_1 -> spoke2_5;
+  spoke0_2 -> spoke3_1;
+  spoke0_3 -> spoke4_8;
+  spoke0_4 -> spoke5_3;
+  spoke0_5 -> spoke6_7;
+  spoke0_6 -> spoke7_4;
+  spoke0_7 -> spoke8_9;
+  spoke0_8 -> spoke9_2;
+  spoke0_9 -> spoke10_6;
+  spoke0_10 -> spoke11_1;
+  spoke0_11 -> spoke12_4;
+
+  spoke1_0 -> spoke2_8;
+  spoke1_1 -> spoke3_5;
+  spoke1_2 -> spoke4_1;
+  spoke1_3 -> spoke5_7;
+  spoke1_4 -> spoke6_3;
+  spoke1_5 -> spoke7_9;
+  spoke1_6 -> spoke8_2;
+  spoke1_7 -> spoke9_6;
+  spoke1_8 -> spoke10_4;
+  spoke1_9 -> spoke11_8;
+  spoke1_10 -> spoke12_1;
+  spoke1_11 -> spoke13_5;
+
+  spoke2_0 -> spoke3_9;
+  spoke2_1 -> spoke4_3;
+  spoke2_2 -> spoke5_6;
+  spoke2_3 -> spoke6_1;
+  spoke2_4 -> spoke7_8;
+  spoke2_5 -> spoke8_4;
+  spoke2_6 -> spoke9_7;
+  spoke2_7 -> spoke10_2;
+  spoke2_8 -> spoke11_5;
+  spoke2_9 -> spoke12_8;
+  spoke2_10 -> spoke13_3;
+  spoke2_11 -> spoke14_6;
+
+  // Hub to hub connections (some hubs connect to each other)
+  hub0 -> hub1 [color=red, penwidth=2];
+  hub0 -> hub2 [color=red, penwidth=2];
+  hub1 -> hub3 [color=red, penwidth=2];
+  hub1 -> hub4 [color=red, penwidth=2];
+  hub2 -> hub5 [color=red, penwidth=2];
+  hub2 -> hub6 [color=red, penwidth=2];
+  hub3 -> hub7 [color=red, penwidth=2];
+  hub3 -> hub8 [color=red, penwidth=2];
+  hub4 -> hub9 [color=red, penwidth=2];
+  hub4 -> hub10 [color=red, penwidth=2];
+  hub5 -> hub11 [color=red, penwidth=2];
+  hub5 -> hub12 [color=red, penwidth=2];
+  hub6 -> hub13 [color=red, penwidth=2];
+  hub6 -> hub14 [color=red, penwidth=2];
+  hub7 -> hub0 [color=red, penwidth=2];
+  hub8 -> hub1 [color=red, penwidth=2];
+  hub9 -> hub2 [color=red, penwidth=2];
+  hub10 -> hub3 [color=red, penwidth=2];
+  hub11 -> hub4 [color=red, penwidth=2];
+  hub12 -> hub5 [color=red, penwidth=2];
+  hub13 -> hub6 [color=red, penwidth=2];
+  hub14 -> hub7 [color=red, penwidth=2];
+
+  // Additional inter-spoke connections for more complexity
+  spoke3_0 -> spoke4_7;
+  spoke3_1 -> spoke5_2;
+  spoke3_2 -> spoke6_9;
+  spoke3_3 -> spoke7_1;
+  spoke3_4 -> spoke8_6;
+  spoke3_5 -> spoke9_4;
+  spoke3_6 -> spoke10_8;
+  spoke3_7 -> spoke11_3;
+  spoke3_8 -> spoke12_7;
+  spoke3_9 -> spoke13_2;
+  spoke3_10 -> spoke14_5;
+  spoke3_11 -> spoke0_8;
+
+  spoke4_0 -> spoke5_9;
+  spoke4_1 -> spoke6_4;
+  spoke4_2 -> spoke7_2;
+  spoke4_3 -> spoke8_8;
+  spoke4_4 -> spoke9_1;
+  spoke4_5 -> spoke10_7;
+  spoke4_6 -> spoke11_5;
+  spoke4_7 -> spoke12_3;
+  spoke4_8 -> spoke13_9;
+  spoke4_9 -> spoke14_2;
+  spoke4_10 -> spoke0_5;
+  spoke4_11 -> spoke1_8;
+
+  spoke5_0 -> spoke6_2;
+  spoke5_1 -> spoke7_6;
+  spoke5_2 -> spoke8_1;
+  spoke5_3 -> spoke9_9;
+  spoke5_4 -> spoke10_3;
+  spoke5_5 -> spoke11_7;
+  spoke5_6 -> spoke12_5;
+  spoke5_7 -> spoke13_1;
+  spoke5_8 -> spoke14_8;
+  spoke5_9 -> spoke0_2;
+  spoke5_10 -> spoke1_6;
+  spoke5_11 -> spoke2_9;
+}

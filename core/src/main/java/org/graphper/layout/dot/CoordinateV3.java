@@ -80,22 +80,41 @@ class CoordinateV3 extends AbstractCoordinate {
   // ----------------------------------------------------- private method -----------------------------------------------------
 
   /**
-   * Main x-coordinate algorithm based on Brandes-Köpf algorithm
-   * Implements the complete BK algorithm with conflict detection, four-direction alignment, and block-based compaction
+   * Main x-coordinate algorithm based on Brandes-Köpf algorithm Implements the complete BK
+   * algorithm with conflict detection, four-direction alignment, and block-based compaction
    */
   private void blockNetworkSimplex() {
     Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts = new HashMap<>();
 
     int blockSize = 0;
     Map<DNode, DNode> nodeBlocks = new HashMap<>();
-    for (DNode node : proxyDigraph) {
-      if (nodeBlocks.containsKey(node)) {
-        continue;
-      }
 
-      blockSize++;
-      DNode block = new DNode(null, 0, 0 , 0);
-      dfs(node, nodeBlocks, block, conflicts);
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+      for (int j = 0; j < rankNode.size(); j++) {
+        DNode node = rankNode.get(j);
+        if (notFirstDiscoveryVirtualNode(node) || nodeBlocks.containsKey(node)) {
+          continue;
+        }
+
+        blockSize++;
+        DNode block = new DNode(null, 0, 0, 0);
+        dfs(node, nodeBlocks, block, true, conflicts);
+      }
+    }
+
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+      for (int j = 0; j < rankNode.size(); j++) {
+        DNode node = rankNode.get(j);
+        if (nodeBlocks.containsKey(node)) {
+          continue;
+        }
+
+        blockSize++;
+        DNode block = new DNode(null, 0, 0, 0);
+        dfs(node, nodeBlocks, block, false, conflicts);
+      }
     }
 
     DotDigraph blockGraph = new DotDigraph(blockSize);
@@ -109,7 +128,12 @@ class CoordinateV3 extends AbstractCoordinate {
         if (j > 0) {
           DNode pre = rankNode.get(j - 1);
           DNode preBlock = nodeBlocks.get(pre);
-          int limit = ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
+          if (block == preBlock) {
+            continue;
+          }
+
+          int limit =
+              ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
           blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
         }
       }
@@ -130,7 +154,22 @@ class CoordinateV3 extends AbstractCoordinate {
     medianpos(1);
   }
 
-  private void dfs(DNode v, Map<DNode, DNode> mark, DNode block,
+  private boolean notFirstDiscoveryVirtualNode(DNode n) {
+    if (!n.isVirtual()) {
+      return true;
+    }
+
+    for (DLine edge : proxyDigraph.outAdjacent(n)) {
+      DNode other = edge.other(n);
+      if (other.isVirtual() && other.getRealRank() != n.getRealRank()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private void dfs(DNode v, Map<DNode, DNode> mark, DNode block, boolean isVirtual,
                    Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts) {
     if (mark.containsKey(v)) {
       return;
@@ -147,6 +186,10 @@ class CoordinateV3 extends AbstractCoordinate {
         continue;
       }
 
+      if (isVirtual && !other.isVirtual()) {
+        continue;
+      }
+
       if (successor == null || (!successor.isVirtual() && other.isVirtual())
           || successor.getRankIndex() < other.getRankIndex()) {
         successor = other;
@@ -154,12 +197,13 @@ class CoordinateV3 extends AbstractCoordinate {
     }
 
     if (successor != null) {
+
       if (rankConflicts == null) {
         rankConflicts = new ArrayList<>();
         conflicts.put(v.getRealRank(), rankConflicts);
       }
       rankConflicts.add(new SimpleEntry<>(v, successor));
-      dfs(successor, mark, block, conflicts);
+      dfs(successor, mark, block, isVirtual, conflicts);
     }
   }
 
@@ -194,7 +238,7 @@ class CoordinateV3 extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          if (node.isVirtual()) {
+          if (!allowMedian(node, false)) {
             continue;
           }
           double medianPos = calculateMedianPosition(node, false);
@@ -208,7 +252,7 @@ class CoordinateV3 extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          if (node.isVirtual()) {
+          if (!allowMedian(node, true)) {
             continue;
           }
           double medianPos = calculateMedianPosition(node, true);
@@ -217,6 +261,26 @@ class CoordinateV3 extends AbstractCoordinate {
         }
       }
     }
+  }
+
+  private boolean allowMedian(DNode n, boolean upward) {
+    return !n.isVirtual();
+//    if (!n.isVirtual()) {
+//      return true;
+//    }
+//
+//    DNode adj = null;
+//    if (upward) {
+//      for (DLine edge : proxyDigraph.outAdjacent(n)) {
+//        adj = edge.other(n);
+//      }
+//    } else {
+//      for (DLine edge : proxyDigraph.inAdjacent(n)) {
+//        adj = edge.other(n);
+//      }
+//    }
+//
+//    return adj != null && !adj.isVirtual();
   }
 
   /**

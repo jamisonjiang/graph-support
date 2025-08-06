@@ -222,8 +222,13 @@ class LabelSupplement {
       return 0;
     }
 
-    int r = Integer.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
-                           rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
+    int r = conflictOrder(leftPreNode, leftNextNode, rightPreNode, rightNextNode);
+    if (r != 0) {
+      return r;
+    }
+
+    r = Integer.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
+                        rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
 
     if (r != 0) {
       return r;
@@ -238,6 +243,31 @@ class LabelSupplement {
     }
 
     return r;
+  }
+
+  private int conflictOrder(DNode leftPreNode, DNode leftNextNode,
+                            DNode rightPreNode, DNode rightNextNode) {
+    if (leftPreNode.isVirtual() && !leftNextNode.isVirtual()
+        && rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
+      return Integer.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
+    }
+
+    if (!leftPreNode.isVirtual() && leftNextNode.isVirtual()
+        && rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
+      return Integer.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
+    }
+
+    if (leftPreNode.isVirtual() && leftNextNode.isVirtual()
+        && rightPreNode.isVirtual() && !rightNextNode.isVirtual()) {
+      return Integer.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
+    }
+
+    if (leftPreNode.isVirtual() && leftNextNode.isVirtual()
+        && !rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
+      return Integer.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
+    }
+
+    return 0;
   }
 
   private void flatParallelEdge() {
