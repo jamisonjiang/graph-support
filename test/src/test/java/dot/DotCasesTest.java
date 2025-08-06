@@ -32,9 +32,9 @@ public class DotCasesTest extends GraphvizVisual {
   @Test
   public void testCase() throws IOException, ExecuteException {
     Graphviz graphviz;
-    String dot = DocumentUtils.getDotTestFile("/manual/massive-network-simple.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/massive-network-simple.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
-//    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
+    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
@@ -46,7 +46,7 @@ public class DotCasesTest extends GraphvizVisual {
 //                                            + "b -> e; c -> f; d -> g; g -> h; a -> h;"
 //                                            + "c[label=\"11111111111111111\"]"
 //                                            + "}");
-//    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
+    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 
 //    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");

@@ -134,7 +134,8 @@ class CoordinateV3 extends AbstractCoordinate {
 
           int limit =
               ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
-          blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
+          double weight = weightUnit(pre) * weightUnit(node);
+          blockGraph.addEdge(new DLine(preBlock, block, null, weight, limit));
         }
       }
     }
@@ -152,6 +153,13 @@ class CoordinateV3 extends AbstractCoordinate {
 
     medianpos(0);
     medianpos(1);
+//    medianpos(0);
+//    medianpos(1);
+
+  }
+
+  private double weightUnit(DNode node) {
+    return node.isVirtual() ? 1 : 1;
   }
 
   private boolean notFirstDiscoveryVirtualNode(DNode n) {
@@ -264,23 +272,25 @@ class CoordinateV3 extends AbstractCoordinate {
   }
 
   private boolean allowMedian(DNode n, boolean upward) {
-    return !n.isVirtual();
-//    if (!n.isVirtual()) {
-//      return true;
-//    }
-//
-//    DNode adj = null;
-//    if (upward) {
-//      for (DLine edge : proxyDigraph.outAdjacent(n)) {
-//        adj = edge.other(n);
-//      }
-//    } else {
-//      for (DLine edge : proxyDigraph.inAdjacent(n)) {
-//        adj = edge.other(n);
-//      }
-//    }
-//
-//    return adj != null && !adj.isVirtual();
+//    return !n.isVirtual();
+    if (!n.isVirtual()) {
+      return true;
+    }
+
+    DNode pre = null;
+    DNode next = null;
+    for (DLine edge : proxyDigraph.outAdjacent(n)) {
+      pre = edge.other(n);
+    }
+    for (DLine edge : proxyDigraph.inAdjacent(n)) {
+      next = edge.other(n);
+    }
+
+    if (pre == null || next == null) {
+      return true;
+    }
+
+    return !pre.isVirtual() && !next.isVirtual();
   }
 
   /**

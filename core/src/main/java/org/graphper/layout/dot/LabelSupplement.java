@@ -193,43 +193,45 @@ class LabelSupplement {
 
   private int labelNodeComparator(DNode left, DNode right) {
     DNode leftPreNode = null;
-    DNode leftNextNode = null;
     DNode rightPreNode = null;
-    DNode rightNextNode = null;
-    DLine leftLine = null;
-    DLine rightLine = null;
 
     for (DLine line : digraphProxy.inAdjacent(left)) {
-      leftPreNode = line.from();
-    }
-
-    for (DLine line : digraphProxy.outAdjacent(left)) {
-      leftNextNode = line.to();
-      leftLine = line;
+      leftPreNode = line.other(left);
     }
 
     for (DLine line : digraphProxy.inAdjacent(right)) {
-      rightPreNode = line.from();
+      rightPreNode = line.other(right);
     }
 
-    for (DLine line : digraphProxy.outAdjacent(right)) {
-      rightNextNode = line.to();
-      rightLine = line;
-    }
-
-    if (leftPreNode == null || leftNextNode == null
-        || rightPreNode == null || rightNextNode == null) {
+    if (leftPreNode == null || rightPreNode == null) {
       return 0;
     }
 
-    int r = conflictOrder(leftPreNode, leftNextNode, rightPreNode, rightNextNode);
+    int r = Integer.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
     if (r != 0) {
       return r;
     }
 
-    r = Integer.compare(leftPreNode.getRankIndex() + leftNextNode.getRankIndex(),
-                        rightPreNode.getRankIndex() + rightNextNode.getRankIndex());
+    DLine leftLine = null;
+    DLine rightLine = null;
+    DNode leftNextNode = null;
+    DNode rightNextNode = null;
 
+    for (DLine line : digraphProxy.outAdjacent(left)) {
+      leftNextNode = line.other(left);
+      leftLine = line;
+    }
+
+    for (DLine line : digraphProxy.outAdjacent(right)) {
+      rightNextNode = line.other(right);
+      rightLine = line;
+    }
+
+    if (leftNextNode == null || rightNextNode == null) {
+      return 0;
+    }
+
+    r = Integer.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
     if (r != 0) {
       return r;
     }
@@ -243,31 +245,6 @@ class LabelSupplement {
     }
 
     return r;
-  }
-
-  private int conflictOrder(DNode leftPreNode, DNode leftNextNode,
-                            DNode rightPreNode, DNode rightNextNode) {
-    if (leftPreNode.isVirtual() && !leftNextNode.isVirtual()
-        && rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
-      return Integer.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
-    }
-
-    if (!leftPreNode.isVirtual() && leftNextNode.isVirtual()
-        && rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
-      return Integer.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
-    }
-
-    if (leftPreNode.isVirtual() && leftNextNode.isVirtual()
-        && rightPreNode.isVirtual() && !rightNextNode.isVirtual()) {
-      return Integer.compare(leftPreNode.getRankIndex(), rightPreNode.getRankIndex());
-    }
-
-    if (leftPreNode.isVirtual() && leftNextNode.isVirtual()
-        && !rightPreNode.isVirtual() && rightNextNode.isVirtual()) {
-      return Integer.compare(leftNextNode.getRankIndex(), rightNextNode.getRankIndex());
-    }
-
-    return 0;
   }
 
   private void flatParallelEdge() {
@@ -578,6 +555,9 @@ class LabelSupplement {
   }
 
   private double getPortPoint(DLine line, DNode node) {
+    if (line == null || node == null) {
+      return 0;
+    }
     return PortHelper.portCompareNo(line.getLineDrawProp(), node, dotAttachment.getDrawGraph());
   }
 }
