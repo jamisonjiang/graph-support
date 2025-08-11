@@ -99,6 +99,8 @@ class CoordinateV3 extends AbstractCoordinate {
 
         blockSize++;
         DNode block = new DNode(null, 0, 0, 0);
+        block.setLow(Integer.MAX_VALUE);
+        block.setLim(Integer.MIN_VALUE);
         dfs(node, nodeBlocks, block, true, conflicts);
       }
     }
@@ -113,11 +115,18 @@ class CoordinateV3 extends AbstractCoordinate {
 
         blockSize++;
         DNode block = new DNode(null, 0, 0, 0);
+        block.setLow(Integer.MAX_VALUE);
+        block.setLim(Integer.MIN_VALUE);
         dfs(node, nodeBlocks, block, false, conflicts);
       }
     }
 
     DotDigraph blockGraph = new DotDigraph(blockSize);
+    for (DNode node : proxyDigraph) {
+      DNode block = nodeBlocks.get(node);
+      connectFlowBlocks(nodeBlocks, blockGraph, node, block);
+    }
+
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
       RankNode rankNode = rankContent.get(i);
       for (int j = 0; j < rankNode.size(); j++) {
@@ -134,15 +143,15 @@ class CoordinateV3 extends AbstractCoordinate {
 
           int limit =
               ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
-          double weight = weightUnit(pre) * weightUnit(node);
-          blockGraph.addEdge(new DLine(preBlock, block, null, weight, limit));
+          blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
         }
       }
     }
 
     FeasibleTree feasibleTree = new FeasibleTree(blockGraph);
     new NetworkSimplex(feasibleTree, nslimit, false,
-                       false, Double.MAX_VALUE, null);
+                       false, false,
+                       Double.MAX_VALUE, null);
 
     for (Entry<DNode, DNode> entry : nodeBlocks.entrySet()) {
       DNode node = entry.getKey();
@@ -153,13 +162,46 @@ class CoordinateV3 extends AbstractCoordinate {
 
     medianpos(0);
     medianpos(1);
-//    medianpos(0);
-//    medianpos(1);
-
   }
 
-  private double weightUnit(DNode node) {
-    return node.isVirtual() ? 1 : 1;
+  private void connectFlowBlocks(Map<DNode, DNode> nodeBlocks, DotDigraph blockGraph, DNode node,
+                                 DNode block) {
+    if (node.isVirtual()) {
+      return;
+    }
+
+    boolean inNeedRefreshHeight = proxyDigraph.inDegree(node) == 1;
+    boolean outNeedRefreshHeight = proxyDigraph.outDegree(node) == 1;
+    for (DLine edge : proxyDigraph.inAdjacent(node)) {
+      connectFlowBlocks(nodeBlocks, blockGraph, node, block, edge, inNeedRefreshHeight);
+    }
+    for (DLine edge : proxyDigraph.outAdjacent(node)) {
+      connectFlowBlocks(nodeBlocks, blockGraph, node, block, edge, outNeedRefreshHeight);
+    }
+  }
+
+  private void connectFlowBlocks(Map<DNode, DNode> nodeBlocks, DotDigraph blockGraph, DNode node,
+                                 DNode block, DLine edge, boolean needRefreshHeight) {
+    DNode other = edge.other(node);
+    if (other == node || !other.isVirtual()) {
+      return;
+    }
+
+    DNode adjBlock = nodeBlocks.get(other);
+    if (adjBlock == block || blockIsInteract(block, adjBlock)) {
+      return;
+    }
+
+    if (needRefreshHeight) {
+      adjBlock.setHeight(Math.max(adjBlock.getHeight(), node.getWidth()));
+    }
+    DNode tmpBlock = new DNode(null, 0, 0, 0);
+    blockGraph.addEdge(new DLine(tmpBlock, block, null, 1, 0));
+    blockGraph.addEdge(new DLine(tmpBlock, adjBlock, null, 1, 0));
+  }
+
+  private boolean blockIsInteract(DNode block1, DNode block2) {
+    return !(block1.getLim() < block2.getLow() || block1.getLow() > block2.getLim());
   }
 
   private boolean notFirstDiscoveryVirtualNode(DNode n) {
@@ -184,6 +226,8 @@ class CoordinateV3 extends AbstractCoordinate {
     }
 
     mark.put(v, block);
+    block.setLow(Math.min(block.getLow(), v.getRealRank()));
+    block.setLim(Math.max(block.getLim(), v.getRealRank()));
     block.setHeight(Math.max(block.getHeight(), v.getWidth()));
     List<SimpleEntry<DNode, DNode>> rankConflicts = conflicts.get(v.getRealRank());
 
@@ -272,6 +316,7 @@ class CoordinateV3 extends AbstractCoordinate {
   }
 
   private boolean allowMedian(DNode n, boolean upward) {
+//    return true;
 //    return !n.isVirtual();
     if (!n.isVirtual()) {
       return true;
