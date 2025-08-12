@@ -29,11 +29,18 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.layout.dot.RankContent.RankNode;
 
-class CoordinateV3 extends AbstractCoordinate {
+/**
+ * Quick coordinate implementation for DOT layout.
+ * 
+ * <p>This implementation uses an optimized approach combining network simplex and
+ * Brandes/Köpf algorithm to achieve faster x-position calculation while maintaining
+ * good visual quality. Suitable for large graphs where classic DOT performance is insufficient.
+ */
+class QuickCoordinate extends AbstractCoordinate {
 
   private Map<GraphContainer, ContainerContent> containerContentMap;
 
-  public CoordinateV3(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
+  public QuickCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                       EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
 
@@ -65,25 +72,13 @@ class CoordinateV3 extends AbstractCoordinate {
 
   @Override
   protected void nodeConsumer(DNode node) {
-    // Mode switch
-    node.switchAuxModel();
-
-    // Add cluster boundary edge if needed
-    if (!node.isVirtual() && node.getContainer().isCluster()) {
-      containerBorderEdge(node);
-    }
-
-    // Note: In Sugiyama, we don't create auxiliary edges like Network Simplex
-    // We work directly with the existing graph structure
   }
 
   // ----------------------------------------------------- private method -----------------------------------------------------
 
-  /**
-   * Main x-coordinate algorithm based on Brandes-Köpf algorithm Implements the complete BK
-   * algorithm with conflict detection, four-direction alignment, and block-based compaction
-   */
   private void blockNetworkSimplex() {
+    accessNodes();
+
     Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts = new HashMap<>();
 
     int blockSize = 0;
@@ -492,4 +487,4 @@ class CoordinateV3 extends AbstractCoordinate {
       return node;
     }
   }
-} 
+}

@@ -51,15 +51,14 @@ import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotAttachment.GeneratePort;
 import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
-import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;
 import org.graphper.layout.dot.SplineRouter.SplineRouterFactory;
+import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
-import org.graphper.util.EnvProp;
 
 /**
  * Hierarchical or layered drawings of directed graphs. The layout algorithm aims edges in the same
@@ -98,6 +97,11 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   private static final long serialVersionUID = 1932138711284862609L;
 
   /**
+   * Whether to use quick coordinate algorithm
+   */
+  private final boolean useQuickCoordinate;
+
+  /**
    * Spline router factory
    */
   private static final List<DotLineRouterFactory<?>> SPLINES_HANDLERS;
@@ -106,6 +110,22 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     SPLINES_HANDLERS = Arrays.asList(new RoundedRouterFactory(), new SplineRouterFactory(),
                                      new PolyLineRouterFactory(), new LineRouterBuilder(),
                                      new OrthogonalRouterFactory());
+  }
+
+  /**
+   * Default constructor using classic layout
+   */
+  public DotLayoutEngine() {
+    this(false);
+  }
+
+  /**
+   * Constructor with specified coordinate algorithm
+   * 
+   * @param useQuickCoordinate whether to use quick coordinate algorithm
+   */
+  public DotLayoutEngine(boolean useQuickCoordinate) {
+    this.useQuickCoordinate = useQuickCoordinate;
   }
 
   @Override
@@ -259,11 +279,19 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     new LabelSupplement(rankContent, dotAttachment, digraphProxy);
 
     // Node coordinate
-    if (EnvProp.useV1Coordinate()) {
-      new Coordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+    // Set appropriate nslimit based on coordinate algorithm
+    int effectiveNslimit = graphAttrs.getNslimit();
+    if (effectiveNslimit == 100000) { // Use default value
+      if (useQuickCoordinate) {
+        effectiveNslimit = 5000; // Default for DOTQ
+      }
+      // DOT keeps default 100000
+    }
+    
+    if (useQuickCoordinate) {
+      new QuickCoordinate(effectiveNslimit, rankContent, dotAttachment, digraphProxy);
     } else {
-//      new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
-      new CoordinateV3(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+      new ClassicCoordinate(effectiveNslimit, rankContent, dotAttachment, digraphProxy);
     }
 
     // If cell not set port, auto generate port for line to get more reasonable routing

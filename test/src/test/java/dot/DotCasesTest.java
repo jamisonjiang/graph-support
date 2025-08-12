@@ -50,7 +50,7 @@ public class DotCasesTest extends GraphvizVisual {
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 
 //    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
-    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+//    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
     graphviz.toFile(FileType.SVG).save("E:\\demo", "test");
 //    visual(graphviz);

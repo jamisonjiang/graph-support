@@ -24,13 +24,20 @@ import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ContainerDrawProp;
 
-class CoordinateV2 extends AbstractCoordinate {
+/**
+ * Classic coordinate implementation for DOT layout.
+ * 
+ * <p>This implementation uses the traditional network simplex approach to achieve
+ * global optimal x-position, providing the highest quality layout but may take
+ * longer for large graphs.
+ */
+class ClassicCoordinate extends AbstractCoordinate {
 
   private DotDigraph auxDotDigraph;
 
   private Map<GraphContainer, ContainerContent> containerContentMap;
 
-  public CoordinateV2(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
+  public ClassicCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                       EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
 

@@ -19,7 +19,7 @@ package org.graphper.api.attributes;
 import org.apache_gs.commons.lang3.StringUtils;
 
 /**
- * Sets direction of graph layout, only valid for {@link Layout#DOT}.
+ * Sets direction of graph layout, only valid for {@link Layout#DOT} and {@link Layout#DOTQ}.
  *
  * @author Jamison Jiang
  */
