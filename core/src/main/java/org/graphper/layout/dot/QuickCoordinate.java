@@ -22,66 +22,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
-import org.graphper.def.FlatPoint;
-import org.graphper.draw.ContainerDrawProp;
 import org.graphper.layout.dot.RankContent.RankNode;
+import org.graphper.util.Asserts;
 
 /**
  * Quick coordinate implementation for DOT layout.
- * 
+ *
  * <p>This implementation uses an optimized approach combining network simplex and
- * Brandes/Köpf algorithm to achieve faster x-position calculation while maintaining
- * good visual quality. Suitable for large graphs where classic DOT performance is insufficient.
+ * Brandes/Köpf algorithm to achieve faster x-position calculation while maintaining good visual
+ * quality. Suitable for large graphs where classic DOT performance is insufficient.
  */
 class QuickCoordinate extends AbstractCoordinate {
 
-  private Map<GraphContainer, ContainerContent> containerContentMap;
-
   public QuickCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
-                      EdgeDedigraph<DNode, DLine> proxyDigraph) {
+                         EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
-
-    // Initialize container content map for cluster handling
-    if (dotAttachment.haveClusters()) {
-      containerContentMap = new HashMap<>();
-      initializeContainerContent();
-    }
 
     // Mix dot network-simplex and Brandes/Köpf algorithm to x-position
     blockNetworkSimplex();
 
     // Final x coordinate setting
     positive();
-
-    // help gc
-    clear();
-  }
-
-  @Override
-  protected double containerLeftBorder(GraphContainer container) {
-    return getContainerContent(container).leftNode.getAuxRank();
-  }
-
-  @Override
-  protected double containerRightBorder(GraphContainer container) {
-    return getContainerContent(container).rightNode.getAuxRank();
-  }
-
-  @Override
-  protected void nodeConsumer(DNode node) {
   }
 
   // ----------------------------------------------------- private method -----------------------------------------------------
 
   private void blockNetworkSimplex() {
+    DotDigraph blockGraph = new DotDigraph(dotAttachment.getDotDigraph().vertexNum());
+    addClusterBorderEdge(blockGraph, dotAttachment.getGraphviz());
     accessNodes();
 
     Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts = new HashMap<>();
 
-    int blockSize = 0;
     Map<DNode, DNode> nodeBlocks = new HashMap<>();
 
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
@@ -92,7 +66,6 @@ class QuickCoordinate extends AbstractCoordinate {
           continue;
         }
 
-        blockSize++;
         DNode block = new DNode(null, 0, 0, 0);
         block.setLow(Integer.MAX_VALUE);
         block.setLim(Integer.MIN_VALUE);
@@ -108,7 +81,6 @@ class QuickCoordinate extends AbstractCoordinate {
           continue;
         }
 
-        blockSize++;
         DNode block = new DNode(null, 0, 0, 0);
         block.setLow(Integer.MAX_VALUE);
         block.setLim(Integer.MIN_VALUE);
@@ -116,7 +88,6 @@ class QuickCoordinate extends AbstractCoordinate {
       }
     }
 
-    DotDigraph blockGraph = new DotDigraph(blockSize);
     for (DNode node : proxyDigraph) {
       DNode block = nodeBlocks.get(node);
       connectFlowBlocks(nodeBlocks, blockGraph, node, block);
@@ -128,6 +99,7 @@ class QuickCoordinate extends AbstractCoordinate {
         DNode node = rankNode.get(j);
         DNode block = nodeBlocks.get(node);
         blockGraph.add(block);
+        containerBorderEdge(node, block, blockGraph);
 
         if (j > 0) {
           DNode pre = rankNode.get(j - 1);
@@ -139,6 +111,7 @@ class QuickCoordinate extends AbstractCoordinate {
           int limit =
               ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
           blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
+          adjClusterEdge(pre, node, preBlock, block, blockGraph);
         }
       }
     }
@@ -157,6 +130,62 @@ class QuickCoordinate extends AbstractCoordinate {
 
     medianpos(0);
     medianpos(1);
+  }
+
+  private void containerBorderEdge(DNode node, DNode block, DotDigraph blockGraph) {
+    if (!dotAttachment.haveClusters()) {
+      return;
+    }
+
+    ContainerContent containerContent = getContainerContent(node.getContainer());
+    if (containerContent.container.isGraphviz()) {
+      return;
+    }
+    blockGraph.addEdge(new DLine(containerContent.leftNode, block, 0,
+                                    (int) (containerContent.leftMargin + block.topHeight()), false));
+    blockGraph.addEdge(new DLine(block, containerContent.rightNode, 0,
+                                 (int) (containerContent.rightMargin + block.bottomHeight()), false));
+  }
+
+  private void adjClusterEdge(DNode pre, DNode current,
+                              DNode preBlock, DNode currentBlock,
+                              DotDigraph blockGraph) {
+    if (!dotAttachment.haveClusters()) {
+      return;
+    }
+
+    GraphContainer commonParent = dotAttachment.commonParent(pre, current);
+    if (commonParent == pre.getContainer() && commonParent == current.getContainer()) {
+      return;
+    }
+
+    if (commonParent == pre.getContainer()) {
+
+      ContainerContent containerContent = getContainerContent(
+          dotAttachment.clusterDirectContainer(commonParent, current)
+      );
+      blockGraph.addEdge(new DLine(preBlock, containerContent.leftNode, 0,
+                                   (int) (20 + preBlock.bottomHeight()), false));
+    }
+    if (commonParent == current.getContainer()) {
+
+      ContainerContent containerContent = getContainerContent(
+          dotAttachment.clusterDirectContainer(commonParent, pre)
+      );
+      blockGraph.addEdge(new DLine(containerContent.rightNode, currentBlock, 0,
+                                   (int) (20 + currentBlock.topHeight()), false));
+    } else {
+
+      ContainerContent left = getContainerContent(
+          dotAttachment.clusterDirectContainer(commonParent, pre)
+      );
+      ContainerContent right = getContainerContent(
+          dotAttachment.clusterDirectContainer(commonParent, current)
+      );
+      if (left != null && right != null) {
+        blockGraph.addEdge(new DLine(left.rightNode, right.leftNode, 0, 16, false));
+      }
+    }
   }
 
   private void connectFlowBlocks(Map<DNode, DNode> nodeBlocks, DotDigraph blockGraph, DNode node,
@@ -223,7 +252,7 @@ class QuickCoordinate extends AbstractCoordinate {
     mark.put(v, block);
     block.setLow(Math.min(block.getLow(), v.getRealRank()));
     block.setLim(Math.max(block.getLim(), v.getRealRank()));
-    block.setHeight(Math.max(block.getHeight(), v.getWidth()));
+    block.setHeight(Math.max(block.getHeight(), v.leftWidth() + v.rightWidth()));
     List<SimpleEntry<DNode, DNode>> rankConflicts = conflicts.get(v.getRealRank());
 
     DNode successor = null;
@@ -255,6 +284,10 @@ class QuickCoordinate extends AbstractCoordinate {
   }
 
   private boolean hasConflict(List<SimpleEntry<DNode, DNode>> rankConflicts, DNode from, DNode to) {
+    if (acrossClusterLimit(from, to)) {
+      return true;
+    }
+
     if (rankConflicts == null) {
       return false;
     }
@@ -311,8 +344,6 @@ class QuickCoordinate extends AbstractCoordinate {
   }
 
   private boolean allowMedian(DNode n, boolean upward) {
-//    return true;
-//    return !n.isVirtual();
     if (!n.isVirtual()) {
       return true;
     }
@@ -373,11 +404,48 @@ class QuickCoordinate extends AbstractCoordinate {
     }
   }
 
+  private boolean acrossClusterLimit(DNode from, DNode to) {
+    if (from.getRealRank() == to.getRealRank()) {
+      return true;
+    }
+
+    GraphContainer parentContainer = DotAttachment
+        .commonParent(dotAttachment.getGraphviz(), from, to);
+
+    if (parentContainer == from.getContainer() && parentContainer == to.getContainer()) {
+      return false;
+    }
+
+    if (parentContainer == from.getContainer()) {
+      GraphContainer toDirC = dotAttachment.clusterDirectContainer(parentContainer, to);
+      ContainerBorder containerBorder = getContainerBorder(toDirC);
+      Asserts.nullArgument(containerBorder);
+      return containerBorder.inRankRange(from.getRealRank());
+    }
+
+    if (parentContainer == to.getContainer()) {
+      GraphContainer fromDirC = dotAttachment.clusterDirectContainer(parentContainer, from);
+      ContainerBorder containerBorder = getContainerBorder(fromDirC);
+      Asserts.nullArgument(containerBorder);
+      return containerBorder.inRankRange(to.getRealRank());
+    }
+
+    GraphContainer fromDirC = dotAttachment.clusterDirectContainer(parentContainer, from);
+    GraphContainer toDirC = dotAttachment.clusterDirectContainer(parentContainer, to);
+    ContainerBorder fromClusterBorder = getContainerBorder(fromDirC);
+    ContainerBorder toClusterBorder = getContainerBorder(toDirC);
+    Asserts.nullArgument(fromClusterBorder);
+    Asserts.nullArgument(toClusterBorder);
+    return fromClusterBorder.inRankRange(toClusterBorder.min)
+        || fromClusterBorder.inRankRange(toClusterBorder.max);
+  }
+
   /**
    * Apply spacing constraints to ensure no node overlap Returns the constrained position that
    * respects minimum spacing requirements
    */
   private double applySpacingConstraints(DNode node, double desiredPos) {
+    desiredPos = containerLimit(node, desiredPos);
     DNode pre = rankContent.rankPreNode(node);
     DNode next = rankContent.rankNextNode(node);
 
@@ -388,103 +456,55 @@ class QuickCoordinate extends AbstractCoordinate {
     if (pre != null) {
       double limit = pre.getAuxRank() + pre.rightWidth() + pre.getNodeSep() + node.leftWidth();
       if (desiredPos < limit) {
-        return limit;
+        return adjContainerLimit(node, pre, true, limit);
       }
     }
 
     if (next != null) {
       double limit = next.getAuxRank() - (node.rightWidth() + node.getNodeSep() + next.leftWidth());
       if (desiredPos > limit) {
-        return limit;
+        return adjContainerLimit(node, next, false, limit);
       }
     }
 
     return desiredPos;
   }
 
-
-  /**
-   * Initialize container content for cluster handling
-   */
-  private void initializeContainerContent() {
-    for (Cluster cluster : dotAttachment.getGraphviz().clusters()) {
-      containerContentMap.put(cluster, new ContainerContent(cluster));
-    }
-  }
-
-  /**
-   * Add cluster boundary edges
-   */
-  private void containerBorderEdge(DNode node) {
+  private double containerLimit(DNode node, double desirePos) {
     if (!dotAttachment.haveClusters()) {
-      return;
+      return desirePos;
     }
 
     ContainerContent containerContent = getContainerContent(node.getContainer());
     if (containerContent.container.isGraphviz()) {
-      return;
+      return desirePos;
     }
 
-    // Note: In Sugiyama, we don't create auxiliary edges like Network Simplex
-    // Instead, we handle cluster boundaries through the barycenter calculation
-    // by considering the cluster's left and right boundary nodes
+    DNode leftNode = containerContent.leftNode;
+    DNode rightNode = containerContent.rightNode;
+    desirePos = Math.max(leftNode.getRank() + containerContent.leftMargin + node.leftWidth(), desirePos);
+    desirePos = Math.min(rightNode.getRank() - containerContent.rightMargin - node.rightWidth(), desirePos);
+    return desirePos;
   }
 
-  /**
-   * Get container content for a specific container
-   */
-  private ContainerContent getContainerContent(GraphContainer container) {
-    return containerContentMap.get(container);
-  }
-
-  /**
-   * Clear resources
-   */
-  private void clear() {
-    containerContentMap = null;
-  }
-
-  /**
-   * Container content for cluster handling
-   */
-  private class ContainerContent {
-
-    private final int leftMargin;
-    private final int rightMargin;
-    private final DNode leftNode;
-    private final DNode rightNode;
-    private final GraphContainer container;
-
-    private ContainerContent(GraphContainer container) {
-      this.container = container;
-      this.leftNode = newClusterNode();
-      this.rightNode = newClusterNode();
-      this.leftMargin = margin(true);
-      this.rightMargin = margin(false);
+  private double adjContainerLimit(DNode node, DNode adjNode, boolean pre, double desirePos) {
+    if (!dotAttachment.haveClusters()) {
+      return desirePos;
     }
 
-    private int minlen() {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      FlatPoint labelSize = containerDrawProp.getLabelSize();
-      if (labelSize == null) {
-        return 0;
-      }
-      return needFlip ? (int) labelSize.getHeight() : (int) labelSize.getWidth();
+    GraphContainer commonParent = dotAttachment.commonParent(node, adjNode);
+    if (commonParent == adjNode.getContainer() || commonParent != node.getContainer()) {
+      return desirePos;
     }
 
-    private int margin(boolean left) {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      if (!needFlip) {
-        return (int) containerDrawProp.getHorMargin();
-      }
-      return flipGetMargin(container, left, false);
-    }
+    ContainerContent containerContent = getContainerContent(
+        dotAttachment.clusterDirectContainer(commonParent, adjNode)
+    );
 
-    private DNode newClusterNode() {
-      DNode node = new DNode(null, 0, 1, 0);
-      node.setContainer(container);
-      node.switchAuxModel();
-      return node;
+    if (pre) {
+      return Math.max(containerContent.rightNode.getRank() + 20, desirePos) ;
+    } else {
+      return Math.min(containerContent.leftNode.getRank() - 20, desirePos) ;
     }
   }
 }

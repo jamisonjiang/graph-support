@@ -54,6 +54,8 @@ abstract class AbstractCoordinate {
 
   protected Map<GraphContainer, ContainerBorder> containerRankRange;
 
+  protected Map<GraphContainer, ContainerContent> containerContentMap;
+
   AbstractCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                      EdgeDedigraph<DNode, DLine> proxyDigraph) {
     Objects.requireNonNull(rankContent);
@@ -63,6 +65,36 @@ abstract class AbstractCoordinate {
     this.proxyDigraph = proxyDigraph;
     this.dotAttachment = dotAttachment;
     this.needFlip = dotAttachment.getDrawGraph().needFlip();
+  }
+
+
+  protected ContainerContent addClusterBorderEdge(DotDigraph auxDotDigraph,
+                                                  GraphContainer container) {
+    if (!dotAttachment.haveClusters()) {
+      return null;
+    }
+
+    if (containerContentMap == null) {
+      containerContentMap = new HashMap<>();
+    }
+    ContainerContent containerContent = containerContentMap.computeIfAbsent(container,
+                                                                            ContainerContent::new);
+    auxDotDigraph.addEdge(new DLine(containerContent.leftNode, containerContent.rightNode,
+                                    null, 128D, containerContent.minlen()));
+
+    for (Cluster cluster : dotAttachment.clusters(container)) {
+      ContainerContent childCC = addClusterBorderEdge(auxDotDigraph, cluster);
+      if (childCC == null) {
+        continue;
+      }
+
+      auxDotDigraph.addEdge(new DLine(containerContent.leftNode, childCC.leftNode,
+                                      null, 0, containerContent.leftMargin));
+      auxDotDigraph.addEdge(new DLine(childCC.rightNode, containerContent.rightNode,
+                                      null, 0, containerContent.rightMargin));
+    }
+
+    return containerContent;
   }
 
   protected void accessNodes() {
@@ -246,14 +278,23 @@ abstract class AbstractCoordinate {
     return (int) containerDrawProp.getVerMargin();
   }
 
+  protected double containerLeftBorder(GraphContainer container) {
+    return getContainerContent(container).leftNode.getAuxRank();
+  }
+
+  protected double containerRightBorder(GraphContainer container) {
+    return getContainerContent(container).rightNode.getAuxRank();
+  }
+
+  protected ContainerContent getContainerContent(GraphContainer container) {
+    return containerContentMap.get(container);
+  }
+
   protected void nodeConsumer(DNode node) {
   }
 
-  protected abstract double containerLeftBorder(GraphContainer container);
-
-  protected abstract double containerRightBorder(GraphContainer container);
-
   // --------------------------------------------------- private method ---------------------------------------------------
+
 
   private void updateRankSep() {
     if (containerRankRange == null) {
@@ -558,7 +599,7 @@ abstract class AbstractCoordinate {
     rankNode.rankSep += incr;
   }
 
-  private ContainerBorder getContainerBorder(GraphContainer graphContainer) {
+  protected ContainerBorder getContainerBorder(GraphContainer graphContainer) {
     if (containerRankRange == null) {
       return null;
     }
@@ -654,6 +695,10 @@ abstract class AbstractCoordinate {
     double bottomRankHeight() {
       return verBottomMargin + maxBottomHeight;
     }
+
+    boolean inRankRange(int rank) {
+      return rank >= min && rank <= max;
+    }
   }
 
   private static class RankTopBottom {
@@ -661,5 +706,53 @@ abstract class AbstractCoordinate {
     private double top;
 
     private double bottom;
+  }
+
+
+  protected class ContainerContent {
+
+    final int leftMargin;
+
+    final int rightMargin;
+
+    final DNode leftNode;
+
+    final DNode rightNode;
+
+    final GraphContainer container;
+
+    ContainerContent(GraphContainer container) {
+      this.container = container;
+      this.leftNode = newClusterNode();
+      this.rightNode = newClusterNode();
+      this.leftMargin = margin(true);
+      this.rightMargin = margin(false);
+    }
+
+    int minlen() {
+      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
+      FlatPoint labelSize = containerDrawProp.getLabelSize();
+      if (labelSize == null) {
+        return 0;
+      }
+
+      return needFlip ? (int) labelSize.getHeight() : (int) labelSize.getWidth();
+    }
+
+    int margin(boolean left) {
+      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
+      if (!needFlip) {
+        return (int) containerDrawProp.getHorMargin();
+      }
+
+      return flipGetMargin(container, left, false);
+    }
+
+    DNode newClusterNode() {
+      DNode node = new DNode(null, 0, 1, 0);
+      node.setContainer(container);
+      node.switchAuxModel();
+      return node;
+    }
   }
 }

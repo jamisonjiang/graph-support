@@ -1,5 +1,5 @@
 digraph G_component_0 {
-  layout=dot
+  layout=dotq
 	fontname="Helvetica,Arial,sans-serif"
 	splines=ortho
 	size="2"

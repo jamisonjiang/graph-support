@@ -16,13 +16,8 @@
 
 package org.graphper.layout.dot;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
-import org.graphper.def.FlatPoint;
-import org.graphper.draw.ContainerDrawProp;
 
 /**
  * Classic coordinate implementation for DOT layout.
@@ -35,8 +30,6 @@ class ClassicCoordinate extends AbstractCoordinate {
 
   private DotDigraph auxDotDigraph;
 
-  private Map<GraphContainer, ContainerContent> containerContentMap;
-
   public ClassicCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
                       EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
@@ -46,9 +39,6 @@ class ClassicCoordinate extends AbstractCoordinate {
 
     // Final x coordinate setting
     positive();
-
-    // help gc
-    clear();
   }
 
   @Override
@@ -114,34 +104,6 @@ class ClassicCoordinate extends AbstractCoordinate {
     return auxDotDigraph;
   }
 
-  private ContainerContent addClusterBorderEdge(DotDigraph auxDotDigraph,
-                                                GraphContainer container) {
-    if (!dotAttachment.haveClusters()) {
-      return null;
-    }
-
-    if (containerContentMap == null) {
-      containerContentMap = new HashMap<>();
-    }
-    ContainerContent containerContent = containerContentMap.computeIfAbsent(container,
-                                                                            ContainerContent::new);
-    auxDotDigraph.addEdge(new DLine(containerContent.leftNode, containerContent.rightNode,
-                                    null, 128D, containerContent.minlen()));
-
-    for (Cluster cluster : dotAttachment.clusters(container)) {
-      ContainerContent childCC = addClusterBorderEdge(auxDotDigraph, cluster);
-      if (childCC == null) {
-        continue;
-      }
-
-      auxDotDigraph.addEdge(new DLine(containerContent.leftNode, childCC.leftNode,
-                                      null, 0, containerContent.leftMargin));
-      auxDotDigraph.addEdge(new DLine(childCC.rightNode, containerContent.rightNode,
-                                      null, 0, containerContent.rightMargin));
-    }
-
-    return containerContent;
-  }
 
   private void crossRankAuxEdge(DNode node) {
     for (DLine dLine : proxyDigraph.outAdjacent(node)) {
@@ -294,59 +256,4 @@ class ClassicCoordinate extends AbstractCoordinate {
                                     false));
   }
 
-  private ContainerContent getContainerContent(GraphContainer container) {
-    return containerContentMap.get(container);
-  }
-
-  private void clear() {
-    auxDotDigraph = null;
-    containerContentMap = null;
-  }
-
-  private class ContainerContent {
-
-    private final int leftMargin;
-
-    private final int rightMargin;
-
-    private final DNode leftNode;
-
-    private final DNode rightNode;
-
-    private final GraphContainer container;
-
-    private ContainerContent(GraphContainer container) {
-      this.container = container;
-      this.leftNode = newClusterNode();
-      this.rightNode = newClusterNode();
-      this.leftMargin = margin(true);
-      this.rightMargin = margin(false);
-    }
-
-    private int minlen() {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      FlatPoint labelSize = containerDrawProp.getLabelSize();
-      if (labelSize == null) {
-        return 0;
-      }
-
-      return needFlip ? (int) labelSize.getHeight() : (int) labelSize.getWidth();
-    }
-
-    private int margin(boolean left) {
-      ContainerDrawProp containerDrawProp = getContainerDrawProp(container);
-      if (!needFlip) {
-        return (int) containerDrawProp.getHorMargin();
-      }
-
-      return flipGetMargin(container, left, false);
-    }
-
-    private DNode newClusterNode() {
-      DNode node = new DNode(null, 0, 1, 0);
-      node.setContainer(container);
-      node.switchAuxModel();
-      return node;
-    }
-  }
 }

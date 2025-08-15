@@ -22,6 +22,7 @@ import org.graphper.layout.fdp.FdpLayoutEngine;
 import org.graphper.layout.fdp.GFdpLayoutEngine;
 import org.graphper.layout.fdp.JFdpLayoutEngine;
 import org.graphper.util.Asserts;
+import org.apache_gs.commons.lang3.StringUtils;
 
 /**
  * Layout engine enumeration.
@@ -90,5 +91,18 @@ public enum Layout {
    */
   public LayoutEngine getLayoutEngine() {
     return layoutEngine;
+  }
+
+  public static Layout layout(String layout) {
+    if (StringUtils.isEmpty(layout)) {
+      return Layout.DOT;
+    }
+
+    for (Layout value : values()) {
+      if (value.name().equalsIgnoreCase(layout)) {
+        return value;
+      }
+    }
+    return Layout.DOT;
   }
 }

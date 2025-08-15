@@ -49,7 +49,7 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   Rankdir rankdir = EnvProp.defaultRankdir();
 
-  Layout layout = Layout.DOT;
+  Layout layout = EnvProp.defaultLayout();
 
   double nodeSep = 0.5 * Graphviz.PIXEL;
 

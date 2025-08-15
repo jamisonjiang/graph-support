@@ -21,7 +21,6 @@ import helper.GraphvizVisual;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import org.graphper.api.FileType;
 import org.graphper.api.Graphviz;
 import org.graphper.draw.ExecuteException;
 import org.graphper.parser.DotParser;
@@ -39,21 +38,27 @@ public class DotCasesTest extends GraphvizVisual {
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
 //    String dot = DocumentUtils.getDotTestFile("big_fdp_case.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/biggraph.dot");
 //    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
-//    graphviz = DotParser.parse("digraph {"
-//                                            + "a -> b; a -> c; a -> d; a -> g;"
-//                                            + "b -> e; c -> f; d -> g; g -> h; a -> h;"
-//                                            + "c[label=\"11111111111111111\"]"
-//                                            + "}");
-    graphviz = DotParser.parse(new File("E:\\demo\\biggraph.dot"));
+//    System.setProperty("layout", "dotq");
+    graphviz = DotParser.parse("digraph {"
+//                                   + "layout=dotq;"
+                                   + "subgraph cluster_1 {"
+//                                   + "a -> a"
+                                   + "a -> a[label=\"1111111\"];"
+                                   + "a -> a[label=\"1111111\"];"
+                                   + "a -> a[label=\"1111111\"];"
+                                   + "}"
+                                   + "b"
+                                   + "}");
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 
 //    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
-//    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
-    graphviz.toFile(FileType.SVG).save("E:\\demo", "test");
-//    visual(graphviz);
+//    graphviz.toFile(FileType.SVG).save("E:\\demo", "test1");
+    visual(graphviz);
   }
 
   @Test
