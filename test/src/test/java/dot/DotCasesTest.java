@@ -44,18 +44,16 @@ public class DotCasesTest extends GraphvizVisual {
 //    System.setProperty("layout", "dotq");
     graphviz = DotParser.parse("digraph {"
 //                                   + "layout=dotq;"
+                                   + "rankdir=lr;"
                                    + "subgraph cluster_1 {"
-//                                   + "a -> a"
-                                   + "a -> a[label=\"1111111\"];"
-                                   + "a -> a[label=\"1111111\"];"
-                                   + "a -> a[label=\"1111111\"];"
+                                   + "a -> b"
                                    + "}"
                                    + "b"
                                    + "}");
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 
 //    String dot = DocumentUtils.getDotTestFile("/manual/classic.dot");
-    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
+//    graphviz = DotParser.parse(new File(dot), StandardCharsets.UTF_8);
 
 //    graphviz.toFile(FileType.SVG).save("E:\\demo", "test1");
     visual(graphviz);

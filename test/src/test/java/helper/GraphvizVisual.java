@@ -44,7 +44,7 @@ public class GraphvizVisual {
 
   @BeforeEach
   public void init() {
-    System.setProperty("layout", "dotq");
+    System.setProperty("graph.layout", "dotq");
   }
 
   protected void visual(Graphviz graphviz) {

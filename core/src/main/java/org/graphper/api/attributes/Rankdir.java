@@ -50,10 +50,11 @@ public enum Rankdir {
       return Rankdir.TB;
     }
 
-    try {
-      return valueOf(rankdir);
-    } catch (Exception e) {
-      return Rankdir.TB;
+    for (Rankdir value : values()) {
+      if (value.name().equalsIgnoreCase(rankdir)) {
+        return value;
+      }
     }
+    return Rankdir.TB;
   }
 }
