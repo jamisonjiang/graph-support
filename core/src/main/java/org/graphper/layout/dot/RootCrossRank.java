@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import org.graphper.api.GraphContainer;
+import org.graphper.api.attributes.Layout;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
@@ -556,8 +557,7 @@ class RootCrossRank implements CrossRank {
       if (leftCrossRecord[2] > rightCrossRecord[2]
           || (leftCrossRecord[2] > 0 && reverse
           && leftCrossRecord[2] == rightCrossRecord[2]
-          && !v.isVirtual() && !w.isVirtual()
-      )
+          && canSacrificeCurvature(v, w))
       ) {
         int delta = leftCrossRecord[2] - rightCrossRecord[2];
         rv += delta;
@@ -570,6 +570,13 @@ class RootCrossRank implements CrossRank {
     }
 
     return rv;
+  }
+
+  private boolean canSacrificeCurvature(DNode v, DNode w) {
+    if (isDot()) {
+      return true;
+    }
+    return !v.isVirtual() && !w.isVirtual();
   }
 
   private void updateRankCache(int rank, int delta) {
@@ -825,6 +832,10 @@ class RootCrossRank implements CrossRank {
       return 0;
     }
     return idx;
+  }
+
+  private boolean isDot() {
+    return drawGraph.getGraphviz().graphAttrs().getLayout() == Layout.DOT;
   }
 
   @Override

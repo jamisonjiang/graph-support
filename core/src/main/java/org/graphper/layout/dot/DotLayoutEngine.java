@@ -272,7 +272,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     // Best node sorting between ranks.
-    MinCross minCross = new MinCross(rankContent, dotAttachment);
+    MinCross minCross = new MinCross(rankContent, dotAttachment, useQuickCoordinate);
     EdgeDedigraph<DNode, DLine> digraphProxy = minCross.getDigraphProxy();
 
     // Handle various line label.

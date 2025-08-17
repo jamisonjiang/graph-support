@@ -73,11 +73,18 @@ class MinCross {
 
   private final DotAttachment dotAttachment;
 
+  private final boolean useQuickMode;
+
   private MinCrossDedigraph digraphProxy;
 
   MinCross(RankContent rankContent, DotAttachment dotAttachment) {
+    this(rankContent, dotAttachment, false);
+  }
+
+  MinCross(RankContent rankContent, DotAttachment dotAttachment, boolean useQuickMode) {
     this.rankContent = rankContent;
     this.dotAttachment = dotAttachment;
+    this.useQuickMode = useQuickMode;
 
     // Cut the line which span over than 2
     reduceLongEdges();
@@ -468,7 +475,30 @@ class MinCross {
       rootCrossRank.updateCross(cn);
     }
 
-    // Repeat the medium sort method and transport process
+    if (useQuickMode) {
+      logQuickModeStep(0);
+      flatOrder(optimal.getCrossRank());
+      logQuickModeStep(1);
+      mincrossStep(0);
+      logQuickModeStep(2);
+      mincrossStep(1);
+      logQuickModeStep(3);
+    } else {
+      runDotMincrossProcess(startPass, endPass, maxIter, minQuit, optimal);
+    }
+
+    rootCrossRank.transpose(false);
+    rootCrossRank.syncChildOrder();
+  }
+
+  private void logQuickModeStep(int time) {
+    if (log.isDebugEnabled()) {
+      CrossSnapshot crossSnapshot = rootCrossRank.crossSnapshot();
+      log.debug("trying {} best_cross {}", time, crossSnapshot.getCrossNum());
+    }
+  }
+
+  private CrossSnapshot runDotMincrossProcess(int startPass, int endPass, int maxIter, int minQuit, CrossSnapshot optimal) {
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
         flatOrder(optimal.getCrossRank());
@@ -498,9 +528,7 @@ class MinCross {
         break;
       }
     }
-
-    rootCrossRank.transpose(false);
-    rootCrossRank.syncChildOrder();
+    return optimal;
   }
 
   private void mincrossStep(int iterNum) {
