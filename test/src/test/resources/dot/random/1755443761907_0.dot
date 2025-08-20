@@ -1,0 +1,113 @@
+digraph G {
+layout=dotq
+subgraph cluster_1 {
+style="bold"
+label="cluster_1"
+5
+14
+2
+8
+subgraph cluster_2 {
+style="bold"
+label="cluster_2"
+16
+subgraph cluster_3 {
+style="bold"
+label="cluster_3"
+4
+10
+66
+}
+63
+}
+72
+}
+subgraph cluster_4 {
+style="bold"
+label="cluster_4"
+15
+6
+subgraph cluster_5 {
+style="bold"
+label="cluster_5"
+8
+8
+110
+}
+110
+}
+subgraph cluster_6 {
+style="bold"
+label="cluster_6"
+9
+2
+1
+18
+15
+13
+156
+}
+subgraph cluster_7 {
+style="bold"
+label="cluster_7"
+13
+12
+7
+12
+0
+175
+}
+subgraph cluster_8 {
+style="bold"
+label="cluster_8"
+15
+7
+176
+}
+subgraph cluster_9 {
+style="bold"
+label="cluster_9"
+13
+189
+}
+subgraph cluster_10 {
+style="bold"
+label="cluster_10"
+9
+13
+18
+4
+16
+subgraph cluster_11 {
+style="bold"
+label="cluster_11"
+2
+15
+3
+17
+10
+275
+}
+275
+}
+18->0
+8->9
+17->19
+5->14
+18->12
+15->5
+13->3
+12->1
+15->3
+4->16
+11->0
+8->1
+11->9
+1->10
+2->10
+16->8
+8->2
+16->19
+1->10
+1->3
+}
