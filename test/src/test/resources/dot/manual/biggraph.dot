@@ -1,5 +1,5 @@
 digraph {
-// layout=dotq
+layout=dotq
 size=1
 splines=polyline
 nslimit=1000000;

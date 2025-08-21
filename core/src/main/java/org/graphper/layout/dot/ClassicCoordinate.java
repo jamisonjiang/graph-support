@@ -51,7 +51,15 @@ class ClassicCoordinate extends AbstractCoordinate {
     return getContainerContent(container).rightNode.getAuxRank();
   }
 
-  @Override
+  // ----------------------------------------------------- private method -----------------------------------------------------
+
+  private DotDigraph createAuxGraph() {
+    auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
+    addClusterBorderEdge(auxDotDigraph, dotAttachment.getGraphviz());
+    accessNodes(this::nodeConsumer, null);
+    return auxDotDigraph;
+  }
+
   protected void nodeConsumer(DNode node) {
     /*
      * 1.Break an edge that spans between two ranks
@@ -94,16 +102,6 @@ class ClassicCoordinate extends AbstractCoordinate {
     // Avoid separate nodes
     auxDotDigraph.add(node);
   }
-
-  // ----------------------------------------------------- private method -----------------------------------------------------
-
-  private DotDigraph createAuxGraph() {
-    auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
-    addClusterBorderEdge(auxDotDigraph, dotAttachment.getGraphviz());
-    accessNodes();
-    return auxDotDigraph;
-  }
-
 
   private void crossRankAuxEdge(DNode node) {
     for (DLine dLine : proxyDigraph.outAdjacent(node)) {

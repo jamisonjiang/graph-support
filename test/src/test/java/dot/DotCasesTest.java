@@ -33,7 +33,9 @@ public class DotCasesTest extends GraphvizVisual {
     Graphviz graphviz;
 //    String dot = DocumentUtils.getDotTestFile("/manual/massive-network-simple.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
-    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
+//    String dot = DocumentUtils.getDotTestFile("/random/1755443761907_0.dot");
+    String dot = DocumentUtils.getDotTestFile("/random/121.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/big_fdp_case.dot");
@@ -43,12 +45,11 @@ public class DotCasesTest extends GraphvizVisual {
 
 //    System.setProperty("layout", "dotq");
     graphviz = DotParser.parse("digraph {"
-//                                   + "layout=dotq;"
+                                   + "layout=dotq;"
                                    + "rankdir=lr;"
-                                   + "subgraph cluster_1 {"
+                                   + "subgraph cluster_0 {"
                                    + "a -> b"
                                    + "}"
-                                   + "b"
                                    + "}");
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 

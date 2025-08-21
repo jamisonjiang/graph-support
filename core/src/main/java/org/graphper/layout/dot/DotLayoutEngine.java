@@ -278,20 +278,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     // Handle various line label.
     new LabelSupplement(rankContent, dotAttachment, digraphProxy);
 
-    // Node coordinate
-    // Set appropriate nslimit based on coordinate algorithm
-    int effectiveNslimit = graphAttrs.getNslimit();
-    if (effectiveNslimit == 100000) { // Use default value
-      if (useQuickCoordinate) {
-        effectiveNslimit = 5000; // Default for DOTQ
-      }
-      // DOT keeps default 100000
-    }
-    
     if (useQuickCoordinate) {
-      new QuickCoordinate(effectiveNslimit, rankContent, dotAttachment, digraphProxy);
+      new QuickCoordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     } else {
-      new ClassicCoordinate(effectiveNslimit, rankContent, dotAttachment, digraphProxy);
+      new ClassicCoordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     }
 
     // If cell not set port, auto generate port for line to get more reasonable routing

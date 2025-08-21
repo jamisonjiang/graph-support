@@ -16,12 +16,15 @@
 
 package org.graphper.layout.dot;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.layout.dot.RankContent.RankNode;
@@ -52,9 +55,10 @@ class QuickCoordinate extends AbstractCoordinate {
   private void blockNetworkSimplex() {
     DotDigraph blockGraph = new DotDigraph(dotAttachment.getDotDigraph().vertexNum());
     addClusterBorderEdge(blockGraph, dotAttachment.getGraphviz());
-    accessNodes();
 
-    Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts = new HashMap<>();
+    Map<Integer, Set<ConflictPair>> conflicts = new HashMap<>();
+    accessNodes(null, (n, c, cb) -> cb.refreshRankRange(n));
+    addClusterConflict(conflicts);
 
     Map<DNode, DNode> nodeBlocks = new HashMap<>();
 
@@ -116,6 +120,8 @@ class QuickCoordinate extends AbstractCoordinate {
       }
     }
 
+//    new Acyclic(blockGraph, dotAttachment.getDrawGraph());
+
     FeasibleTree feasibleTree = new FeasibleTree(blockGraph);
     new NetworkSimplex(feasibleTree, nslimit, false,
                        false, false,
@@ -130,6 +136,48 @@ class QuickCoordinate extends AbstractCoordinate {
 
     medianpos(0);
     medianpos(1);
+  }
+
+  private void addClusterConflict(Map<Integer, Set<ConflictPair>> conflicts) {
+    if (!dotAttachment.haveClusters()) {
+      return;
+    }
+
+    addClusterConflict(dotAttachment.getGraphviz(), conflicts);
+  }
+
+  private void addClusterConflict(GraphContainer graphContainer,
+                                  Map<Integer, Set<ConflictPair>> conflicts) {
+    Iterable<Cluster> clusters = dotAttachment.clusters(graphContainer);
+    for (Cluster cluster : clusters) {
+      addClusterConflict(cluster, conflicts);
+    }
+
+    if (!graphContainer.isCluster()) {
+      return;
+    }
+
+    ContainerBorder containerBorder = getContainerBorder(graphContainer);
+    if (containerBorder == null) {
+      return;
+    }
+
+    Map<Integer, int[]> rankIndexRange = containerBorder.rankIndexRange;
+    if (rankIndexRange == null || rankIndexRange.size() == 1) {
+      return;
+    }
+
+    for (int i = containerBorder.min + 1; i <= containerBorder.max ; i++) {
+      int[] pre = rankIndexRange.get(i - 1);
+      int[] current = rankIndexRange.get(i);
+      if (pre == null || current == null || pre.length != 2 || current.length != 2) {
+        continue;
+      }
+
+      Set<ConflictPair> conflictPairs = conflicts.computeIfAbsent(i - 1, k -> new HashSet<>());
+      conflictPairs.add(new ConflictPair(pre[0], current[0]));
+      conflictPairs.add(new ConflictPair(pre[1], current[1]));
+    }
   }
 
   private void containerBorderEdge(DNode node, DNode block, DotDigraph blockGraph) {
@@ -244,7 +292,7 @@ class QuickCoordinate extends AbstractCoordinate {
   }
 
   private void dfs(DNode v, Map<DNode, DNode> mark, DNode block, boolean isVirtual,
-                   Map<Integer, List<SimpleEntry<DNode, DNode>>> conflicts) {
+                   Map<Integer, Set<ConflictPair>> conflicts) {
     if (mark.containsKey(v)) {
       return;
     }
@@ -253,7 +301,7 @@ class QuickCoordinate extends AbstractCoordinate {
     block.setLow(Math.min(block.getLow(), v.getRealRank()));
     block.setLim(Math.max(block.getLim(), v.getRealRank()));
     block.setHeight(Math.max(block.getHeight(), v.leftWidth() + v.rightWidth()));
-    List<SimpleEntry<DNode, DNode>> rankConflicts = conflicts.get(v.getRealRank());
+    Set<ConflictPair> rankConflicts = conflicts.get(v.getRealRank());
 
     DNode successor = null;
     for (DLine edge : proxyDigraph.outAdjacent(v)) {
@@ -275,15 +323,15 @@ class QuickCoordinate extends AbstractCoordinate {
     if (successor != null) {
 
       if (rankConflicts == null) {
-        rankConflicts = new ArrayList<>();
+        rankConflicts = new HashSet<>();
         conflicts.put(v.getRealRank(), rankConflicts);
       }
-      rankConflicts.add(new SimpleEntry<>(v, successor));
+      rankConflicts.add(new ConflictPair(v.getRankIndex(), successor.getRankIndex()));
       dfs(successor, mark, block, isVirtual, conflicts);
     }
   }
 
-  private boolean hasConflict(List<SimpleEntry<DNode, DNode>> rankConflicts, DNode from, DNode to) {
+  private boolean hasConflict(Set<ConflictPair> rankConflicts, DNode from, DNode to) {
     if (acrossClusterLimit(from, to)) {
       return true;
     }
@@ -296,11 +344,11 @@ class QuickCoordinate extends AbstractCoordinate {
       return true;
     }
 
-    for (SimpleEntry<DNode, DNode> conflict : rankConflicts) {
-      DNode f = conflict.getKey();
-      DNode t = conflict.getValue();
+    for (ConflictPair conflict : rankConflicts) {
+      int fRankIdx = conflict.lowRankIdx;
+      int tRankIdx = conflict.highRankIdx;
 
-      if (f.getRankIndex() < from.getRankIndex() != t.getRankIndex() < to.getRankIndex()) {
+      if (fRankIdx < from.getRankIndex() != tRankIdx < to.getRankIndex()) {
         return true;
       }
     }
@@ -505,6 +553,34 @@ class QuickCoordinate extends AbstractCoordinate {
       return Math.max(containerContent.rightNode.getRank() + 20, desirePos) ;
     } else {
       return Math.min(containerContent.leftNode.getRank() - 20, desirePos) ;
+    }
+  }
+
+  private static class ConflictPair {
+    private int lowRankIdx;
+    private int highRankIdx;
+
+    public ConflictPair(int lowRankIdx, int highRankIdx) {
+      this.lowRankIdx = lowRankIdx;
+      this.highRankIdx = highRankIdx;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      ConflictPair that = (ConflictPair) o;
+      return lowRankIdx == that.lowRankIdx && highRankIdx == that.highRankIdx;
+    }
+
+    @Override
+    public int hashCode() {
+      // Objects.hash() considers order - (a,b) and (b,a) will have different hash codes
+      return Objects.hash(lowRankIdx, highRankIdx);
     }
   }
 }

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Consumer;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
@@ -97,7 +98,7 @@ abstract class AbstractCoordinate {
     return containerContent;
   }
 
-  protected void accessNodes() {
+  protected void accessNodes(Consumer<DNode> nodeConsumer, ClusterConsumer nodeClustersConsumer) {
     containerRankRange = dotAttachment.haveClusters() ? new HashMap<>() : new HashMap<>(1);
 
     ContainerBorder containerBorder = new ContainerBorder();
@@ -115,13 +116,15 @@ abstract class AbstractCoordinate {
         if (next != null) {
           next.initNodeSizeExpander(dotAttachment.getDrawGraph());
         }
-        nodeConsumer(node);
+        if (nodeConsumer != null) {
+          nodeConsumer.accept(node);
+        }
 
         if (!node.getContainer().isCluster()) {
           continue;
         }
 
-        updateClusterRange(node);
+        updateClusterRange(node, nodeClustersConsumer);
       }
     }
 
@@ -290,9 +293,6 @@ abstract class AbstractCoordinate {
     return containerContentMap.get(container);
   }
 
-  protected void nodeConsumer(DNode node) {
-  }
-
   // --------------------------------------------------- private method ---------------------------------------------------
 
 
@@ -390,21 +390,22 @@ abstract class AbstractCoordinate {
     return containerBorder;
   }
 
-  private void updateClusterRange(DNode n) {
+  private void updateClusterRange(DNode n, ClusterConsumer nodeClustersConsumer) {
     if (!n.getContainer().isCluster()) {
       return;
     }
 
-    int rank = n.getRankIgnoreModel();
     Graphviz graphviz = dotAttachment.getGraphviz();
     GraphContainer container = n.getContainer();
 
     while (container != null && container.isCluster()) {
       ContainerBorder clusterBorder = containerRankRange
           .computeIfAbsent(container, c -> new ContainerBorder());
+      clusterBorder.refreshRank(n);
 
-      clusterBorder.min = Math.min(clusterBorder.min, rank);
-      clusterBorder.max = Math.max(clusterBorder.max, rank);
+      if (nodeClustersConsumer != null) {
+        nodeClustersConsumer.accept(n, (Cluster) container, clusterBorder);
+      }
 
       container = graphviz.effectiveFather(container);
     }
@@ -684,6 +685,8 @@ abstract class AbstractCoordinate {
 
     private double maxBottomHeight;
 
+    Map<Integer, int[]> rankIndexRange;
+
     int width() {
       return max - min;
     }
@@ -699,6 +702,24 @@ abstract class AbstractCoordinate {
     boolean inRankRange(int rank) {
       return rank >= min && rank <= max;
     }
+
+    void refreshRank(DNode node) {
+      int rank = node.getRealRank();
+      this.min = Math.min(this.min, rank);
+      this.max = Math.max(this.max, rank);
+    }
+
+    void refreshRankRange(DNode node) {
+      if (rankIndexRange == null) {
+        rankIndexRange = new HashMap<>();
+      }
+
+      int rank = node.getRealRank();
+      int rankIndex = node.getRankIndex();
+      int[] rankIdxRange = rankIndexRange.computeIfAbsent(rank, r -> new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE});
+      rankIdxRange[0] = Math.min(rankIdxRange[0], rankIndex);
+      rankIdxRange[1] = Math.max(rankIdxRange[1], rankIndex);
+    }
   }
 
   private static class RankTopBottom {
@@ -707,7 +728,6 @@ abstract class AbstractCoordinate {
 
     private double bottom;
   }
-
 
   protected class ContainerContent {
 
@@ -754,5 +774,9 @@ abstract class AbstractCoordinate {
       node.switchAuxModel();
       return node;
     }
+  }
+
+  interface ClusterConsumer {
+    void accept(DNode node, Cluster cluster, ContainerBorder containerBorder);
   }
 }
