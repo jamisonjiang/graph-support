@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
@@ -61,81 +62,105 @@ class QuickCoordinate extends AbstractCoordinate {
     addClusterConflict(conflicts);
 
     Map<DNode, DNode> nodeBlocks = new HashMap<>();
+    
+    // Process virtual nodes first
+    processNodesByType(nodeBlocks, conflicts, true);
+    
+    // Process remaining nodes
+    processNodesByType(nodeBlocks, conflicts, false);
 
-    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
-      RankNode rankNode = rankContent.get(i);
-      for (int j = 0; j < rankNode.size(); j++) {
-        DNode node = rankNode.get(j);
-        if (notFirstDiscoveryVirtualNode(node) || nodeBlocks.containsKey(node)) {
-          continue;
-        }
-
-        DNode block = new DNode(null, 0, 0, 0);
-        block.setLow(Integer.MAX_VALUE);
-        block.setLim(Integer.MIN_VALUE);
-        dfs(node, nodeBlocks, block, true, conflicts);
-      }
-    }
-
-    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
-      RankNode rankNode = rankContent.get(i);
-      for (int j = 0; j < rankNode.size(); j++) {
-        DNode node = rankNode.get(j);
-        if (nodeBlocks.containsKey(node)) {
-          continue;
-        }
-
-        DNode block = new DNode(null, 0, 0, 0);
-        block.setLow(Integer.MAX_VALUE);
-        block.setLim(Integer.MIN_VALUE);
-        dfs(node, nodeBlocks, block, false, conflicts);
-      }
-    }
-
+    // Connect flow blocks
     for (DNode node : proxyDigraph) {
       DNode block = nodeBlocks.get(node);
       connectFlowBlocks(nodeBlocks, blockGraph, node, block);
     }
 
+    // Build block graph with rank constraints
+    buildBlockGraphWithRankConstraints(blockGraph, nodeBlocks);
+
+    // Run network simplex algorithm
+    runNetworkSimplex(blockGraph);
+
+    // Update node positions and run median positioning
+    updateNodePositionsFromBlocks(nodeBlocks);
+    medianpos(0);
+    medianpos(1);
+  }
+
+  private void processNodesByType(Map<DNode, DNode> nodeBlocks, 
+                                  Map<Integer, Set<ConflictPair>> conflicts, 
+                                  boolean isVirtual) {
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+      for (int j = 0; j < rankNode.size(); j++) {
+        DNode node = rankNode.get(j);
+        
+        if (isVirtual) {
+          if (notFirstDiscoveryVirtualNode(node) || nodeBlocks.containsKey(node)) {
+            continue;
+          }
+        } else {
+          if (nodeBlocks.containsKey(node)) {
+            continue;
+          }
+        }
+
+        DNode block = createNewBlock();
+        dfs(node, nodeBlocks, block, isVirtual, conflicts);
+      }
+    }
+  }
+
+  private DNode createNewBlock() {
+    DNode block = new DNode(null, 0, 0, 0);
+    block.setLow(Integer.MAX_VALUE);
+    block.setLim(Integer.MIN_VALUE);
+    return block;
+  }
+
+  private void buildBlockGraphWithRankConstraints(DotDigraph blockGraph, 
+                                                 Map<DNode, DNode> nodeBlocks) {
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
       RankNode rankNode = rankContent.get(i);
       for (int j = 0; j < rankNode.size(); j++) {
         DNode node = rankNode.get(j);
         DNode block = nodeBlocks.get(node);
+        
         blockGraph.add(block);
         containerBorderEdge(node, block, blockGraph);
 
         if (j > 0) {
-          DNode pre = rankNode.get(j - 1);
-          DNode preBlock = nodeBlocks.get(pre);
-          if (block == preBlock) {
-            continue;
-          }
-
-          int limit =
-              ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
-          blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
-          adjClusterEdge(pre, node, preBlock, block, blockGraph);
+          addRankSeparationConstraint(rankNode, j, block, nodeBlocks, blockGraph);
         }
       }
     }
+  }
 
-//    new Acyclic(blockGraph, dotAttachment.getDrawGraph());
+  private void addRankSeparationConstraint(RankNode rankNode, int j, DNode block,
+                                          Map<DNode, DNode> nodeBlocks, DotDigraph blockGraph) {
+    DNode pre = rankNode.get(j - 1);
+    DNode preBlock = nodeBlocks.get(pre);
+    
+    if (block == preBlock) {
+      return;
+    }
 
+    int limit = ((int) (block.getHeight() + preBlock.getHeight()) / 2) + (int) pre.getNodeSep();
+    blockGraph.addEdge(new DLine(preBlock, block, null, 1, limit));
+    adjClusterEdge(pre, rankNode.get(j), preBlock, block, blockGraph);
+  }
+
+  private void runNetworkSimplex(DotDigraph blockGraph) {
     FeasibleTree feasibleTree = new FeasibleTree(blockGraph);
-    new NetworkSimplex(feasibleTree, nslimit, false,
-                       false, false,
-                       Double.MAX_VALUE, null);
+    new NetworkSimplex(feasibleTree, nslimit, false, false, false, Double.MAX_VALUE, null);
+  }
 
+  private void updateNodePositionsFromBlocks(Map<DNode, DNode> nodeBlocks) {
     for (Entry<DNode, DNode> entry : nodeBlocks.entrySet()) {
       DNode node = entry.getKey();
       DNode block = entry.getValue();
-
       node.setAuxRank(block.getRank());
     }
-
-    medianpos(0);
-    medianpos(1);
   }
 
   private void addClusterConflict(Map<Integer, Set<ConflictPair>> conflicts) {
@@ -167,17 +192,43 @@ class QuickCoordinate extends AbstractCoordinate {
       return;
     }
 
-    for (int i = containerBorder.min + 1; i <= containerBorder.max ; i++) {
-      int[] pre = rankIndexRange.get(i - 1);
-      int[] current = rankIndexRange.get(i);
-      if (pre == null || current == null || pre.length != 2 || current.length != 2) {
+    addClusterBorderAsConflict(conflicts, containerBorder, rankIndexRange);
+  }
+
+  private static void addClusterBorderAsConflict(Map<Integer, Set<ConflictPair>> conflicts,
+                                                 ContainerBorder containerBorder,
+                                                 Map<Integer, int[]> rankIndexRange) {
+    int i = containerBorder.min;
+    int preRank = i - 1;
+    int[] pre = null;
+    int[] current;
+    do {
+      current = rankIndexRange.get(i);
+      if (current == null) {
+        /*
+         * Insert label nodes cause the entire rank only contains virtual nodes,
+         * it can cause the cluster's rank without nodes, we already fix the empty cluster rank
+         * in mincross step but broke in LabelSupplement due to new label rank, so for this step
+         * we choose broke any edges cross the multi cluster ranks
+         */
         continue;
       }
 
-      Set<ConflictPair> conflictPairs = conflicts.computeIfAbsent(i - 1, k -> new HashSet<>());
-      conflictPairs.add(new ConflictPair(pre[0], current[0]));
-      conflictPairs.add(new ConflictPair(pre[1], current[1]));
-    }
+      if (pre == null) {
+        preRank = i;
+        pre = current;
+        continue;
+      }
+
+      Asserts.illegalArgument(pre.length != 2 || current.length != 2, StringUtils.EMPTY);
+
+      int crossRows = i - preRank;
+      Set<ConflictPair> conflictPairs = conflicts.computeIfAbsent(preRank, k -> new HashSet<>());
+      conflictPairs.add(new ConflictPair(pre[0] - 0.5f, current[0] - 0.5f, crossRows));
+      conflictPairs.add(new ConflictPair(pre[1] + 0.5f, current[1] + 0.5f, crossRows));
+      preRank = i;
+      pre = current;
+    } while (i++ <= containerBorder.max);
   }
 
   private void containerBorderEdge(DNode node, DNode block, DotDigraph blockGraph) {
@@ -306,7 +357,7 @@ class QuickCoordinate extends AbstractCoordinate {
     DNode successor = null;
     for (DLine edge : proxyDigraph.outAdjacent(v)) {
       DNode other = edge.other(v);
-      if (hasConflict(rankConflicts, v, other)) {
+      if (hasConflict(v, other, rankConflicts, conflicts)) {
         continue;
       }
 
@@ -331,28 +382,65 @@ class QuickCoordinate extends AbstractCoordinate {
     }
   }
 
-  private boolean hasConflict(Set<ConflictPair> rankConflicts, DNode from, DNode to) {
+  private boolean hasConflict(DNode from, DNode to, Set<ConflictPair> rankConflicts,
+                              Map<Integer, Set<ConflictPair>> conflicts) {
     if (acrossClusterLimit(from, to)) {
       return true;
-    }
-
-    if (rankConflicts == null) {
-      return false;
     }
 
     if (from == to || from.getRealRank() == to.getRealRank()) {
       return true;
     }
+    if (hasConflict(rankConflicts, from, to)) {
+      return true;
+    }
 
+    RankNode fr = rankContent.get(from.getRealRank());
+    RankNode tr = rankContent.get(to.getRealRank());
+
+    if (!fr.noNormalNode() && !tr.noNormalNode()) {
+      return false;
+    }
+
+    if (fr.noNormalNode()) {
+      Iterable<DLine> adj = proxyDigraph.inAdjacent(from);
+      for (DLine line : adj) {
+        from = line.other(from);
+      }
+    }
+    if (tr.noNormalNode()) {
+      Iterable<DLine> adj = proxyDigraph.outAdjacent(to);
+      for (DLine line : adj) {
+        to = line.other(to);
+      }
+    }
+
+    if (from == null || to == null) {
+      return true;
+    }
+
+    rankConflicts = conflicts.get(from.getRealRank());
+    return hasConflict(rankConflicts, from, to);
+  }
+
+  private static boolean hasConflict(Set<ConflictPair> rankConflicts, DNode from, DNode to) {
+    if (rankConflicts == null) {
+      return false;
+    }
+
+    int crossRows = to.getRealRank() - from.getRealRank();
     for (ConflictPair conflict : rankConflicts) {
-      int fRankIdx = conflict.lowRankIdx;
-      int tRankIdx = conflict.highRankIdx;
+      if (conflict.crossRows != crossRows) {
+        continue;
+      }
+
+      float fRankIdx = conflict.lowRankIdx;
+      float tRankIdx = conflict.highRankIdx;
 
       if (fRankIdx < from.getRankIndex() != tRankIdx < to.getRankIndex()) {
         return true;
       }
     }
-
     return false;
   }
 
@@ -366,7 +454,7 @@ class QuickCoordinate extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          if (!allowMedian(node, false)) {
+          if (!allowMedian(node)) {
             continue;
           }
           double medianPos = calculateMedianPosition(node, false);
@@ -380,7 +468,7 @@ class QuickCoordinate extends AbstractCoordinate {
         RankNode rankNode = rankContent.get(layer);
 
         for (DNode node : rankNode) {
-          if (!allowMedian(node, true)) {
+          if (!allowMedian(node)) {
             continue;
           }
           double medianPos = calculateMedianPosition(node, true);
@@ -391,7 +479,7 @@ class QuickCoordinate extends AbstractCoordinate {
     }
   }
 
-  private boolean allowMedian(DNode n, boolean upward) {
+  private boolean allowMedian(DNode n) {
     if (!n.isVirtual()) {
       return true;
     }
@@ -550,19 +638,27 @@ class QuickCoordinate extends AbstractCoordinate {
     );
 
     if (pre) {
-      return Math.max(containerContent.rightNode.getRank() + 20, desirePos) ;
+      return Math.max(containerContent.rightNode.getRank() + node.leftWidth() + 20, desirePos) ;
     } else {
-      return Math.min(containerContent.leftNode.getRank() - 20, desirePos) ;
+      return Math.min(containerContent.leftNode.getRank() - node.rightWidth() - 20, desirePos) ;
     }
   }
 
   private static class ConflictPair {
-    private int lowRankIdx;
-    private int highRankIdx;
+    private final float lowRankIdx;
+    private final float highRankIdx;
 
-    public ConflictPair(int lowRankIdx, int highRankIdx) {
+    private int crossRows = 1;
+
+    private ConflictPair(float lowRankIdx, float highRankIdx) {
       this.lowRankIdx = lowRankIdx;
       this.highRankIdx = highRankIdx;
+    }
+
+    private ConflictPair(float lowRankIdx, float highRankIdx, int crossRows) {
+      this.lowRankIdx = lowRankIdx;
+      this.highRankIdx = highRankIdx;
+      this.crossRows = crossRows;
     }
 
     @Override
@@ -579,7 +675,6 @@ class QuickCoordinate extends AbstractCoordinate {
 
     @Override
     public int hashCode() {
-      // Objects.hash() considers order - (a,b) and (b,a) will have different hash codes
       return Objects.hash(lowRankIdx, highRankIdx);
     }
   }

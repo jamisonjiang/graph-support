@@ -325,6 +325,7 @@ class MinCross {
       return;
     }
 
+    checkClustersContinuity();
     Graphviz graphviz = dotAttachment.getGraphviz();
     ClusterMerge clusterMerge = new ClusterMerge();
     clusterExpand = new ClusterExpand(clusterMerge);
@@ -349,6 +350,58 @@ class MinCross {
           rootCrossRank.addNode(fromClusterNode);
         }
       }
+    }
+  }
+
+  private void checkClustersContinuity() {
+    /*
+     * We hope every rank in cluster should have one node as least to avoid cluster overlap,
+     * otherwise position process lost reference point for cluster space between two clusters
+     */
+    Map<Cluster, TreeSet<Integer>> clusterRankContinuity = new HashMap<>();
+    for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
+      RankNode rankNode = rankContent.get(i);
+
+      for (int j = 0; j < rankNode.size(); j++) {
+        updateClusterContinuity(rankNode.get(j), clusterRankContinuity);
+      }
+    }
+
+    for (Entry<Cluster, TreeSet<Integer>> entry : clusterRankContinuity.entrySet()) {
+      Cluster cluster = entry.getKey();
+      TreeSet<Integer> ranks = entry.getValue();
+
+      Integer pre = null;
+      for (Integer rank : ranks) {
+        if (pre != null && !Objects.equals(pre, rank - 1)) {
+          // Find empty rank in cluster and insert one node
+          for (int i = pre + 1; i < rank; i++) {
+            RankNode rankNode = rankContent.get(i);
+            DNode node = new DNode(null, 0 , 0,0);
+            node.setContainer(cluster);
+            node.setRank(i);
+            rankNode.add(node);
+            node.setRankIndex(rankNode.size());
+            digraphProxy.add(node);
+          }
+        }
+        pre = rank;
+      }
+    }
+  }
+
+  private void updateClusterContinuity(DNode n, Map<Cluster, TreeSet<Integer>> clusterRankContinuity) {
+    if (!n.getContainer().isCluster()) {
+      return;
+    }
+
+    Graphviz graphviz = dotAttachment.getGraphviz();
+    GraphContainer container = n.getContainer();
+
+    while (container != null && container.isCluster()) {
+      Cluster cluster = (Cluster) container;
+      clusterRankContinuity.computeIfAbsent(cluster, c -> new TreeSet<>()).add(n.getRank());
+      container = graphviz.effectiveFather(container);
     }
   }
 
@@ -418,8 +471,9 @@ class MinCross {
     GraphContainer container = n.getContainer();
 
     while (container != null && container.isCluster()) {
+      Cluster cluster = (Cluster) container;
       ClusterRankRange range = clusterExpand.clusterMerge.clusterRankRange
-          .computeIfAbsent((Cluster) container, c -> new ClusterRankRange());
+          .computeIfAbsent(cluster, c -> new ClusterRankRange());
 
       range.minRank = Math.min(range.minRank, rank);
       range.maxRank = Math.max(range.maxRank, rank);

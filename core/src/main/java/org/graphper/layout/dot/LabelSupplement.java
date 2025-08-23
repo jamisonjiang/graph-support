@@ -26,6 +26,8 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import org.graphper.api.GraphContainer;
+import org.graphper.api.Graphviz;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.PortHelper;
@@ -141,16 +143,124 @@ class LabelSupplement {
     while (current != null) {
       if (current.isLabelRank()) {
         current.sort(this::labelNodeComparator);
-      }
-
-      for (int j = 0; j < current.size(); j++) {
-        DNode node = current.get(j);
-        node.setRank(current.rankIndex());
-        node.setRankIndex(j);
+        fixClusterBroke(current);
+      } else {
+        syncRankIdx(current);
       }
 
       current = current.next();
     }
+  }
+
+  private static void syncRankIdx(RankNode current) {
+    for (int j = 0; j < current.size(); j++) {
+      DNode node = current.get(j);
+      node.setRank(current.rankIndex());
+      node.setRankIndex(j);
+    }
+  }
+
+  private void fixClusterBroke(RankNode rankNode) {
+    if (!dotAttachment.haveClusters()) {
+      syncRankIdx(rankNode);
+      return;
+    }
+
+    /*
+     * Got per rank cluster range like:
+     * Cluster 1 node range: [0, 10]
+     * Cluster 2 node range: [1, 5]
+     * Cluster 3 node range: [6, 8]
+     */
+    Graphviz graphviz = dotAttachment.getGraphviz();
+    Map<GraphContainer, int[]> containerRange = new HashMap<>();
+
+    for (int j = 0; j < rankNode.size(); j++) {
+      DNode node = rankNode.get(j);
+      node.setRank(rankNode.rankIndex());
+      node.setRankIndex(j);
+
+      refreshClusterRange(j, node.getContainer(), graphviz, containerRange);
+    }
+
+    // Skip if current rank only include one cluster
+    if (containerRange.size() <= 1) {
+      return;
+    }
+
+    fixIncontinuityClusters(rankNode, graphviz, containerRange);
+  }
+
+  private static void fixIncontinuityClusters(RankNode rankNode, Graphviz graphviz,
+                                              Map<GraphContainer, int[]> containerRange) {
+    /*
+     * Cluster nodes in same rank should keep continuity but the lay insert process possible broke
+     * this rule, cause some case like this, following array means node container in same rank:
+     * [cluster1, cluster1, cluster1, graphviz, cluster1]
+     * The root container broke the cluster1 continuity, so we should force set the forth node's
+     * container to cluster1.
+     */
+    List<GraphContainer> uncloseContainers = new ArrayList<>();
+
+    for (int j = 0; j < rankNode.size(); j++) {
+      DNode node = rankNode.get(j);
+
+      int startIdx = uncloseContainers.size();
+      GraphContainer container = node.getContainer();
+
+      // Add all clusters started with current node
+      while (container != null) {
+        int[] range = containerRange.get(container);
+        if (range == null) {
+          container = graphviz.effectiveFather(container);
+          continue;
+        }
+
+        if (range[0] == j) {
+          uncloseContainers.add(startIdx, container);
+        }
+        container = graphviz.effectiveFather(container);
+      }
+
+      // Pop up the left closet unclose container and force current node container to this container
+      if (!uncloseContainers.isEmpty()) {
+        GraphContainer lastContainer = uncloseContainers.get(uncloseContainers.size() - 1);
+        if (lastContainer != node.getContainer()) {
+          node.setContainer(lastContainer);
+        }
+      }
+
+      // Remove clusters that current node is the rank last node
+      container = node.getContainer();
+      while (container != null) {
+        int[] range = containerRange.get(container);
+        if (range == null) {
+          container = graphviz.effectiveFather(container);
+          continue;
+        }
+
+        if (range[1] == j && !uncloseContainers.isEmpty()) {
+          uncloseContainers.remove(uncloseContainers.size() - 1);
+        }
+        container = graphviz.effectiveFather(container);
+      }
+    }
+  }
+
+  private void refreshClusterRange(int rankIdx, GraphContainer container, Graphviz graphviz,
+                                   Map<GraphContainer, int[]> containerRange) {
+    if (container == null) {
+      return;
+    }
+
+    int[] range = containerRange.computeIfAbsent(container,
+                                              k -> new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE});
+
+    range[0] = Math.min(range[0], rankIdx);
+    range[1] = Math.max(range[1], rankIdx);
+
+    GraphContainer parent = graphviz.effectiveFather(container);
+    refreshClusterRange(rankIdx, parent, graphviz, containerRange);
   }
 
   private void recordNewRemoveLines(DLine line, RankNode rankNode,
