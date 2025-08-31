@@ -34,7 +34,8 @@ public class DotCasesTest extends GraphvizVisual {
 //    String dot = DocumentUtils.getDotTestFile("/manual/massive-network-simple.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case15.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/timeline.dot");
-    String dot = DocumentUtils.getDotTestFile("/random/1755970376681_4211.dot");
+    String dot = DocumentUtils.getDotTestFile("/random/1756624825512_5358.dot");
+//    String dot = DocumentUtils.getDotTestFile("/manual/case18.dot");
 //    String dot = DocumentUtils.getDotTestFile("/random/121.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/case5.dot");
 //    String dot = DocumentUtils.getDotTestFile("/manual/attrs_test.dot");
@@ -46,10 +47,25 @@ public class DotCasesTest extends GraphvizVisual {
 //    System.setProperty("layout", "dotq");
     graphviz = DotParser.parse("digraph {"
                                    + "layout=dotq;"
-                                   + "rankdir=lr;"
                                    + "subgraph cluster_0 {"
-                                   + "a -> b"
+                                   + "a -> a;"
+                                   + "a -> a;"
+                                   + "a -> a;"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a:w -> a:w[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
+                                   + "a -> a[label=\"123\"];"
                                    + "}"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
+                                   + "b -> b[label=\"22222\"];"
                                    + "}");
 //    graphviz = DotParser.parse(new File("E:\\demo\\.dot"));
 

@@ -77,10 +77,6 @@ class MinCross {
 
   private MinCrossDedigraph digraphProxy;
 
-  MinCross(RankContent rankContent, DotAttachment dotAttachment) {
-    this(rankContent, dotAttachment, false);
-  }
-
   MinCross(RankContent rankContent, DotAttachment dotAttachment, boolean useQuickMode) {
     this.rankContent = rankContent;
     this.dotAttachment = dotAttachment;
@@ -381,7 +377,7 @@ class MinCross {
             node.setContainer(cluster);
             node.setRank(i);
             rankNode.add(node);
-            node.setRankIndex(rankNode.size());
+            node.setRankIndex(rankNode.size() - 1);
             digraphProxy.add(node);
           }
         }
@@ -516,7 +512,7 @@ class MinCross {
     BasicCrossRank c = optimal.getCrossRank().clone();
     new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true);
     CrossSnapshot cn = rootCrossRank.tryCacheCrossNum(c);
-    if (cn.getCrossNum() <= optimal.getCrossNum()) {
+    if (c.container().haveChildCluster() || cn.getCrossNum() <= optimal.getCrossNum()) {
       optimal = cn;
       rootCrossRank.updateCross(cn);
     }

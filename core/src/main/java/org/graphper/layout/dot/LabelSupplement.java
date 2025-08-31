@@ -194,7 +194,7 @@ class LabelSupplement {
   private static void fixIncontinuityClusters(RankNode rankNode, Graphviz graphviz,
                                               Map<GraphContainer, int[]> containerRange) {
     /*
-     * Cluster nodes in same rank should keep continuity but the lay insert process possible broke
+     * Cluster nodes in same rank should keep continuity but the label insert process possible broke
      * this rule, cause some case like this, following array means node container in same rank:
      * [cluster1, cluster1, cluster1, graphviz, cluster1]
      * The root container broke the cluster1 continuity, so we should force set the forth node's
@@ -583,6 +583,7 @@ class LabelSupplement {
           digraphProxy.add(peek);
 
           addArchBridgeFlatLine(peek, rankNode);
+          fixClusterBroke(rankNode);
         }
         node.setRank(rankNode.rankIndex());
         node.setRankIndex(i);

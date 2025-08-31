@@ -12,6 +12,8 @@
    `graph-support` is designed to be **lightweight**, ensuring stability and efficiency. Unlike other graphing tools, `graph-support` **does not require** Graphviz binaries, JavaScript runtime engines, or external renderers, making it ideal for **embedding into applications**.
 - **Multi-Platform Support**:
    Compatible with **Mac, Linux, Windows, and Android platforms**, ensuring seamless integration across different environments.
+- **Advanced Dot Layout Engines**:
+   Features **DOT** - the core hierarchical layout engine, **DOTQ** - optimized dot for large graphs hierarchy layout.
 
 ------
 

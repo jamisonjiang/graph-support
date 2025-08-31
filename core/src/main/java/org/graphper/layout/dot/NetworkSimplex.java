@@ -158,8 +158,6 @@ class NetworkSimplex {
       log.debug("Network is done,total number of iterations is {},time is {}s", count,
                 (System.currentTimeMillis() - start) / 1000);
     }
-
-//    System.out.println("Network is done,total number of iterations is " + count + ",time is " + (System.currentTimeMillis() - start) +"ms");
   }
 
   private ULine findEnterLine(ULine outLine, List<Set<DNode>> halfNodeRecord) {

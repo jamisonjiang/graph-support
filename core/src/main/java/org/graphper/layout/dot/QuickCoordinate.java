@@ -83,6 +83,7 @@ class QuickCoordinate extends AbstractCoordinate {
 
     // Update node positions and run median positioning
     updateNodePositionsFromBlocks(nodeBlocks);
+
     medianpos(0);
     medianpos(1);
   }
@@ -159,7 +160,13 @@ class QuickCoordinate extends AbstractCoordinate {
     for (Entry<DNode, DNode> entry : nodeBlocks.entrySet()) {
       DNode node = entry.getKey();
       DNode block = entry.getValue();
-      node.setAuxRank(block.getRank());
+      if (node.isVirtual()) {
+        node.setAuxRank(block.getRank());
+        continue;
+      }
+
+      double offset = (node.leftWidth() + node.rightWidth()) / 2 - node.leftWidth();
+      node.setAuxRank(block.getRank() - (int) offset);
     }
   }
 
@@ -384,6 +391,9 @@ class QuickCoordinate extends AbstractCoordinate {
 
   private boolean hasConflict(DNode from, DNode to, Set<ConflictPair> rankConflicts,
                               Map<Integer, Set<ConflictPair>> conflicts) {
+    if (from.isFlatLabelNode() || to.isFlatLabelNode()) {
+      return true;
+    }
     if (acrossClusterLimit(from, to)) {
       return true;
     }
@@ -592,15 +602,17 @@ class QuickCoordinate extends AbstractCoordinate {
     if (pre != null) {
       double limit = pre.getAuxRank() + pre.rightWidth() + pre.getNodeSep() + node.leftWidth();
       if (desiredPos < limit) {
-        return adjContainerLimit(node, pre, true, limit);
+        desiredPos = limit;
       }
+      desiredPos = adjContainerLimit(node, pre, true, desiredPos);
     }
 
     if (next != null) {
       double limit = next.getAuxRank() - (node.rightWidth() + node.getNodeSep() + next.leftWidth());
       if (desiredPos > limit) {
-        return adjContainerLimit(node, next, false, limit);
+        desiredPos = limit;
       }
+      desiredPos = adjContainerLimit(node, next, false, desiredPos);
     }
 
     return desiredPos;
