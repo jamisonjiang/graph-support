@@ -16,23 +16,18 @@
 
 package org.graphper.layout.fdp;
 
-import org.graphper.api.Line;
-import org.graphper.api.LineAttrs;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.ALine;
 
 public class FLine extends ALine<FNode, FLine> {
 
   private static final long serialVersionUID = -2526416728355227232L;
 
-  public FLine(FNode from, FNode to, LineAttrs lineAttrs) {
-    super(from, to, null, lineAttrs);
+  public FLine(FNode from, FNode to, LineDrawProp line) {
+    super(from, to, line);
   }
 
-  public FLine(FNode from, FNode to, Line line, LineAttrs lineAttrs) {
-    super(from, to, line, lineAttrs);
-  }
-
-  public FLine(FNode from, FNode to, double weight, Line line, LineAttrs lineAttrs) {
-    super(from, to, weight, line, lineAttrs);
+  public FLine(FNode from, FNode to, double weight, LineDrawProp line) {
+    super(from, to, weight, line);
   }
 }

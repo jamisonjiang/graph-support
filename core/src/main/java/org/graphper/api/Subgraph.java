@@ -25,7 +25,7 @@ import org.graphper.util.Asserts;
  * Subgraph, mainly has the following usage scenarios:
  * <ul>
  *   <li> Specify common styles for some nodes and lines;
- *   <li> Under the {@link Layout#DOT} engine, combine the {@link Rank} attribute to specify
+ *   <li> Under the {@link Layout#DOT} and {@link Layout#DOTQ} engines, combine the {@link Rank} attribute to specify
  *   the rank of nodes in the graph.
  * </ul>
  *
@@ -73,9 +73,9 @@ public class Subgraph extends GraphContainer implements Serializable {
     /**
      * Set the {@link Rank} type of {@code Subgraph}.
      *
-     * <p>In the {@link Layout#DOT}, all nodes have a specified rank. When the nodes in the current
-     * subgraph are designated as a certain {@link Rank}, the ranks of all nodes are close to the
-     * real rank described by this rank type.
+     * <p>In the {@link Layout#DOT} and {@link Layout#DOTQ}, all nodes have a specified rank. When
+     * the nodes in the current subgraph are designated as a certain {@link Rank}, the ranks of all
+     * nodes are close to the real rank described by this rank type.
      *
      * @param rank the rank type of subgraph
      * @return Subgraph builder
@@ -130,9 +130,9 @@ public class Subgraph extends GraphContainer implements Serializable {
     /**
      * Set the {@link Rank} type of {@code Subgraph}.
      *
-     * <p>In the {@link Layout#DOT}, all nodes have a specified rank. When the nodes in the current
-     * subgraph are designated as a certain {@link Rank}, the ranks of all nodes are close to the
-     * real rank described by this rank type.
+     * <p>In the {@link Layout#DOT} and {@link Layout#DOTQ}, all nodes have a specified rank. When
+     * the nodes in the current subgraph are designated as a certain {@link Rank}, the ranks of all
+     * nodes are close to the real rank described by this rank type.
      *
      * @param rank the rank type of subgraph
      * @return IntegrationSubgraphBuilder

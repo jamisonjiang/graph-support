@@ -25,12 +25,14 @@ package org.graphper.def;
 public interface Graph<V> extends BaseGraph<V> {
 
   /**
-   * Returns a copy of the {@code Graph}.
+   * Returns the number of all vertex neighbors. Returns 0 if the vertex does not exist in the
+   * graph.
    *
-   * @return a copy of current graph
+   * @param v vertex to be queried
+   * @return degree of this vertex in current graph
    */
   @Override
-  Graph<V> copy();
+  int degree(V v);
 
   /**
    * The undirected graph that operates in the vertex dimension.
@@ -40,23 +42,19 @@ public interface Graph<V> extends BaseGraph<V> {
   interface VertexGraph<V> extends Graph<V>, VertexOpGraph<V> {
 
     /**
-     * Returns a copy of the {@code VertexGraph}.
-     *
-     * @return a copy of current graph
-     */
-    @Override
-    VertexGraph<V> copy();
-
-    /**
      * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
      * current vertex represents an edge.
      *
-     * <p>For undirected graphs, adjacent elements are Symmetrical. This means that for
+     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for
      * two adjacent vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in
      * {@code adjacent(v)}, and <tt>v</tt> must be found in {@code adjacent(w)}.
      *
+     * <p>For undirected graphs, the adjacent method returns all neighbor vertices connected to the
+     * specified vertex, regardless of direction (since undirected graphs have no concept of
+     * direction).
+     *
      * @param v vertex to be queried
-     * @return all adjacent vertices
+     * @return all adjacent vertices (all neighbors)
      */
     @Override
     Iterable<V> adjacent(Object v);
@@ -71,22 +69,18 @@ public interface Graph<V> extends BaseGraph<V> {
   interface EdgeGraph<V, E extends Edge<V, E>> extends Graph<V>, EdgeOpGraph<V, E> {
 
     /**
-     * Returns a copy of the {@code EdgeGraph}.
-     *
-     * @return a copy of current graph
-     */
-    @Override
-    EdgeGraph<V, E> copy();
-
-    /**
      * Returns all edges adjacent to the specified vertex.
      *
-     * <p>For undirected graphs, adjacent elements are Symmetrical. This means that for
+     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for
      * two adjacent vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in
      * {@code adjacent(v)}, and <tt>v</tt> must be found in {@code adjacent(w)}.
      *
+     * <p>For undirected graphs, the adjacent method returns all neighbor edges connected to the
+     * specified vertex, regardless of direction (since undirected graphs have no concept of
+     * direction).
+     *
      * @param v vertex to be queried
-     * @return all adjacent edges
+     * @return all adjacent edges (all neighboring edges)
      */
     @Override
     Iterable<E> adjacent(Object v);

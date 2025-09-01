@@ -96,11 +96,11 @@ class DotAttachment extends LayoutAttach {
     this.sameRankAdjacentRecord = sameRankAdjacentRecord;
   }
 
-  DNode mappingToDNode(Node node) {
+  DNode mappingToDNode(NodeDrawProp node) {
     return new DNode(
         node,
-        drawGraph.width(node),
-        drawGraph.height(node),
+        drawGraph.width(node.getNode()),
+        drawGraph.height(node.getNode()),
         drawGraph.getGraphviz().graphAttrs().getNodeSep()
     );
   }

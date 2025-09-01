@@ -235,10 +235,10 @@ class FeasibleTree {
     while (!halfNodeQueen.isEmpty()) {
       DNode node = halfNodeQueen.poll();
 
-      for (ULine uLine : graph.adjacent(node)) {
+      graph.forEachAdjacent(node, uLine -> {
         if (isCross(treeDLine, uLine.getdLine())) {
           dLineConsumer.accept(uLine);
-          continue;
+          return;
         }
 
         DNode other = uLine.other(node);
@@ -247,7 +247,7 @@ class FeasibleTree {
           halfNodeQueen.offer(other);
           queenRecord.add(other);
         }
-      }
+      });
     }
 
     return queenRecord;

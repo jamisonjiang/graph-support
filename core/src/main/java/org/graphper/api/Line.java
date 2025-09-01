@@ -313,9 +313,9 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Set the weight of line. In the {@link Layout#DOT} engine, the larger the value of weight, the
-     * more likely the vertical of the line will become larger (this is not certain, this is a
-     * priority weight value).
+     * Set the weight of line. In the {@link Layout#DOT} and {@link Layout#DOTQ} engines, the larger
+     * the value of weight, the more likely the vertical of the line will become larger (this is not
+     * certain, this is a priority weight value).
      *
      * @param weight line weight
      * @return line builder
@@ -392,7 +392,7 @@ public class Line implements Comparable<Line>, Serializable {
      * Sets the {@code minlen} attribute for the current line, which influences the layout depending
      * on the selected layout engine.
      * <ul>
-     *   <li>In the {@link Layout#DOT} layout, {@code minlen} specifies the least spanning ranks
+     *   <li>In the {@link Layout#DOT} and {@link Layout#DOTQ} layouts, {@code minlen} specifies the least spanning ranks
      *       between the tail and head nodes of the current line.</li>
      *   <li>In the  fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout,
      *       {@code minlen} defines the minimum distance between the two connected nodes when set

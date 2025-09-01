@@ -76,8 +76,8 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
 
     ANode tail = layoutGraph.getNode(lineDrawProp.getLine().tail());
     ANode head = layoutGraph.getNode(lineDrawProp.getLine().head());
-    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
-    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
+    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp, tail, drawGraph);
+    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp, head, drawGraph);
     splitPoints = new UnaryConcatIterable<>(Collections.singletonList(tailPoint),
                                             splitPoints, Collections.singletonList(headPoint));
 

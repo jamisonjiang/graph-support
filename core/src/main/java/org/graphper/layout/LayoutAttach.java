@@ -42,7 +42,7 @@ public abstract class LayoutAttach {
   }
 
   public static GraphContainer clusterDirectContainer(Graphviz graphviz,
-                                               GraphContainer parent, ANode node) {
+                                                      GraphContainer parent, ANode node) {
     if (node.getContainer() == parent || graphviz == null) {
       return null;
     }

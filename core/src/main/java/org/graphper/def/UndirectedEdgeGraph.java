@@ -16,251 +16,200 @@
 
 package org.graphper.def;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
- * Edge undirected graph based on {@link AdjEdgeGraph}.
- *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code UndirectedEdgeGraph}, the vertex
- * is searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
+ * Edge undirected graph based on {@link AbstractAdjGraph}.
  *
  * @param <V> the type of vertex
- * @param <E> the type of directed edge
+ * @param <E> the type of undirected edge
  * @author Jamison Jiang
  */
-public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AdjEdgeGraph<V, E>
+public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGraph<V, E>
     implements Graph.EdgeGraph<V, E> {
 
-  private static final long serialVersionUID = -3215868703245301095L;
+  private static final long serialVersionUID = -7910958796521952956L;
 
-  /**
-   * Construct graph with default capacity.
-   */
   public UndirectedEdgeGraph() {
     super();
   }
 
-  /**
-   * Construct a graph with a specified capacity.
-   *
-   * @param capacity specified capacity
-   * @throws IllegalArgumentException Capacity is less than or equal to 0
-   */
   public UndirectedEdgeGraph(int capacity) {
     super(capacity);
   }
 
-  /**
-   * Initialize with edge array.
-   *
-   * @param edges edge array
-   * @throws IllegalArgumentException vertex array is empty
-   */
   public UndirectedEdgeGraph(E[] edges) {
-    super(edges);
+    this();
+    if (edges != null) {
+      for (E edge : edges) {
+        addEdge(edge);
+      }
+    }
   }
 
-  /**
-   * Adds an undirected edge to the graph.
-   *
-   * @param e edge to be added to this graph
-   * @throws NullPointerException if the edge is null
-   */
+  public UndirectedEdgeGraph(Collection<E> edges) {
+    this();
+    if (edges != null) {
+      for (E edge : edges) {
+        addEdge(edge);
+      }
+    }
+  }
+
   @Override
   public void addEdge(E e) {
-    Objects.requireNonNull(e);
-    V v, w;
-    EdgeBag<V, E> bagV = (EdgeBag<V, E>) adjacent(v = e.either());
-    if (bagV == EdgeBag.EMPTY) {
-      bagV = addBag(v);
-    }
-    EdgeBag<V, E> bagW = (EdgeBag<V, E>) adjacent(w = e.other(v));
-    if (bagW == EdgeBag.EMPTY) {
-      bagW = addBag(w);
-    }
-    bagV.add(e);
-    bagW.add(e);
-    // The added edge is a self-loop
-    if (bagV == bagW) {
-      bagV.loopNum++;
+    Objects.requireNonNull(e, "Edge cannot be null");
+
+    V v = e.either();
+    V w = e.other(v);
+
+    // Add vertices if they don't exist
+    add(v);
+    add(w);
+
+    // Get adjacency lists
+    AdjacencyList<V, E> adjV = edgeMap.get(v);
+    AdjacencyList<V, E> adjW = edgeMap.get(w);
+
+    // Add edge to both vertices for undirected graph
+    // For self-loops, only add once since adjV and adjW are the same
+    adjV.add(e);
+    if (!Objects.equals(v, w)) {
+      adjW.add(e);
     }
     edgeNum++;
   }
 
-  /**
-   * Removes a directed edge to the graph. If the graph changes due to removing this edge, return
-   * true.
-   *
-   * @param edge edge to be removed to this graph
-   * @return <tt>true</tt> if this graph changed as a result of the call
-   */
   @Override
-  public boolean removeEdge(E edge) {
-    if (vertexNum == 0 || edgeNum == 0 || edge == null) {
+  public boolean removeEdge(E e) {
+    if (e == null) {
       return false;
     }
 
-    EdgeBag<V, E> bagV, bagW;
-    if ((bagV = (EdgeBag<V, E>) adjacent(edge.either())) == EdgeBag.EMPTY
-        || (bagW = (EdgeBag<V, E>) adjacent(edge.other(edge.either()))) == EdgeBag.EMPTY) {
+    V v = e.either();
+    V w = e.other(v);
+
+    AdjacencyList<V, E> adjV = edgeMap.get(v);
+    AdjacencyList<V, E> adjW = edgeMap.get(w);
+
+    if (adjV == null || adjW == null) {
       return false;
     }
-    if (!bagV.remove(edge) || !bagW.remove(edge)) {
-      return false;
+
+    boolean removedV = adjV.removeFirstIf(edge -> Objects.equals(edge, e));
+    boolean removedW = adjW.removeFirstIf(edge -> Objects.equals(edge, e));
+
+    if (removedV || removedW) {
+      edgeNum--;
+      return true;
     }
-    // The removed edges are self-loops
-    if (bagV == bagW) {
-      bagV.loopNum--;
+
+    return false;
+  }
+
+  @Override
+  public Iterable<E> adjacent(Object v) {
+    AdjacencyList<V, E> adj = edgeMap.get(v);
+    return adj != null ? adj : new AdjacencyList<>((V) v);
+  }
+
+  @Override
+  public void forEachAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    AdjacencyList<V, E> adj = edgeMap.get(v);
+    if (adj != null) {
+      adj.forEach(action);
     }
-    edgeNum--;
-    return true;
+  }
+
+  @Override
+  public Iterable<E> edges() {
+    return EdgeIterator::new;
+  }
+
+  @Override
+  public double averageDegree() {
+    return vertexNum() != 0 ? (double) 2 * edgeNum() / vertexNum() : 0;
+  }
+
+  @Override
+  protected AdjacencyList<V, E> newAdjacentList(V v) {
+    return AdjacencyList.forUndirectedEdges(v);
+  }
+
+  @Override
+  protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
+    adj.removeFirstIf(edge -> Objects.equals(edge.either(), v)
+        || Objects.equals(edge.other(edge.either()), v));
   }
 
   /**
-   * Remove a vertex from the graph. If the graph changes due to removing this vertex, return true.
-   *
-   * @param vertex vertex to be removed from this graph, if present
-   * @return <tt>true</tt> if this contains the specified vertex
+   * Iterator for all edges in the graph.
    */
-  @Override
-  public boolean remove(Object vertex) {
-    int index = 0;
-    EdgeBag<V, E> bag = null, tBag;
-    if (vertex instanceof VertexIndex) {
-      Integer i = ((VertexIndex) vertex).getGraphIndex()
-          .get(checkAndReturnGraphRef());
-      if (i != null
-          && i >= 0
-          && i < vertexNum
-          && Objects.equals(bags[i].vertex, vertex)
-      ) {
-        bag = bags[index = i];
+  private class EdgeIterator implements Iterator<E> {
+
+    private final Iterator<AdjacencyList<V, E>> adjIterator;
+    private Iterator<E> currentEdgeIterator;
+    private E nextEdge;
+    private boolean hasNext;
+
+    EdgeIterator() {
+      this.adjIterator = edgeMap.values().iterator();
+      this.hasNext = false;
+      findNext();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return hasNext;
+    }
+
+    @Override
+    public E next() {
+      if (!hasNext) {
+        throw new java.util.NoSuchElementException();
       }
-    } else {
-      for (; index < vertexNum; index++) {
-        if (Objects.equals((bag = bags[index]).vertex, vertex)) {
-          break;
+      E result = nextEdge;
+      findNext();
+      return result;
+    }
+
+    private void findNext() {
+      while (currentEdgeIterator == null || !currentEdgeIterator.hasNext()) {
+        if (!adjIterator.hasNext()) {
+          hasNext = false;
+          return;
         }
+        currentEdgeIterator = adjIterator.next().iterator();
       }
-      if (index == vertexNum) {
-        return false;
-      }
+
+      nextEdge = currentEdgeIterator.next();
+      hasNext = true;
     }
-    if (bag == null) {
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    // The number of edges of the deleted vertex
-    int bagEdges = bag.degree - bag.loopNum;
-    // Delete records of adjacent vertices and edges
-    for (E e : bag) {
-      tBag = (EdgeBag<V, E>) adjacent(e.other(bag.vertex));
-      if (bag == tBag) {
-        continue;
-      }
-      if (tBag != EdgeBag.EMPTY) {
-        tBag.remove(e);
-      }
-    }
-    if (index != vertexNum) {
-      System.arraycopy(bags, index + 1, bags, index, vertexNum - index - 1);
-    }
-    int nv = --vertexNum;
-    if (bag.vertex instanceof VertexIndex) {
-      for (int i = index; i < nv; i++) {
-        ((VertexIndex) bags[i].vertex)
-            .getGraphIndex()
-            .computeIfPresent(checkAndReturnGraphRef(), (k, v) -> v - 1);// Update index
-      }
-    }
-    bags[nv] = null;
-    edgeNum -= bagEdges;
-    modCount++;
-    bag.bModCount++;
-    return true;
-  }
-
-  /**
-   * Returns a copy of the {@code UndirectedEdgeGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  public UndirectedEdgeGraph<V, E> copy() {
-    UndirectedEdgeGraph<V, E> graph = new UndirectedEdgeGraph<>(this.bags.length);
-    graph.bags = bagRepl();
-    graph.vertexNum = vertexNum;
-    graph.edgeNum = edgeNum;
-    if (vertexNum > 0
-        && graph.bags[0].vertex instanceof VertexIndex) {
-      VertexIndex.GraphRef gf = graph.checkAndReturnGraphRef();
-      for (int i = 0; i < graph.vertexNum; i++) {
-        VertexIndex v = ((VertexIndex) graph.bags[i].vertex);
-        v.getGraphIndex().put(gf, v.index(checkAndReturnGraphRef()));
-      }
-    }
-    return graph;
-  }
-
-  @Override
-  public Iterator<V> iterator() {
-    return new UndirectedEdgeIterator();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    return super.equals(o) && this.getClass() == o.getClass();
+    
+    return super.equals(obj);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + this.getClass().hashCode();
+    return super.hashCode() + UndirectedEdgeGraph.class.hashCode();
   }
 
-  private class UndirectedEdgeIterator extends AdjIterator {
-
-    @Override
-    public void remove() {
-      checkIsConcurrentModify();
-      if (index == 0) {
-        throw new IllegalStateException();
-      }
-      EdgeBag<V, E> bag = bags[index - 1], tBag;
-      if (bag == null) {
-        throw new NoSuchElementException();
-      }
-
-      // The number of edges of the deleted vertex
-      int bagEdges = bag.degree - bag.loopNum;
-      // Delete records of adjacent vertices and edges
-      for (E e : bag) {
-        tBag = (EdgeBag<V, E>) adjacent(e.other(bag.vertex));
-        // Self-loop does not need to be processed
-        if (tBag == bag) {
-          continue;
-        }
-        if (tBag != EdgeBag.EMPTY) {
-          tBag.remove(e);
-        }
-      }
-      if (index != vertexNum) {
-        System.arraycopy(bags, index, bags, index - 1, vertexNum - index);
-      }
-      int nv = --vertexNum;
-      --index;
-      if (bag.vertex instanceof VertexIndex) {
-        for (int i = index; i < nv; i++) {
-          ((VertexIndex) bags[i].vertex)
-              .getGraphIndex()
-              .computeIfPresent(checkAndReturnGraphRef(), (k, v) -> v - 1);// Update index
-        }
-      }
-      bags[nv] = null;
-      exceptModCount++;
-      modCount++;
-      edgeNum -= bagEdges;
-    }
+  @Override
+  public String toString() {
+    return "UndirectedEdgeGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }

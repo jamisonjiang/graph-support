@@ -19,7 +19,6 @@ package org.graphper.def;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,10 +29,6 @@ import org.graphper.util.CollectionUtils;
 
 /**
  * A bidirectional directed graph of edge operations.
- *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code DirectedEdgeGraph}, the vertex is
- * searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
  *
  * @param <V> the type of vertex
  * @param <E> the type of directed edge
@@ -106,26 +101,6 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
 
     this.reverseEdgeMap = new HashMap<>(digraph.edgeNum());
     reDigraph.forEachEdges(edge -> putEdgeMap(edge.edge, edge));
-  }
-
-  @Override
-  public void clear() {
-    super.clear();
-    if (reverseEdgeMap != null) {
-      reverseEdgeMap.clear();
-    }
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<ReverseEdge<V, E>> inIte(Object v) {
-    return reDigraph.adjacent(v);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<E> outIte(Object v) {
-    return digraph.adjacent(v);
   }
 
   /**
@@ -257,16 +232,6 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
   }
 
   /**
-   * Returns a copy of the {@code DedirectedEdgeGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  public DedirectedEdgeGraph<V, E> copy() {
-    return new DedirectedEdgeGraph<>(digraph.copy(), reDigraph.copy());
-  }
-
-  /**
    * Returns a directed graph reversed from the current directed graph.
    *
    * @return directed graph reversed from the current directed graph
@@ -321,7 +286,46 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    */
   @Override
   public Iterable<E> outAdjacent(Object v) {
-    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return digraph.adjacent(v);
+  }
+
+  /**
+   * Performs the given action for each incoming adjacent edge of the specified vertex until all
+   * incoming adjacent edges have been processed or the action throws an exception. This method
+   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachInAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    AdjacencyList<V, ReverseEdge<V, E>> adj = reDigraph.edgeMap.get(v);
+    if (adj == null) {
+      return;
+    }
+
+    for (int i = 0; i < adj.size(); i++) {
+      action.accept(adj.get(i).edge);
+    }
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent edge of the specified vertex until all
+   * outgoing adjacent edges have been processed or the action throws an exception. This method
+   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachOutAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    digraph.forEachAdjacent(v, action);
   }
 
   @Override
@@ -336,12 +340,25 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
       return false;
     }
     DedirectedEdgeGraph<?, ?> that = (DedirectedEdgeGraph<?, ?>) o;
-    return Objects.equals(reverseEdgeMap, that.reverseEdgeMap);
+    return Objects.equals(digraph, that.digraph) && 
+           Objects.equals(reDigraph, that.reDigraph) && 
+           Objects.equals(reverseEdgeMap, that.reverseEdgeMap);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), reverseEdgeMap);
+    return Objects.hash(super.hashCode(), digraph, reDigraph, reverseEdgeMap);
+  }
+
+  @Override
+  public String toString() {
+    return "DedirectedEdgeGraph{" +
+        "vertexNum=" + vertexNum() +
+        ", edgeNum=" + edgeNum() +
+        ", digraph=" + digraph +
+        ", reDigraph=" + reDigraph +
+        ", reverseEdgeMap=" + reverseEdgeMap +
+        '}';
   }
 
   private void putEdgeMap(E edge, ReverseEdge<V, E> reverseEdge) {

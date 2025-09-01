@@ -1,0 +1,84 @@
+digraph G {
+splines=spline
+edge[label="label"]
+subgraph cluster_1 {
+style="bold"
+label="cluster_1"
+13
+8
+4
+16
+9
+subgraph cluster_2 {
+style="bold"
+label="cluster_2"
+6
+13
+17
+7
+15
+50
+}
+50
+}
+subgraph cluster_3 {
+style="bold"
+label="cluster_3"
+0
+1
+12
+subgraph cluster_4 {
+style="bold"
+label="cluster_4"
+14
+subgraph cluster_5 {
+style="bold"
+label="cluster_5"
+0
+14
+110
+}
+105
+}
+115
+}
+subgraph cluster_6 {
+style="bold"
+label="cluster_6"
+13
+13
+14
+subgraph cluster_7 {
+style="bold"
+label="cluster_7"
+10
+0
+18
+16
+5
+6
+182
+}
+161
+}
+1->10
+2->14
+7->7
+18->17
+13->16
+16->7
+5->19
+15->13
+2->14
+12->17
+6->10
+13->15
+2->5
+8->0
+3->0
+16->4
+2->16
+10->17
+17->13
+15->6
+}

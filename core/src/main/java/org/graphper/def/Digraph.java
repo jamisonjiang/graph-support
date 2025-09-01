@@ -17,7 +17,8 @@
 package org.graphper.def;
 
 /**
- * Base class for directed graphs, the graph can only be sought from one direction specified.
+ * Base class for single-direction directed graphs, the graph can only be sought from one direction
+ * specified. These graphs only record edges in one direction (typically outgoing edges).
  *
  * @param <V> the type of vertex
  * @author Jamison Jiang
@@ -25,23 +26,18 @@ package org.graphper.def;
 public interface Digraph<V> extends BaseGraph<V> {
 
   /**
-   * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.The
-   * degree has no direction, and this interface returns the sum of the in and out degrees of this
-   * vertex.
+   * Returns the number of out vertex neighbors. Returns 0 if the vertex does not exist in the
+   * graph.
+   *
+   * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), degree indicates 
+   * the out-degree (outgoing neighbors only). This is different from {@link Dedigraph} where degree 
+   * indicates the sum of in-degree and out-degree.
    *
    * @param v vertex to be queried
    * @return degree of this vertex in current graph
    */
   @Override
   int degree(V v);
-
-  /**
-   * Returns a copy of the {@code Digraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  Digraph<V> copy();
 
   /**
    * Returns a directed graph reversed from the current directed graph.
@@ -56,26 +52,6 @@ public interface Digraph<V> extends BaseGraph<V> {
    * @param <V> the type of vertex
    */
   interface VertexDigraph<V> extends Digraph<V>, VertexOpGraph<V> {
-
-    /**
-     * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.
-     *
-     * <p>Unlike {@link #adjacent(Object)}, the degree has no direction, and this interface returns
-     * the sum of the in and out degrees of this vertex.
-     *
-     * @param v vertex to be queried
-     * @return degree of this vertex in current graph
-     */
-    @Override
-    int degree(V v);
-
-    /**
-     * Returns a copy of the {@code VertexDigraph}.
-     *
-     * @return a copy of current graph
-     */
-    @Override
-    VertexDigraph<V> copy();
 
     /**
      * Returns a directed graph reversed from the current directed graph.
@@ -96,8 +72,13 @@ public interface Digraph<V> extends BaseGraph<V> {
      * {@code adjacent(v)} must contain <tt>w</tt>, but in turn {@code adjacent(w)} not contain
      * <tt>v</tt> (assuming there is no edge from w to v in the graph).
      *
+     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent 
+     * method returns only the out-neighbors (vertices reachable via outgoing edges from the 
+     * specified vertex). This is different from {@link Dedigraph} where adjacent returns all 
+     * neighbors (both in and out).
+     *
      * @param v vertex to be queried
-     * @return all adjacent vertices
+     * @return all adjacent vertices (out-neighbors only)
      */
     @Override
     Iterable<V> adjacent(Object v);
@@ -110,26 +91,6 @@ public interface Digraph<V> extends BaseGraph<V> {
    * @param <E> the type of directed edge
    */
   interface EdgeDigraph<V, E extends DirectedEdge<V, E>> extends Digraph<V>, EdgeOpGraph<V, E> {
-
-    /**
-     * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.
-     *
-     * <p>Unlike {@link #adjacent(Object)}, the degree has no direction, and this interface returns
-     * the sum of the in and out degrees of this vertex.
-     *
-     * @param v vertex to be queried
-     * @return degree of this vertex in current graph
-     */
-    @Override
-    int degree(V v);
-
-    /**
-     * Returns a copy of the {@code EdgeDigraph}.
-     *
-     * @return a copy of current graph
-     */
-    @Override
-    EdgeDigraph<V, E> copy();
 
     /**
      * Returns a directed graph reversed from the current directed graph.
@@ -149,8 +110,12 @@ public interface Digraph<V> extends BaseGraph<V> {
      * {@code adjacent(v)} must contain <tt>w</tt>, but in turn {@code adjacent(w)} not contain
      * <tt>v</tt> (assuming there is no edge from w to v in the graph).
      *
+     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent 
+     * method returns only the outgoing edges (edges originating from the specified vertex). This 
+     * is different from {@link Dedigraph} where adjacent returns all edges (both incoming and outgoing).
+     *
      * @param v vertex to be queried
-     * @return all adjacent edges
+     * @return all adjacent edges (outgoing edges only)
      */
     @Override
     Iterable<E> adjacent(Object v);

@@ -72,13 +72,20 @@ class NetworkSimplex {
 
   private final double rankSep;
 
+
   public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, double rankSep,
                         Consumer<DNode[]> sortNodesConsumer) {
-    this(feasibleTree, nsLimit, true, true, rankSep, sortNodesConsumer);
+    this(feasibleTree, nsLimit, true, true, true, rankSep, sortNodesConsumer);
   }
 
   public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, boolean positiveRank,
                         boolean needRankContent, double rankSep,
+                        Consumer<DNode[]> sortNodesConsumer) {
+    this(feasibleTree, nsLimit, positiveRank, needRankContent, true, rankSep, sortNodesConsumer);
+  }
+
+  public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, boolean positiveRank,
+                        boolean needRankContent, boolean needBalance, double rankSep,
                         Consumer<DNode[]> sortNodesConsumer) {
     Asserts.nullArgument(feasibleTree, "feasibleTree");
     Asserts.illegalArgument(
@@ -96,7 +103,9 @@ class NetworkSimplex {
     networkSimplex(nsLimit);
 
     // Hierarchy of Balanced Vertices + Disconnected Graph Alignment
-    alignUnconnectGraph(balance(needRankContent, sortNodesConsumer));
+    if (needBalance) {
+      alignUnconnectGraph(balance(needRankContent, sortNodesConsumer));
+    }
 
     clear();
   }
@@ -472,7 +481,8 @@ class NetworkSimplex {
 
     // Calculate from the head of the node list composed of the edge paths that change the cut value.
     DNode current = calcCutvalHead;
-    for (ULine updateCutvalLine : updateCutvalLines) {
+    for (int i = 0; i < updateCutvalLines.size(); i++) {
+      ULine updateCutvalLine = updateCutvalLines.get(i);
       double cutval = FeasibleTree.calcCutValByAdjTreeLine(
           feasibleTree.graph(),
           current,

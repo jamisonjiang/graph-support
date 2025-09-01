@@ -6,19 +6,22 @@
 
 ## **Behavior**
 
-- **Applies only to the `DOT` layout engine** (ignored in other layouts like FDP, GFDP, JFDP).
+- **Applies only to the `DOT` and `DOTQ` layout engines** (ignored in other layouts like FDP, GFDP, JFDP).
 - **Helps prevent excessive computation in large graphs**.
 - **If the limit is too low, the graph layout may not be optimal**.
+- **Different default values for different layout types**:
+  - **DOT**: Default value is 100,000 (highest quality, slower)
+  - **DOTQ**: Default value is 5,000 (good quality, faster)
 
 ------
 
-## **Usage in DOT**
+## **Usage in DOT and DOTQ**
 
 ```dot
 digraph G {
-    layout=dot;
+    layout=dotq;  # Use optimized DOT layout
     size=3
-    nslimit=1; // Limits network simplex iterations to 5
+    nslimit=5000; // Limits network simplex iterations to 5000 for DOTQ
 
     node [shape=ellipse];
 
@@ -80,8 +83,19 @@ Node b = Node.builder().label("b").build();
 Node c = Node.builder().label("c").build();
 Node d = Node.builder().label("d").build();
 
-Graphviz graph = Graphviz.digraph()
-    .nslimit(1)
+// For DOT layout (classic, highest quality)
+Graphviz graphDot = Graphviz.digraph()
+    .layout(Layout.DOT)
+    .nslimit(100000)  // Default for DOT
+    .addLine(Line.builder(a, b).build())
+    .addLine(Line.builder(a, c).build())
+    .addLine(Line.builder(a, d).build())
+    .build();
+
+// For DOTQ layout (optimized, faster)
+Graphviz graphDotq = Graphviz.digraph()
+    .layout(Layout.DOTQ)
+    .nslimit(5000)   // Default for DOTQ
     .addLine(Line.builder(a, b).build())
     .addLine(Line.builder(a, c).build())
     .addLine(Line.builder(a, d).build())

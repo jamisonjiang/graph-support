@@ -17,6 +17,7 @@
 package org.graphper.layout.dot;
 
 import java.util.Comparator;
+import java.util.List;
 import org.graphper.api.GraphContainer;
 
 interface CrossRank {
@@ -24,6 +25,8 @@ interface CrossRank {
   int getRankIndex(DNode node);
 
   Integer safeGetRankIndex(DNode node);
+
+  List<DNode> getNodes(int rank);
 
   DNode getNode(int rank, int rankIdx);
 
@@ -35,11 +38,11 @@ interface CrossRank {
 
   int maxRank();
 
-  void exchange(DNode v, DNode w);
+  void exchange(DNode v, DNode w, boolean needSyncRankIdx);
 
-  void sort(Comparator<DNode> comparator);
+  void sort(Comparator<DNode> comparator, boolean needSyncRankIdx);
 
-  void sort(int rank, Comparator<DNode> comparator);
+  void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx);
 
   GraphContainer container();
 }

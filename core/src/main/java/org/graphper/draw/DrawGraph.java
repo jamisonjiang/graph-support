@@ -91,7 +91,7 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public boolean ignoreRankdir() {
     Layout layout = getGraphviz().graphAttrs().getLayout();
-    return layout != Layout.DOT;
+    return layout != Layout.DOT && layout != Layout.DOTQ;
   }
 
   public boolean notNeedFlip() {

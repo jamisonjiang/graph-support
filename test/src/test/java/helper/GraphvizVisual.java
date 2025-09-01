@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.FileType;
 import org.graphper.api.GraphResource;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,11 @@ public class GraphvizVisual {
   private static final String IMG_CELL = "<li><div class=\"images-container\"><img src=\"%s\" alt=\"\"><img src=\"%s\" alt=\"\"></div><div class=\"sk_rush\"><a href=\"%s\" target=\"_blank\">See Svg</a><span style=\"margin-right: 10px;\"></span><a href=\"%s\" target=\"_blank\">See PDF</a></div></li>";
 
   private static final FileType FILE_TYPE = FileType.PNG;
+
+  @BeforeEach
+  public void init() {
+    System.setProperty("graph.layout", "dot");
+  }
 
   protected void visual(Graphviz graphviz) {
     System.setProperty("graph.quality.check", "true");

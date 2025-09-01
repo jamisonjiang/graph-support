@@ -16,15 +16,11 @@
 
 package org.graphper.def;
 
-import java.util.Collections;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Bidirectional directed graph for vertex operations.
- *
- * <p>The type of vertex is recommended to use the subclass of {@link VertexIndex}. When the
- * subclass of {@link VertexIndex} is stored as a vertex in {@code DirectedEdgeGraph}, the vertex is
- * searched with a complexity of <tt>O(1)</tt>, otherwise it is <tt>O(N)</tt>.
  *
  * @param <V> the type of vertex
  * @author Jamison Jiang
@@ -48,52 +44,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
     this(new DirectedGraph<>(capacity), new DirectedGraph<>(capacity));
   }
 
-  /**
-   * Initialize with vertex array.
-   *
-   * @param vertices vertex array
-   * @throws IllegalArgumentException vertex array is empty
-   */
-  public DedirectedGraph(V[] vertices) {
-    this(new DirectedGraph<>(vertices), new DirectedGraph<>(vertices));
-  }
-
   private DedirectedGraph(DirectedGraph<V> digraph, DirectedGraph<V> reDigraph) {
     super(digraph, reDigraph);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<V> inIte(Object v) {
-    return reDigraph.adjacent(v);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  protected Iterable<V> outIte(Object v) {
-    return digraph.adjacent(v);
-  }
-
-  /**
-   * Return next node in current graph and sequence strategy considered by different attribute
-   * graphs, return null if graph iteration finished.
-   *
-   * @param v vertex to be queried
-   * @return next node in current graph
-   */
-  @Override
-  public V next(V v) {
-    return digraph.next(v);
-  }
-
-  /**
-   * Returns a copy of the {@code DedirectedGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  public DedirectedGraph<V> copy() {
-    return new DedirectedGraph<>(digraph.copy(), reDigraph.copy());
   }
 
   /**
@@ -160,7 +112,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> inAdjacent(Object v) {
-    return new UnaryConcatIterable<>(reDigraph.adjacent(v), Collections.emptyList());
+    return reDigraph.adjacent(v);
   }
 
   /**
@@ -172,6 +124,68 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    */
   @Override
   public Iterable<V> outAdjacent(Object v) {
-    return new UnaryConcatIterable<>(digraph.adjacent(v), Collections.emptyList());
+    return digraph.adjacent(v);
+  }
+
+  /**
+   * Performs the given action for each incoming adjacent vertex of the specified vertex until all
+   * incoming adjacent vertices have been processed or the action throws an exception. This method
+   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each incoming adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachInAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    reDigraph.forEachAdjacent(v, action);
+  }
+
+  /**
+   * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
+   * outgoing adjacent vertices have been processed or the action throws an exception. This method
+   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating intermediate
+   * iterable objects, reducing GC pressure.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each outgoing adjacent vertex
+   * @throws NullPointerException if the specified action is null
+   */
+  @Override
+  public void forEachOutAdjacent(Object v, Consumer<V> action) {
+    Objects.requireNonNull(action);
+    digraph.forEachAdjacent(v, action);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    DedirectedGraph<?> that = (DedirectedGraph<?>) o;
+    return Objects.equals(digraph, that.digraph) && Objects.equals(reDigraph, that.reDigraph);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), digraph, reDigraph);
+  }
+
+  @Override
+  public String toString() {
+    return "DedirectedGraph{" +
+        "vertexNum=" + vertexNum() +
+        ", edgeNum=" + edgeNum() +
+        ", digraph=" + digraph +
+        ", reDigraph=" + reDigraph +
+        '}';
   }
 }

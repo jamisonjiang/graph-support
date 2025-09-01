@@ -17,6 +17,7 @@
 package org.graphper.layout.dot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +60,12 @@ class BasicCrossRank implements CrossRank, Cloneable {
   @Override
   public Integer safeGetRankIndex(DNode node) {
     return nodeRankIndex.get(node);
+  }
+
+  @Override
+  public List<DNode> getNodes(int rank) {
+    List<DNode> nodes = rankNode.get(rank);
+    return CollectionUtils.isEmpty(nodes) ? Collections.emptyList() : nodes;
   }
 
   @Override
@@ -107,7 +114,7 @@ class BasicCrossRank implements CrossRank, Cloneable {
   }
 
   @Override
-  public void exchange(DNode v, DNode w) {
+  public void exchange(DNode v, DNode w, boolean needSyncRankIdx) {
     Objects.requireNonNull(v);
     Objects.requireNonNull(w);
     if (v.getRank() != w.getRank()) {
@@ -125,24 +132,37 @@ class BasicCrossRank implements CrossRank, Cloneable {
       throw new IndexOutOfBoundsException("rank index out of bounds");
     }
 
-    int vi = getRankIndex(v);
-    int wi = getRankIndex(w);
+    int vi;
+    int wi;
+    if (needSyncRankIdx && container.isGraphviz()) {
+      vi = v.getRankIndex();
+      wi = w.getRankIndex();
+    } else {
+      vi = getRankIndex(v);
+      wi = getRankIndex(w);
+    }
+
     nodes.set(vi, w);
     nodes.set(wi, v);
 
     nodeRankIndex.put(v, wi);
     nodeRankIndex.put(w, vi);
-  }
 
-  @Override
-  public void sort(Comparator<DNode> comparator) {
-    for (int i = minRank(); i <= maxRank(); i++) {
-      sort(i, comparator);
+    if (needSyncRankIdx) {
+      v.setRankIndex(wi);
+      w.setRankIndex(vi);
     }
   }
 
   @Override
-  public void sort(int rank, Comparator<DNode> comparator) {
+  public void sort(Comparator<DNode> comparator, boolean needSyncRankIdx) {
+    for (int i = minRank(); i <= maxRank(); i++) {
+      sort(i, comparator, needSyncRankIdx);
+    }
+  }
+
+  @Override
+  public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
     List<DNode> nodes = rankNode.get(rank);
 
     if (CollectionUtils.isEmpty(nodes)) {
@@ -152,7 +172,11 @@ class BasicCrossRank implements CrossRank, Cloneable {
     nodes.sort(comparator);
 
     for (int j = 0; j < nodes.size(); j++) {
-      nodeRankIndex.put(nodes.get(j), j);
+      DNode node = nodes.get(j);
+      nodeRankIndex.put(node, j);
+      if (needSyncRankIdx) {
+        node.setRankIndex(j);
+      }
     }
   }
 
@@ -176,5 +200,20 @@ class BasicCrossRank implements CrossRank, Cloneable {
     }
 
     return basicCrossRank;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = minRank(); i <= maxRank(); i++) {
+      int size = rankSize(i);
+      for (int j = 0; j < size; j++) {
+        DNode node = getNode(i, j);
+        sb.append(node.name()).append(",");
+      }
+      sb.append("\n");
+    }
+
+    return sb.toString();
   }
 }

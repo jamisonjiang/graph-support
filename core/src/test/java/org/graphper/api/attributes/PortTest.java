@@ -16,7 +16,6 @@
 
 package org.graphper.api.attributes;
 
-import org.graphper.api.attributes.Port;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
