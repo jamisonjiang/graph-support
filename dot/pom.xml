@@ -26,6 +26,7 @@
   </parent>
 
   <artifactId>graph-support-dot</artifactId>
+  <name>graph-support-dot</name>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>

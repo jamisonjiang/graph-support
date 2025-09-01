@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>graph-support-cli</artifactId>
+  <name>graph-support-cli</name>
 
   <dependencies>
     <dependency>

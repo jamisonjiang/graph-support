@@ -48,8 +48,8 @@
     <developer>
       <name>Jamison Jiang</name>
       <email>jamisongo01.jiang@gmail.com</email>
-      <organization>Sonatype</organization>
-      <organizationUrl>http://www.sonatype.com</organizationUrl>
+      <organization>Jamison Jiang</organization>
+      <organizationUrl>https://github.com/jamisonjiang</organizationUrl>
     </developer>
   </developers>
 
@@ -57,19 +57,24 @@
     <connection>scm:git:https://github.com/jamisonjiang/graph-support</connection>
     <developerConnection>scm:git:https://github.com/jamisonjiang/graph-support</developerConnection>
     <url>https://github.com/jamisonjiang/graph-support</url>
-    <tag>HEAD</tag>
+    <tag>v1.5.2</tag>
   </scm>
 
   <distributionManagement>
     <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+      <id>central</id>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
     </snapshotRepository>
     <repository>
-      <id>ossrh</id>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>central</id>
+      <url>https://central.sonatype.com/repository/maven-releases/</url>
     </repository>
   </distributionManagement>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/jamisonjiang/graph-support/issues</url>
+  </issueManagement>
 
   <properties>
     <java-version>1.8</java-version>
@@ -84,7 +89,7 @@
     <junit-param-version>5.8.2</junit-param-version>
     <assembly-version>2.4.1</assembly-version>
     <gpg-version>1.6</gpg-version>
-    <sonatype-version>1.6.7</sonatype-version>
+    <sonatype-version>0.8.0</sonatype-version>
     <log4j-version>1.8.0-alpha2</log4j-version>
     <org.antlr-version>4.13.2</org.antlr-version>
   </properties>
@@ -211,14 +216,14 @@
         </dependencies>
       </plugin>
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
         <version>${sonatype-version}</version>
         <extensions>true</extensions>
         <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
+          <waitUntil>published</waitUntil>
         </configuration>
       </plugin>
       <plugin>

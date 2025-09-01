@@ -26,6 +26,7 @@
   </parent>
 
   <artifactId>graph-support-core</artifactId>
+  <name>graph-support-core</name>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
