@@ -31,14 +31,6 @@ import java.util.function.Consumer;
 public interface EdgeOpGraph<V, E extends BaseEdge<V, E>> extends BaseGraph<V> {
 
   /**
-   * Returns a copy of the {@code EdgeOpGraph}.
-   *
-   * @return a copy of current graph
-   */
-  @Override
-  EdgeOpGraph<V, E> copy();
-
-  /**
    * Adds an edge to the graph, which may or may not be directed.
    *
    * @param e edge to be added to this graph
@@ -61,6 +53,21 @@ public interface EdgeOpGraph<V, E extends BaseEdge<V, E>> extends BaseGraph<V> {
    * @return all adjacent edges
    */
   Iterable<E> adjacent(Object v);
+
+  /**
+   * Performs the given action for each adjacent edge of the specified vertex until all adjacent
+   * edges have been processed or the action throws an exception.
+   *
+   * @param v vertex to be queried
+   * @param action The action to be performed for each adjacent edge
+   * @throws NullPointerException if the specified action is null
+   */
+  default void forEachAdjacent(Object v, Consumer<E> action) {
+    Objects.requireNonNull(action);
+    for (E adjacent : adjacent(v)) {
+      action.accept(adjacent);
+    }
+  }
 
   /**
    * Returns all edges in the graph.

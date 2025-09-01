@@ -34,7 +34,7 @@ import org.graphper.def.FlatPoint;
  * Enumeration of cluster shapes supported by the system by default.
  *
  * <p>Unlike {@link NodeShape}, other cluster shapes except {@link ClusterShapeEnum#RECT} no
- * guarantee that cluster container will surround all nodes under {@link Layout#DOT} engine but will
+ * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and {@link Layout#DOTQ} engines but will
  * try best estimated the container size by {@link #minContainerSize(double, double)} method, but
  * still have the following principles as much as possible surround all nodes:
  * <ul>

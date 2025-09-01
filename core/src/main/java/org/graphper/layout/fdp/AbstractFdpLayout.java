@@ -121,12 +121,12 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     FdpGraph fdpGraph = fdpAttachment.getFdpGraph();
     FNode fn = fdpGraph.getNode(node);
     if (fn == null) {
-      fn = new FNode(node);
+      NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
+      fn = new FNode(nodeDrawProp);
       double width = drawGraph.width(node);
       double height = drawGraph.height(node);
       fn.setWidth(width);
       fn.setHeight(height);
-      fn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
       fn.setNodeSep(drawGraph.getGraphviz().graphAttrs().getNodeSep());
     }
 
@@ -163,9 +163,9 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
 
     FLine fLine;
     if (weight != null) {
-      fLine = new FLine(source, target, weight, line, lineDrawProp.lineAttrs());
+      fLine = new FLine(source, target, weight, lineDrawProp);
     } else {
-      fLine = new FLine(source, target, line, lineDrawProp.lineAttrs());
+      fLine = new FLine(source, target, lineDrawProp);
     }
 
     if (fLine.isSelf()) {
@@ -301,9 +301,9 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       Double weight = lineDrawProp.lineAttrs().getWeight();
       FLine fLine;
       if (weight != null) {
-        fLine = new FLine(from, to, weight, line, null);
+        fLine = new FLine(from, to, weight, lineDrawProp);
       } else {
-        fLine = new FLine(from, to, line, null);
+        fLine = new FLine(from, to, lineDrawProp);
       }
       proxyGraph.addEdge(fLine);
       graph.recordAdj(fLine);
@@ -363,7 +363,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     for (AreaGraph areaGraph : areaGraphs) {
       for (FNode node : areaGraph) {
         for (FLine line : graph.outAdjacent(node)) {
-          areaGraph.addEdge(new FLine(line.from(), line.to(), line.getLine(), null));
+          areaGraph.addEdge(new FLine(line.from(), line.to(), line.getLineDrawProp()));
         }
       }
 

@@ -17,9 +17,8 @@
 package org.graphper.layout.dot;
 
 import java.util.Objects;
-import org.graphper.api.Line;
-import org.graphper.api.LineAttrs;
 import org.graphper.def.FlatPoint;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.ALine;
 import org.graphper.util.Asserts;
 
@@ -38,30 +37,27 @@ class DLine extends ALine<DNode, DLine> {
   // The size of the edge label
   private final FlatPoint labelSize;
 
-  DLine(DNode left, DNode right, Line line,
-        LineAttrs lineAttrs, double weight, int limit) {
-    this(left, right, line, lineAttrs, weight, limit, null);
+  DLine(DNode left, DNode right, LineDrawProp lineDrawProp, double weight, int limit) {
+    this(left, right, lineDrawProp, weight, limit, null);
   }
 
   DLine(DNode left, DNode right, double weight, int limit, boolean realTimeLimit) {
-    this(left, right, null, null, weight, limit, null, realTimeLimit);
+    this(left, right, null, weight, limit, null, realTimeLimit);
   }
 
-  DLine(DNode left, DNode right, Line line,
-        LineAttrs lineAttrs, double weight,
+  DLine(DNode left, DNode right, LineDrawProp lineDrawProp, double weight,
         int limit, FlatPoint labelSize) {
-    this(left, right, line, lineAttrs, weight, limit, labelSize, false);
+    this(left, right, lineDrawProp, weight, limit, labelSize, false);
   }
 
-  DLine(DNode left, DNode right, Line line,
-        LineAttrs lineAttrs, double weight, int limit,
+  DLine(DNode left, DNode right, LineDrawProp lineDrawProp, double weight, int limit,
         FlatPoint labelSize, boolean realTimeLimit) {
-    super(left, right, weight, line, lineAttrs);
+    super(left, right, weight, lineDrawProp);
 
     this.limit = limit;
     this.labelSize = labelSize;
-    if (line != null) {
-      Asserts.nullArgument(lineAttrs, "lineAttrs");
+    if (lineDrawProp != null) {
+      Asserts.nullArgument(lineDrawProp.lineAttrs(), "lineAttrs");
     }
     this.realTimeLimit = realTimeLimit;
   }
@@ -156,7 +152,7 @@ class DLine extends ALine<DNode, DLine> {
   @Override
   public double weight() {
     if (!isParallelMerge()) {
-      return line != null ? line.weight() : weight;
+      return getLine() != null ? getLine().weight() : weight;
     }
 
     double w = 0;
@@ -174,13 +170,13 @@ class DLine extends ALine<DNode, DLine> {
 
   @Override
   public DLine reverse() {
-    return new DLine(right, left, line, lineAttrs,
+    return new DLine(right, left, lineDrawProp,
                      weight, limit, labelSize, realTimeLimit);
   }
 
   @Override
   public DLine copy() {
-    DLine repl = new DLine(left, right, line, lineAttrs,
+    DLine repl = new DLine(left, right, lineDrawProp,
                            weight, limit, labelSize, realTimeLimit);
     repl.cutVal = cutVal;
     return repl;
@@ -200,12 +196,12 @@ class DLine extends ALine<DNode, DLine> {
     DLine line1 = (DLine) o;
     return Double.compare(line1.cutVal, cutVal) == 0 &&
         limit == line1.limit &&
-        Objects.equals(line, line1.line);
+        Objects.equals(getLine(), line1.getLine());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), line, cutVal, limit);
+    return Objects.hash(super.hashCode(), getLine(), cutVal, limit);
   }
 
   @Override

@@ -19,7 +19,7 @@ package org.graphper.def;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class GNode extends VertexIndex implements Serializable {
+public class GNode implements Comparable<GNode>, Serializable {
 
   private final String value;
 
@@ -50,5 +50,15 @@ public class GNode extends VertexIndex implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(value);
+  }
+
+  @Override
+  public String toString() {
+    return value;
+  }
+
+  @Override
+  public int compareTo(GNode o) {
+    return value.compareTo(o.value);
   }
 }

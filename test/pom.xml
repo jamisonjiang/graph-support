@@ -22,10 +22,11 @@
   <parent>
     <groupId>org.graphper</groupId>
     <artifactId>graph-support</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
   </parent>
 
   <artifactId>graph-support-test</artifactId>
+  <name>graph-support-test</name>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>

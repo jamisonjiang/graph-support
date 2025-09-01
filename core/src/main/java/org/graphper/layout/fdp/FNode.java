@@ -16,7 +16,7 @@
 
 package org.graphper.layout.fdp;
 
-import org.graphper.api.Node;
+import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.ANode;
 
 public class FNode extends ANode {
@@ -34,7 +34,7 @@ public class FNode extends ANode {
 
   private double dy;
 
-  public FNode(Node node) {
+  public FNode(NodeDrawProp node) {
     super(node);
   }
 
@@ -112,10 +112,10 @@ public class FNode extends ANode {
   }
 
   String name() {
-    if (isVirtual() || nodeAttrs == null) {
+    if (isVirtual() || getNodeAttrs() == null) {
       return String.valueOf(hashCode());
     } else {
-      return nodeAttrs.getLabel() != null ? nodeAttrs.getLabel() : "none";
+      return getNodeAttrs().getLabel() != null ? getNodeAttrs().getLabel() : "none";
     }
   }
 

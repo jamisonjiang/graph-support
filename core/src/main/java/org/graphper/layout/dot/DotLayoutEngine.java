@@ -51,15 +51,14 @@ import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.dot.DotAttachment.GeneratePort;
 import org.graphper.layout.dot.DotAttachment.GeneratePortLine;
-import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.layout.dot.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.dot.PolyLineRouter.PolyLineRouterFactory;
 import org.graphper.layout.dot.RoundedRouter.RoundedRouterFactory;
 import org.graphper.layout.dot.SplineRouter.SplineRouterFactory;
+import org.graphper.layout.dot.StraightLineRouter.LineRouterBuilder;
 import org.graphper.util.Asserts;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
-import org.graphper.util.EnvProp;
 
 /**
  * Hierarchical or layered drawings of directed graphs. The layout algorithm aims edges in the same
@@ -98,6 +97,11 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   private static final long serialVersionUID = 1932138711284862609L;
 
   /**
+   * Whether to use quick coordinate algorithm
+   */
+  private final boolean useQuickCoordinate;
+
+  /**
    * Spline router factory
    */
   private static final List<DotLineRouterFactory<?>> SPLINES_HANDLERS;
@@ -106,6 +110,22 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     SPLINES_HANDLERS = Arrays.asList(new RoundedRouterFactory(), new SplineRouterFactory(),
                                      new PolyLineRouterFactory(), new LineRouterBuilder(),
                                      new OrthogonalRouterFactory());
+  }
+
+  /**
+   * Default constructor using classic layout
+   */
+  public DotLayoutEngine() {
+    this(false);
+  }
+
+  /**
+   * Constructor with specified coordinate algorithm
+   * 
+   * @param useQuickCoordinate whether to use quick coordinate algorithm
+   */
+  public DotLayoutEngine(boolean useQuickCoordinate) {
+    this.useQuickCoordinate = useQuickCoordinate;
   }
 
   @Override
@@ -136,7 +156,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
       nodeDrawProp.flip(drawGraph.rankdir());
 
-      dn = dotAttachment.mappingToDNode(node);
+      dn = dotAttachment.mappingToDNode(nodeDrawProp);
     }
 
     if (parentContainer.isSubgraph()) {
@@ -145,7 +165,6 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       }
     }
 
-    dn.setNodeAttrs(drawGraph.getNodeDrawProp(node).nodeAttrs());
     dotAttachment.put(node, dn);
     parentContainer = dotAttachment.getDotDigraph().add(dn, parentContainer);
 
@@ -177,7 +196,7 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       labelSize.flip();
     }
 
-    DLine dLine = new DLine(source, target, line, lineAttrs,
+    DLine dLine = new DLine(source, target, lineDrawProp,
                             lineAttrs.getWeight() == null ? line.weight() : lineAttrs.getWeight(),
                             lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1, labelSize);
 
@@ -253,17 +272,16 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     }
 
     // Best node sorting between ranks.
-    MinCross minCross = new MinCross(rankContent, dotAttachment);
+    MinCross minCross = new MinCross(rankContent, dotAttachment, useQuickCoordinate);
     EdgeDedigraph<DNode, DLine> digraphProxy = minCross.getDigraphProxy();
 
     // Handle various line label.
     new LabelSupplement(rankContent, dotAttachment, digraphProxy);
 
-    // Node coordinate
-    if (EnvProp.useV1Coordinate()) {
-      new Coordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+    if (useQuickCoordinate) {
+      new QuickCoordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     } else {
-      new CoordinateV2(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
+      new ClassicCoordinate(graphAttrs.getNslimit(), rankContent, dotAttachment, digraphProxy);
     }
 
     // If cell not set port, auto generate port for line to get more reasonable routing

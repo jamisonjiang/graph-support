@@ -103,8 +103,8 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
 
     ANode tail = layoutGraph.getNode(lineDrawProp.getLine().tail());
     ANode head = layoutGraph.getNode(lineDrawProp.getLine().head());
-    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), tail, drawGraph);
-    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp.getLine(), head, drawGraph);
+    PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp, tail, drawGraph);
+    PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp, head, drawGraph);
 
     lineDrawProp.markIsLineSegment();
     lineDrawProp.add(tailPoint);

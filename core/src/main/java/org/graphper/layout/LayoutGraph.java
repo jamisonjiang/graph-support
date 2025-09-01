@@ -207,6 +207,16 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
   }
 
   @Override
+  public boolean contains(N n) {
+    return graph.contains(n);
+  }
+
+  @Override
+  public N pre(N n) {
+    return graph.pre(n);
+  }
+
+  @Override
   public N next(N n) {
     return graph.next(n);
   }
@@ -229,11 +239,6 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
   @Override
   public N[] toArray() {
     return graph.toArray();
-  }
-
-  @Override
-  public EdgeOpGraph<N, E> copy() {
-    return graph.copy();
   }
 
   @Override

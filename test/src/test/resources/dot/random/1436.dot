@@ -1,10 +1,10 @@
 digraph {
 
     {
-        subgraph cluster {
-            subgraph cluster {
+        subgraph cluster1 {
+            subgraph cluster2 {
                 "tmp-outdir/2oa0yj8_" []
-                subgraph cluster {
+                subgraph cluster3 {
                     "tmp-outdir/i97092_3" []
                 }
                 "tmp-outdir/e_0svw5g" []
@@ -13,36 +13,36 @@ digraph {
             }
         }
 
-        subgraph cluster {
+        subgraph cluster4 {
             "tmp-outdir/4vpjdl_x" []
             "" []
             "tmp-outdir/n6biqth4" []
         }
 
-        subgraph cluster {
+        subgraph cluster5 {
             "tmp-outdir/_fqw3_kw" []
             "pgap_cwltool_mg37/tmp-outdir/_fqw3_kw/oseq-ids.seqids" []
             "tmp-outdir/jfr1y8yx" []
             "pgap_cwltool_mg37/tmp-outdir/jfr1y8yx/ref_no_organelle.gi" []
         }
 
-        subgraph cluster {
+        subgraph cluster6 {
             "tmp-outdir/lhupur9o" []
             "pgap_cwltool_mg37/tmp-outdir/lhupur9o/mapped-hmm-hits.asn" []
-            subgraph cluster {
+            subgraph cluster7 {
                 "tmp-outdir/rokz370o" []
             }
         }
         "pgap_cwltool_mg37/tmp-outdir/5b96qv5l/meta.annot.val" []
 
-        subgraph cluster {
+        subgraph cluster8 {
             "tmp-outdir/0la_z8p7" []
             "pgap_cwltool_mg37/tmp-outdir/0la_z8p7/preliminary-models.asn" []
             "8" []
             "tmp-outdir/v2k85rhb" []
         }
 
-        subgraph cluster {
+        subgraph cluster9 {
             "tmp-outdir/egrgh9jw" []
             "tmp-outdir/vez4jla2" []
             "tmp-outdir/nl3k85s0" []
@@ -51,7 +51,7 @@ digraph {
         }
     }
 
-    subgraph cluster8 {
+    subgraph cluster88 {
         "tmp-outdir/4yudji6n" []
         "pgap_cwltool_mg37/tmp-outdir/dfkqpwml/sequences.asn" []
     }
