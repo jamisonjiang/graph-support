@@ -25,6 +25,7 @@ import org.apache_gs.commons.lang3.Range;
  *
  * @since 1.0
  */
+@SuppressWarnings("deprecation")
 public class NumericEntityEscaper extends CodePointTranslator {
 
     /**
@@ -93,7 +94,7 @@ public class NumericEntityEscaper extends CodePointTranslator {
      * @param between whether to escape between the boundaries or outside them
      */
     private NumericEntityEscaper(final int below, final int above, final boolean between) {
-        this.range = Range.between(below, above);
+        this.range = Range.of(below, above);
         this.between = between;
     }
 

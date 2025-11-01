@@ -80,6 +80,7 @@ import org.graphper.util.CollectionUtils;
  *
  * @author Jamison Jiang
  */
+@SuppressWarnings("unchecked")
 public class SvgBrush implements Brush {
 
   private Element wrapEle;
@@ -337,7 +338,6 @@ public class SvgBrush implements Brush {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public SvgDrawBoard drawBoard() {
     return svgDrawBoard;
   }

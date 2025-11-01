@@ -87,7 +87,7 @@ import org.graphper.parser.grammar.DOTParserBaseListener;
  * subgraph) overrides them. This class uses a stack-like mechanism to push or pop
  * nested attribute contexts, merging attributes according to scope.</p>
  *
- * <p>Concrete implementations must provide the {@link #isFocusStmtType(Attr_stmtContext)}
+ * <p>Concrete implementations must provide the {@code isFocusStmtType}
  * method, indicating which statement type (e.g., node or edge) this listener should
  * focus on.</p>
  *

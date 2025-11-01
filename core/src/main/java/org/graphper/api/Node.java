@@ -594,7 +594,7 @@ public class Node implements Comparable<Node>, Serializable {
      * @return this {@code NodeBuilder} for method chaining
      * @throws IllegalArgumentException if {@code table} is {@code null}
      * @see #label(String)
-     * @see #labelTag(LabelTag)
+     * @see #labelTag
      */
     public NodeBuilder table(Table table) {
       Asserts.nullArgument(table, "table");

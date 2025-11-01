@@ -36,6 +36,7 @@ import org.graphper.def.CycleDependencyException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("unchecked")
 public class GraphvizTest {
 
   @Test

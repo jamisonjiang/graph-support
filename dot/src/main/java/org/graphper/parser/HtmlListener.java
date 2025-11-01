@@ -127,7 +127,7 @@ public class HtmlListener extends HTMLParserBaseListener {
   }
 
   /**
-   * Called upon exiting an HTML tag. Consumes any pending {@link Tag} on the stack, finalizing the
+   * Called upon exiting an HTML tag. Consumes any pending Tag on the stack, finalizing the
    * nested label structure.
    */
   @Override
@@ -191,7 +191,7 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   /**
    * Called upon entering a {@code <td>} tag. Creates a new {@link Td} and adds it to the current
-   * row. If the cell contains nested HTML elements, we prepare a new {@link Tag} to capture them.
+   * row. If the cell contains nested HTML elements, we prepare a new Tag to capture them.
    *
    * @throws ParseException if the {@code <td>} is not within any {@code <tr>}
    */
@@ -219,7 +219,7 @@ public class HtmlListener extends HTMLParserBaseListener {
   }
 
   /**
-   * Called upon exiting a {@code <td>} tag. Consumes any pending {@link Tag} on the stack,
+   * Called upon exiting a {@code <td>} tag. Consumes any pending Tag on the stack,
    * finalizing the cell's nested label structure.
    */
   @Override
@@ -347,7 +347,7 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   /**
    * Called upon exiting a generic HTML element. If the element is not a {@code <br>}, we pop and
-   * consume any pending {@link Tag}.
+   * consume any pending Tag.
    */
   @Override
   public void exitHtmlElement(HtmlElementContext ctx) {
@@ -359,7 +359,7 @@ public class HtmlListener extends HTMLParserBaseListener {
 
   /**
    * Called upon encountering character data within an HTML element. If the root is not already set
-   * to a {@link String}, it attempts to treat this data as text within the current {@link Tag}.
+   * to a {@link String}, it attempts to treat this data as text within the current Tag.
    */
   @Override
   public void enterHtmlChardata(HtmlChardataContext ctx) {

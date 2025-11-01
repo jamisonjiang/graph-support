@@ -22,10 +22,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
-import org.graphper.def.UnaryConcatIterable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("unchecked")
 public class UnaryConcatIterableTest {
 
   @Test

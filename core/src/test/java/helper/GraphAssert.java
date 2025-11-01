@@ -25,6 +25,7 @@ import org.graphper.def.GNode;
 import org.graphper.def.VertexDedigraph;
 import org.graphper.def.VertexOpGraph;
 
+@SuppressWarnings("unchecked")
 public class GraphAssert {
 
   public static void assertAdjEquals(VertexOpGraph<GNode> graph, GNode node, GNode... adjs) {
@@ -69,6 +70,7 @@ public class GraphAssert {
     }
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public static void assertAdjEquals(EdgeOpGraph<GNode, ? extends BaseEdge> graph,
                                      GNode node, GNode... adjs) {
     int i = 0;
@@ -84,6 +86,7 @@ public class GraphAssert {
     }
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public static void assertInAdjEquals(EdgeDedigraph<GNode, ? extends BaseEdge> graph,
                                        GNode node, GNode... adjs) {
     int i = 0;
@@ -99,6 +102,7 @@ public class GraphAssert {
     }
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes"})
   public static void assertOutAdjEquals(EdgeDedigraph<GNode, ? extends BaseEdge> graph,
                                         GNode node, GNode... adjs) {
     int i = 0;

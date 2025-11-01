@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unchecked")
 public class SerialHelper {
 
   public static <T> void testSerial(String path, T obj, Consumer<T> afterDeserial)

@@ -41,7 +41,7 @@ public class ClassUtils {
    * @throws Exception If instantiation fails.
    */
   public static Object newObject(Class<?> clazz) throws Exception {
-    return newObject(clazz, null, null);
+    return newObject(clazz, null, (Object[]) null);
   }
 
   /**
@@ -104,7 +104,7 @@ public class ClassUtils {
    * @throws Exception If method invocation fails.
    */
   public static Object invoke(Object obj, String methodName) throws Exception {
-    return invoke(obj, methodName, null, null);
+    return invoke(obj, methodName, null, (Object[]) null);
   }
 
   /**
@@ -187,7 +187,7 @@ public class ClassUtils {
    * @throws Exception If static method invocation fails.
    */
   public static Object invokeStatic(Class<?> clazz, String methodName) throws Exception {
-    return invokeStatic(clazz, methodName, null, null);
+    return invokeStatic(clazz, methodName, null, (Object[]) null);
   }
 
   /**

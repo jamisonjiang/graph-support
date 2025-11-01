@@ -36,15 +36,15 @@ import org.graphper.api.Node.NodeBuilder;
  * parser or listener, which will invoke these methods at appropriate times
  * before final objects are built.</p>
  *
- * <pre>{@code
+ * <pre>
  * public class MyPostGraphComponents implements PostGraphComponents {
- *     @Override
+ *     &#64;Override
  *     public void postNode(NodeBuilder nodeBuilder) {
  *         // For example, always apply a bold style to nodes
  *         nodeBuilder.fontStyle(FontStyle.BOLD);
  *     }
  *
- *     @Override
+ *     &#64;Override
  *     public void postLine(LineBuilder lineBuilder) {
  *         // Maybe set a default color for edges
  *         lineBuilder.color(Color.BLUE);
@@ -52,7 +52,7 @@ import org.graphper.api.Node.NodeBuilder;
  *
  *     // ... etc. ...
  * }
- * }</pre>
+ * </pre>
  *
  * @author Jamison Jiang
  */

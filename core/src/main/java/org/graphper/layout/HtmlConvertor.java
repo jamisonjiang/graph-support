@@ -97,7 +97,7 @@ public class HtmlConvertor {
    * rendering.
    *
    * <p>This method measures the text defined by the {@code labelTag} using
-   * {@link LabelTagUtils#measure(LabelTag, LabelAttributes)}, then calculates how to position lines
+   * {@link org.graphper.util.LabelTagUtils#measure}, then calculates how to position lines
    * and sub-tags within a final {@link Assemble} instance.</p>
    *
    * @param labelTag   the {@link LabelTag} (HTML-like structure) to convert
