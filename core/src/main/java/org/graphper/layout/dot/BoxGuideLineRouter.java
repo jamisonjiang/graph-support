@@ -119,6 +119,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   protected void handleSameEndpointParallelLines(List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;

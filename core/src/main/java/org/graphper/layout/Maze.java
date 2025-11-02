@@ -140,6 +140,7 @@ public abstract class Maze {
 
   // ------------------------------------------------------ private method ------------------------------------------------------
 
+  @SuppressWarnings("unchecked")
   private Iterable<? extends Box> boxes() {
     if (guideVertex == null) {
       return cellMap.values();

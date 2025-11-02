@@ -47,6 +47,7 @@ public class LineHandler {
    *
    * @param parallelLines parallel lines
    */
+  @SuppressWarnings("unchecked")
   protected void handleSameEndpointParallelLines(List<ALine> parallelLines) {
     symmetryParallelLine(parallelLines);
   }
@@ -57,6 +58,7 @@ public class LineHandler {
    *
    * @param line line to be detected
    */
+  @SuppressWarnings("unchecked")
   protected void parallelLineHandle(ALine line) {
     if (line == null || !line.isParallelMerge() || isSplineNone()) {
       return;
@@ -75,6 +77,7 @@ public class LineHandler {
    *
    * @param parallelLines parallel edges
    */
+  @SuppressWarnings("unchecked")
   protected void symmetryParallelLine(List<? extends ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
@@ -111,6 +114,7 @@ public class LineHandler {
     return splines;
   }
 
+  @SuppressWarnings("unchecked")
   protected Map<Integer, List<ALine>> groupParallelLineByEndpoint(ALine line) {
     Map<Integer, List<ALine>> parallelLineRecordMap = new HashMap<>(0);
 
@@ -137,6 +141,7 @@ public class LineHandler {
     return sign + cellId;
   }
 
+  @SuppressWarnings("unchecked")
   private void parallelEdges(ALine<? extends ANode, ? extends ALine> parallelLine, int size,
                              double distUnit, int no) {
     ANode from = parallelLine.from();
@@ -177,6 +182,7 @@ public class LineHandler {
     lineDrawProp.fakeInit();
   }
 
+  @SuppressWarnings("unchecked")
   private FlatPoint newParallelControlPoint(ALine<? extends ANode, ? extends ALine> line, int size, int no, double hypotenuseLen,
                                             FlatPoint f, FlatPoint t, FlatPoint v3Center) {
     return new FlatPoint(

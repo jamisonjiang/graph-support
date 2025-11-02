@@ -52,6 +52,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
   protected abstract void drawLine(FLine line, Iterable<FlatPoint> splitPoints);
 
   @Override
+  @SuppressWarnings("unchecked")
   protected void handle(FLine line) {
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
     if (graphAttrs.isOverlap()) {
@@ -84,6 +85,7 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
     drawLine(line, splitPoints);
   }
 
+  @SuppressWarnings("unchecked")
   private Iterable<FlatPoint> findSplitPoints(FlatPoint n, FlatPoint w, ANode from, ANode to,
                                               int times, int maxTimes) {
     if (times > maxTimes || approximateEquals(n, w)) {

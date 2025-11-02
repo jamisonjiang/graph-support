@@ -273,6 +273,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return graphGroup == null || graphGroup.isEmpty();
   }
 
+  @SuppressWarnings("unchecked")
   public Iterable<Cluster> clusters(GraphContainer container) {
     List<Iterable<Cluster>> iterables = null;
 
@@ -429,6 +430,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
 
     private final UnaryConcatIterable<Node> containerNodes;
 
+    @SuppressWarnings("unchecked")
     private GraphGroup(GraphContainer container) {
       this.container = container;
       this.containerNodes = new UnaryConcatIterable<>(
@@ -461,10 +463,12 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
       patchLines.add(line.getLine());
     }
 
+    @SuppressWarnings("unchecked")
     private ConcatIterable<Node, N> nodes() {
       return new ConcatIterable<>(this::nodeFilter, nodeMap::get, containerNodes, repeatNodes);
     }
 
+    @SuppressWarnings("unchecked")
     private UnaryConcatIterable<Line> lines() {
       List<Iterable<Line>> iterables = null;
       for (Cluster cluster : container.clusters()) {

@@ -33,15 +33,13 @@ public abstract class LabelPositionCalc implements Serializable {
     Asserts.nullArgument(lowerRight, "lowerRight");
     Asserts.nullArgument(labelSize, "labelSize");
 
-    if (log.isWarnEnabled()) {
-      if (labelSize.getWidth() > Math.abs(lowerRight.getX() - upperLeft.getX())
-          || labelSize.getHeight() > Math.abs(lowerRight.getY() - upperLeft.getY())) {
-        log.warn("The label routerBox size is larger than the outer container");
-      }
+    if (labelSize.getWidth() > Math.abs(lowerRight.getX() - upperLeft.getX())
+        || labelSize.getHeight() > Math.abs(lowerRight.getY() - upperLeft.getY())) {
+      log.info("The label routerBox size is larger than the outer container");
+    }
 
-      if (labelSize.getWidth() < 0 || labelSize.getHeight() < 0) {
-        log.warn("label routerBox size is less than 0");
-      }
+    if (labelSize.getWidth() < 0 || labelSize.getHeight() < 0) {
+      log.info("label routerBox size is less than 0");
     }
 
     return centerPos0(upperLeft, lowerRight, labelSize);

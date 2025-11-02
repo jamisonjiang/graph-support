@@ -126,6 +126,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return nodes(false);
   }
 
+  @SuppressWarnings("unchecked")
   public Iterable<NodeDrawProp> nodes(boolean filterCell) {
     if (filterCell) {
       return new UnaryConcatIterable<>(NodeDrawProp::isNotCellProp, nodeDrawPropMap.values());

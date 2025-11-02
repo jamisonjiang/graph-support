@@ -224,6 +224,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean remove(Object vertex) {
     if (vertex == null) {
       return false;

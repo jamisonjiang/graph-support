@@ -274,6 +274,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
    * @return all incoming adjacent edges
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<E> inAdjacent(Object v) {
     return () -> new ReverseIterator<>(reDigraph.adjacent(v).iterator());
   }
@@ -375,6 +376,7 @@ public class DedirectedEdgeGraph<V, E extends DirectedEdge<V, E>>
 
   static class ComConcatItr<V, E extends DirectedEdge<V, E>> extends UnaryConcatIterable<E> {
 
+    @SafeVarargs
     public ComConcatItr(Iterable<? extends E>... iterables) {
       super(iterables);
     }

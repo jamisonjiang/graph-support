@@ -58,6 +58,7 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Iterable<ANode> nodes() {
       UnaryConcatIterable<ANode> nodeConcatIterable = null;
       for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {

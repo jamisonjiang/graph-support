@@ -46,6 +46,7 @@ class OrthogonalRouter extends AbstractOrthogonalRouter implements LineRouter {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   protected Iterable<ANode> nodes() {
     return (Iterable<ANode>) layoutGraph;
   }

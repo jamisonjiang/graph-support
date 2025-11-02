@@ -76,6 +76,7 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<V> adjacent(Object v) {
     AdjacencyList<V, V> adj = edgeMap.get(v);
     return adj != null ? adj : new AdjacencyList<>((V) v);

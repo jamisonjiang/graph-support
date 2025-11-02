@@ -75,10 +75,12 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     return CollectionUtils.isEmpty(parallelLineRecord) ? 1 : parallelLineRecord.size();
   }
 
+  @SuppressWarnings("unchecked")
   public E parallelLine(int no) {
     return CollectionUtils.isEmpty(parallelLineRecord) ? (E) this : parallelLineRecord.get(no);
   }
 
+  @SuppressWarnings("unchecked")
   public void addParallelEdge(E edge) {
     if (parallelLineRecord == null) {
       parallelLineRecord = new ArrayList<>(2);

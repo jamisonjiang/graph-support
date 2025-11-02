@@ -58,12 +58,8 @@ public class GraphvizVisual {
   }
 
   protected void visual(Graphviz graphviz, boolean view) throws Exception {
-    long start = System.currentTimeMillis();
     GraphResource svg = graphviz.toSvg();
     GraphResource img = graphviz.toFile(FILE_TYPE);
-    long end = System.currentTimeMillis();
-
-    log.info("{} cost the time of layout is {}ms", graphviz.hashCode(), end - start);
 
     if (view) {
       new GraphView(img);

@@ -99,6 +99,7 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * @return all adjacent vertices
    */
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<V> adjacent(Object v) {
     return new UnaryConcatIterable<>(outAdjacent(v), inAdjacent(v));
   }

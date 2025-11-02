@@ -111,6 +111,7 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<E> adjacent(Object v) {
     AdjacencyList<V, E> adj = edgeMap.get(v);
     return adj != null ? adj : new AdjacencyList<>((V) v);

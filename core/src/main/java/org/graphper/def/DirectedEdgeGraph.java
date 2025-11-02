@@ -101,6 +101,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<E> adjacent(Object v) {
     AdjacencyList<V, E> adj = edgeMap.get(v);
     return adj != null ? adj : new AdjacencyList<>((V) v);

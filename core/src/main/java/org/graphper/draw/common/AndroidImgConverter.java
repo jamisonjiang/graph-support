@@ -48,6 +48,7 @@ import org.graphper.util.FontUtils;
  *
  * @author Jamison Jiang
  */
+@SuppressWarnings("unchecked")
 public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
   private static Class<?> PATH;
@@ -132,6 +133,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
    * @throws FailInitResourceException if the conversion fails or if parameters are missing
    */
   @Override
+  @SuppressWarnings("unchecked")
   public DefaultGraphResource convert(Document document, DrawGraph drawGraph, FileType fileType)
       throws FailInitResourceException {
     if (document == null || drawGraph == null || fileType == null) {
@@ -492,6 +494,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
    * @return {@code true} if the shape attributes were successfully set, {@code false} otherwise
    * @throws Exception if setting attributes fails
    */
+  @SuppressWarnings("unchecked")
   private boolean setShapeCommonAttr(Element ele, Object paint, boolean isBorder) throws Exception {
     Integer color;
     if (isBorder) {

@@ -38,10 +38,7 @@ public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
     if (CollectionUtils.isEmpty(lineDrawProp)) {
-      if (log.isWarnEnabled()) {
-        log.warn("Find the wrong LineDrawProp attribute, "
-                     + "terminate the drawing of the svg path, line={}", lineDrawProp.lineAttrs());
-      }
+      log.info("LineDrawProp is empty, skip rendering line={}", lineDrawProp.lineAttrs());
       return true;
     }
 

@@ -721,7 +721,7 @@ public abstract class GraphContainer implements Serializable {
      * @return {@code IntegrationSubgraphBuilder}
      */
     public IntegrationSubgraphBuilder<G, B> startSub() {
-      return new IntegrationSubgraphBuilder(this);
+      return new IntegrationSubgraphBuilder<G, B>(self());
     }
 
     /**
@@ -754,7 +754,7 @@ public abstract class GraphContainer implements Serializable {
      * @return {@code IntegrationClusterBuilder}
      */
     public IntegrationClusterBuilder<G, B> startClus() {
-      return new IntegrationClusterBuilder(this);
+      return new IntegrationClusterBuilder<G, B>(self());
     }
 
     /**
