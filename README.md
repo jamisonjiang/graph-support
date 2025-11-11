@@ -154,10 +154,9 @@ public class DotExample {
 
 ### 3. Command Line Interface
 
-For quick rendering without writing code:
+Download the CLI JAR from [releases](https://github.com/jamisonjiang/graph-support/releases), for quick rendering without writing code:
 
 ```bash
-# Download the CLI JAR from [releases](https://github.com/jamisonjiang/graph-support/releases)
 
 # Render from DOT file
 java -jar graph-support-cli.jar input.dot -o output -Tpng
@@ -304,4 +303,4 @@ We welcome contributions! Here are some areas where you can help:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
