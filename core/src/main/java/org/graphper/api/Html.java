@@ -100,6 +100,117 @@ public class Html {
   }
 
   /**
+   * Creates a new horizontal {@link RecordTag} root.
+   *
+   * <p>A record tag is the structured counterpart to the legacy string-based
+   * record label syntax (e.g. {@code "{a|b|c}"}). Unlike a plain record label,
+   * each cell may carry rich-text via {@link LabelTag}, plain text, or a nested
+   * record for orientation flipping.</p>
+   *
+   * <p>Top-level cells laid out left-to-right (horizontal). Nesting a
+   * {@link RecordTag} inside a cell flips the orientation at each level, just
+   * like the Graphviz record syntax.</p>
+   *
+   * @param cells the cells in left-to-right order; {@code null} is treated as
+   *              an empty record.
+   * @return a new horizontal {@link RecordTag}.
+   */
+  public static RecordTag record(BasicRecordCell... cells) {
+    return newRecordTag(true, cells);
+  }
+
+  /**
+   * Creates a new vertical {@link RecordTag} root, i.e. the top-level cells are
+   * stacked top-to-bottom. Equivalent to wrapping the cells in a top-level
+   * {@code {…}} in the legacy string record syntax.
+   *
+   * @param cells the cells in top-to-bottom order; {@code null} is treated as
+   *              an empty record.
+   * @return a new vertical {@link RecordTag}.
+   */
+  public static RecordTag verticalRecord(BasicRecordCell... cells) {
+    return newRecordTag(false, cells);
+  }
+
+  /**
+   * Creates an empty {@link BasicRecordCell} whose body is later populated via
+   * {@link BasicRecordCell#text(String)}, {@link BasicRecordCell#text(LabelTag)}
+   * or {@link BasicRecordCell#nested(RecordTag)}.
+   *
+   * @return a new empty {@link BasicRecordCell}.
+   */
+  public static BasicRecordCell cell() {
+    return new BasicRecordCell();
+  }
+
+  /**
+   * Creates a {@link BasicRecordCell} containing plain text.
+   *
+   * @param text the cell's text content; may be {@code null} or empty for a
+   *             blank cell.
+   * @return a new {@link BasicRecordCell}.
+   */
+  public static BasicRecordCell cell(String text) {
+    return new BasicRecordCell().text(text);
+  }
+
+  /**
+   * Creates a {@link BasicRecordCell} containing a rich-text label. This is
+   * the entry point for rendering record cells with formatted content such as
+   * bold, italic, or coloured text.
+   *
+   * @param textTag the cell's rich-text content; must be non-null.
+   * @return a new {@link BasicRecordCell}.
+   */
+  public static BasicRecordCell cell(LabelTag textTag) {
+    return new BasicRecordCell().text(textTag);
+  }
+
+  /**
+   * Creates a {@link BasicRecordCell} whose body is a nested {@link RecordTag}.
+   * Used to flip the orientation relative to the parent level.
+   *
+   * @param nested the nested record; must be non-null.
+   * @return a new {@link BasicRecordCell}.
+   */
+  public static BasicRecordCell cell(RecordTag nested) {
+    return new BasicRecordCell().nested(nested);
+  }
+
+  /**
+   * Sugar for a cell that contains a vertical nested record, i.e. the children
+   * are laid out top-to-bottom regardless of the parent orientation. Intended
+   * to be used inside {@link #record(BasicRecordCell...)} (horizontal parent).
+   *
+   * @param cells the children of the nested record.
+   * @return a new {@link BasicRecordCell} with a vertical nested record.
+   */
+  public static BasicRecordCell vertical(BasicRecordCell... cells) {
+    return new BasicRecordCell().nested(newRecordTag(false, cells));
+  }
+
+  /**
+   * Sugar for a cell that contains a horizontal nested record. Intended to be
+   * used inside {@link #verticalRecord(BasicRecordCell...)} (vertical parent).
+   *
+   * @param cells the children of the nested record.
+   * @return a new {@link BasicRecordCell} with a horizontal nested record.
+   */
+  public static BasicRecordCell horizontal(BasicRecordCell... cells) {
+    return new BasicRecordCell().nested(newRecordTag(true, cells));
+  }
+
+  private static RecordTag newRecordTag(boolean horizontal, BasicRecordCell[] cells) {
+    RecordTag recordTag = new RecordTag(horizontal);
+    if (cells != null) {
+      for (BasicRecordCell cell : cells) {
+        recordTag.addCell(cell);
+      }
+    }
+    return recordTag;
+  }
+
+  /**
    * Creates and returns a new {@link FontAttrs}, which can be used to set font properties.
    *
    * @return A fresh {@link FontAttrs} instance.
@@ -1488,6 +1599,23 @@ public class Html {
       return tags;
     }
 
+    /**
+     * Appends an already-built fragment to this label.
+     *
+     * <p>The typed helpers ({@link #bold(String)}, {@link #italic(String)}, ...) cover authoring a
+     * label from scratch. This method exists for the case where a fragment has already been produced
+     * elsewhere and only needs regrouping — notably when the DOT parser splits a record label's rich
+     * text into per-cell labels, where re-deriving each fragment through the typed helpers would mean
+     * switching over every tag type.
+     *
+     * @param tag the fragment to append; must be non-null
+     * @return this {@code LabelTag} with the fragment appended
+     */
+    public LabelTag add(BasicLabelTag tag) {
+      addTag(tag);
+      return this;
+    }
+
     private void addTag(BasicLabelTag tag) {
       Asserts.nullArgument(tag);
       if (tags == null) {
@@ -1659,5 +1787,274 @@ public class Html {
     RIGHT,
     VERTICAL_CENTER,
     HORIZONTAL_CENTER,
+  }
+
+  /**
+   * Structured counterpart to a record-shape label.
+   *
+   * <p>A {@code RecordTag} is the Java API equivalent of the DOT record-label
+   * string (e.g. {@code "<f0>a|{b|c}|d"}). Each child {@link BasicRecordCell}
+   * represents one cell and carries either plain text, a {@link LabelTag}
+   * (rich text), or a nested {@code RecordTag} for orientation flipping.</p>
+   *
+   * <p>Construct via {@link Html#record(BasicRecordCell...)} /
+   * {@link Html#verticalRecord(BasicRecordCell...)}; append cells fluently
+   * with {@link #cell(BasicRecordCell)} / {@link #cell(String)} /
+   * {@link #cell(LabelTag)} / {@link #nested(RecordTag)}.</p>
+   *
+   * <p>A {@code RecordTag} is only meaningful on nodes whose shape is
+   * {@link NodeShapeEnum#RECORD} or {@link NodeShapeEnum#M_RECORD}. For other
+   * shapes the value is ignored.</p>
+   *
+   * <h2>Example</h2>
+   * <pre>{@code
+   * RecordTag tag = record(
+   *     cell("a").id("f0"),
+   *     vertical(
+   *         cell(italic("b")),
+   *         cell(underline("c"))
+   *     ),
+   *     cell("d").id("f1")
+   * );
+   * Node n = Node.builder().shape(NodeShapeEnum.RECORD).recordTag(tag).build();
+   * }</pre>
+   */
+  public static class RecordTag implements Serializable {
+
+    private static final long serialVersionUID = 6079183783038369923L;
+
+    /**
+     * Whether the direct children of this {@code RecordTag} are laid out
+     * horizontally (left-to-right). {@code false} means vertical
+     * (top-to-bottom). Top-level records default to horizontal, matching the
+     * Graphviz record syntax.
+     */
+    private final boolean horizontal;
+
+    private List<BasicRecordCell> cells;
+
+    RecordTag(boolean horizontal) {
+      this.horizontal = horizontal;
+    }
+
+    /**
+     * Appends a cell to this record.
+     *
+     * @param cell the cell to append; must be non-null.
+     * @return this {@code RecordTag} for chaining.
+     */
+    public RecordTag cell(BasicRecordCell cell) {
+      addCell(cell);
+      return this;
+    }
+
+    /**
+     * Appends a plain-text cell to this record.
+     *
+     * @param text the cell's text.
+     * @return this {@code RecordTag} for chaining.
+     */
+    public RecordTag cell(String text) {
+      addCell(new BasicRecordCell().text(text));
+      return this;
+    }
+
+    /**
+     * Appends a rich-text cell to this record.
+     *
+     * @param textTag the cell's rich-text content; must be non-null.
+     * @return this {@code RecordTag} for chaining.
+     */
+    public RecordTag cell(LabelTag textTag) {
+      addCell(new BasicRecordCell().text(textTag));
+      return this;
+    }
+
+    /**
+     * Appends a nested-record cell to this record. Children of the nested
+     * record are laid out perpendicular to this level.
+     *
+     * @param nested the nested record; must be non-null.
+     * @return this {@code RecordTag} for chaining.
+     */
+    public RecordTag nested(RecordTag nested) {
+      addCell(new BasicRecordCell().nested(nested));
+      return this;
+    }
+
+    /**
+     * @return {@code true} when children are laid out horizontally
+     * (left-to-right), {@code false} for vertical (top-to-bottom).
+     */
+    public boolean isHorizontal() {
+      return horizontal;
+    }
+
+    /**
+     * @return the cells of this record in declaration order; never
+     * {@code null}, but may be empty.
+     */
+    public List<BasicRecordCell> getCells() {
+      return cells == null ? Collections.emptyList() : cells;
+    }
+
+    void addCell(BasicRecordCell cell) {
+      Asserts.nullArgument(cell, "cell");
+      cell.verify();
+      if (cells == null) {
+        cells = new ArrayList<>();
+      }
+      cells.add(cell);
+    }
+  }
+
+  /**
+   * A single cell inside a {@link RecordTag}.
+   *
+   * <p>The cell body is mutually exclusive across three forms:
+   * <ul>
+   *   <li>{@link #text(String)} — plain text;</li>
+   *   <li>{@link #text(LabelTag)} — rich text via a {@link LabelTag};</li>
+   *   <li>{@link #nested(RecordTag)} — a nested record, flipping the layout
+   *       orientation relative to the parent.</li>
+   * </ul>
+   * Setting one clears the others. A cell with no body is a blank cell,
+   * analogous to the empty fields in {@code "|a|"}.</p>
+   *
+   * <p>An optional port {@link #id(String)} can be attached so that lines may
+   * connect to this specific cell via {@code tailCell}/{@code headCell}.</p>
+   */
+  public static class BasicRecordCell implements Serializable {
+
+    private static final long serialVersionUID = 3680277188418115215L;
+
+    private String id;
+
+    private String text;
+
+    private LabelTag textTag;
+
+    private RecordTag nested;
+
+    BasicRecordCell() {
+    }
+
+    /**
+     * Sets the port identifier for this cell. Mirrors the Graphviz
+     * {@code <portId>} syntax inside a record label.
+     *
+     * @param id the port id; may be {@code null} or empty to clear.
+     * @return this cell for chaining.
+     */
+    public BasicRecordCell id(String id) {
+      this.id = id;
+      return this;
+    }
+
+    /**
+     * Sets the cell body to plain text, clearing any previous rich-text or
+     * nested-record body.
+     *
+     * @param text the text, may be {@code null} or empty for a blank cell.
+     * @return this cell for chaining.
+     */
+    public BasicRecordCell text(String text) {
+      this.text = text;
+      this.textTag = null;
+      this.nested = null;
+      return this;
+    }
+
+    /**
+     * Sets the cell body to a rich-text {@link LabelTag}, clearing any
+     * previous plain-text or nested-record body.
+     *
+     * @param textTag the rich-text content; must be non-null.
+     * @return this cell for chaining.
+     */
+    public BasicRecordCell text(LabelTag textTag) {
+      Asserts.nullArgument(textTag, "textTag");
+      this.textTag = textTag;
+      this.text = null;
+      this.nested = null;
+      return this;
+    }
+
+    /**
+     * Sets the cell body to a nested {@link RecordTag}, clearing any previous
+     * plain-text or rich-text body. Children of the nested record are laid
+     * out perpendicular to this cell's parent orientation.
+     *
+     * @param nested the nested record; must be non-null.
+     * @return this cell for chaining.
+     */
+    public BasicRecordCell nested(RecordTag nested) {
+      Asserts.nullArgument(nested, "nested");
+      this.nested = nested;
+      this.text = null;
+      this.textTag = null;
+      return this;
+    }
+
+    /**
+     * @return the port id, or {@code null} if none.
+     */
+    public String getId() {
+      return id;
+    }
+
+    /**
+     * @return the plain-text body, or {@code null} if the cell body is a
+     * rich-text or a nested record, or no body was set.
+     */
+    public String getText() {
+      return text;
+    }
+
+    /**
+     * @return the rich-text body, or {@code null} if the cell body is plain
+     * text, a nested record, or no body was set.
+     */
+    public LabelTag getTextTag() {
+      return textTag;
+    }
+
+    /**
+     * @return the nested record, or {@code null} if the cell body is text or
+     * no body was set.
+     */
+    public RecordTag getNested() {
+      return nested;
+    }
+
+    /**
+     * @return {@code true} when this cell has no body at all (blank cell).
+     */
+    public boolean isBlank() {
+      return text == null && textTag == null && nested == null;
+    }
+
+    /**
+     * Validates invariants of this cell.
+     *
+     * <p>The fluent setters already enforce mutual exclusion, so a
+     * user-built cell is always in a valid state. This method exists for
+     * defensive checks at assembly time (e.g. when appending to a
+     * {@link RecordTag}) and for future use by deserialization paths.</p>
+     */
+    public void verify() {
+      int bodies = 0;
+      if (text != null) {
+        bodies++;
+      }
+      if (textTag != null) {
+        bodies++;
+      }
+      if (nested != null) {
+        bodies++;
+      }
+      Asserts.illegalArgument(bodies > 1,
+          "BasicRecordCell must have at most one of {text, textTag, nested}");
+    }
   }
 }

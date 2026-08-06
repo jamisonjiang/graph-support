@@ -16,9 +16,12 @@
 
 package org.graphper.draw.svg.node;
 
+import java.util.List;
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.NodeAttrs;
+import org.graphper.api.attributes.Color;
+import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.ext.CylinderPropCalc;
@@ -37,6 +40,12 @@ import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 import org.graphper.layout.Cell;
 import org.graphper.layout.Cell.RootCell;
+import org.graphper.layout.HtmlConvertor;
+import org.graphper.layout.HtmlConvertor.PositionedText;
+import org.graphper.layout.LabelAttributes;
+import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
+import org.graphper.util.LabelTagUtils;
 
 public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
@@ -338,9 +347,14 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       String cellId = NodeShapeEnum.RECORD.getName() + no + SvgConstants.UNDERSCORE + i;
 
       // Set cell label element
-      if (child.isLeaf() && StringUtils.isNotEmpty(child.getLabel())) {
-        FlatPoint labelCenter = child.getCenter(nodeDrawProp);
-        recordTextSet(nodeDrawProp, brush, child.getLabel(), cellId, labelCenter);
+      if (child.isLeaf()) {
+        if (child.getLabelTag() != null) {
+          recordRichTextSet(nodeDrawProp, brush, child, cellId);
+        } else if (StringUtils.isNotEmpty(child.getLabel())) {
+          FlatPoint labelCenter = child.getCenter(nodeDrawProp);
+          recordTextSet(nodeDrawProp, brush, child.getLabel(), cellId, labelCenter,
+                        child.getWidth());
+        }
       }
 
       // Select whether to ignore drawing of the split symbol based on isHor().
@@ -374,7 +388,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private void recordTextSet(NodeDrawProp nodeDrawProp, SvgBrush brush, String label,
-                             String cellId, FlatPoint labelCenter) {
+                              String cellId, FlatPoint labelCenter, double labelWidth) {
     NodeAttrs nodeAttrs = nodeDrawProp.nodeAttrs();
     double fontSize = nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize();
 
@@ -383,11 +397,97 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       Element text = brush.getOrCreateChildElementById(id, TEXT_ELE);
       SvgEditor.setText(text, fontSize, textLineAttribute);
       text.setTextContent(textLineAttribute.getLine());
+      SvgEditor.setFontStyle(text, nodeAttrs.getFontStyles());
     };
 
     SvgEditor.text(new TextAttribute(labelCenter, fontSize, label,
-                                     nodeAttrs.getFontColor(), nodeAttrs.getFontName(),
-                                     lineConsumer));
+                                      nodeAttrs.getFontColor(), nodeAttrs.getFontName(),
+                                      labelWidth, lineConsumer));
+  }
+
+  /**
+   * Draws a record cell whose body is rich text, one {@code <text>} element per styled run.
+   *
+   * <p>The runs and their offsets come from the same layout pass that html labels use
+   * ({@link HtmlConvertor#toPositionedTexts}), so a bold or coloured fragment lands in exactly the
+   * place the measurement stage reserved for it. Lowering the cell to an {@code Assemble} of
+   * sub-nodes — the way standalone html labels render — is not an option here: the sub-nodes would
+   * replace the cell tree that {@code tailCell}/{@code headCell} resolve ports against.
+   */
+  private void recordRichTextSet(NodeDrawProp nodeDrawProp, SvgBrush brush, Cell cell,
+                                 String cellId) {
+    NodeAttrs nodeAttrs = nodeDrawProp.nodeAttrs();
+    LabelAttributes attrs = new LabelAttributes();
+    attrs.setFontName(nodeAttrs.getFontName());
+    attrs.setFontSize(nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize());
+    attrs.setFontColor(nodeAttrs.getFontColor());
+    attrs.setByStyles(nodeAttrs.getFontStyles());
+
+    List<PositionedText> texts = HtmlConvertor.toPositionedTexts(cell.getLabelTag(), attrs);
+    if (CollectionUtils.isEmpty(texts)) {
+      return;
+    }
+
+    /*
+     * Runs are positioned relative to the top-left of the rich text block, and the block is centered
+     * inside the cell. The cell was sized from the same measurement, so the block fits by
+     * construction; margin, if any, becomes the surrounding padding.
+     */
+    FlatPoint labelSize = LabelTagUtils.measure(cell.getLabelTag(), attrs);
+    FlatPoint cellCenter = cell.getCenter(nodeDrawProp);
+    double left = cellCenter.getX() - labelSize.getWidth() / 2;
+    double top = cellCenter.getY() - labelSize.getHeight() / 2;
+
+    int no = 0;
+    for (PositionedText text : texts) {
+      if (StringUtils.isEmpty(text.getText())) {
+        continue;
+      }
+
+      String id = cellId + TEXT_ELE + UNDERSCORE + "rich" + UNDERSCORE + no++;
+      Element textEle = brush.getOrCreateChildElementById(id, TEXT_ELE);
+
+      double fontSize = text.getFontSize();
+      double glyphCenterY;
+      if (!text.isScriptShift()) {
+        /*
+         * The run's box is exactly its measured size, so the glyphs are centered in it. Using the font
+         * size as the glyph height instead would sit about a pixel high, since the measured height of
+         * a line exceeds the point size.
+         */
+        glyphCenterY = top + text.getY() + text.getHeight() / 2;
+      } else if (text.getVerAlign() == Labelloc.BOTTOM) {
+        // Subscript: half-size glyphs pushed to the bottom of a full-size box
+        glyphCenterY = top + text.getY() + text.getHeight() - fontSize / 2;
+      } else {
+        // Superscript: half-size glyphs pulled to the top of a full-size box
+        glyphCenterY = top + text.getY() + fontSize / 2;
+      }
+
+      // Same baseline convention as SvgEditor.text: one third of the font size below the center
+      double baseline = glyphCenterY + fontSize / 3;
+      double centerX = left + text.getX() + text.getWidth() / 2;
+
+      textEle.setAttribute(SvgConstants.X, String.valueOf(centerX));
+      textEle.setAttribute(SvgConstants.Y, String.valueOf(baseline));
+      textEle.setAttribute(SvgConstants.TEXT_ANCHOR, SvgConstants.MIDDLE);
+      textEle.setAttribute(SvgConstants.FONT_SIZE, String.valueOf(fontSize));
+
+      Color fontColor = text.getFontColor() == null ? nodeAttrs.getFontColor()
+          : text.getFontColor();
+      if (fontColor != null) {
+        textEle.setAttribute(SvgConstants.FILL, fontColor.value());
+      }
+
+      String fontName = text.getFontName() == null ? nodeAttrs.getFontName() : text.getFontName();
+      if (fontName != null) {
+        textEle.setAttribute(SvgConstants.FONT_FAMILY,
+                             FontUtils.fontExists(fontName) ? fontName : FontUtils.DEFAULT_FONT);
+      }
+
+      SvgEditor.setFontStyle(textEle, text.getFontStyles());
+      textEle.setTextContent(text.getText());
+    }
   }
 
   private boolean needIgnoreDrawSplit(int idx, int size, Cell current) {

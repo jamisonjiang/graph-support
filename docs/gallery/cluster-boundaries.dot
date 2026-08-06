@@ -1,0 +1,72 @@
+digraph ClusterBoundaries {
+  graph [
+    rankdir="LR"
+    bgcolor="#F7F9FC"
+    nodesep="0.4"
+    ranksep="0.58"
+    splines="spline"
+    compound="true"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="9"
+    color="#CBD5E1"
+    fillcolor="#FFFFFF"
+    fontcolor="#1E293B"
+    margin="0.13"
+  ]
+
+  edge [fontname="Arial" fontsize="8" color="#94A3B8" fontcolor="#64748B" arrowsize="0.65"]
+
+  user [shape="circle" color="#818CF8" fillcolor="#EEF2FF" label="USER"]
+
+  subgraph cluster_web {
+    label="WEB TIER"
+    color="#C7D2FE"
+    bgcolor="#F5F3FF"
+    fontname="Arial"
+    fontcolor="#6366F1"
+    style="rounded,dashed"
+
+    gateway [label="GATEWAY"]
+    session [label="SESSION"]
+    gateway -> session [style="dashed"]
+  }
+
+  subgraph cluster_core {
+    label="SERVICE TIER"
+    color="#99F6E4"
+    bgcolor="#F0FDFA"
+    fontname="Arial"
+    fontcolor="#0F766E"
+    style="rounded,dashed"
+
+    catalog [label="CATALOG"]
+    checkout [label="CHECKOUT"]
+  }
+
+  subgraph cluster_data {
+    label="DATA TIER"
+    color="#FED7AA"
+    bgcolor="#FFF7ED"
+    fontname="Arial"
+    fontcolor="#C2410C"
+    style="rounded,dashed"
+
+    cache [shape="cylinder" label="CACHE"]
+    store [shape="cylinder" label="STORE"]
+  }
+
+  user -> gateway [label="HTTPS"]
+  gateway -> catalog [label="browse" color="#6366F1"]
+  session -> checkout [label="buy" color="#6366F1"]
+  catalog -> cache [label="read" color="#10B981"]
+  checkout -> store [label="write" color="#F59E0B"]
+
+  { rank="same" gateway session }
+  { rank="same" catalog checkout }
+  { rank="same" cache store }
+}

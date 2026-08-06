@@ -36,6 +36,9 @@ public abstract class Color implements Serializable {
 
   public static final Color WHITE = Color.ofRGB("#ffffff");
 
+  /** SVG no-paint color, useful for transparent graph backgrounds. */
+  public static final Color TRANSPARENT = new TransparentColor();
+
   public static final Color RED = Color.ofRGB("#ff0000");
 
   public static final Color ORANGE = Color.ofRGB("#ffa500");
@@ -157,6 +160,31 @@ public abstract class Color implements Serializable {
       return "RgbColor{" +
           "colorVal='" + colorVal + '\'' +
           '}';
+    }
+  }
+
+  static class TransparentColor extends Color {
+
+    private static final long serialVersionUID = -3702727566624998765L;
+
+    @Override
+    public String value() {
+      return "none";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof TransparentColor;
+    }
+
+    @Override
+    public int hashCode() {
+      return TransparentColor.class.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return "TransparentColor{}";
     }
   }
 }

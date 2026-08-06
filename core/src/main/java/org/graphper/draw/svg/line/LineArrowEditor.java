@@ -199,6 +199,7 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
   }
 
   private void setBasicProp(Element arrowElement, boolean needFill) {
+    arrowElement.setAttribute(CLASS, ARROWHEAD);
     if (needFill) {
       arrowElement.setAttribute(SvgConstants.FILL, Color.BLACK.value());
     } else {

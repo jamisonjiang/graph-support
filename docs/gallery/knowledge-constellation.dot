@@ -1,0 +1,55 @@
+graph KnowledgeConstellation {
+  graph [
+    layout="jfdp"
+    bgcolor="#F7F9FC"
+    fontname="Arial"
+    overlap="false"
+    splines="spline"
+  ]
+
+  node [
+    shape="circle"
+    style="filled"
+    fontname="Arial"
+    fontsize="10"
+    color="#CBD5E1"
+    fontcolor="#1E293B"
+    fillcolor="#FFFFFF"
+    penwidth="1.2"
+  ]
+
+  edge [
+    color="#CBD5E1"
+    penwidth="1.25"
+  ]
+
+  intelligence [
+    width="1.25"
+    height="1.25"
+    color="#6366F1"
+    fillcolor="#EEF2FF"
+    penwidth="2"
+    label=<
+      <B>INTELLIGENCE</B><BR/>
+      <FONT POINT-SIZE="8" COLOR="#6366F1">CORE CONCEPT</FONT>
+    >
+  ]
+
+  agents [fillcolor="#ECFEFF" color="#67E8F9" label=< <B>AGENTS</B><BR/><FONT POINT-SIZE="8">reason · act</FONT> >]
+  retrieval [fillcolor="#F0FDFA" color="#5EEAD4" label=< <B>RETRIEVAL</B><BR/><FONT POINT-SIZE="8">find · rank</FONT> >]
+  memory [fillcolor="#F5F3FF" color="#C4B5FD" label=< <B>MEMORY</B><BR/><FONT POINT-SIZE="8">context</FONT> >]
+  tools [fillcolor="#FFF7ED" color="#FDBA74" label=< <B>TOOLS</B><BR/><FONT POINT-SIZE="8">connectors</FONT> >]
+  evaluation [fillcolor="#FFF1F2" color="#FDA4AF" label=< <B>EVALUATION</B><BR/><FONT POINT-SIZE="8">quality</FONT> >]
+  documents [fillcolor="#ECFDF5" color="#86EFAC" label=< <B>DOCUMENTS</B><BR/><FONT POINT-SIZE="8">knowledge</FONT> >]
+
+  intelligence -- agents [color="#818CF8" penwidth="2.4"]
+  intelligence -- retrieval [color="#2DD4BF" penwidth="2.2"]
+  intelligence -- memory [color="#A78BFA" penwidth="2.0"]
+  intelligence -- evaluation [color="#FB7185" penwidth="1.8"]
+  agents -- tools [color="#FDBA74" penwidth="1.8"]
+  tools -- memory
+  memory -- documents
+  documents -- evaluation
+  evaluation -- retrieval
+  retrieval -- agents
+}

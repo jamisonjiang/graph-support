@@ -19,8 +19,9 @@ package org.graphper.api;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
-import org.graphper.api.Html.Table;
 import org.graphper.api.Html.LabelTag;
+import org.graphper.api.Html.RecordTag;
+import org.graphper.api.Html.Table;
 import org.graphper.api.Line.LineBuilder;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
@@ -599,6 +600,45 @@ public class Node implements Comparable<Node>, Serializable {
     public NodeBuilder table(Table table) {
       Asserts.nullArgument(table, "table");
       nodeAttrs.table = table;
+      return this;
+    }
+
+    /**
+     * Set a structured record label on this node. The {@link RecordTag} is the
+     * Java-API equivalent of the DOT record-label string (e.g. {@code "{a|b|c}"})
+     * and is the only way to express record cells whose body is a rich-text
+     * {@link LabelTag} rather than plain text.
+     *
+     * <p>This value is consumed at layout time only when the node's
+     * {@link #shape(NodeShape)} is {@link NodeShapeEnum#RECORD} or
+     * {@link NodeShapeEnum#M_RECORD}. For other shapes the value is ignored.
+     * When both {@link #label(String)} and {@code recordTag} are set, the
+     * record-tag takes precedence.</p>
+     *
+     * <p><b>Example</b>
+     * <pre>{@code
+     * RecordTag tag = Html.record(
+     *     Html.cell("a").id("f0"),
+     *     Html.vertical(
+     *         Html.cell(Html.italic("b")),
+     *         Html.cell(Html.underline("c"))
+     *     ),
+     *     Html.cell("d").id("f1"));
+     * Node n = Node.builder()
+     *     .shape(NodeShapeEnum.RECORD)
+     *     .recordTag(tag)
+     *     .build();
+     * }</pre>
+     *
+     * @param recordTag the structured record-label AST
+     * @return this {@code NodeBuilder} for method chaining
+     * @throws IllegalArgumentException if {@code recordTag} is {@code null}
+     * @see #label(String)
+     * @see #shape(NodeShape)
+     */
+    public NodeBuilder recordTag(RecordTag recordTag) {
+      Asserts.nullArgument(recordTag, "recordTag");
+      nodeAttrs.recordTag = recordTag;
       return this;
     }
 

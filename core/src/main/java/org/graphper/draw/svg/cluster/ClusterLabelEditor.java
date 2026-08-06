@@ -49,7 +49,8 @@ public class ClusterLabelEditor implements ClusterEditor<SvgBrush>, SvgConstants
     };
 
     text(new TextAttribute(cluster.getLabelCenter(), fontSize, label, clusterAttrs.getFontColor(),
-                           clusterAttrs.getFontName(), lineConsumer));
+                            clusterAttrs.getFontName(), cluster.getLabelSize().getWidth(),
+                            lineConsumer));
     return true;
   }
 

@@ -25,6 +25,7 @@ import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.FontSelector;
 import org.graphper.layout.MeasureText;
+import org.graphper.layout.LabelLines;
 
 /**
  * Utility class for font-related operations. Provides methods to measure text dimensions, check
@@ -103,7 +104,8 @@ public class FontUtils {
    */
   public static FlatPoint measure(String label, String fontName, double fontSize,
                                   double widthIncr, FontStyle... fontStyles) {
-    FlatPoint size = MEASURE_TEXT.measure(label, fontName, fontSize, fontStyles);
+    FlatPoint size = MEASURE_TEXT.measure(LabelLines.plainText(label), fontName, fontSize,
+                                          fontStyles);
     if (size == null) {
       throw new RuntimeException(
           "Unexpected error: MeasureText returned null for label size");

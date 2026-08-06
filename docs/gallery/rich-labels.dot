@@ -1,0 +1,50 @@
+digraph RichLabels {
+  graph [
+    rankdir="TB"
+    bgcolor="#F7F9FC"
+    nodesep="0.45"
+    ranksep="0.48"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="11"
+    color="#CBD5E1"
+    fillcolor="#FFFFFF"
+    fontcolor="#1E293B"
+    margin="0.2"
+  ]
+
+  typography [
+    color="#A5B4FC"
+    fillcolor="#EEF2FF"
+    label=<
+      <B>TYPOGRAPHY</B><BR/>
+      plain · <B>bold</B> · <I>italic</I><BR/>
+      <U>underline</U> · <S>obsolete</S> · <O>overline</O>
+    >
+  ]
+
+  science [
+    color="#99F6E4"
+    fillcolor="#F0FDFA"
+    label=<
+      <B>SCIENTIFIC TEXT</B><BR/>
+      H<SUB>2</SUB>O + CO<SUB>2</SUB><BR/>
+      E = mc<SUP>2</SUP> · x<SUP>n+1</SUP>
+    >
+  ]
+
+  emphasis [
+    color="#FED7AA"
+    fillcolor="#FFF7ED"
+    label=<
+      <FONT POINT-SIZE="14" COLOR="#C2410C"><B>Signal detected</B></FONT><BR/>
+      <FONT POINT-SIZE="9" COLOR="#64748B">multi-line context with custom size and color</FONT>
+    >
+  ]
+
+  typography -> science -> emphasis [style="invis"]
+}

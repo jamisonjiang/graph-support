@@ -19,6 +19,7 @@ package org.graphper.layout;
 import static org.graphper.api.Graphviz.PIXEL;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +42,7 @@ import org.graphper.api.Html.Td;
 import org.graphper.api.Html.Tr;
 import org.graphper.api.Node;
 import org.graphper.api.Node.NodeBuilder;
+import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Labeljust;
@@ -568,8 +570,62 @@ public class HtmlConvertor {
     tdBox.size.setHeight(Math.max(height, tdBox.size.getHeight()));
   }
 
+  /**
+   * Lays out a {@link LabelTag} and returns each styled run with its position relative to the
+   * label's top-left corner, in pixels.
+   *
+   * <p>Same layout pass as {@link #toAssemble(LabelTag, LabelAttributes)}; the two differ only in
+   * what they do with the positioned runs. {@code toAssemble} turns each run into a sub-node for the
+   * generic label pipeline, while record cells need to draw the runs directly as SVG text — an
+   * {@code Assemble} cannot be nested inside a record cell without losing the cell tree that edge
+   * ports resolve against. Sharing the layout pass is what keeps the two from drifting.
+   *
+   * @param labelTag  the rich text to lay out
+   * @param labelAttrs the enclosing font context that inner tags refine
+   * @return positioned runs in draw order, or an empty list when there is nothing to draw
+   */
+  public static List<PositionedText> toPositionedTexts(LabelTag labelTag,
+                                                       LabelAttributes labelAttrs) {
+    if (labelTag == null || labelAttrs == null) {
+      return Collections.emptyList();
+    }
+
+    TextRows textRows = new TextRows();
+    TextTagValue textTagValue = new TextTagValue(labelAttrs);
+    accessLabelTag(textRows, labelTag, textTagValue, new FlatPoint(0, 0), 0);
+
+    FlatPoint size = LabelTagUtils.measure(labelTag, labelAttrs);
+    Asserts.nullArgument(size);
+
+    List<PositionedText> texts = new ArrayList<>();
+    textAlign(size, textRows, (xOffset, yOffset, cell) -> {
+      NodeAttrs attrs = cell.cell.nodeAttrs();
+      /*
+       * NodeBuilder#width/#height scale by PIXEL on the way in, so the stored values are already in
+       * the same unit as the offsets computed above. Only toAssemble has to divide, because
+       * AssembleBuilder#addCell expects inches.
+       */
+      Double width = attrs.getWidth();
+      Double height = attrs.getHeight();
+      texts.add(new PositionedText(xOffset, yOffset,
+                                   width == null ? 0 : width,
+                                   height == null ? 0 : height,
+                                   attrs.getLabel(), attrs.getFontName(),
+                                   attrs.getFontSize() == null ? 0 : attrs.getFontSize(),
+                                   attrs.getFontColor(), attrs.getFontStyles(),
+                                   attrs.getLabelloc(), cell.scriptShift));
+    });
+    return texts;
+  }
+
   // ------------------------------------------ label tag private methods ------------------------------------------
   private static void textAlign(FlatPoint size, TextRows textRows, AssembleBuilder builder) {
+    textAlign(size, textRows,
+              (xOffset, yOffset, cell) ->
+                  builder.addCell(xOffset / PIXEL, yOffset / PIXEL, cell.cell));
+  }
+
+  private static void textAlign(FlatPoint size, TextRows textRows, TextCellConsumer consumer) {
     double width = size.getWidth();
     for (TextRow row : textRows.getRows()) {
       double horOffset = row.horOffset(width);
@@ -578,8 +634,117 @@ public class HtmlConvertor {
         double xOffset = cell.xOffset + horOffset;
         double yOffset = cell.yOffset + row.verOffset(cell);
 
-        builder.addCell(xOffset / PIXEL, yOffset / PIXEL, cell.cell);
+        consumer.accept(xOffset, yOffset, cell);
       }
+    }
+  }
+
+  @FunctionalInterface
+  private interface TextCellConsumer {
+
+    void accept(double xOffset, double yOffset, TextCell cell);
+  }
+
+  /**
+   * One styled run of rich text, positioned relative to the top-left of the label it belongs to.
+   * Coordinates and sizes are in pixels.
+   */
+  public static class PositionedText {
+
+    private final double x;
+
+    private final double y;
+
+    private final double width;
+
+    private final double height;
+
+    private final String text;
+
+    private final String fontName;
+
+    private final double fontSize;
+
+    private final Color fontColor;
+
+    private final Collection<FontStyle> fontStyles;
+
+    private final Labelloc verAlign;
+
+    private final boolean scriptShift;
+
+    PositionedText(double x, double y, double width, double height, String text, String fontName,
+                   double fontSize, Color fontColor, Collection<FontStyle> fontStyles,
+                   Labelloc verAlign, boolean scriptShift) {
+      this.scriptShift = scriptShift;
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      this.text = text;
+      this.fontName = fontName;
+      this.fontSize = fontSize;
+      this.fontColor = fontColor;
+      this.fontStyles = fontStyles;
+      this.verAlign = verAlign;
+    }
+
+    /**
+     * Vertical placement of the glyphs inside this run's box. Subscript and superscript runs keep
+     * the height of a full-size run but halve the font size, so the alignment is what puts them low
+     * or high.
+     *
+     * @return the vertical alignment, never {@code null}
+     */
+    public Labelloc getVerAlign() {
+      return verAlign == null ? Labelloc.TOP : verAlign;
+    }
+
+    /**
+     * Whether this run is a subscript or superscript. Such a run keeps the box of a full-size run but
+     * draws at half the font size, so {@link #getVerAlign()} decides where inside the box the glyphs
+     * go. For every other run the box is the text's own measured size and the glyphs simply fill it.
+     *
+     * @return {@code true} for subscript and superscript runs
+     */
+    public boolean isScriptShift() {
+      return scriptShift;
+    }
+
+    public double getX() {
+      return x;
+    }
+
+    public double getY() {
+      return y;
+    }
+
+    public double getWidth() {
+      return width;
+    }
+
+    public double getHeight() {
+      return height;
+    }
+
+    public String getText() {
+      return text;
+    }
+
+    public String getFontName() {
+      return fontName;
+    }
+
+    public double getFontSize() {
+      return fontSize;
+    }
+
+    public Color getFontColor() {
+      return fontColor;
+    }
+
+    public Collection<FontStyle> getFontStyles() {
+      return fontStyles;
     }
   }
 
@@ -719,7 +884,8 @@ public class HtmlConvertor {
     setFontStyles(textTagValue, cellBuilder);
 
     TextCell textCell = new TextCell(position.getX(), position.getY(),
-                                     cellBuilder.build(), textTagValue.verAlign);
+                                     cellBuilder.build(), textTagValue.verAlign,
+                                     textTagValue.subscript || textTagValue.superscript);
 
     TextRow currentRow = textRows.getCurrentRow();
     currentRow.setRowHorAlign(textTagValue.horAlign);
@@ -1232,11 +1398,18 @@ public class HtmlConvertor {
 
     private final Labelloc verAlign;
 
-    TextCell(double xOffset, double yOffset, Node cell, Labelloc verAlign) {
+    /**
+     * True for subscript and superscript runs, which keep a full-size box but halve the font size.
+     * For every other run the box is exactly the text's measured size, so the glyphs fill it.
+     */
+    private final boolean scriptShift;
+
+    TextCell(double xOffset, double yOffset, Node cell, Labelloc verAlign, boolean scriptShift) {
       this.xOffset = xOffset;
       this.yOffset = yOffset;
       this.cell = cell;
       this.verAlign = verAlign;
+      this.scriptShift = scriptShift;
     }
 
     private double width() {

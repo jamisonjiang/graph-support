@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache_gs.commons.lang3.StringUtils;
+import org.graphper.api.Html.LabelTag;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.api.attributes.Rankdir;
@@ -36,6 +37,13 @@ public class Cell {
   protected String id;
 
   protected String label;
+
+  /**
+   * Rich-text body of this cell. Only ever set by {@link RecordTagCompiler} when the record cell was
+   * declared with {@code Html.cell(LabelTag)}; the frozen string grammar cannot produce it. When
+   * non-null the renderer draws styled fragments instead of {@link #label}.
+   */
+  protected LabelTag labelTag;
 
   protected double width;
 
@@ -71,6 +79,19 @@ public class Cell {
 
   public void setLabel(String label) {
     this.label = label;
+  }
+
+  /**
+   * Returns the rich-text body of this cell, or {@code null} when the cell holds plain text.
+   *
+   * @return the rich-text body, or {@code null}
+   */
+  public LabelTag getLabelTag() {
+    return labelTag;
+  }
+
+  public void setLabelTag(LabelTag labelTag) {
+    this.labelTag = labelTag;
   }
 
   public double getWidth() {
