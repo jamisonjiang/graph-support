@@ -337,21 +337,10 @@ class NetworkSimplex {
 
       // Sparsest rank
       RankNode sparsestRank = current;
-      /*
-       * Scan the open range (preMax, nextMin) for the sparsest rank. Both bounds are exclusive
-       * sentinels rather than ranks the node may occupy, so neither is guaranteed to exist: an edge
-       * with limit 0 (minlen=0, where the two endpoints may share a rank) shifts the bound one past
-       * the outermost rank, giving preMax == minRank - 1 or nextMin == maxRank + 1.
-       *
-       * When the lower sentinel falls outside, the first candidate is simply the first rank; the
-       * range must still be scanned, because skipping it would silently exclude the node from
-       * balancing.
-       */
+      // Select the smallest rank in the range
       RankNode preMaxNode = rankContent.get(preMax);
-      RankNode nextMinNode = nextMin > rankContent.maxRank() ? null : rankContent.get(nextMin);
-      RankNode curNode = preMaxNode != null
-          ? preMaxNode.next
-          : rankContent.get(rankContent.minRank());
+      RankNode nextMinNode = rankContent.get(nextMin);
+      RankNode curNode = preMaxNode.next;
 
       while (curNode != null && curNode != nextMinNode) {
         if (curNode.size() >= sparsestRank.size() - 1) {

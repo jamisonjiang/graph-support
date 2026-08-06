@@ -30,7 +30,6 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
-import org.graphper.util.FontUtils;
 
 public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants {
 
@@ -60,10 +59,8 @@ public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants
       };
 
       text(new TextAttribute(flatPointCenter, floatLabel.getFontSize(), floatLabel.getLabel(),
-                              lineDrawProp.lineAttrs().getFontColor(), floatLabel.getFontName(),
-                              FontUtils.measure(floatLabel.getLabel(), floatLabel.getFontName(),
-                                                floatLabel.getFontSize(), 0).getWidth(),
-                              lineConsumer));
+                             lineDrawProp.lineAttrs().getFontColor(), floatLabel.getFontName(),
+                             lineConsumer));
       i++;
     }
 

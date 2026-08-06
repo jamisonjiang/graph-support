@@ -55,8 +55,7 @@ public class LineLabelEditor implements LineEditor<SvgBrush>, SvgConstants {
 
     LineAttrs lineAttrs = lineDrawProp.lineAttrs();
     text(new TextAttribute(labelCenter, fontSize, label, lineAttrs.getFontColor(),
-                            lineAttrs.getFontName(), lineDrawProp.getLabelSize().getWidth(),
-                            lineConsumer));
+                           lineAttrs.getFontName(), lineConsumer));
     return true;
   }
 }

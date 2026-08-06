@@ -35,7 +35,6 @@ import org.graphper.api.ClusterAttrs;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
-import org.graphper.api.Html.RecordTag;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
@@ -648,17 +647,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     double horMargin = 0;
 
     if (nodeDrawProp.noChildrenCell() && isRecordShape(nodeShape)) {
-      /*
-       * Two front-ends, one geometry backend: a structured RecordTag is used as-is, otherwise the
-       * frozen string grammar is parsed into one first. Precedence is recordTag over label, matching
-       * the documented contract on NodeBuilder#recordTag.
-       */
-      RecordTag recordTag = nodeAttrs.getRecordTag();
-      if (recordTag == null) {
-        recordTag = CellLabelCompiler.parse(nodeAttrs.getLabel());
-      }
-
-      RootCell rootCell = RecordTagCompiler.compile(recordTag, nodeAttrs.getFontName(),
+      RootCell rootCell = CellLabelCompiler.compile(nodeAttrs.getLabel(), nodeAttrs.getFontName(),
                                                     getFontSize(nodeAttrs), nodeAttrs.getMargin(),
                                                     new FlatPoint(height, width), needFlip);
       labelBox = new FlatPoint(rootCell.getHeight(), rootCell.getWidth());

@@ -57,14 +57,11 @@ STRING
     : '"' ( ESC_SEQ | ~["\\] )* '"'
         {
             String content = getText().substring(1, getText().length() - 1);
-            content = content.replaceAll("\\\\(?![nlLrRt\\\\])", "");
+            content = content.replaceAll("\\\\(?![nrt\\\\])", ""); // Remove \ not followed by n, r, t, \
 
             // Replace recognized escape sequences with actual characters
-            content = content.replace("\\l", String.valueOf(org.graphper.layout.LabelLines.leftBreak()))
-                             .replace("\\L", String.valueOf(org.graphper.layout.LabelLines.leftBreak()))
-                             .replace("\\r", String.valueOf(org.graphper.layout.LabelLines.rightBreak()))
-                             .replace("\\R", String.valueOf(org.graphper.layout.LabelLines.rightBreak()))
-                             .replace("\\n", "\n")
+            content = content.replace("\\n", "\n")
+                             .replace("\\r", "\r")
                              .replace("\\t", "\t");
             content = org.apache_gs.commons.text.StringEscapeUtils.unescapeJava(content);
             setText(content);
@@ -75,7 +72,7 @@ STRING
  * Fragment for escape sequences within strings.
  */
 fragment ESC_SEQ
-    : '\\' [\\"bfnrtlLR.\n\r]
+    : '\\' [\\"bfnrt.\n\r]
     | '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
     ;
 

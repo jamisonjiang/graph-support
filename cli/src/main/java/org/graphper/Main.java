@@ -25,7 +25,6 @@ import org.graphper.api.attributes.Layout;
 import org.graphper.parser.DotParser;
 import org.graphper.parser.ParseException;
 import org.graphper.parser.PostGraphComponents;
-import org.graphper.ui.UiLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,10 +38,6 @@ public class Main {
   private static final Logger log = LoggerFactory.getLogger(Main.class);
 
   public static void main(String[] args) {
-    if (isUiCommand(args)) {
-      UiLauncher.launch();
-      return;
-    }
     try {
       Command command = newCommand(args);
       File output = command.getOutput();
@@ -73,11 +68,6 @@ public class Main {
     } catch (Exception e) {
       log.error("Generate error:", e);
     }
-  }
-
-  static boolean isUiCommand(String[] args) {
-    return args != null && args.length == 1
-        && ("ui".equalsIgnoreCase(args[0]) || "--ui".equalsIgnoreCase(args[0]));
   }
 
   private static Command newCommand(String[] args) throws WrongCommandException {

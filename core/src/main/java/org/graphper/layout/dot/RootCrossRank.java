@@ -19,7 +19,6 @@ package org.graphper.layout.dot;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -362,58 +361,11 @@ class RootCrossRank implements CrossRank {
    *
    * @param reverse access direction, true is top to bottom, false is bottom to top
    */
-  /**
-   * Assigns each node a stable number, in the arrangement's own order.
-   *
-   * <p>Identity hash codes would be the obvious key here and are the wrong choice: they differ from one
-   * JVM run to the next, which would make the signature - and therefore the point at which a cycle is
-   * noticed, and therefore the layout - irreproducible.
-   */
-  private Map<DNode, Integer> nodeIds(CrossRank crossRank) {
-    Map<DNode, Integer> ids = new HashMap<>();
-    for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
-      int size = crossRank.rankSize(rank);
-      for (int i = 0; i < size; i++) {
-        ids.putIfAbsent(crossRank.getNode(rank, i), ids.size());
-      }
-    }
-    return ids;
-  }
-
-  /**
-   * Order-sensitive fingerprint of the whole node arrangement, used to notice that
-   * {@link #transpose(boolean)} has returned to an arrangement it already produced.
-   */
-  private int orderSignature(CrossRank crossRank, Map<DNode, Integer> ids) {
-    int hash = 1;
-    for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
-      int size = crossRank.rankSize(rank);
-      for (int i = 0; i < size; i++) {
-        Integer id = ids.get(crossRank.getNode(rank, i));
-        hash = 31 * hash + (id == null ? 0 : id + 1);
-      }
-      hash = 31 * hash;
-    }
-    return hash;
-  }
-
   void transpose(boolean reverse) {
     int delta;
     int[] leftCrossRecord = new int[3];
     int[] rightCrossRecord = new int[3];
     CrossRank crossRank = calcCrossRank();
-
-    /*
-     * The loop below assumes delta reflects every reordering, so that it reaches 0 once no crossing can
-     * be removed. Curvature swaps break that: they reorder a rank while contributing 0, which lets a
-     * swap at one rank restore a crossing at another, whose removal then reports a genuine delta of 1
-     * forever. Two such ranks can take turns undoing each other and the loop never exits - observed at
-     * over 94 million iterations on a nine node graph. Well behaved graphs converge in a few dozen
-     * iterations, so this bound only cuts off the pathological cycle.
-     */
-    Map<DNode, Integer> nodeIds = nodeIds(crossRank);
-    Set<Integer> visitedOrders = new HashSet<>();
-    visitedOrders.add(orderSignature(crossRank, nodeIds));
 
     do {
       delta = 0;
@@ -425,16 +377,6 @@ class RootCrossRank implements CrossRank {
         rightCrossRecord[1] = 0;
         rightCrossRecord[2] = 0;
         delta += transposeStep(j, reverse, leftCrossRecord, rightCrossRecord);
-      }
-
-      /*
-       * Stopping on a repeated order is not a heuristic: the loop is deterministic, so revisiting an
-       * order means every subsequent order repeats too and no further crossing can be removed. It is
-       * therefore the earliest provably correct exit, and it terminates the oscillation instead of
-       * letting the iteration bound truncate it after thousands of wasted rounds.
-       */
-      if (delta >= 1 && !visitedOrders.add(orderSignature(crossRank, nodeIds))) {
-        break;
       }
     } while (delta >= 1);
   }
@@ -621,16 +563,9 @@ class RootCrossRank implements CrossRank {
         rv += delta;
         exchange(v, w, true);
 
-        /*
-         * The total is the sum of the per rank caches, so it may only absorb what the ranks absorbed.
-         * Updating it with the full delta regardless drove it below zero on hundreds of ordinary
-         * graphs, and MinCross steers on this value.
-         */
-        int applied = updateRankCache(v.getRank() - 1,
-                                      rightCrossRecord[0] - leftCrossRecord[0]);
-        applied += updateRankCache(v.getRank(),
-                                   rightCrossRecord[1] - leftCrossRecord[1]);
-        crossCache.crossNum += applied;
+        updateRankCache(v.getRank() - 1, rightCrossRecord[0] - leftCrossRecord[0]);
+        updateRankCache(v.getRank(), rightCrossRecord[1] - leftCrossRecord[1]);
+        crossCache.crossNum -= delta;
       }
     }
 
@@ -644,26 +579,15 @@ class RootCrossRank implements CrossRank {
     return !v.isVirtual() && !w.isVirtual();
   }
 
-  /**
-   * Applies a crossing delta to one rank's cache, and reports how much was actually applied.
-   *
-   * <p>An expired rank drops the delta on purpose, because its value gets recomputed from scratch on
-   * the next read. The caller has to know that, otherwise the running total would absorb increments
-   * that no rank did — and the total is defined as the sum of the ranks (see {@link #crossNum}).
-   *
-   * @return the delta that landed in the cache, {@code 0} when it was dropped
-   */
-  private int updateRankCache(int rank, int delta) {
+  private void updateRankCache(int rank, int delta) {
     if (rank < minRank() || delta == 0) {
-      return 0;
+      return;
     }
 
     RankCrossCache rankCache = crossCache.getRankCacheIfAbsent(rank);
     if (rankCache.effective) {
       rankCache.crossNum += delta;
-      return delta;
     }
-    return 0;
   }
 
   private boolean canExchange(DNode left, DNode right) {

@@ -106,18 +106,6 @@ public interface SvgConstants {
 
   String CLUSTER = "cluster";
 
-  String EDGE = "edge";
-
-  String CURVE = "curve";
-
-  String SHAPE = "shape";
-
-  String LABEL = "label";
-
-  String ARROWHEAD = "arrowhead";
-
-  String BACKGROUND = "background";
-
   String TRANSFORM = "transform";
 
   String HEIGHT = "height";
@@ -129,10 +117,6 @@ public interface SvgConstants {
   String NONE = "none";
 
   String MIDDLE = "middle";
-
-  String START = "start";
-
-  String END = "end";
 
   String FONT_SIZE = "font-size";
 

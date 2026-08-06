@@ -22,7 +22,7 @@
 
   <groupId>org.graphper</groupId>
   <artifactId>graph-support</artifactId>
-  <version>1.5.3</version>
+  <version>1.5.2</version>
   <packaging>pom</packaging>
 
   <name>${project.artifactId}</name>
@@ -32,7 +32,6 @@
   <modules>
     <module>core</module>
     <module>dot</module>
-    <module>ui</module>
     <module>test</module>
     <module>cli</module>
   </modules>
@@ -58,7 +57,7 @@
     <connection>scm:git:https://github.com/jamisonjiang/graph-support</connection>
     <developerConnection>scm:git:https://github.com/jamisonjiang/graph-support</developerConnection>
     <url>https://github.com/jamisonjiang/graph-support</url>
-    <tag>v1.5.3</tag>
+    <tag>v1.5.2</tag>
   </scm>
 
   <issueManagement>
@@ -107,16 +106,6 @@
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>fop</artifactId>
         <version>${fop-version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.sun.media</groupId>
-            <artifactId>jai-codec</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.media</groupId>
-            <artifactId>jai-core</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

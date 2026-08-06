@@ -23,22 +23,14 @@ import java.util.List;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.CharUtils;
 import org.apache_gs.commons.lang3.StringUtils;
-import org.graphper.api.Html;
-import org.graphper.api.Html.BasicRecordCell;
-import org.graphper.api.Html.RecordTag;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.FontUtils;
 
 /**
- * Parser of <strong>Cell Expression</strong>, the record-label string grammar.
- *
- * <h2>This grammar is frozen</h2>
- * It exists to keep {@code label("{a|<p0>b}")} working and accepts no new features. Anything richer —
- * notably per-cell rich text — is expressed with {@link org.graphper.api.Html#record} and reaches
- * layout as a {@link RecordTag}. Both routes converge on {@link RecordTagCompiler}, which owns all
- * record geometry, so this class only ever turns text into structure.
+ * Compiler of <strong>Cell Expression</strong>.
  *
  * <p><strong>Cell Expression</strong> need specified by shape values of
  * {@link NodeShapeEnum#RECORD} and {@link NodeShapeEnum#M_RECORD}, The structure of a record-based
@@ -75,13 +67,29 @@ public class CellLabelCompiler {
 
   private final String label;
 
-  private RecordTag recordTag;
+  private final String fontName;
 
-  private CellLabelCompiler(String label) {
+  private final double fontSize;
+
+  private final FlatPoint margin;
+
+  private final FlatPoint minCellSize;
+
+  private final boolean defaultHor;
+
+  private RootCell cell;
+
+  private CellLabelCompiler(String label, String fontName, double fontSize,
+                            FlatPoint margin, FlatPoint minCellSize, boolean defaultHor) {
     if (label == null) {
       throw newFormatError();
     }
     this.label = label;
+    this.fontName = fontName;
+    this.fontSize = fontSize;
+    this.margin = margin;
+    this.minCellSize = minCellSize;
+    this.defaultHor = defaultHor;
     init();
   }
 
@@ -132,83 +140,19 @@ public class CellLabelCompiler {
   public static RootCell compile(String label, String fontName, double fontSize,
                                  FlatPoint margin, FlatPoint minCellSize, boolean defaultVer)
       throws LabelFormatException {
-    return RecordTagCompiler.compile(parse(label), fontName, fontSize,
-                                     margin, minCellSize, defaultVer);
+    return new CellLabelCompiler(label, fontName, fontSize, margin,
+                                 minCellSize, defaultVer).cell;
   }
 
-  /**
-   * Parses a record-label string into the structured {@link RecordTag} representation, without
-   * computing any geometry.
-   *
-   * <p>This is the only place the frozen record grammar lives. The grammar accepts no new features:
-   * richer record content (per-cell rich text) is expressed through {@code Html.record(...)}
-   * instead, and both routes converge on {@link RecordTagCompiler}.
-   *
-   * <p>The returned tag's top level is horizontal, matching the grammar's default; each level of
-   * {@code {...}} nesting flips the orientation.
-   *
-   * @param label label to be parsed
-   * @return structured representation of the record label
-   * @throws LabelFormatException The format of the label is wrong
-   */
-  public static RecordTag parse(String label) throws LabelFormatException {
-    return new CellLabelCompiler(label).recordTag;
-  }
-
-  private RecordTag init() throws LabelFormatException {
-    if (recordTag != null) {
-      return recordTag;
+  private RootCell init() throws LabelFormatException {
+    if (cell != null) {
+      return cell;
     }
 
     List<LabelToken> tokens = tokenizer(label);
     LabelAstNode ast = generateAstNodes(tokens);
-
-    // Grammar validation, must run before the tree is reshaped
-    expressAccess(ast, 0, null);
-
-    this.recordTag = toRecordTag(ast, true);
-    return recordTag;
-  }
-
-  /**
-   * Lowers the grammar-shaped parse tree into the structure-shaped {@link RecordTag}.
-   *
-   * <p>The parse tree carries {@code SPLIT} and {@code ID} nodes because the grammar validation
-   * needs to inspect neighbours; the record structure does not — sibling order replaces
-   * {@code SPLIT}, and a port id becomes a field on the cell it belongs to. Dropping those nodes
-   * here is what keeps the loose {@link LabelAstNode} representation from leaking past the parser.
-   */
-  private RecordTag toRecordTag(LabelAstNode express, boolean horizontal) {
-    RecordTag tag = horizontal ? Html.record() : Html.verticalRecord();
-
-    LabelAstNode pre = null;
-    for (Object param : express.params) {
-      if (!(param instanceof LabelAstNode)) {
-        throw newFormatError();
-      }
-
-      LabelAstNode node = (LabelAstNode) param;
-      if (node.emptyParams()) {
-        // An unclosed or empty port expression such as "<>" is not a legal field id
-        throw newFormatError();
-      }
-
-      if (node.isText()) {
-        BasicRecordCell recordCell = Html.cell().text(node.getTextValue());
-        if (pre != null && pre.isId()) {
-          recordCell.id(pre.getIdValue());
-        }
-        tag.cell(recordCell);
-      } else if (node.isExpress()) {
-        tag.cell(Html.cell(toRecordTag(node, !horizontal)));
-      }
-      // SPLIT and ID nodes carry no cell of their own; sibling order replaces SPLIT and the port id
-      // is folded into the text cell that follows it.
-
-      pre = node;
-    }
-
-    return tag;
+    initCell(ast);
+    return cell;
   }
 
   private List<LabelToken> tokenizer(String label) {
@@ -492,6 +436,160 @@ public class CellLabelCompiler {
     return null;
   }
 
+  private void initCell(LabelAstNode ast) {
+    // AST legal check
+    expressAccess(ast, 0, null);
+
+    // Convert ast to Label Cell
+    LabelAstNode pre = null;
+    double maxWidth = 0;
+    double maxHeight = 0;
+    this.cell = new RootCell(defaultHor);
+
+    for (Object node : ast.params) {
+      if (!(node instanceof LabelAstNode)) {
+        throw newFormatError();
+      }
+
+      Cell c = accessNode(cell, pre, (LabelAstNode) node);
+      pre = (LabelAstNode) node;
+
+      if (c != null) {
+        maxWidth = Math.max(c.getWidth(), maxWidth);
+        maxHeight = Math.max(c.getHeight(), maxHeight);
+      }
+    }
+
+    postSizeHandle(cell, maxWidth, maxHeight);
+    alignMinSize();
+  }
+
+  private void alignMinSize() {
+    double widthIncr = 0;
+    double heightIncr = 0;
+    if (minCellSize != null) {
+      widthIncr = minCellSize.getWidth() - cell.getWidth();
+      heightIncr = minCellSize.getHeight() - cell.getHeight();
+    }
+
+    alignMinSize(cell, widthIncr, heightIncr, cell.offset);
+  }
+
+  private void alignMinSize(Cell cell, double widthIncr, double heightIncr, FlatPoint offset) {
+    if (widthIncr > 0) {
+      cell.width += widthIncr;
+    }
+    if (heightIncr > 0) {
+      cell.height += heightIncr;
+    }
+
+    if (cell.isLeaf()) {
+      return;
+    }
+
+    double childAlignSize = 0;
+    for (Cell child : cell.getChildren()) {
+      if (cell.isHor()) {
+        childAlignSize += child.getHeight();
+      } else {
+        childAlignSize += child.getWidth();
+      }
+    }
+
+    if (cell.isHor()) {
+      childAlignSize = cell.getHeight() - childAlignSize;
+      heightIncr = childAlignSize / cell.childrenSize();
+    } else {
+      childAlignSize = cell.getWidth() - childAlignSize;
+      widthIncr = childAlignSize / cell.childrenSize();
+    }
+
+    double axisOffset = 0;
+    for (Cell child : cell.getChildren()) {
+      FlatPoint childOffset;
+      if (cell.isHor()) {
+        childOffset = new FlatPoint(offset.getX(), offset.getY() + axisOffset);
+      } else {
+        childOffset = new FlatPoint(offset.getX() + axisOffset, offset.getY());
+      }
+
+      child.offset = childOffset;
+      alignMinSize(child, widthIncr, heightIncr, childOffset);
+
+      if (child.isHor) {
+        axisOffset += child.getWidth();
+      } else {
+        axisOffset += child.getHeight();
+      }
+    }
+  }
+
+  private Cell accessNode(Cell current, LabelAstNode pre, LabelAstNode node) {
+    if (CollectionUtils.isEmpty(node.params)) {
+      throw newFormatError();
+    }
+
+    if (node.isSplit() || node.isId()) {
+      return null;
+    }
+
+    Cell c = new Cell(!current.isHor);
+    if (pre != null && pre.isId() && node.isText()) {
+      c.id = pre.getIdValue();
+      if (StringUtils.isNotEmpty(c.id)) {
+        cell.put(c.id, c);
+      }
+    }
+
+    pre = null;
+    double maxWidth = 0;
+    double maxHeight = 0;
+    for (Object param : node.params) {
+      if (param instanceof LabelAstNode) {
+        accessNode(c, pre, (LabelAstNode) param);
+        pre = (LabelAstNode) param;
+      } else {
+        c.label = param != null ? Objects.toString(param) : null;
+        setCellSize(c);
+      }
+
+      maxWidth = Math.max(c.getWidth(), maxWidth);
+      maxHeight = Math.max(c.getHeight(), maxHeight);
+    }
+
+    postSizeHandle(c, maxWidth, maxHeight);
+    addChild(current, c);
+    return c;
+  }
+
+  private void postSizeHandle(Cell cell, double maxWidth, double maxHeight) {
+    for (Cell child : cell.getChildren()) {
+      if (cell.isHor) {
+        child.width = maxWidth;
+      } else {
+        child.height = maxHeight;
+      }
+    }
+  }
+
+  private void setCellSize(Cell c) {
+    FlatPoint size;
+    if (StringUtils.isEmpty(c.label)) {
+      size = DEFAULT_SIZE.clone();
+    } else {
+      size = FontUtils.measure(c.getLabel(), fontName, this.fontSize, 0);
+    }
+
+    c.width = size.getWidth();
+    c.height = size.getHeight();
+    if (margin == null) {
+      return;
+    }
+
+    c.width += margin.getWidth();
+    c.height += margin.getHeight();
+  }
+
   private void expressAccess(LabelAstNode node, int idx, List<Object> params) {
     if (!node.isExpress()) {
       return;
@@ -564,6 +662,26 @@ public class CellLabelCompiler {
     return node;
   }
 
+  private void addChild(Cell parent, Cell child) {
+    if (child == null) {
+      return;
+    }
+    if (parent.children == null) {
+      parent.children = new ArrayList<>(2);
+    }
+    child.parent = parent;
+    parent.children.add(child);
+
+    double w = child.getWidth();
+    double h = child.getHeight();
+    if (child.isHor) {
+      parent.width += w;
+      parent.height = Math.max(h, parent.height);
+    } else {
+      parent.height += h;
+      parent.width = Math.max(w, parent.width);
+    }
+  }
 
   private boolean nextIsLabel(List<Object> params, int idx) {
     Object next = nextParam(params, idx);

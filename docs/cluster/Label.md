@@ -2,9 +2,6 @@
 
 Defines the **text content** of a **cluster**. Cluster labels can be **simple strings**, **formatted using LabelTag**, or **structured using tables**.
 
-Plain quoted labels support `\n` for a centered line, `\l` for a left-aligned line, and `\r` for a
-right-aligned line. Uppercase `\L` and `\R` aliases are also accepted.
-
 ------
 
 ## **Using a Simple Cluster Label**

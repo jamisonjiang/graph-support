@@ -27,7 +27,6 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
-import org.graphper.layout.LabelLines;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.graphper.util.CollectionUtils;
@@ -44,9 +43,7 @@ public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
     }
 
     Element pathElement = brush.getOrCreateChildElementById(SvgConstants.PATH_ELE,
-                                                             SvgConstants.PATH_ELE);
-    pathElement.setAttribute(CLASS,
-                             lineDrawProp.isBesselCurve() ? PATH_ELE + SPACE + CURVE : PATH_ELE);
+                                                            SvgConstants.PATH_ELE);
 
     Color color = lineDrawProp.lineAttrs().getColor();
     pathElement.setAttribute(SvgConstants.D, pointsToSvgLine(lineDrawProp.getStart(), lineDrawProp,
@@ -59,13 +56,13 @@ public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
 
     String text;
     if (brush.drawBoard().drawGraph().getGraphviz().isDirected()) {
-      text = LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
+      text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
           + "->"
-          + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
+          + lineDrawProp.getLine().head().nodeAttrs().getLabel();
     } else {
-      text = LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
+      text = lineDrawProp.getLine().tail().nodeAttrs().getLabel()
           + "--"
-          + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
+          + lineDrawProp.getLine().head().nodeAttrs().getLabel();
     }
 
     title.setTextContent(text);

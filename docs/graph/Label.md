@@ -11,7 +11,6 @@ The **label** attribute in Graphviz sets a **global label** for the entire graph
 - **Supports rich text formatting** using `LabelTag`.
 - **Allows structured content** using tables.
 - **Typically centered above the graph but can be adjusted** using `labelloc`.
-- Plain quoted labels support `\n` (center), `\l` (left), and `\r` (right) line terminators.
 
 ------
 
@@ -24,13 +23,6 @@ digraph G {
     label="Simple Graph Label";  // Sets a plain text title for the entire graph
     a;
     b;
-}
-```
-
-```dot
-digraph G {
-    label="left line\lcenter line\nright line\r";
-    a -> b;
 }
 ```
 

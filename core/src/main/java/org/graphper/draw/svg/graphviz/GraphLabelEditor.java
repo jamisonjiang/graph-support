@@ -49,8 +49,7 @@ public class GraphLabelEditor implements GraphEditor<SvgBrush>, SvgConstants {
     };
 
     text(new TextAttribute(graphvizDrawProp.getLabelCenter(), fontSize, label,
-                            graphAttrs.getFontColor(), graphAttrs.getFontName(),
-                            graphvizDrawProp.getLabelSize().getWidth(), lineConsumer));
+                           graphAttrs.getFontColor(), graphAttrs.getFontName(), lineConsumer));
     return true;
   }
 }

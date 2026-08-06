@@ -128,7 +128,6 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
   public synchronized SvgBrush drawLine(LineDrawProp line) {
     Element element = graphElement.createChildElement(SvgConstants.G_ELE);
     element.setAttribute(SvgConstants.ID, lineId(line));
-    element.setAttribute(SvgConstants.CLASS, SvgConstants.EDGE);
     return new SvgBrush(lineId(line.getLine()), element, svgDocument, this);
   }
 

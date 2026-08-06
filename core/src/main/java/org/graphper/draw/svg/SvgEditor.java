@@ -16,21 +16,18 @@
 
 package org.graphper.draw.svg;
 
+import static org.apache_gs.commons.lang3.StringUtils.NEW_LINE_SYMBOL;
 import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.Color;
-import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.ext.Box;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.draw.ContainerDrawProp;
-import org.graphper.layout.LabelLines;
-import org.graphper.layout.LabelLines.Alignment;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
@@ -60,7 +57,7 @@ public class SvgEditor implements SvgConstants {
     Asserts.nullArgument(textLineAttribute, "text line attribute");
     text.setAttribute(X, String.valueOf(textLineAttribute.getX()));
     text.setAttribute(Y, String.valueOf(textLineAttribute.getY()));
-    text.setAttribute(TEXT_ANCHOR, textLineAttribute.getTextAnchor());
+    text.setAttribute(TEXT_ANCHOR, MIDDLE);
     text.setAttribute(FONT_SIZE, String.valueOf(fontSize));
 
     TextAttribute attribute = textLineAttribute.getTextAttribute();
@@ -72,46 +69,6 @@ public class SvgEditor implements SvgConstants {
       String fontName =
           FontUtils.fontExists(attribute.fontName) ? attribute.fontName : DEFAULT_FONT;
       text.setAttribute(FONT_FAMILY, fontName);
-    }
-  }
-
-  /**
-   * Applies font styles to a text element as svg presentation attributes.
-   *
-   * <p>Shared by every text-drawing path. Record cells used to skip this entirely, which silently
-   * dropped {@code fontStyle} on record-shaped nodes.
-   *
-   * @param textEle    text element to decorate
-   * @param fontStyles styles to apply, may be {@code null} or empty
-   */
-  public static void setFontStyle(Element textEle, Collection<FontStyle> fontStyles) {
-    if (textEle == null || CollectionUtils.isEmpty(fontStyles)) {
-      return;
-    }
-
-    for (FontStyle fontStyle : fontStyles) {
-      if (fontStyle == null) {
-        continue;
-      }
-      switch (fontStyle) {
-        case BOLD:
-          textEle.setAttribute(FONT_WEIGHT, FontStyle.BOLD.name().toLowerCase());
-          break;
-        case ITALIC:
-          textEle.setAttribute(FONT_STYLE, FontStyle.ITALIC.name().toLowerCase());
-          break;
-        case OVERLINE:
-          textEle.setAttribute(TEXT_DECORATION, FontStyle.OVERLINE.name().toLowerCase());
-          break;
-        case UNDERLINE:
-          textEle.setAttribute(TEXT_DECORATION, FontStyle.UNDERLINE.name().toLowerCase());
-          break;
-        case STRIKETHROUGH:
-          textEle.setAttribute(TEXT_DECORATION, LINE_THROUGH);
-          break;
-        default:
-          break;
-      }
     }
   }
 
@@ -129,14 +86,14 @@ public class SvgEditor implements SvgConstants {
     }
 
     double halfHeight = textAttribute.fontsize / 2;
-    List<LabelLines.Line> lines = LabelLines.parse(textAttribute.label);
-    int midIndex = (lines.size() - 1) / 2;
-    boolean oddLen = (lines.size() & 1) == 1;
+    String[] lines = textAttribute.label.split(NEW_LINE_SYMBOL);
+    int midIndex = (lines.length - 1) / 2;
+    boolean oddLen = (lines.length & 1) == 1;
     double xc = textAttribute.centerPoint.getX();
     double yc;
     double t = halfHeight / 3;
 
-    for (int i = 0; i < lines.size(); i++) {
+    for (int i = 0; i < lines.length; i++) {
       yc = textAttribute.centerPoint.getY() - t;
 
       yc -= (midIndex - i) * textAttribute.fontsize;
@@ -144,10 +101,8 @@ public class SvgEditor implements SvgConstants {
         yc += halfHeight;
       }
 
-      LabelLines.Line line = lines.get(i);
       textAttribute.lineAttributeConsumer.accept(
-          new TextLineAttribute(textAttribute.lineX(line.getAlignment()), yc, i, line.getText(),
-                                line.getAlignment(), textAttribute));
+          new TextLineAttribute(xc, yc, i, lines[i], textAttribute));
     }
   }
 
@@ -482,16 +437,8 @@ public class SvgEditor implements SvgConstants {
 
     private final Consumer<TextLineAttribute> lineAttributeConsumer;
 
-    private final double labelWidth;
-
     public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
                          String fontName, Consumer<TextLineAttribute> lineAttributeConsumer) {
-      this(centerPoint, fontsize, label, fontColor, fontName, 0, lineAttributeConsumer);
-    }
-
-    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
-                         String fontName, double labelWidth,
-                         Consumer<TextLineAttribute> lineAttributeConsumer) {
       Asserts.nullArgument(centerPoint, "centerPoint");
       Asserts.illegalArgument(StringUtils.isEmpty(label), "label can not be empty");
       this.centerPoint = centerPoint;
@@ -499,18 +446,7 @@ public class SvgEditor implements SvgConstants {
       this.label = label;
       this.fontColor = fontColor;
       this.fontName = StringUtils.isNotEmpty(fontName) ? fontName : DEFAULT_FONT;
-      this.labelWidth = labelWidth;
       this.lineAttributeConsumer = lineAttributeConsumer;
-    }
-
-    private double lineX(Alignment alignment) {
-      if (labelWidth <= 0 || alignment == Alignment.CENTER) {
-        return centerPoint.getX();
-      }
-      double inset = Math.min(fontsize / 2, labelWidth / 2);
-      return alignment == Alignment.LEFT
-          ? centerPoint.getX() - labelWidth / 2 + inset
-          : centerPoint.getX() + labelWidth / 2 - inset;
     }
   }
 
@@ -524,17 +460,14 @@ public class SvgEditor implements SvgConstants {
 
     private final String line;
 
-    private final Alignment alignment;
-
     private final TextAttribute textAttribute;
 
-    public TextLineAttribute(double x, double y, int lineNo, String line, Alignment alignment,
-                              TextAttribute textAttribute) {
+    public TextLineAttribute(double x, double y, int lineNo, String line,
+                             TextAttribute textAttribute) {
       this.x = x;
       this.y = y;
       this.lineNo = lineNo;
       this.line = line;
-      this.alignment = alignment;
       this.textAttribute = textAttribute;
     }
 
@@ -556,16 +489,6 @@ public class SvgEditor implements SvgConstants {
 
     public TextAttribute getTextAttribute() {
       return textAttribute;
-    }
-
-    public String getTextAnchor() {
-      if (alignment == Alignment.LEFT) {
-        return START;
-      }
-      if (alignment == Alignment.RIGHT) {
-        return END;
-      }
-      return MIDDLE;
     }
   }
 }

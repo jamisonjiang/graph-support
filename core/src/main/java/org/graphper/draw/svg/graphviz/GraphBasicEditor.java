@@ -34,7 +34,6 @@ public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
     setHref(graphvizDrawProp, brush);
 
     Element background = brush.getOrCreateChildElementById(POLYGON_ELE, POLYGON_ELE);
-    background.setAttribute(CLASS, BACKGROUND);
 
     double leftBorder = graphvizDrawProp.getLeftBorder();
     double rightBorder = graphvizDrawProp.getRightBorder();
