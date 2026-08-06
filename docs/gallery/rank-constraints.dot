@@ -1,0 +1,44 @@
+digraph RankConstraints {
+  graph [
+    rankdir="TB"
+    bgcolor="#F7F9FC"
+    nodesep="0.45"
+    ranksep="0.58"
+    splines="spline"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="9"
+    color="#CBD5E1"
+    fillcolor="#FFFFFF"
+    fontcolor="#1E293B"
+    margin="0.14"
+  ]
+
+  edge [color="#94A3B8" arrowsize="0.65"]
+
+  source [shape="circle" color="#6366F1" fillcolor="#EEF2FF" label="START"]
+  parse [fillcolor="#F0F9FF" color="#7DD3FC" label="PARSE"]
+  validate [fillcolor="#F0FDFA" color="#5EEAD4" label="VALIDATE"]
+  enrich [fillcolor="#FFF7ED" color="#FDBA74" label="ENRICH"]
+  store [fillcolor="#F5F3FF" color="#C4B5FD" label="STORE"]
+  index [fillcolor="#F5F3FF" color="#C4B5FD" label="INDEX"]
+  publish [fillcolor="#F5F3FF" color="#C4B5FD" label="PUBLISH"]
+  done [shape="circle" color="#10B981" fillcolor="#ECFDF5" label="DONE"]
+
+  source -> parse
+  source -> validate
+  source -> enrich
+  parse -> store
+  validate -> index
+  enrich -> publish
+  store -> done
+  index -> done
+  publish -> done
+
+  { rank="same" parse validate enrich }
+  { rank="same" store index publish }
+}

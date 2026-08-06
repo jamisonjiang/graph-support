@@ -2,6 +2,9 @@
 
 Defines the **text content** of an **edge**. Edge labels can be **simple strings**, **formatted using LabelTag**, or **structured using tables**.
 
+Plain quoted labels support `\n` for a centered line, `\l` for a left-aligned line, and `\r` for a
+right-aligned line. Alignment is relative to the edge label box.
+
 ------
 
 ## **Using a Simple Edge Label**

@@ -1,0 +1,109 @@
+digraph ReleaseFlightpath {
+  graph [
+    rankdir="TB"
+    bgcolor="#F7F9FC"
+    fontname="Arial"
+    nodesep="0.42"
+    ranksep="0.55"
+    splines="spline"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="10"
+    color="#CBD5E1"
+    fontcolor="#1E293B"
+    fillcolor="#FFFFFF"
+    margin="0.16"
+    penwidth="1.25"
+  ]
+
+  edge [
+    fontname="Arial"
+    fontsize="9"
+    color="#94A3B8"
+    fontcolor="#64748B"
+    arrowsize="0.7"
+    penwidth="1.2"
+  ]
+
+  commit [
+    shape="circle"
+    color="#818CF8"
+    fillcolor="#EEF2FF"
+    label=<
+      <B>01</B><BR/>
+      <FONT POINT-SIZE="8">COMMIT</FONT>
+    >
+  ]
+
+  build [
+    label=<
+      <B>02  BUILD</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#64748B">compile · package</FONT>
+    >
+  ]
+
+  test [
+    label=<
+      <B>03  VERIFY</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#10B981">2,418 tests passed</FONT>
+    >
+  ]
+
+  scan [
+    label=<
+      <B>04  SCAN</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#10B981">0 critical findings</FONT>
+    >
+  ]
+
+  canary [
+    shape="diamond"
+    color="#F59E0B"
+    fillcolor="#FFFBEB"
+    label=<
+      <B>CANARY</B><BR/>
+      <FONT POINT-SIZE="8">5% traffic</FONT>
+    >
+  ]
+
+  observe [
+    label=<
+      <B>05  OBSERVE</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#64748B">12 min · all green</FONT>
+    >
+  ]
+
+  production [
+    color="#10B981"
+    fillcolor="#ECFDF5"
+    penwidth="1.8"
+    label=<
+      <B>06  PRODUCTION</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#047857">100% TRAFFIC</FONT>
+    >
+  ]
+
+  rollback [
+    color="#FDA4AF"
+    fillcolor="#FFF1F2"
+    fontcolor="#BE123C"
+    label=<
+      <B>ROLLBACK</B><BR/>
+      <FONT POINT-SIZE="9">restore stable</FONT>
+    >
+  ]
+
+  commit -> build -> test -> scan -> canary
+  canary -> observe [label="healthy" color="#10B981"]
+  observe -> production [label="promote" color="#10B981" penwidth="1.8"]
+  canary -> rollback [label="degraded" color="#FB7185"]
+  rollback -> build [label="fix forward" style="dashed" color="#FB7185" constraint="false"]
+
+  { rank="same" commit build test }
+  { rank="same" scan canary observe }
+  { rank="same" rollback production }
+}

@@ -176,6 +176,9 @@ public class SvgBrush implements Brush {
     if (ele == null) {
       ele = getCommonContainer().createChildElement(id, tagName);
       ele.setAttribute(SvgConstants.ID, id);
+      if (SvgConstants.TEXT_ELE.equals(tagName)) {
+        ele.setAttribute(SvgConstants.CLASS, SvgConstants.LABEL);
+      }
     }
 
     return ele;
@@ -197,6 +200,7 @@ public class SvgBrush implements Brush {
    */
   public Element getOrCreateShapeEleById(String childId, String tagName) {
     Element shapeEle = getOrCreateChildElementById(childId, tagName);
+    shapeEle.setAttribute(SvgConstants.CLASS, SvgConstants.SHAPE);
     addGroup(SvgConstants.SHAPE_GROUP_KEY, shapeEle);
     return shapeEle;
   }

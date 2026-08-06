@@ -1,306 +1,353 @@
 # graph-support
 
-[![Java](https://img.shields.io/badge/Java-8+-orange.svg)](https://adoptium.net/)
-[![Maven](https://img.shields.io/badge/Maven-3.6+-blue.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-8%2B-orange.svg)](https://adoptium.net/)
+[![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](https://maven.apache.org/)
+[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](https://github.com/jamisonjiang/graph-support/releases)
+[![License](https://img.shields.io/badge/License-Apache--2.0-green.svg)](LICENSE)
 
-> A lightweight Java re-implementation of [Graphviz](https://graphviz.org/) for **parsing**, **layout**, and **rendering** graphs.
+graph-support is a Java implementation of the Graphviz workflow: build or parse a graph, calculate
+its layout, and render it without installing a native Graphviz binary.
 
-## ✨ Features
+It can be used as a Java library, a DOT parser, a command-line renderer, or a desktop DOT editor.
 
-- 🚀 **Lightweight & Self-Contained** - No external dependencies, no Graphviz binaries required
-- 🔄 **Dual API Support** - Use Java API or DOT script, whichever fits your workflow
-- 🌍 **Cross-Platform** - Works on Mac, Linux, Windows, and Android
-- ⚡ **High Performance** - Advanced DOT layout engines (DOT, DOTQ) for optimal graph positioning
-- 🎯 **Easy Integration** - Perfect for embedding into Java applications
+## Capabilities
 
-## 🚀 Quick Start
+- Java builder API for nodes, edges, clusters, subgraphs, ports, labels, and styles
+- DOT parsing with hierarchical and force-directed layout engines
+- SVG, PNG, JPG, JPEG, GIF, TIFF, and PDF output
+- Transparent backgrounds and readable, CSS-friendly semantic SVG output
+- HTML-like tables, rich text, multiline labels, and record-shaped nodes
+- Graphviz-compatible `\l` / `\r` line alignment and tight zero-margin SVG canvases
+- Edge routing, labels, ports, arrow shapes, and cluster-aware layout
+- Layout-only access for applications that provide their own renderer
+- CLI rendering and a live desktop DOT Studio
+- Java 8+, with no native Graphviz installation required
 
-### Prerequisites
+## Quick Start
 
-- **Java 8+** ([OpenJDK](https://adoptium.net/) recommended)
-- **Maven 3.6+** ([Download here](https://maven.apache.org/))
+Current version: **1.5.3**.
 
-### Installation
-
-Add to your `pom.xml`:
+For graphs created with the Java API:
 
 ```xml
-<!-- Core functionality (Java API only) -->
 <dependency>
-    <groupId>org.graphper</groupId>
-    <artifactId>graph-support-core</artifactId>
-    <version>1.5.2</version>
-</dependency>
-
-<!-- DOT parsing support -->
-<dependency>
-    <groupId>org.graphper</groupId>
-    <artifactId>graph-support-dot</artifactId>
-    <version>1.5.2</version>
+  <groupId>org.graphper</groupId>
+  <artifactId>graph-support-core</artifactId>
+  <version>1.5.3</version>
 </dependency>
 ```
 
-### Your First Graph
+For applications that parse DOT source:
 
-```java
-import org.graphper.api.Graphviz;
-import org.graphper.api.Node;
-import org.graphper.api.FileType;
-
-public class HelloGraph {
-    public static void main(String[] args) {
-        // Create nodes
-        Node a = Node.builder().label("Hello").build();
-        Node b = Node.builder().label("World").build();
-        
-        // Create graph
-        Graphviz graph = Graphviz.digraph()
-            .addLine(a, b)
-            .build();
-        
-        // Save as PNG
-        try {
-            graph.toFile(FileType.PNG).save("./", "hello-world");
-            System.out.println("✅ Graph saved as 'hello-world.png'");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
+```xml
+<dependency>
+  <groupId>org.graphper</groupId>
+  <artifactId>graph-support-dot</artifactId>
+  <version>1.5.3</version>
+</dependency>
 ```
 
-## 📚 Documentation
+Requirements:
 
-- 📖 **[Complete Documentation](./docs)** - Detailed API reference and examples
-- 🎯 **[Release Notes](https://github.com/jamisonjiang/graph-support/releases)** - Latest updates and changes
-- 🐛 **[Issue Tracker](https://github.com/jamisonjiang/graph-support/issues)** - Report bugs or request features
+- Java 8 or newer
+- Maven 3.6 or newer when building from source
 
-## 📖 Usage Examples
+### Build a Graph in Java
 
-### 1. Java API (Recommended for Programmatic Graphs)
-
-Perfect when you want to build graphs programmatically:
+This complete example creates a styled workflow, applies reusable defaults, adds a labeled edge,
+and writes the result as SVG.
 
 ```java
 import java.io.IOException;
-import org.graphper.api.Graphviz;
-import org.graphper.api.Node;
-import org.graphper.api.Line;
 import org.graphper.api.FileType;
+import org.graphper.api.Graphviz;
+import org.graphper.api.Line;
+import org.graphper.api.Node;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.api.attributes.Rankdir;
 import org.graphper.draw.ExecuteException;
 
-public class AdvancedExample {
+public class OrderWorkflow {
+
   public static void main(String[] args) throws ExecuteException, IOException {
-    // Create nodes with custom styling
-    Node start = Node.builder()
-        .label("Start")
+    Node received = Node.builder()
+        .label("Order received")
         .shape(NodeShapeEnum.CIRCLE)
         .color(Color.GREEN)
         .build();
 
-    Node process = Node.builder()
-        .label("Process")
-        .shape(NodeShapeEnum.RECT)
+    Node validate = Node.builder()
+        .label("Validate order")
         .build();
 
-    Node end = Node.builder()
-        .label("End")
-        .shape(NodeShapeEnum.TRAPEZIUM)
-        .color(Color.RED)
+    Node fulfilled = Node.builder()
+        .label("Fulfilled")
+        .shape(NodeShapeEnum.CIRCLE)
+        .color(Color.BLUE)
         .build();
 
-    // Build graph with custom edge styling
     Graphviz graph = Graphviz.digraph()
-        .tempNode(Node.builder().fontSize(14).build()) // Default node style
-        .addLine(start, process, end)
-        .tempLine(Line.tempLine().color(Color.BLUE).penWidth(2).build()) // Default edge style
+        .rankdir(Rankdir.LR)
+        .tempNode(Node.builder().shape(NodeShapeEnum.RECT).fontSize(14).build())
+        .addLine(received, validate)
+        .addLine(Line.builder(validate, fulfilled).label("approved").build())
         .build();
 
-    // Export
-    graph.toFile(FileType.PNG).save("./", "workflow");
+    graph.toFile(FileType.SVG).save("./", "order-workflow");
   }
 }
 ```
 
-### 2. DOT Script Parsing
+Other output formats only require changing `FileType`. TIFF uses Apache Batik and PDF uses Apache
+FOP; the CLI distribution already packages its rendering dependencies.
 
-Great for existing DOT files or when you prefer the DOT syntax:
+## DOT and Rich Content
+
+DOT input supports the same layout and rendering pipeline as the Java API. HTML-like labels can
+combine tables, cell spans, colors, font styles, links, tooltips, alignment, and multiline text.
+The example below also uses clusters and styled edges, so it represents a real dashboard component
+rather than a collection of isolated tag snippets.
+
+```dot
+digraph ServiceHealth {
+  graph [rankdir="LR"]
+  node [shape="plaintext", fontname="Arial"]
+
+  subgraph cluster_runtime {
+    label="Runtime"
+    color="#C7D2FE"
+    style="rounded,dashed"
+
+    gateway [label=<
+      <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7"
+             COLOR="#CBD5E1" BGCOLOR="#FFFFFF">
+        <TR>
+          <TD COLSPAN="2" BGCOLOR="#312E81" FONTCOLOR="#FFFFFF">
+            <B>API GATEWAY</B>
+          </TD>
+        </TR>
+        <TR><TD ALIGN="LEFT">Requests</TD><TD>12,480 / min</TD></TR>
+        <TR><TD ALIGN="LEFT">Latency p95</TD><TD><FONT COLOR="#0284C7">142 ms</FONT></TD></TR>
+        <TR><TD ALIGN="LEFT">Status</TD><TD><FONT COLOR="#10B981"><B>HEALTHY</B></FONT></TD></TR>
+      </TABLE>
+    >]
+
+    orders [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8"
+             COLOR="#99F6E4" BGCOLOR="#F0FDFA">
+        <TR><TD><B>ORDER SERVICE</B></TD></TR>
+        <TR><TD><FONT POINT-SIZE="9" COLOR="#0F766E">8 instances · all ready</FONT></TD></TR>
+      </TABLE>
+    >]
+  }
+
+  gateway -> orders [label="route" color="#6366F1" penwidth="1.6"]
+}
+```
+
+Parse DOT from Java:
 
 ```java
-import java.io.IOException;
-import org.graphper.api.Graphviz;
-import org.graphper.api.FileType;
-import org.graphper.draw.ExecuteException;
-import org.graphper.parser.DotParser;
-
-public class DotExample {
-  public static void main(String[] args) throws ExecuteException, IOException {
-    String dotScript = "digraph workflow {\n" +
-        "    start [shape=oval, color=green];\n" +
-        "    process [shape=rect];\n" +
-        "    end [shape=oval, color=red];\n" +
-        "    \n" +
-        "    start -> process -> end;\n" +
-        "}";
-
-    Graphviz graph = DotParser.parse(dotScript);
-    graph.toFile(FileType.PNG).save("./", "workflow-from-dot");
-  }
-}
+Graphviz graph = DotParser.parse(dotSource);
+String svg = graph.toSvgStr();
 ```
 
-### 3. Command Line Interface
+Rich-label building blocks are also available from Java through `Html.table(...)`, `LabelTag`, and
+record cells. Detailed references:
 
-Download the CLI JAR from [releases](https://github.com/jamisonjiang/graph-support/releases), for quick rendering without writing code:
+- [HTML tables](docs/Table.md)
+- [Rich text and LabelTag](docs/LabelTag.md)
+- [Record-shaped nodes](docs/node/RecordTag.md)
+
+## Command Line
+
+Download `graph-support-cli.jar` from
+[GitHub Releases](https://github.com/jamisonjiang/graph-support/releases), or build it from source.
 
 ```bash
-
-# Render from DOT file
+# DOT file to PNG
 java -jar graph-support-cli.jar input.dot -o output -Tpng
 
-# Render from DOT string
-java -jar graph-support-cli.jar -s "digraph {a->b->c}" -o test -Tpng
+# DOT string to SVG
+java -jar graph-support-cli.jar -s "digraph { a -> b -> c }" -o graph -Tsvg
 
-# Get help
+# Select a layout engine
+java -jar graph-support-cli.jar input.dot -o output -Tsvg -Kdotq
+
+# Open the desktop editor
+java -jar graph-support-cli.jar ui
+
+# Show all options
 java -jar graph-support-cli.jar -h
 ```
 
-## 🎨 Advanced Features
+## Desktop DOT Studio
 
-### Layout Engine Only (Coordinates without Images)
+The CLI JAR includes an optional desktop editor. It runs entirely in process and uses graph-support
+itself for parsing, layout, and SVG generation.
 
-Get node positions and edge paths for custom rendering:
+Key features:
+
+- Live and manual DOT-to-SVG rendering
+- Syntax highlighting, folding, line numbers, bracket matching, and find
+- Completion for keywords, attributes, values, and graph/subgraph templates
+- Attribute snippets such as `label = ""`, with the caret placed inside the value
+- Paired brackets and context-aware two-space indentation
+- Inline syntax-error squiggles that do not move the caret or selection
+- Draggable split view, SVG pan, wheel/trackpad zoom, Fit, and live zoom percentage
+- DOT open/save plus SVG and PNG export
+
+Build and launch the UI from the repository root:
+
+```bash
+mvn -pl cli -am package
+java -jar cli/target/graph-support-cli.jar ui
+```
+
+## Layout and Rendering
+
+Available layout engines:
+
+| Layout | Best for |
+| --- | --- |
+| `DOT` | High-quality hierarchical directed graphs |
+| `DOTQ` | Faster hierarchical layout for larger graphs |
+| `FDP` | General force-directed graphs |
+| `JFDP` | Force-directed layout with improved stability |
+| `GFDP` | Dense graphs with localized force calculations |
+
+For custom rendering, obtain the calculated draw model instead of an image:
 
 ```java
 import org.graphper.api.Graphviz;
-import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.ExecuteException;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 
-public class LayoutOnlyExample {
-  public static void main(String[] args) throws ExecuteException {
-    Node a = Node.builder().label("A").build();
-    Node b = Node.builder().label("B").build();
+public class LayoutInspector {
 
-    Graphviz graph = Graphviz.digraph()
-        .addLine(a, b)
-        .build();
+  public static void inspect(Graphviz graph) throws ExecuteException {
+    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(graph);
 
-    // Get layout without rendering
-    DrawGraph layout = Layout.DOT.getLayoutEngine().layout(graph);
-
-    // Access coordinates
-    for (NodeDrawProp node : layout.nodes()) {
-      System.out.printf("Node %s: (%.2f, %.2f)%n",
+    for (NodeDrawProp node : drawGraph.nodes()) {
+      System.out.printf("node=%s x=%.2f y=%.2f%n",
                         node.getNode().nodeAttrs().getLabel(), node.getX(), node.getY());
     }
 
-    // Access edge paths
-    for (LineDrawProp line : layout.lines()) {
-      if (line.isBesselCurve()) {
-        // Handle Bezier curves
-        System.out.println("Bezier curve with control points");
-      } else {
-        // Handle polyline
-        System.out.println("Simple polyline");
-      }
+    for (LineDrawProp line : drawGraph.lines()) {
+      System.out.println(line.isBesselCurve() ? "Bezier edge" : "Polyline edge");
     }
   }
 }
 ```
 
-### Clustering and Subgraphs
+## Gallery
 
-Organize complex graphs with clusters and rank constraints:
+These examples are rendered by graph-support 1.5.3 and sized as compact previews so more of the
+feature set is visible at a glance.
 
-```java
-import org.graphper.api.*;
-import org.graphper.api.attributes.Color;
-import org.graphper.api.attributes.NodeShapeEnum;
-import org.graphper.api.attributes.Rank;
-import org.graphper.api.attributes.ArrowShape;
-import org.graphper.draw.ExecuteException;
-import java.io.IOException;
+<table>
+  <tr>
+    <td width="25%" valign="top">
+      <strong>Shapes and styles</strong><br/>
+      Shape geometry, fills, strokes, and rounded styles.<br/>
+      <a href="docs/gallery/shapes-and-styles.png"><img src="docs/gallery/shapes-and-styles.png" width="100%" alt="Node shapes and styles"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Rich labels</strong><br/>
+      Multiline text, font styling, decoration, subscript, and superscript.<br/>
+      <a href="docs/gallery/rich-labels.png"><img src="docs/gallery/rich-labels.png" width="100%" alt="Rich text and multiline labels"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>HTML table dashboard</strong><br/>
+      Rows, cells, column spans, backgrounds, alignment, and typography.<br/>
+      <a href="docs/gallery/commerce-observatory.png"><img src="docs/gallery/commerce-observatory.png" width="100%" alt="Commerce observatory HTML table dashboard"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Record cells and ports</strong><br/>
+      Nested cells with edges anchored to named record ports.<br/>
+      <a href="docs/gallery/record-ports.png"><img src="docs/gallery/record-ports.png" width="100%" alt="Record cells and edge ports"/></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="25%" valign="top">
+      <strong>Cluster boundaries</strong><br/>
+      Nested service tiers, cluster styling, and edges crossing boundaries.<br/>
+      <a href="docs/gallery/cluster-boundaries.png"><img src="docs/gallery/cluster-boundaries.png" width="100%" alt="Cluster boundaries and cross-cluster edges"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Orthogonal routing</strong><br/>
+      Obstacle-aware routes made only from horizontal and vertical segments.<br/>
+      <a href="docs/gallery/orthogonal-routing.png"><img src="docs/gallery/orthogonal-routing.png" width="100%" alt="Orthogonal edge routing"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Edge routing and arrows</strong><br/>
+      Spline routes, line styles, labels, and arrowhead variants.<br/>
+      <a href="docs/gallery/edge-routing.png"><img src="docs/gallery/edge-routing.png" width="100%" alt="Edge routing and arrowhead styles"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Rank constraints</strong><br/>
+      Explicit same-rank groups forming aligned stages in a hierarchical layout.<br/>
+      <a href="docs/gallery/rank-constraints.png"><img src="docs/gallery/rank-constraints.png" width="100%" alt="Same-rank constraints and hierarchical stages"/></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="25%" valign="top">
+      <strong>Parallel and self edges</strong><br/>
+      Multiple labeled routes between two nodes, a reverse edge, and a self-loop.<br/>
+      <a href="docs/gallery/parallel-self-edges.png"><img src="docs/gallery/parallel-self-edges.png" width="100%" alt="Parallel edges, reverse edge, and self-loop"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Routing and conditional flow</strong><br/>
+      Decisions, success and rollback paths, and a non-constraining feedback edge.<br/>
+      <a href="docs/gallery/release-flightpath.png"><img src="docs/gallery/release-flightpath.png" width="100%" alt="Release flightpath routing diagram"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Force-directed relationships</strong><br/>
+      A JFDP semantic network with mixed node sizes and relationship emphasis.<br/>
+      <a href="docs/gallery/knowledge-constellation.png"><img src="docs/gallery/knowledge-constellation.png" width="100%" alt="Knowledge constellation force-directed graph"/></a>
+    </td>
+    <td width="25%" valign="top">
+      <strong>Architecture composition</strong><br/>
+      Clusters, cylinders, rich labels, state colors, and routed service dependencies.<br/>
+      <a href="docs/gallery/orbit-platform.png"><img src="docs/gallery/orbit-platform.png" width="100%" alt="Composed platform architecture"/></a>
+    </td>
+  </tr>
+</table>
 
-public class ClusteringExample {
-  public static void main(String[] args) throws ExecuteException, IOException {
-    // Create nodes
-    Node input = Node.builder().label("Input").shape(NodeShapeEnum.ELLIPSE).build();
-    Node process1 = Node.builder().label("Process 1").shape(NodeShapeEnum.RECT).build();
-    Node process2 = Node.builder().label("Process 2").shape(NodeShapeEnum.RECT).build();
-    Node output = Node.builder().label("Output").shape(NodeShapeEnum.ELLIPSE).build();
+More examples are available under [`docs`](docs) and [`test`](test).
 
-    // Create cluster with subgraph for parallel processing
-    Graphviz graph = Graphviz.digraph()
-        .addLine(input, process1)
-        .addLine(input, process2)
-        .cluster(
-            Cluster.builder()
-                .tempLine(Line.tempLine().color(Color.GREY).arrowHead(ArrowShape.NONE).build())
-                .subgraph(
-                    Subgraph.builder()
-                        .rank(Rank.SAME) // Keep nodes on same level
-                        .addNode(process1, process2)
-                        .build()
-                )
-                .addLine(process1, output)
-                .addLine(process2, output)
-                .build()
-        )
-        .build();
-
-    // Export
-    graph.toFile(FileType.PNG).save("./", "clustering-example");
-  }
-}
-```
-
-## 🖼️ Visual Examples
-
-### Basic Node Types
-![Record Node](test/picture/node_record.png)
-![Node Shapes](test/picture/node_shape.png)
-
-### Rich Content
-![HTML Labels](test/picture/rich_text.png)
-![HTML Tables](test/picture/table.png)
-
-### Layout & Routing
-![Layout Engine](test/picture/layout.png)
-![Edge Routing](test/picture/line_router.png)
-![Edge Ports](test/picture/line_port.png)
-
-### Debug Features
-![Control Points](test/picture/show_control_points.png)
-![Edge Boxes](test/picture/show_boxes.png)
-![Grid Display](test/picture/show_grid.png)
-
-## 🔧 Building from Source
+## Build and Test
 
 ```bash
 git clone https://github.com/jamisonjiang/graph-support.git
 cd graph-support
+
+# Build every module and run the test suite
 mvn clean install
+
+# Build only the runnable CLI and its dependencies
+mvn -pl cli -am package
+
+# Run UI, DOT, core, and CLI tests required by the desktop editor
+mvn -pl ui,cli -am test
 ```
 
-## 🤝 Contributing
+## Documentation and Support
 
-We welcome contributions! Here are some areas where you can help:
+- [Documentation](docs)
+- [Release notes](https://github.com/jamisonjiang/graph-support/releases)
+- [Issue tracker](https://github.com/jamisonjiang/graph-support/issues)
 
-- 🎨 **New Node/Arrow Shapes** - Extend the visual capabilities
-- 🎨 **Styling Options** - Add more customization possibilities  
-- 🧮 **Layout Algorithms** - Improve or add new layout engines
-- 📚 **Documentation** - Help improve examples and guides
-- 🐛 **Bug Fixes** - Help squash bugs and improve stability
+## Contributing
 
+Contributions are welcome, especially for layout algorithms, node and arrow shapes, DOT
+compatibility, documentation, and bug fixes. Open an issue before a large change so the design can
+be discussed first.
 
+## License
 
-## 📄 License
-
-This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
+Licensed under the [Apache License 2.0](LICENSE).

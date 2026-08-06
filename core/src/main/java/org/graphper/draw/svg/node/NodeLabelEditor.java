@@ -16,18 +16,13 @@
 
 package org.graphper.draw.svg.node;
 
-import static org.graphper.draw.svg.SvgConstants.FONT_STYLE;
-import static org.graphper.draw.svg.SvgConstants.FONT_WEIGHT;
-import static org.graphper.draw.svg.SvgConstants.LINE_THROUGH;
-import static org.graphper.draw.svg.SvgConstants.TEXT_DECORATION;
+import static org.graphper.draw.svg.SvgEditor.setFontStyle;
 import static org.graphper.draw.svg.SvgEditor.setText;
 import static org.graphper.draw.svg.SvgEditor.text;
 
-import java.util.Collection;
 import java.util.function.Consumer;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.NodeAttrs;
-import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
@@ -58,40 +53,12 @@ public class NodeLabelEditor implements NodeEditor<SvgBrush> {
       Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
       setText(text, fontSize, textLineAttribute);
       text.setTextContent(textLineAttribute.getLine());
-      setFontStyle(nodeAttrs, text);
+      setFontStyle(text, nodeAttrs.getFontStyles());
     };
 
     text(new TextAttribute(nodeDrawProp.getLabelCenter(), fontSize, label,
-                           nodeAttrs.getFontColor(), nodeAttrs.getFontName(), lineConsumer));
+                           nodeAttrs.getFontColor(), nodeAttrs.getFontName(),
+                           nodeDrawProp.getWidth(), lineConsumer));
     return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAINTEXT;
-  }
-
-  private void setFontStyle(NodeAttrs nodeAttrs, Element textEle) {
-    Collection<FontStyle> fontStyles = nodeAttrs.getFontStyles();
-    if (CollectionUtils.isEmpty(fontStyles)) {
-      return;
-    }
-
-    for (FontStyle fontStyle : fontStyles) {
-      switch (fontStyle) {
-        case BOLD:
-          textEle.setAttribute(FONT_WEIGHT, FontStyle.BOLD.name().toLowerCase());
-          break;
-        case ITALIC:
-          textEle.setAttribute(FONT_STYLE, FontStyle.ITALIC.name().toLowerCase());
-          break;
-        case OVERLINE:
-          textEle.setAttribute(TEXT_DECORATION, FontStyle.OVERLINE.name().toLowerCase());
-          break;
-        case UNDERLINE:
-          textEle.setAttribute(TEXT_DECORATION, FontStyle.UNDERLINE.name().toLowerCase());
-          break;
-        case STRIKETHROUGH:
-          textEle.setAttribute(TEXT_DECORATION, LINE_THROUGH);
-          break;
-        default:
-          break;
-      }
-    }
   }
 }

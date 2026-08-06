@@ -33,6 +33,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Html.Attrs;
 import org.graphper.api.Html.FontAttrs;
 import org.graphper.api.Html.LabelTag;
+import org.graphper.api.Html.RecordTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.Html.Td;
 import org.graphper.api.Line;
@@ -181,6 +182,11 @@ public class ParserUtils {
             case "bgcolor":
                 gb.bgColor(colorOf(value));
                 break;
+            case "style":
+                if ("transparent".equalsIgnoreCase(value)) {
+                    gb.bgColor(Color.TRANSPARENT);
+                }
+                break;
             case "fontcolor":
                 gb.fontColor(colorOf(value));
                 break;
@@ -325,13 +331,21 @@ public class ParserUtils {
             return;
         }
 
+        /*
+         * The whole attribute map is available here, so the shape is known even when it is written
+         * after the label. That matters because an angle-bracket label only means "record" when the
+         * shape says so, and DOT does not constrain attribute order.
+         */
+        boolean recordShape = isRecordShape(attrMap.get("shape"));
+
         attrMap.forEach((key, value) -> {
             switch (key.toLowerCase()) {
                 case "id":
                     nodeBuilder.id(value);
                     break;
                 case "label":
-                    labelHandle(nodeBuilder::label, nodeBuilder::table, nodeBuilder::labelTag, value);
+                    labelHandle(nodeBuilder::label, nodeBuilder::table, nodeBuilder::labelTag,
+                                recordShape ? nodeBuilder::recordTag : null, value);
                     break;
                 case "height":
                     setDouble(nodeBuilder::height, value);
@@ -700,6 +714,8 @@ public class ParserUtils {
 
     private static Color colorOf(String color) {
         switch (color.toLowerCase()) {
+            case "transparent":
+                return Color.TRANSPARENT;
             case "black":
                 return Color.BLACK;
             case "white":
@@ -826,6 +842,30 @@ public class ParserUtils {
                                     Consumer<Table> tableConsumer,
                                     Consumer<LabelTag> labelTagConsumer,
                                     String label) {
+        labelHandle(labelConsumer, tableConsumer, labelTagConsumer, null, label);
+    }
+
+    /**
+     * Returns whether a {@code shape} attribute value denotes a record shape, for which
+     * {@code {} } and {@code |} in an angle-bracket label carry structure rather than text.
+     */
+    private static boolean isRecordShape(String shape) {
+        if (StringUtils.isEmpty(shape)) {
+            return false;
+        }
+        return NodeShapeEnum.RECORD.getName().equalsIgnoreCase(shape)
+            || NodeShapeEnum.M_RECORD.getName().equalsIgnoreCase(shape);
+    }
+
+    /**
+     * @param recordTagConsumer where to route a recovered record structure, or {@code null} when the
+     *                          target is not a record shape and the record characters must stay text
+     */
+    private static void labelHandle(Consumer<String> labelConsumer,
+                                    Consumer<Table> tableConsumer,
+                                    Consumer<LabelTag> labelTagConsumer,
+                                    Consumer<RecordTag> recordTagConsumer,
+                                    String label) {
         HtmlListener htmlListener = HtmlParser.parse(label);
         if (htmlListener != null) {
             Table table = htmlListener.getTable();
@@ -835,6 +875,13 @@ public class ParserUtils {
             }
             LabelTag labelTag = htmlListener.getLabelTag();
             if (labelTag != null) {
+                if (recordTagConsumer != null) {
+                    RecordTag recordTag = RecordTagFromLabelTag.convert(labelTag);
+                    if (recordTag != null) {
+                        recordTagConsumer.accept(recordTag);
+                        return;
+                    }
+                }
                 labelTagConsumer.accept(labelTag);
                 return;
             }

@@ -71,23 +71,50 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
       return null;
     }
 
-    StringBuilder xml = new StringBuilder();
-    xml.append(XML_VERSION);
-    xml.append(DOC_TYPE);
-    BiConsumer<Element, List<Element>> consumer = (ele, children) -> {
-      String attr = ele.toAttrStr();
-      xml.append(LT).append(ele.tagName());
-      if (attr != null) {
-        xml.append(attr);
-      }
-      xml.append(GT);
-      if (ele.textContext() != null) {
-        xml.append(ele.textContext());
-      }
-    };
+    Map<Element, List<Element>> groups = groupElements();
+    List<Element> roots = groups.get(null);
+    if (CollectionUtils.isEmpty(roots)) {
+      return null;
+    }
 
-    accessEles(consumer, ele -> xml.append(LT).append(SLASH).append(ele.tagName()).append(GT));
+    StringBuilder xml = new StringBuilder();
+    xml.append(XML_VERSION).append('\n').append(DOC_TYPE).append('\n');
+    for (Element root : roots) {
+      appendElement(xml, root, groups, 0);
+    }
+    xml.setLength(xml.length() - 1);
     return xml.toString();
+  }
+
+  private void appendElement(StringBuilder xml, Element element,
+                             Map<Element, List<Element>> groups, int depth) {
+    appendIndent(xml, depth);
+    xml.append(LT).append(element.tagName());
+    String attr = element.toAttrStr();
+    if (attr != null) {
+      xml.append(attr);
+    }
+    xml.append(GT);
+
+    if (element.textContext() != null) {
+      xml.append(element.textContext());
+    }
+
+    List<Element> children = groups.get(element);
+    if (!CollectionUtils.isEmpty(children)) {
+      xml.append('\n');
+      for (Element child : children) {
+        appendElement(xml, child, groups, depth + 1);
+      }
+      appendIndent(xml, depth);
+    }
+    xml.append(LT).append(SLASH).append(element.tagName()).append(GT).append('\n');
+  }
+
+  private void appendIndent(StringBuilder xml, int depth) {
+    for (int i = 0; i < depth; i++) {
+      xml.append("  ");
+    }
   }
 
   @Override
@@ -101,6 +128,18 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
       return;
     }
 
+    Map<Element, List<Element>> groups = groupElements();
+    List<Element> roots = groups.get(null);
+    if (CollectionUtils.isEmpty(roots)) {
+      return;
+    }
+
+    for (Element root : roots) {
+      accessEle(root, groups, preConsumer, postConsumer);
+    }
+  }
+
+  private Map<Element, List<Element>> groupElements() {
     Map<Element, List<Element>> groups = new LinkedHashMap<>();
     for (SvgElement element : elementMap.values()) {
       groups.compute(element.parent(), (k, v) -> {
@@ -111,14 +150,7 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
         return v;
       });
     }
-    List<Element> roots = groups.get(null);
-    if (CollectionUtils.isEmpty(roots)) {
-      return;
-    }
-
-    for (Element root : roots) {
-      accessEle(root, groups, preConsumer, postConsumer);
-    }
+    return groups;
   }
 
   private void accessEle(Element element, Map<Element, List<Element>> groups,

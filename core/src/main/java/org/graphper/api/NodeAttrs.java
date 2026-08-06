@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import org.graphper.api.Html.LabelTag;
+import org.graphper.api.Html.RecordTag;
 import org.graphper.api.Html.Table;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
@@ -88,6 +89,13 @@ public class NodeAttrs implements Serializable, Cloneable {
   Double penWidth;
 
   Table table;
+
+  /**
+   * Structured record-label content. When non-null and the node's shape is
+   * {@code record}/{@code Mrecord}, layout uses this AST instead of parsing
+   * the {@link #label} string via {@code CellLabelCompiler}.
+   */
+  RecordTag recordTag;
 
   Assemble assemble;
 
@@ -202,6 +210,16 @@ public class NodeAttrs implements Serializable, Cloneable {
     return table;
   }
 
+  /**
+   * Returns the structured record-label content, or {@code null} when the node
+   * uses a plain string label or a non-record shape.
+   *
+   * @return the {@link RecordTag} set on this node, or {@code null}.
+   */
+  public RecordTag getRecordTag() {
+    return recordTag;
+  }
+
   public Assemble getAssemble() {
     return assemble;
   }
@@ -240,6 +258,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         && Objects.equals(tooltip, nodeAttrs.tooltip) && Objects.equals(image, nodeAttrs.image)
         && Objects.equals(imageSize, nodeAttrs.imageSize)
         && Objects.equals(penWidth, nodeAttrs.penWidth) && Objects.equals(table, nodeAttrs.table)
+        && Objects.equals(recordTag, nodeAttrs.recordTag)
         && Objects.equals(assemble, nodeAttrs.assemble);
   }
 
@@ -247,7 +266,8 @@ public class NodeAttrs implements Serializable, Cloneable {
   public int hashCode() {
     return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labelTag,
                         labeljust, labelloc, margin, shape, fixedSize, fontSize, styles, fontStyles,
-                        sides, href, tooltip, image, imageSize, penWidth, table, assemble);
+                        sides, href, tooltip, image, imageSize, penWidth, table, recordTag,
+                        assemble);
   }
 
   @Override
@@ -277,6 +297,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", imageSize=" + imageSize +
         ", penWidth=" + penWidth +
         ", table=" + table +
+        ", recordTag=" + recordTag +
         ", assemble=" + assemble +
         '}';
   }

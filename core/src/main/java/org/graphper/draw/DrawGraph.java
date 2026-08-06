@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.graphper.api.Cluster;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
@@ -32,6 +33,7 @@ import org.graphper.api.attributes.Rankdir;
 import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
+import org.graphper.util.FontUtils;
 
 /**
  * A graph object that can be drawn and rendered, after layout, contains all the description
@@ -247,6 +249,87 @@ public class DrawGraph extends Rectangle implements Serializable {
     graphvizDrawProp.setRightBorder(rightBorder);
     graphvizDrawProp.setUpBorder(upBorder);
     graphvizDrawProp.setDownBorder(downBorder);
+  }
+
+  /**
+   * Recomputes the final graph border from drawable geometry, excluding the routing safety area
+   * accumulated while laying out the graph. This is used only for an explicit zero graph margin.
+   *
+   * @param padding final safety padding around drawable content
+   */
+  public void tightenGraphBorder(double padding) {
+    Rectangle bounds = new Rectangle();
+    for (NodeDrawProp node : nodes()) {
+      updateBounds(bounds, node);
+    }
+    for (ClusterDrawProp cluster : clusters()) {
+      updateBounds(bounds, cluster);
+    }
+    for (LineDrawProp line : lines()) {
+      for (FlatPoint point : line) {
+        updateBounds(bounds, point);
+      }
+      updateBounds(bounds, line.getStart());
+      updateBounds(bounds, line.getEnd());
+      updateArrowBounds(bounds, line.getArrowHead());
+      updateArrowBounds(bounds, line.getArrowTail());
+      updateLabelBounds(bounds, line.getLabelCenter(), line.getLabelSize());
+      for (Map.Entry<FloatLabel, FlatPoint> entry
+          : line.getFloatLabelFlatCenters().entrySet()) {
+        FloatLabel floatLabel = entry.getKey();
+        FlatPoint size = FontUtils.measure(floatLabel.getLabel(), floatLabel.getFontName(),
+                                           floatLabel.getFontSize(), 0);
+        updateLabelBounds(bounds, entry.getValue(), size);
+      }
+    }
+    updateLabelBounds(bounds, graphvizDrawProp.getLabelCenter(), graphvizDrawProp.getLabelSize());
+
+    if (bounds.getLeftBorder() == Double.MAX_VALUE) {
+      return;
+    }
+    leftBorder = bounds.getLeftBorder() - padding;
+    rightBorder = bounds.getRightBorder() + padding;
+    upBorder = bounds.getUpBorder() - padding;
+    downBorder = bounds.getDownBorder() + padding;
+    syncToGraphvizBorder();
+  }
+
+  private void updateBounds(Rectangle bounds, ContainerDrawProp container) {
+    bounds.updateXAxisRange(container.getLeftBorder());
+    bounds.updateXAxisRange(container.getRightBorder());
+    bounds.updateYAxisRange(container.getUpBorder());
+    bounds.updateYAxisRange(container.getDownBorder());
+  }
+
+  private void updateBounds(Rectangle bounds, FlatPoint point) {
+    if (point == null) {
+      return;
+    }
+    bounds.updateXAxisRange(point.getX());
+    bounds.updateYAxisRange(point.getY());
+  }
+
+  private void updateLabelBounds(Rectangle bounds, FlatPoint center, FlatPoint size) {
+    if (center == null || size == null) {
+      return;
+    }
+    bounds.updateXAxisRange(center.getX() - size.getWidth() / 2);
+    bounds.updateXAxisRange(center.getX() + size.getWidth() / 2);
+    bounds.updateYAxisRange(center.getY() - size.getHeight() / 2);
+    bounds.updateYAxisRange(center.getY() + size.getHeight() / 2);
+  }
+
+  private void updateArrowBounds(Rectangle bounds, ArrowDrawProp arrow) {
+    if (arrow == null) {
+      return;
+    }
+    FlatPoint begin = arrow.getAxisBegin();
+    FlatPoint end = arrow.getAxisEnd();
+    double radius = FlatPoint.twoFlatPointDistance(begin, end);
+    bounds.updateXAxisRange(Math.min(begin.getX(), end.getX()) - radius);
+    bounds.updateXAxisRange(Math.max(begin.getX(), end.getX()) + radius);
+    bounds.updateYAxisRange(Math.min(begin.getY(), end.getY()) - radius);
+    bounds.updateYAxisRange(Math.max(begin.getY(), end.getY()) + radius);
   }
 
   public void updateRange(FlatPoint point) {

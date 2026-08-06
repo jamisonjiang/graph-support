@@ -7,9 +7,9 @@ Defines the node's text content. Labels can be simple strings or **Cell Expressi
 
 - **Cell Expressions** 
   - Allows horizontal and vertical layouts of fields within a node.
-- **[Label Tag](../LabelTag)**
+- **[Label Tag](../LabelTag.md)**
   - Allows the use of HTML-like tags for rich text formatting, enabling styles like bold, italics,
-- **[Table Tag](../Table)**
+- **[Table Tag](../Table.md)**
   - Allows the use of an HTML-like table structure for arranging content in rows and columns.
 
 ## Using a Simple Label
@@ -28,7 +28,33 @@ digraph G {
 }
 ```
 
+### Plain-label line alignment
+
+Quoted DOT labels support Graphviz line terminators:
+
+| Escape | Behavior |
+| --- | --- |
+| `\n` | End the line and center it |
+| `\l` / `\L` | End the line and align it to the left |
+| `\r` / `\R` | End the line and align it to the right |
+
+```dot
+digraph G {
+    node [shape=record]
+    report [label="{Report|{input.txt \l|output.tsv \r}}"]
+}
+```
+
+Alignment is calculated against the containing node or record-cell boundary. These escapes are
+also supported by plain graph, cluster, edge, and floating labels. HTML-like labels use `<BR/>`,
+`<HL>`, `<HC>`, and `<HR>` instead.
+
 ## Using Cell Expression
+
+> **The string grammar below is frozen.** It is kept for compatibility and will not gain new
+> features. To build record labels from Java — and for anything the string form cannot express, such
+> as bold or coloured text inside a cell — use the structured
+> [`Html.record(...)` API](RecordTag.md) instead.
 
 `Cell Expression` is used when the shape of a node is specified as `NodeShapeEnum.RECORD` or `NodeShapeEnum.M_RECORD`. The structure of a record-based node is determined by its label, which follows this schema:
 
@@ -116,7 +142,7 @@ Graphviz graphviz = Graphviz.digraph()
 
 ## Using Label tag
 
-Detail please check [Label Tag](../LabelTag)
+Detail please check [Label Tag](../LabelTag.md)
 
 ### Examples:
 
@@ -174,7 +200,7 @@ Node.builder().labelTag(label).build();
 
 ## Using Table tag
 
-Detail please check [Table Tag](../Table)
+Detail please check [Table Tag](../Table.md)
 
 ### Examples:
 
@@ -229,6 +255,4 @@ Node node = Node.builder()
     )
     .build();
 ```
-
-
 

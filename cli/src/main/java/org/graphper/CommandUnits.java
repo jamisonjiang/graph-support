@@ -239,6 +239,7 @@ public class CommandUnits {
         }
         log.info(helpCommand);
       }
+      log.info("ui           - Open the desktop DOT editor and SVG preview");
 
       System.exit(1);
       return true;

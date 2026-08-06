@@ -1,0 +1,39 @@
+digraph OrthogonalRouting {
+  graph [
+    rankdir="LR"
+    splines="ortho"
+    bgcolor="#F7F9FC"
+    nodesep="0.46"
+    ranksep="0.62"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="9"
+    color="#CBD5E1"
+    fillcolor="#FFFFFF"
+    fontcolor="#1E293B"
+    margin="0.14"
+  ]
+
+  edge [color="#64748B" arrowsize="0.65" penwidth="1.35"]
+
+  checkout [color="#6366F1" fillcolor="#EEF2FF" label=< <B>CHECKOUT</B> >]
+  fraud [fillcolor="#FFF1F2" color="#FDA4AF" label="FRAUD"]
+  stock [fillcolor="#F0FDFA" color="#5EEAD4" label="STOCK"]
+  pricing [fillcolor="#FFF7ED" color="#FDBA74" label="PRICING"]
+  approve [shape="diamond" fillcolor="#FFFBEB" color="#F59E0B" label="READY?"]
+  order [color="#10B981" fillcolor="#ECFDF5" label=< <B>ORDER</B> >]
+
+  checkout -> fraud
+  checkout -> stock
+  checkout -> pricing
+  fraud -> approve
+  stock -> approve
+  pricing -> approve
+  approve -> order [color="#10B981" penwidth="1.8"]
+
+  { rank="same" fraud stock pricing }
+}

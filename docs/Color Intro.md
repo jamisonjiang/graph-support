@@ -25,7 +25,8 @@ When specifying colors in DOT, you can use either:
 | `pink`       | `#FFC0CB`    | Light pink tone.                                             |
 | `bisque`     | `#FFE4C4`    | Pale orange-pink color reminiscent of creamy bisque.         |
 | `lightgrey`  | `#D3D3D3`    | Lighter shade of grey.                                       |
-| `lightblue`  | `#FFFF00`    | **(Incorrect: Same as Yellow)** Light blue in your mapping matches yellow. Should be adjusted if needed. |
+| `lightblue`  | `#ADD8E6`    | Light blue.                                                  |
+| `transparent`| no paint     | Transparent graph background.                               |
 | `chartreuse` | `#7FFF00`    | Vibrant, yellowish-green color (named after the French liqueur). |
 
 ## Hexadecimal Colors 
@@ -47,3 +48,5 @@ Using in java
 Color color = Color.ofRGB("#ff6347");
 ```
 
+For a transparent graph background, use `bgcolor=transparent` in DOT or `Color.TRANSPARENT` in
+Java. SVG uses no background paint, and PNG export preserves the alpha channel.

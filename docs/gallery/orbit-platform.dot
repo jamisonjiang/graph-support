@@ -1,0 +1,122 @@
+digraph OrbitPlatform {
+  graph [
+    rankdir="LR"
+    bgcolor="#F7F9FC"
+    fontname="Arial"
+    nodesep="0.42"
+    ranksep="0.56"
+    splines="spline"
+    compound="true"
+  ]
+
+  node [
+    shape="rect"
+    style="rounded,filled"
+    fontname="Arial"
+    fontsize="11"
+    color="#CBD5E1"
+    fontcolor="#1E293B"
+    fillcolor="#FFFFFF"
+    margin="0.16"
+    penwidth="1.2"
+  ]
+
+  edge [
+    fontname="Arial"
+    fontsize="9"
+    color="#94A3B8"
+    fontcolor="#64748B"
+    arrowsize="0.72"
+    penwidth="1.2"
+  ]
+
+  clients [
+    color="#A5B4FC"
+    fillcolor="#EEF2FF"
+    label=<
+      <B>CLIENTS</B><BR/>
+      <FONT POINT-SIZE="9" COLOR="#6366F1">WEB  ·  MOBILE  ·  PARTNERS</FONT>
+    >
+  ]
+
+  subgraph cluster_edge {
+    label="EDGE"
+    color="#C7D2FE"
+    bgcolor="#F4F5FF"
+    fontname="Arial"
+    fontcolor="#6366F1"
+    style="rounded,dashed"
+
+    gateway [
+      color="#6366F1"
+      fillcolor="#EEF2FF"
+      penwidth="1.8"
+      label=<
+        <B>API GATEWAY</B><BR/>
+        <FONT POINT-SIZE="9" COLOR="#64748B">AUTH · ROUTING · LIMITS</FONT>
+      >
+    ]
+
+  }
+
+  subgraph cluster_services {
+    label="CORE SERVICES"
+    color="#99F6E4"
+    bgcolor="#F0FDFA"
+    fontname="Arial"
+    fontcolor="#0F766E"
+    style="rounded,dashed"
+
+    orders [
+      color="#14B8A6"
+      fillcolor="#CCFBF1"
+      label=<
+        <B>ORDERS</B><BR/>
+        <FONT POINT-SIZE="9" COLOR="#0F766E">2.4k req/min</FONT>
+      >
+    ]
+
+    inventory [
+      label=<
+        <B>INVENTORY</B><BR/>
+        <FONT POINT-SIZE="9" COLOR="#F59E0B">●  RECONCILING</FONT>
+      >
+    ]
+  }
+
+  subgraph cluster_data {
+    label="DATA PLANE"
+    color="#FED7AA"
+    bgcolor="#FFF7ED"
+    fontname="Arial"
+    fontcolor="#C2410C"
+    style="rounded,dashed"
+
+    events [
+      shape="cylinder"
+      color="#F59E0B"
+      fillcolor="#FFFBEB"
+      label=<
+        <B>EVENT STREAM</B><BR/>
+        <FONT POINT-SIZE="9" COLOR="#B45309">18 TOPICS</FONT>
+      >
+    ]
+
+    database [
+      shape="cylinder"
+      label=<
+        <B>PRIMARY DATA</B><BR/>
+        <FONT POINT-SIZE="9" COLOR="#64748B">3 REGIONS</FONT>
+      >
+    ]
+  }
+
+  clients -> gateway [label="HTTPS"]
+  gateway -> orders [color="#6366F1" penwidth="1.7"]
+  gateway -> inventory
+  orders -> events [label="publish"]
+  inventory -> events
+  events -> database [label="project"]
+  orders -> database [style="dashed" label="query"]
+
+}

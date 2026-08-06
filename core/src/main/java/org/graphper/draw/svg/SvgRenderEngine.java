@@ -128,9 +128,20 @@ public class SvgRenderEngine extends
 
   @Override
   public List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
+    if (zeroMargin(drawGraph)) {
+      drawGraph.tightenGraphBorder(2);
+    }
     return Collections.singletonList(
         new FlatShifterStrategy(-drawGraph.getMinX(), -drawGraph.getMinY())
     );
+  }
+
+  private boolean zeroMargin(DrawGraph drawGraph) {
+    if (drawGraph == null || drawGraph.getGraphviz().graphAttrs().getMargin() == null) {
+      return false;
+    }
+    return drawGraph.getGraphviz().graphAttrs().getMargin().getWidth() == 0
+        && drawGraph.getGraphviz().graphAttrs().getMargin().getHeight() == 0;
   }
 
   @Override
