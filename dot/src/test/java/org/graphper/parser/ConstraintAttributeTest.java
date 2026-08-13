@@ -38,6 +38,19 @@ public class ConstraintAttributeTest {
   }
 
   @Test
+  public void parsesGraphvizBooleanAliases() {
+    Assertions.assertEquals(Boolean.TRUE, constraint("yes"));
+    Assertions.assertEquals(Boolean.TRUE, constraint("1"));
+    Assertions.assertEquals(Boolean.FALSE, constraint("no"));
+    Assertions.assertEquals(Boolean.FALSE, constraint("0"));
+  }
+
+  private Boolean constraint(String value) {
+    Graphviz graph = DotParser.parse("digraph { a -> b [constraint=" + value + "] }");
+    return graph.lines().iterator().next().lineAttrs().getConstraint();
+  }
+
+  @Test
   public void invalidConstraintUsesDefaultBehavior() {
     Graphviz graph = DotParser.parse("digraph { a -> b [constraint=true1] }");
     Line line = graph.lines().iterator().next();

@@ -39,6 +39,8 @@ import org.graphper.util.ClassUtils;
  */
 public class BatikImgConverter implements SvgConverter {
 
+  private static final double CSS_PIXELS_PER_POINT = 96D / 72D;
+
   private static final String T_IN_C = "org.apache.batik.transcoder.TranscoderInput";
   private static final String T_OUT_C = "org.apache.batik.transcoder.TranscoderOutput";
   private static final String T_C_C = "org.apache.batik.transcoder.Transcoder";
@@ -110,6 +112,8 @@ public class BatikImgConverter implements SvgConverter {
       throw new FailInitResourceException("Can not get svg");
     }
     try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {
+      validateRasterSize(document, drawGraph);
+
       Object transcoder;
       switch (fileType) {
         case PNG:
@@ -127,10 +131,60 @@ public class BatikImgConverter implements SvgConverter {
           break;
       }
 
+      configureSecurityHints(transcoder);
+
       return getFileGraphResource(drawGraph, fileType, is, transcoder);
     } catch (Exception e) {
       throw new FailInitResourceException(e);
     }
+  }
+
+  protected void configureSecurityHints(Object transcoder) throws Exception {
+    Class<?> svgTranscoder = Class.forName("org.apache.batik.transcoder.SVGAbstractTranscoder");
+    Class<?> hintKey = Class.forName("org.apache.batik.transcoder.TranscodingHints$Key");
+    Object allowExternal = ClassUtils.getStaticField(svgTranscoder,
+                                                     "KEY_ALLOW_EXTERNAL_RESOURCES");
+    Object executeOnLoad = ClassUtils.getStaticField(svgTranscoder, "KEY_EXECUTE_ONLOAD");
+    ClassUtils.invoke(transcoder, "addTranscodingHint",
+                      new Class[]{hintKey, Object.class}, allowExternal, Boolean.FALSE);
+    ClassUtils.invoke(transcoder, "addTranscodingHint",
+                      new Class[]{hintKey, Object.class}, executeOnLoad, Boolean.FALSE);
+  }
+
+  private void validateRasterSize(Document document, DrawGraph drawGraph) {
+    long maximum = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy().getMaxOutputPixels();
+    document.accessEles((element, children) -> {
+      if (!"svg".equals(element.tagName())) {
+        return;
+      }
+      double width = Math.ceil(parsePointLength(element.getAttribute("width"))
+                                   * CSS_PIXELS_PER_POINT);
+      double height = Math.ceil(parsePointLength(element.getAttribute("height"))
+                                    * CSS_PIXELS_PER_POINT);
+      if (!Double.isFinite(width) || !Double.isFinite(height) || width <= 0 || height <= 0
+          || width > maximum / height) {
+        throw new IllegalArgumentException("Rendered image " + width + "x" + height
+                                               + " exceeds the security policy pixel limit "
+                                               + maximum);
+      }
+    });
+  }
+
+  private double parsePointLength(String length) {
+    if (StringUtils.isBlank(length)) {
+      throw new IllegalArgumentException("SVG raster dimension is missing");
+    }
+
+    String normalized = length.trim();
+    if (!normalized.endsWith("pt")) {
+      throw new IllegalArgumentException("SVG raster dimension must use pt units");
+    }
+
+    String value = normalized.substring(0, normalized.length() - 2).trim();
+    if (value.isEmpty()) {
+      throw new IllegalArgumentException("SVG raster dimension is missing");
+    }
+    return Double.parseDouble(value);
   }
 
   /**

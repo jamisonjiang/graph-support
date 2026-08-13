@@ -1,5 +1,10 @@
 ## Security Warning
 
+External image access is disabled by default. Embedded base64 raster images remain available and
+are size-limited. Java callers can opt in through `GraphvizBuilder.securityPolicy(...)`.
+External resources remain disabled in Batik/FOP-based PDF and TIFF conversion; use a bounded
+embedded raster data URI for those formats.
+
 ### 1. Remote URL Risks
 
 - Loading images from **untrusted URLs** may expose the application to **Server-Side Request Forgery (SSRF)** attacks.
@@ -19,7 +24,8 @@
 
 ### **Recommended Security Practices**
 
-✅ **Use only trusted domains** or pre-validated image URLs.
- ✅ **Restrict local file paths** to a dedicated, controlled directory.
- ✅ **Limit image file sizes** to prevent excessive memory usage.
- ✅ **Sanitize file extensions** and **content types** to allow only valid image formats (`PNG`, `JPG`, `JPEG`).
+- Keep remote access disabled when rendering untrusted graphs.
+- If remote access is required, enable it explicitly and allow-list each trusted DNS hostname with
+  `allowRemoteImageHost(...)`.
+- Set `localImageBaseDirectory(...)` to a dedicated directory; paths outside it are rejected.
+- Keep the default byte, decoded-pixel, output-pixel, and timeout limits, or lower them for a service.

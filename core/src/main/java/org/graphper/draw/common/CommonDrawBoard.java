@@ -76,6 +76,19 @@ public class CommonDrawBoard extends SvgDrawBoard {
       throwsUnsupportedImgConvert();
     }
 
+    // Batik delegates image retrieval to its own resource stack. Prefer the bounded loader for
+    // raster formats whenever an image element is present.
+    if (containsImage()) {
+      for (SvgConverter converter : converters) {
+        if (converter instanceof DefaultImgConverter && converter.support(type)) {
+          DefaultGraphResource resource = converter.convert(svgDocument, drawGraph, type);
+          if (resource != null) {
+            return resource;
+          }
+        }
+      }
+    }
+
     for (SvgConverter converter : converters) {
       if (converter.support(type)) {
         DefaultGraphResource resource = converter.convert(svgDocument, drawGraph, type);
@@ -88,6 +101,16 @@ public class CommonDrawBoard extends SvgDrawBoard {
 
     throwsUnsupportedImgConvert();
     return null;
+  }
+
+  private boolean containsImage() {
+    final boolean[] image = new boolean[1];
+    svgDocument.accessEles((element, children) -> {
+      if ("image".equals(element.tagName())) {
+        image[0] = true;
+      }
+    });
+    return image[0];
   }
 
   private void throwsUnsupportedImgConvert() throws FailInitResourceException {

@@ -522,12 +522,15 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Sets an image URL or local file path for the node.
+     * Sets an image reference for the node.
      *
      * <p><strong>Behavior:</strong></p>
      * <ul>
-     *   <li>For <strong>SVG output</strong>, the image URL is directly embedded without validation.</li>
-     *   <li>For <strong>other output formats</strong>, the image must be accessible; otherwise, an error will occur.</li>
+     *   <li>Embedded base64 raster images are allowed by default.</li>
+     *   <li>Network and filesystem images are denied by default. Enable them explicitly with
+     *       {@link Graphviz.GraphvizBuilder#securityPolicy(SecurityPolicy)}.</li>
+     *   <li>Enabled resources are restricted by time, byte, pixel, address, and base-directory
+     *       checks.</li>
      * </ul>
      *
      * <p><strong>Security Warning:</strong></p>
@@ -541,7 +544,7 @@ public class Node implements Comparable<Node>, Serializable {
      *       <a href="https://owasp.org/www-community/attacks/Denial_of_Service">Denial of Service (DoS) attacks</a>.</li>
      * </ul>
      *
-     * <p><strong>Recommended Security Practices:</strong></p>
+     * <p><strong>Recommended Security Practices for opt-in external resources:</strong></p>
      * <ul>
      *   <li>Use only trusted domains or pre-validated image URLs.</li>
      *   <li>Restrict local file paths to a dedicated image directory.</li>

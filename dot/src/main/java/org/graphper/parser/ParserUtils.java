@@ -631,7 +631,7 @@ public class ParserUtils {
 
         switch (key.toLowerCase()) {
             case "port":
-                td.id(value);
+                td.port(value);
                 break;
             case "border":
                 setInteger(td::border, value);
@@ -789,9 +789,10 @@ public class ParserUtils {
     }
 
     private static void setBoolean(Consumer<Boolean> boolConsumer, String val) {
-        if ("true".equalsIgnoreCase(val)) {
+        if ("true".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val) || "1".equals(val)) {
             boolConsumer.accept(true);
-        } else if ("false".equalsIgnoreCase(val)) {
+        } else if ("false".equalsIgnoreCase(val) || "no".equalsIgnoreCase(val)
+            || "0".equals(val)) {
             boolConsumer.accept(false);
         }
     }

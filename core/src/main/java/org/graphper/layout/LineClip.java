@@ -137,8 +137,8 @@ public abstract class LineClip extends LineHandler {
     FlatPoint f = pathClip.pathFrom(path);
     FlatPoint t = pathClip.pathTo(path);
 
-      if ((!isSelfLine && needClip(line, lineAttrs, from))
-          || (isSelfLine && needClip(line, lineAttrs, from, false))) {
+    if ((!isSelfLine && needClip(line, lineAttrs, from))
+        || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
         ANode node = layoutGraph.getNode(from);
@@ -151,14 +151,14 @@ public abstract class LineClip extends LineHandler {
 
       if (clusterDrawProp != null) {
         path = pathClip.clusterClip(clusterDrawProp, path);
-        } else if (lineDrawProp.sameEndpoint(from) == null) {
-          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp, true), path, true);
-        }
+      } else if (lineDrawProp.sameEndpoint(from) == null) {
+        path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp, true), path, true);
+      }
     }
 
     if (pathClip.isNotNull(path)) {
-        if ((!isSelfLine && needClip(line, lineAttrs, to))
-            || (isSelfLine && needClip(line, lineAttrs, to, true))) {
+      if ((!isSelfLine && needClip(line, lineAttrs, to))
+          || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
           ANode node = layoutGraph.getNode(to);
@@ -171,9 +171,9 @@ public abstract class LineClip extends LineHandler {
 
         if (clusterDrawProp != null) {
           path = pathClip.clusterClip(clusterDrawProp, path);
-          } else if (lineDrawProp.sameEndpoint(to) == null) {
-            path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp, false), path, false);
-          }
+        } else if (lineDrawProp.sameEndpoint(to) == null) {
+          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp, false), path, false);
+        }
       }
     }
 
@@ -194,16 +194,20 @@ public abstract class LineClip extends LineHandler {
       }
 
       if (pathClip.isNull(path)) {
-        path = restorePath(lineDrawProp, nodeClippedPath);
+        restorePath(lineDrawProp, nodeClippedPath);
         noPathArrowSet(line, reversal, f, t, noPathDirection, lineDrawProp);
-      } else if (toArrowNeed) {
+        return;
+      }
+
+      if (toArrowNeed) {
         path = pathClip
             .toArrowClip(getClipSize(arrowSize, lineAttrs, !lineDrawProp.isHeadStart()), path);
       }
 
       if (pathClip.isNull(path)) {
-        path = restorePath(lineDrawProp, nodeClippedPath);
+        restorePath(lineDrawProp, nodeClippedPath);
         noPathArrowSet(line, reversal, f, t, noPathDirection, lineDrawProp);
+        return;
       } else {
         FlatPoint nf = pathClip.pathFrom(path);
         FlatPoint nt = pathClip.pathTo(path);

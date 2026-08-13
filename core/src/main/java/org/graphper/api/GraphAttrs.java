@@ -95,6 +95,8 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   InitPos initPos = InitPos.SECTOR;
 
+  SecurityPolicy securityPolicy = SecurityPolicy.defaultPolicy();
+
   public Splines getSplines() {
     return splines;
   }
@@ -203,6 +205,10 @@ public class GraphAttrs implements Serializable, Cloneable {
     return initPos;
   }
 
+  public SecurityPolicy getSecurityPolicy() {
+    return securityPolicy == null ? SecurityPolicy.defaultPolicy() : securityPolicy;
+  }
+
   @Override
   public GraphAttrs clone() {
     try {
@@ -234,7 +240,8 @@ public class GraphAttrs implements Serializable, Cloneable {
         && labeljust == that.labeljust && Objects.equals(scale, that.scale)
         && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
         && Objects.equals(tooltip, that.tooltip) && Objects.equals(table, that.table)
-        && Objects.equals(assemble, that.assemble) && initPos == that.initPos;
+        && Objects.equals(assemble, that.assemble) && initPos == that.initPos
+        && Objects.equals(getSecurityPolicy(), that.getSecurityPolicy());
   }
 
   @Override
@@ -242,7 +249,7 @@ public class GraphAttrs implements Serializable, Cloneable {
     return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, labelTag,
                         fontName, labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin,
                         mclimit, fontSize, showGrid, href, tooltip, table, assemble, maxiter, k,
-                        overlap, initPos);
+                        overlap, initPos, getSecurityPolicy());
   }
 
   @Override
@@ -275,6 +282,7 @@ public class GraphAttrs implements Serializable, Cloneable {
         ", k=" + k +
         ", overlap=" + overlap +
         ", initPos=" + initPos +
+        ", securityPolicy=" + getSecurityPolicy() +
         '}';
   }
 }

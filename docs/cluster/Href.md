@@ -2,6 +2,9 @@
 
 The **href** [alias `url`] attribute adds a **clickable hyperlink** to a cluster, making it interactive in `SVG` output.
 
+Only relative links and the `http`, `https`, and `mailto` schemes are emitted. Dangerous schemes
+are omitted.
+
 ------
 
 ## **Behavior**

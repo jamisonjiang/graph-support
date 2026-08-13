@@ -114,7 +114,10 @@ public class Assemble implements Serializable {
   public String cellId(Node cell) {
     CellPos cellPos = cells.get(cell);
     Asserts.illegalArgument(cellPos == null, "Can not found cell offset info");
-    return cellPos.id != null ? cellPos.id : cell.nodeAttrs().getId();
+    if (cellPos.id != null) {
+      return cellPos.id;
+    }
+    return cellPos.explicitId ? null : cell.nodeAttrs().getId();
   }
 
   /**
@@ -197,7 +200,12 @@ public class Assemble implements Serializable {
      * @throws NullPointerException set null cell
      */
     public synchronized AssembleBuilder addCell(double horOffset, double verOffset, Node cell) {
-      return addCell(horOffset, verOffset, null, cell);
+      Asserts.nullArgument(cell, "Cell");
+      if (cells == null) {
+        cells = new LinkedHashMap<>();
+      }
+      cells.put(cell, new CellPos(horOffset, verOffset, null, false));
+      return this;
     }
 
     /**
@@ -215,7 +223,7 @@ public class Assemble implements Serializable {
       if (cells == null) {
         cells = new LinkedHashMap<>();
       }
-      cells.put(cell, new CellPos(horOffset, verOffset, id));
+      cells.put(cell, new CellPos(horOffset, verOffset, id, true));
       return this;
     }
 
@@ -247,14 +255,22 @@ public class Assemble implements Serializable {
 
     private final String id;
 
+    /* False for objects serialized by 1.5.3 and for the legacy three-argument addCell method. */
+    private final boolean explicitId;
+
     public CellPos(double horOffset, double verOffset) {
-      this(horOffset, verOffset, null);
+      this(horOffset, verOffset, null, false);
     }
 
     public CellPos(double horOffset, double verOffset, String id) {
+      this(horOffset, verOffset, id, true);
+    }
+
+    public CellPos(double horOffset, double verOffset, String id, boolean explicitId) {
       this.horOffset = horOffset * Graphviz.PIXEL;
       this.verOffset = verOffset * Graphviz.PIXEL;
       this.id = id;
+      this.explicitId = explicitId;
     }
   }
 }

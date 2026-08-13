@@ -693,6 +693,18 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
+     * Sets the policy used for links, external images, and render resource limits.
+     *
+     * @param securityPolicy rendering security policy
+     * @return graphviz builder
+     */
+    public GraphvizBuilder securityPolicy(SecurityPolicy securityPolicy) {
+      Asserts.nullArgument(securityPolicy, "securityPolicy");
+      graphAttrs.securityPolicy = securityPolicy;
+      return self();
+    }
+
+    /**
      * Returns a graphviz.
      *
      * @return {@code Graphviz}

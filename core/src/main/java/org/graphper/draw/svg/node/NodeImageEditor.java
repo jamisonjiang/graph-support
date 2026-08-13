@@ -32,8 +32,14 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
       return true;
     }
 
+    String image = brush.drawBoard().graphAttrs().getSecurityPolicy()
+        .sanitizeImage(nodeAttrs.getImage());
+    if (image == null) {
+      return true;
+    }
+
     Element imageEle = brush.getOrCreateShapeEleById(IMAGE_ELE, IMAGE_ELE);
-    imageEle.setAttribute(XLINK + COLON + HREF, nodeAttrs.getImage());
+    imageEle.setAttribute(XLINK + COLON + HREF, image);
 
     if (nodeAttrs.getImageSize() != null) {
       FlatPoint imageSize = nodeAttrs.getImageSize();

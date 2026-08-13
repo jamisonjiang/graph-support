@@ -37,7 +37,11 @@ public class LineHrefEditor implements LineEditor<SvgBrush>, SvgConstants {
       return true;
     }
 
-    String href = lineAttrs.getHref();
+    String href = brush.drawBoard().graphAttrs().getSecurityPolicy()
+        .sanitizeLink(lineAttrs.getHref());
+    if (href == null) {
+      return true;
+    }
     String tooltip = StringUtils.isNotEmpty(lineAttrs.getTooltip())
         ? lineAttrs.getTooltip() : lineAttrs.getLabel();
 

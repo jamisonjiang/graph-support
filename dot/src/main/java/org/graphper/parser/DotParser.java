@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Graphviz;
@@ -51,6 +52,12 @@ import org.graphper.util.Asserts;
  * @author johannes
  */
 public class DotParser {
+
+    /** Maximum accepted DOT source length. */
+    public static final int MAX_INPUT_CHARS = 10 * 1024 * 1024;
+
+    /** Maximum brace nesting accepted before recursive parser rules are entered. */
+    public static final int MAX_NESTING_DEPTH = 256;
 
     private DotParser() {
     }
@@ -119,7 +126,7 @@ public class DotParser {
     public static Graphviz parse(InputStream in, Charset charset, String sourceName) throws IOException {
         Asserts.nullArgument(in);
         charset = charset == null ? StandardCharsets.UTF_8 : charset;
-        try(Reader r = new InputStreamReader(in, charset)) {
+        try(Reader r = new BoundedReader(new InputStreamReader(in, charset), MAX_INPUT_CHARS)) {
             CharStream charStream = CharStreams.fromReader(r, sourceName);
             return parse(charStream);
         }
@@ -149,6 +156,8 @@ public class DotParser {
      */
     public static Graphviz parse(String in, String sourceName) {
         Asserts.illegalArgument(StringUtils.isEmpty(in), "Empty dot");
+        Asserts.illegalArgument(in.length() > MAX_INPUT_CHARS,
+            "DOT input exceeds " + MAX_INPUT_CHARS + " characters");
         CharStream charStream = CharStreams.fromString(in, sourceName);
         return parse(charStream);
     }
@@ -183,15 +192,20 @@ public class DotParser {
      */
     public static Graphviz parse(CharStream charStream, PostGraphComponents postGraphComponents) {
         Asserts.nullArgument(charStream);
+        Asserts.illegalArgument(charStream.size() > MAX_INPUT_CHARS,
+            "DOT input exceeds " + MAX_INPUT_CHARS + " characters");
         DOTLexer lexer = new DOTLexer(charStream);
-        DOTParser p = new DOTParser(new CommonTokenStream(lexer));
+        lexer.removeErrorListeners();
+        DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
+        lexer.addErrorListener(dotSyntaxErrorListener);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        tokens.fill();
+        validateNesting(tokens);
+        tokens.seek(0);
+        DOTParser p = new DOTParser(tokens);
 
         p.removeErrorListeners();
-        lexer.removeErrorListeners();
-
-        DotSyntaxErrorListener dotSyntaxErrorListener = new DotSyntaxErrorListener();
         p.addErrorListener(dotSyntaxErrorListener);
-        lexer.addErrorListener(dotSyntaxErrorListener);
 
         DOTParser.GraphContext graphCtx = p.graph();
         ParseTreeWalker parseTreeWalker = new ParseTreeWalker();
@@ -201,5 +215,48 @@ public class DotParser {
         GraphvizListener gl = new GraphvizListener(nodeExtractor, postGraphComponents);
         parseTreeWalker.walk(gl, graphCtx);
         return gl.getGraphviz();
+    }
+
+    private static void validateNesting(CommonTokenStream tokens) {
+        int depth = 0;
+        for (Token token : tokens.getTokens()) {
+            if ("{".equals(token.getText())) {
+                depth++;
+                Asserts.illegalArgument(depth > MAX_NESTING_DEPTH,
+                    "DOT nesting exceeds " + MAX_NESTING_DEPTH);
+            } else if ("}".equals(token.getText())) {
+                depth = Math.max(0, depth - 1);
+            }
+        }
+    }
+
+    private static final class BoundedReader extends Reader {
+
+        private final Reader delegate;
+        private final int maximum;
+        private int count;
+
+        private BoundedReader(Reader delegate, int maximum) {
+            this.delegate = delegate;
+            this.maximum = maximum;
+        }
+
+        @Override
+        public int read(char[] buffer, int offset, int length) throws IOException {
+            int allowed = Math.min(length, maximum - count + 1);
+            int read = delegate.read(buffer, offset, allowed);
+            if (read > 0) {
+                count += read;
+                if (count > maximum) {
+                    throw new IOException("DOT input exceeds " + maximum + " characters");
+                }
+            }
+            return read;
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
+        }
     }
 }

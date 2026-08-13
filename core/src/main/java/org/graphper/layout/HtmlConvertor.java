@@ -529,7 +529,8 @@ public class HtmlConvertor {
           cellBuilder.assemble(assemble);
         }
 
-        assembleBuilder.addCell(horOffset, verOffset, td.getId(), cellBuilder.build());
+        String cellId = td.getPort() != null ? td.getPort() : td.getId();
+        assembleBuilder.addCell(horOffset, verOffset, cellId, cellBuilder.build());
       }
     }
 

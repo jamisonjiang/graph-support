@@ -37,7 +37,11 @@ public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
       return true;
     }
 
-    String href = nodeAttrs.getHref();
+    String href = brush.drawBoard().graphAttrs().getSecurityPolicy()
+        .sanitizeLink(nodeAttrs.getHref());
+    if (href == null) {
+      return true;
+    }
     Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE, A_ELE);
     brush.setWrapEle(wrapEle);
 

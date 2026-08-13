@@ -58,7 +58,10 @@ public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
       return;
     }
 
-    String href = graphAttrs.getHref();
+    String href = graphAttrs.getSecurityPolicy().sanitizeLink(graphAttrs.getHref());
+    if (href == null) {
+      return;
+    }
     String id = SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0";
     String tooltip = StringUtils.isNotEmpty(graphAttrs.getTooltip())
         ? graphAttrs.getTooltip() : graphAttrs.getLabel();

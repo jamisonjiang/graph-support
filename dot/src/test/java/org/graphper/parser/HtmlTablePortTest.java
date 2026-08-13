@@ -41,8 +41,8 @@ public class HtmlTablePortTest {
     Assertions.assertNotNull(table);
     List<Td> cells = new ArrayList<>();
     table.getTrs().forEach(row -> cells.addAll(row.getTds()));
-    Assertions.assertEquals("input", cells.get(0).getId());
-    Assertions.assertEquals("output", cells.get(2).getId());
+    Assertions.assertEquals("input", cells.get(0).getPort());
+    Assertions.assertEquals("output", cells.get(2).getPort());
 
     Line cellSouth = line(graph, octagon, node(graph, "hexagon"));
     Assertions.assertEquals("output", cellSouth.lineAttrs().getTailCell());
@@ -71,6 +71,19 @@ public class HtmlTablePortTest {
     Assertions.assertNotNull(prop.getArrowHead());
     Assertions.assertEquals(input.getCellBox(hexagonProp).getLeftBorder(),
                             prop.getArrowHead().getAxisEnd().getX(), 0.1);
+  }
+
+  @Test
+  public void tdIdAndPortRemainIndependentInEitherAttributeOrder() {
+    Graphviz graph = DotParser.parse("digraph { a[label=<<TABLE><TR>"
+        + "<TD ID=\"visual-a\" PORT=\"route-a\">a</TD>"
+        + "<TD PORT=\"route-b\" ID=\"visual-b\">b</TD>"
+        + "</TR></TABLE>>] }");
+    Table table = graph.nodes().iterator().next().nodeAttrs().getTable();
+    Assertions.assertEquals("visual-a", table.getTr(0).getTd(0).getId());
+    Assertions.assertEquals("route-a", table.getTr(0).getTd(0).getPort());
+    Assertions.assertEquals("visual-b", table.getTr(0).getTd(1).getId());
+    Assertions.assertEquals("route-b", table.getTr(0).getTd(1).getPort());
   }
 
   private Node node(Graphviz graph, String id) {

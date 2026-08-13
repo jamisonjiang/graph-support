@@ -41,6 +41,12 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   private int side = 4;
 
+  /*
+   * Retained only for source and binary compatibility with the public 1.5.3 API. Geometry checks
+   * deliberately do not use this cache because the result depends on the supplied box.
+   */
+  private transient volatile List<FlatPoint> flatPoints;
+
   public RegularPolylinePropCalc() {
   }
 
@@ -93,6 +99,27 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     }
 
     return points;
+  }
+
+  /**
+   * Calculates and stores the points for {@link #getPoints()}.
+   *
+   * @deprecated Geometry is box-dependent. Prefer {@link #calcPoints(Box)} and keep the returned
+   *             value locally.
+   */
+  @Deprecated
+  public void initPoints(Box box) {
+    flatPoints = calcPoints(box);
+  }
+
+  /**
+   * Returns the points most recently calculated by {@link #initPoints(Box)}.
+   *
+   * @deprecated Prefer {@link #calcPoints(Box)}.
+   */
+  @Deprecated
+  public List<FlatPoint> getPoints() {
+    return flatPoints;
   }
 
   // -------------------------- Shape proxy handler --------------------------

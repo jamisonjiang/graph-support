@@ -18,10 +18,14 @@ package org.graphper.draw;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.GraphResource;
 import org.graphper.util.Asserts;
@@ -63,13 +67,26 @@ public class DefaultGraphResource implements GraphResource {
 
   @Override
   public void save(String parentPath, String fileName) throws IOException {
-    fileName = StringUtils.isNotEmpty(fileName) ? fileName : name();
-    if (fileName.endsWith(suffix())) {
-      fileName = parentPath + File.separator + fileName;
-    } else {
-      fileName = parentPath + File.separator + fileName + suffix();
+    fileName = StringUtils.isNotEmpty(fileName) ? fileName
+        : (StringUtils.isNotEmpty(name()) ? name() : "graphviz");
+    Path suppliedName = Paths.get(fileName);
+    if (suppliedName.isAbsolute() || suppliedName.getNameCount() != 1
+        || fileName.indexOf('/') >= 0 || fileName.indexOf('\\') >= 0
+        || fileName.indexOf(':') >= 0 || ".".equals(fileName) || "..".equals(fileName)) {
+      throw new IOException("fileName must be a single, relative file name");
     }
-    try (FileOutputStream fos = new FileOutputStream(fileName)) {
+
+    String outputName = fileName.endsWith(suffix()) ? fileName : fileName + suffix();
+    Path base = Paths.get(parentPath).toRealPath();
+    Path target = base.resolve(outputName).normalize();
+    if (!target.getParent().equals(base)
+        || (Files.exists(target, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(target))) {
+      throw new IOException("Output path escapes the target directory or is a symbolic link");
+    }
+    try (OutputStream fos = Files.newOutputStream(target, StandardOpenOption.CREATE,
+                                                  StandardOpenOption.TRUNCATE_EXISTING,
+                                                  StandardOpenOption.WRITE,
+                                                  LinkOption.NOFOLLOW_LINKS)) {
       fos.write(bytes());
       fos.flush();
     }

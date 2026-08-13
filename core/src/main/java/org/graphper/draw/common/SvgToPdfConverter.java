@@ -130,6 +130,7 @@ public class SvgToPdfConverter extends BatikImgConverter {
                         ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOCUMENT_ELEMENT"),
                         FileType.SVG.getType());
       ClassUtils.invoke(transcoder, "setTranscodingHints", transcodingHints);
+      configureSecurityHints(transcoder);
       return getFileGraphResource(drawGraph, FileType.PDF, is, transcoder);
     } catch (Exception e) {
       throw new FailInitResourceException(e);

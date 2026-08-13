@@ -37,7 +37,11 @@ public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants 
       return true;
     }
 
-    String href = clusterAttrs.getHref();
+    String href = brush.drawBoard().graphAttrs().getSecurityPolicy()
+        .sanitizeLink(clusterAttrs.getHref());
+    if (href == null) {
+      return true;
+    }
     String id = brush.drawBoard().clusterId(cluster.getCluster());
     String tooltip = StringUtils.isNotEmpty(clusterAttrs.getTooltip())
         ? clusterAttrs.getTooltip() : clusterAttrs.getLabel();

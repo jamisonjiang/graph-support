@@ -1,6 +1,7 @@
 ## Image
 
-The **image** attribute allows setting an **image** as the node’s content. The image can be **a local file** (using the `file://` format) or **a URL** (`http://` or `https://`).
+The **image** attribute allows setting an **image** as the node’s content. Embedded base64 raster
+images work by default. Local files and remote URLs require an explicit security policy.
 
 See here check [Image Security Warning](../Image Security Warning.md)
 
@@ -35,10 +36,17 @@ Node urlImageNode = Node.builder()
     .build();
 
 Graphviz graph = Graphviz.digraph()
+    .securityPolicy(SecurityPolicy.builder()
+        .allowRemoteImages(true)
+        .allowRemoteImageHost("upload.wikimedia.org")
+        .localImageBaseDirectory(Paths.get("/absolute/path/to"))
+        .build())
     .addNode(localImageNode, urlImageNode)
     .build();
 ```
 
-- **`image("file:///absolute/path/to/image.png")`** → Loads an image from a **local file** using `file://`.
-- **`image("https://example.com/image.png")`** → Loads an image from **an online source**.
+- **`image("file:///absolute/path/to/image.png")`** → Loads the file only when it resolves under
+  the configured local image base directory.
+- **`image("https://example.com/image.png")`** → Loads the URL only when remote images are enabled;
+  private, loopback, link-local, and multicast addresses are blocked by raster converters.
 - **Requires `shape=box` (or similar) to display properly.**

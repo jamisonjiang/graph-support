@@ -73,8 +73,8 @@
     <encoder-type>UTF-8</encoder-type>
     <javadoc-version>3.2.0</javadoc-version>
     <source-version>2.2.1</source-version>
-    <batik-version>1.9</batik-version>
-    <fop-version>2.4</fop-version>
+    <batik-version>1.19</batik-version>
+    <fop-version>2.11</fop-version>
     <slf4j-version>1.7.32</slf4j-version>
     <junit-version>4.13.2</junit-version>
     <junit-param-version>5.8.2</junit-param-version>

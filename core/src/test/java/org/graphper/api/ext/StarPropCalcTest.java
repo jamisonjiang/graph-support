@@ -17,6 +17,7 @@
 package org.graphper.api.ext;
 
 import org.graphper.api.ext.StarPropCalc;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.graphper.def.FlatPoint;
@@ -48,5 +49,31 @@ public class StarPropCalcTest {
 
     Assertions.assertEquals(p1, starPropCalc.cornerAdj(4, points, false));
     Assertions.assertEquals(p2, starPropCalc.cornerAdj(4, points, true));
+  }
+
+  @Test
+  public void minContainerContainsWideInnerRectangleAndHonorsMinimums() {
+    double innerHeight = 20;
+    double innerWidth = 50;
+    FlatPoint size = NodeShapeEnum.STAR.minContainerSize(innerHeight, innerWidth, 100, 60);
+    Assertions.assertTrue(size.getHeight() >= 100);
+    Assertions.assertTrue(size.getWidth() >= 60);
+
+    DefaultBox box = centeredBox(size);
+    StarPropCalc calc = new StarPropCalc();
+    for (int i = 0; i <= 32; i++) {
+      double ratio = i / 32D;
+      double x = -innerWidth / 2 + innerWidth * ratio;
+      double y = -innerHeight / 2 + innerHeight * ratio;
+      Assertions.assertTrue(calc.in(box, new FlatPoint(x, -innerHeight / 2)));
+      Assertions.assertTrue(calc.in(box, new FlatPoint(x, innerHeight / 2)));
+      Assertions.assertTrue(calc.in(box, new FlatPoint(-innerWidth / 2, y)));
+      Assertions.assertTrue(calc.in(box, new FlatPoint(innerWidth / 2, y)));
+    }
+  }
+
+  private DefaultBox centeredBox(FlatPoint size) {
+    return new DefaultBox(-size.getWidth() / 2, size.getWidth() / 2,
+                          -size.getHeight() / 2, size.getHeight() / 2);
   }
 }

@@ -50,15 +50,46 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
   public FlatPoint minContainerSize(double innerHeight, double innerWidth,
                                     double minHeight, double minWidth) {
     FlatPoint size = minContainerSize(innerHeight, innerWidth);
-    double aspect = (1 + Math.sin(3 * Math.PI / 10)) / (2 * Math.cos(Math.PI / 10));
     double width = Math.max(size.getWidth(), minWidth);
     double height = Math.max(size.getHeight(), minHeight);
-    if (height / width > aspect) {
-      width = height / aspect;
-    } else {
-      height = width * aspect;
+    if (containsInnerRectangle(height, width, innerHeight, innerWidth)) {
+      return new FlatPoint(height, width);
     }
-    return new FlatPoint(height, width);
+    double scale = 1;
+    while (!containsInnerRectangle(height * scale, width * scale, innerHeight, innerWidth)
+        && scale < 1_000_000) {
+      scale *= 2;
+    }
+
+    double low = scale / 2;
+    double high = scale;
+    for (int i = 0; i < 60; i++) {
+      double mid = (low + high) / 2;
+      if (containsInnerRectangle(height * mid, width * mid, innerHeight, innerWidth)) {
+        high = mid;
+      } else {
+        low = mid;
+      }
+    }
+    return new FlatPoint(height * high * (1 + 1e-10), width * high * (1 + 1e-10));
+  }
+
+  private boolean containsInnerRectangle(double height, double width,
+                                         double innerHeight, double innerWidth) {
+    DefaultBox box = new DefaultBox(-width / 2, width / 2, -height / 2, height / 2);
+    // A star is concave, so sample each rectangle edge rather than checking corners only.
+    for (int i = 0; i <= 32; i++) {
+      double ratio = i / 32D;
+      double x = -innerWidth / 2 + innerWidth * ratio;
+      double y = -innerHeight / 2 + innerHeight * ratio;
+      if (!in(box, new FlatPoint(x, -innerHeight / 2))
+          || !in(box, new FlatPoint(x, innerHeight / 2))
+          || !in(box, new FlatPoint(-innerWidth / 2, y))
+          || !in(box, new FlatPoint(innerWidth / 2, y))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

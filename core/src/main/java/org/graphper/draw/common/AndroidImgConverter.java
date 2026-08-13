@@ -20,16 +20,13 @@ import static org.graphper.util.FontUtils.DEFAULT_FONT;
 
 import java.awt.Font;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.lang.reflect.Field;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultGraphResource;
@@ -40,6 +37,8 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.FontUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link SvgConverter} to convert SVG elements into Android Bitmap images. This
@@ -50,6 +49,8 @@ import org.graphper.util.FontUtils;
  */
 @SuppressWarnings("unchecked")
 public class AndroidImgConverter implements SvgConverter, SvgConstants {
+
+  private static final Logger log = LoggerFactory.getLogger(AndroidImgConverter.class);
 
   private static Class<?> PATH;
   private static Class<?> COLOR;
@@ -68,6 +69,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
   private static Class<?> BITMAP_FACTORY;
 
+  private static Class<?> BITMAP_FACTORY_OPTIONS;
+
   static {
     try {
       PATH = Class.forName("android.graphics.Path");
@@ -83,6 +86,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
       TYPE_FACE = Class.forName("android.graphics.Typeface");
       PATH_EFFECT = Class.forName("android.graphics.PathEffect");
       BITMAP_FACTORY = Class.forName("android.graphics.BitmapFactory");
+      BITMAP_FACTORY_OPTIONS = Class.forName("android.graphics.BitmapFactory$Options");
       DASH_PATH_EFFECT = Class.forName("android.graphics.DashPathEffect");
       COMPRESS_FORMAT = Class.forName("android.graphics.Bitmap$CompressFormat");
     } catch (Exception e) {
@@ -173,7 +177,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
         }
 
         if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
-          drawImage(ele, canvas);
+          drawImage(ele, canvas, drawGraph.getGraphviz().graphAttrs().getSecurityPolicy());
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -208,6 +212,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
+
+    SecurityPolicy policy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
+    if (w <= 0 || h <= 0 || (long) w * h > policy.getMaxOutputPixels()) {
+      throw new IllegalArgumentException("Rendered image " + w + "x" + h
+                                             + " exceeds the security policy pixel limit "
+                                             + policy.getMaxOutputPixels());
+    }
 
     imgContext.img = ClassUtils.invokeStatic(BIT_MAP, "createBitmap",
                                              new Class[]{int.class, int.class, CONFIG}, w, h,
@@ -392,7 +403,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
   }
 
-  private void drawImage(Element ele, Object canvas) throws Exception {
+  private void drawImage(Element ele, Object canvas, SecurityPolicy policy) throws Exception {
     // 1) Extract href from the <image> tag
     String href = ele.getAttribute("xlink:href");
     if (StringUtils.isEmpty(href)) {
@@ -406,7 +417,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     href = StringEscapeUtils.unescapeHtml4(href);
 
     // 2) Load the Bitmap
-    Object bitmap = loadBitmap(href);
+    Object bitmap = loadBitmap(href, policy);
     if (bitmap == null) {
       // Could not decode the image
       return;
@@ -459,30 +470,31 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     );
   }
 
-  private Object loadBitmap(String href) throws Exception {
+  private Object loadBitmap(String href, SecurityPolicy policy) throws Exception {
+    byte[] bytes;
     try {
-      // Try a URL
-      URL url = new URL(href);
-      try(InputStream in = url.openStream()) {
-        return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeStream",
-                                       new Class[]{InputStream.class}, in);
-      }
-
-    } catch (MalformedURLException e) {
-      // Not a valid URL -> local file path?
-      File file = new File(href);
-      if (!file.exists()) {
-        System.err.println("File not found: {}" + file.getAbsolutePath());
-        return null;
-      }
-      try (FileInputStream fis = new FileInputStream(file)) {
-        return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeStream",
-                                       new Class[]{InputStream.class}, fis);
-      }
+      bytes = SecureImageLoader.load(href, policy);
     } catch (Exception e) {
-      e.printStackTrace();
+      // Resource failures are expected for denied/unavailable untrusted references. Do not include
+      // the URL or exception message in output because either may contain sensitive query data.
+      log.warn("Unable to load image resource: {}", e.getClass().getSimpleName());
+      return null;
     }
-    return null;
+    Object options = ClassUtils.newObject(BITMAP_FACTORY_OPTIONS);
+    Field boundsOnly = BITMAP_FACTORY_OPTIONS.getField("inJustDecodeBounds");
+    boundsOnly.setBoolean(options, true);
+    Class<?>[] signature = new Class[]{byte[].class, int.class, int.class,
+        BITMAP_FACTORY_OPTIONS};
+    ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeByteArray", signature,
+                            bytes, 0, bytes.length, options);
+    int width = BITMAP_FACTORY_OPTIONS.getField("outWidth").getInt(options);
+    int height = BITMAP_FACTORY_OPTIONS.getField("outHeight").getInt(options);
+    if (width <= 0 || height <= 0 || (long) width * height > policy.getMaxImagePixels()) {
+      return null;
+    }
+    boundsOnly.setBoolean(options, false);
+    return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeByteArray", signature,
+                                   bytes, 0, bytes.length, options);
   }
 
   /**

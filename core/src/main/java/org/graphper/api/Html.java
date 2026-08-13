@@ -956,6 +956,8 @@ public class Html {
 
     private String text;
 
+    private String port;
+
     private LabelTag textTag;
 
     private Color fontColor;
@@ -1015,6 +1017,17 @@ public class Html {
     public Td text(String text) {
       this.text = text;
       this.fontName = FontUtils.selectFont(this.text, this.fontName);
+      return this;
+    }
+
+    /**
+     * Sets the owner-local port used to connect edges to this table cell.
+     *
+     * @param port cell port
+     * @return TD
+     */
+    public Td port(String port) {
+      this.port = port;
       return this;
     }
 
@@ -1097,6 +1110,10 @@ public class Html {
 
     public String getText() {
       return text;
+    }
+
+    public String getPort() {
+      return port;
     }
 
     public LabelTag getTextTag() {

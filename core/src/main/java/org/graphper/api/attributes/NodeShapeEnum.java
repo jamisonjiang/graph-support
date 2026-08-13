@@ -186,6 +186,12 @@ public enum NodeShapeEnum implements NodeShape {
   }
 
   @Override
+  public FlatPoint minContainerSize(double innerHeight, double innerWidth,
+                                    double minHeight, double minWidth) {
+    return shapePropCalc.minContainerSize(innerHeight, innerWidth, minHeight, minWidth);
+  }
+
+  @Override
   public boolean in(Box box, FlatPoint point) {
     Asserts.nullArgument(box, "shapePosition");
     Asserts.nullArgument(point, "point");

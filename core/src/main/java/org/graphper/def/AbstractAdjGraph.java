@@ -17,6 +17,7 @@
 package org.graphper.def;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -59,6 +60,11 @@ import java.util.function.Consumer;
  * <p>This class is <strong>not thread-safe</strong>. External synchronization is required
  * for concurrent access from multiple threads.
  *
+ * <h3>Serialization Security</h3>
+ * <p>Java serialization is retained for compatibility with trusted application data only. Never
+ * pass an untrusted stream to {@link ObjectInputStream}; use a schema-based format with an explicit
+ * type allow-list at the application boundary.</p>
+ *
  * <h3>Performance Characteristics</h3>
  * <ul>
  *   <li>Vertex lookup: O(1) average case</li>
@@ -80,6 +86,10 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
    * Default initialization capacity.
    */
   private static final int DEFAULT_CAPACITY = 1 << 4;
+
+  private static final int MAX_SERIALIZED_VERTICES = 1_000_000;
+
+  private static final int MAX_SERIALIZED_ADJACENCIES = 10_000_000;
 
   /**
    * Number of edges.
@@ -457,13 +467,25 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
 
     // Read vertex count
     int vertexCount = in.readInt();
+    if (vertexCount < 0 || vertexCount > MAX_SERIALIZED_VERTICES || edgeNum < 0
+        || edgeNum > MAX_SERIALIZED_ADJACENCIES) {
+      throw new InvalidObjectException("Serialized graph size exceeds the supported limit");
+    }
 
     // Read all vertices and their adjacencies, building the linked list structure
+    long adjacencyCount = 0;
     for (int i = 0; i < vertexCount; i++) {
       V vertex = (V) in.readObject();
+      if (edgeMap.containsKey(vertex)) {
+        throw new InvalidObjectException("Serialized graph contains duplicate vertices");
+      }
 
       // Read the number of edges for this vertex
       int edgeCount = in.readInt();
+      adjacencyCount += edgeCount;
+      if (edgeCount < 0 || adjacencyCount > MAX_SERIALIZED_ADJACENCIES) {
+        throw new InvalidObjectException("Serialized adjacency size exceeds the supported limit");
+      }
 
       // Create new adjacency list
       AdjacencyList<V, E> adjacency = newAdjacentList(vertex);

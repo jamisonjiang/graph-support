@@ -30,8 +30,8 @@ public class HtmlTablePortParityTest {
         + "<TD PORT=\"output\">output</TD></TR></TABLE>>] }")
         .nodes().iterator().next();
 
-    Assertions.assertEquals("input", parsedNode.nodeAttrs().getTable().getTr(0).getTd(0).getId());
-    Assertions.assertEquals("output", parsedNode.nodeAttrs().getTable().getTr(0).getTd(2).getId());
+    Assertions.assertEquals("input", parsedNode.nodeAttrs().getTable().getTr(0).getTd(0).getPort());
+    Assertions.assertEquals("output", parsedNode.nodeAttrs().getTable().getTr(0).getTd(2).getPort());
 
     DrawGraph javaDraw = Layout.DOT.getLayoutEngine().layout(
         Graphviz.digraph().addNode(javaNode).build());

@@ -32,16 +32,18 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.Iterator;
 import java.util.Objects;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.DefaultGraphResource;
@@ -124,6 +126,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
 
     ImgContext imgContext = new ImgContext();
+    SecurityPolicy securityPolicy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
     document.accessEles(((ele, children) -> {
       if (Objects.equals(ele.tagName(), SVG_ELE)) {
         initImage(drawGraph, imageType, imgContext, ele);
@@ -156,7 +159,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
       // ADD THIS NEW BRANCH:
       if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
-        drawImage(ele, g2d);
+        drawImage(ele, g2d, securityPolicy);
       }
     }));
 
@@ -195,6 +198,12 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
     w = (int) (w * 1.3333);
     h = (int) (h * 1.3333);
+    SecurityPolicy policy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
+    if (w <= 0 || h <= 0 || (long) w * h > policy.getMaxOutputPixels()) {
+      throw new IllegalArgumentException("Rendered image " + w + "x" + h
+                                             + " exceeds the security policy pixel limit "
+                                             + policy.getMaxOutputPixels());
+    }
     if (imageType == FileType.PNG) {
       imgContext.setImg(new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB));
     } else {
@@ -367,7 +376,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     setShapeCommonAttr(ele, g2d, path2D);
   }
 
-  private void drawImage(Element ele, Graphics2D g2d) {
+  private void drawImage(Element ele, Graphics2D g2d, SecurityPolicy policy) {
     // 1) Get the href from xlink:href or href
     String href = getHref(ele);
     if (StringUtils.isEmpty(href)) {
@@ -378,7 +387,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     }
 
     // 2) Load the image
-    BufferedImage image = loadImage(href);
+    BufferedImage image = loadImage(href, policy);
     if (image == null) {
       // Could not load image
       return;
@@ -427,23 +436,33 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     return StringEscapeUtils.unescapeHtml4(href);
   }
 
-  // Helper to load from URL or file
-  private BufferedImage loadImage(String href) {
+  private BufferedImage loadImage(String href, SecurityPolicy policy) {
     try {
-      URL url = new URL(href);
-      return ImageIO.read(url);
-    } catch (MalformedURLException e) {
-      // fallback to local file
-      File file = new File(href);
-      try {
-        return ImageIO.read(file);
-      } catch (IOException ex) {
-        log.error("Failed to read from file: {}", file.getAbsolutePath(), ex);
+      byte[] bytes = SecureImageLoader.load(href, policy);
+      try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+        if (!readers.hasNext()) {
+          return null;
+        }
+        ImageReader reader = readers.next();
+        try {
+          reader.setInput(input, true, true);
+          int width = reader.getWidth(0);
+          int height = reader.getHeight(0);
+          if (width <= 0 || height <= 0
+              || (long) width * height > policy.getMaxImagePixels()) {
+            log.warn("Image dimensions exceed the security policy");
+            return null;
+          }
+          return reader.read(0);
+        } finally {
+          reader.dispose();
+        }
       }
-    } catch (IOException ioEx) {
-      log.error("Failed to read from URL: {}", href, ioEx);
+    } catch (IOException | RuntimeException e) {
+      log.warn("Unable to load image resource: {}", e.getClass().getSimpleName());
+      return null;
     }
-    return null;
   }
 
   /**
