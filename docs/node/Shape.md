@@ -1,5 +1,8 @@
 # Shape
 
+See also [Regular](Regular.md) for controlling whether polygon-based shapes may stretch or must use
+equal width and height.
+
 Specifies the shape of the node. The shape of a node determines its appearance and how it will be rendered in the graph. 
 
 **Usage**:

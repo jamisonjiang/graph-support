@@ -219,18 +219,20 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   }
 
   private void start(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    double outerRadius = nodeDrawProp.getHeight() / 2;
-    double innerRadius = outerRadius / StarPropCalc.IN_OUT_RATIO;
+    double outerRadiusX = nodeDrawProp.getWidth() / 2;
+    double outerRadiusY = nodeDrawProp.getHeight() / 2;
+    double innerRadiusX = outerRadiusX / StarPropCalc.IN_OUT_RATIO;
+    double innerRadiusY = outerRadiusY / StarPropCalc.IN_OUT_RATIO;
 
     double arc = StarPropCalc.START_ARC;
     double[] ps = new double[22];
     for (int i = 0; i < 10; i++) {
       if (i % 2 == 0) {
-        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * outerRadius;
-        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * outerRadius;
+        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * outerRadiusX;
+        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * outerRadiusY;
       } else {
-        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * innerRadius;
-        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * innerRadius;
+        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * innerRadiusX;
+        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * innerRadiusY;
       }
       ps[20] = ps[0];
       ps[21] = ps[1];

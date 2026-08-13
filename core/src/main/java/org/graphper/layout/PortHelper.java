@@ -104,6 +104,11 @@ public class PortHelper {
       return new PortPoint(node.getX(), node.getY(), false, null);
     }
 
+    FlatPoint sameEndpoint = line.sameEndpoint(node.getNode());
+    if (sameEndpoint != null) {
+      return new PortPoint(sameEndpoint.getX(), sameEndpoint.getY(), true, null);
+    }
+
     String cellId = getCellId(node, line);
 
     Port port = getLineEndPointPort(node.getNodeDrawProp(), line, drawGraph, false);

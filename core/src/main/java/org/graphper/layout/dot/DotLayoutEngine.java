@@ -201,6 +201,13 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
                             lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1, labelSize);
 
     dotAttachment.addEdge(dLine);
+    if (Boolean.FALSE.equals(lineAttrs.getConstraint())) {
+      dotAttachment.addNonConstraintLine(dLine);
+    }
+    if (StringUtils.isNotEmpty(lineAttrs.getSameTail())
+        || StringUtils.isNotEmpty(lineAttrs.getSameHead())) {
+      dotAttachment.addSameEndpointLine(dLine);
+    }
   }
 
   @Override
@@ -253,14 +260,25 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     GraphAttrs graphAttrs = graphviz.graphAttrs();
 
     // Collapse subgraphs and clusters, then assign the rank for per node
-    ContainerCollapse containerCollapse = new ContainerCollapse(dotAttachment, graphviz);
-    RankContent rankContent = containerCollapse.getRankContent();
+    boolean haveNonConstraintLines = dotAttachment.haveNonConstraintLines();
+    RankContent rankContent;
+    if (haveNonConstraintLines) {
+      List<DLine> suspendedLines = dotAttachment.getNonConstraintLines();
+      dotDigraph.suspendEdges(suspendedLines);
+      try {
+        rankContent = new ContainerCollapse(dotAttachment, graphviz).getRankContent();
+      } finally {
+        dotDigraph.restoreEdges(suspendedLines);
+      }
+    } else {
+      rankContent = new ContainerCollapse(dotAttachment, graphviz).getRankContent();
+    }
 
     if (rankContent == null) {
       throw new ExecuteException("Graph is empty");
     }
 
-    if (dotAttachment.haveClusters() || dotAttachment.haveSubgraphs()) {
+    if (haveNonConstraintLines || dotAttachment.haveClusters() || dotAttachment.haveSubgraphs()) {
       /*
        * 1.Find self loop line, remove it.
        * 2. If there is an edge where the rank of from is greater
@@ -286,6 +304,9 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     // If cell not set port, auto generate port for line to get more reasonable routing
     autoGeneratePort(dotAttachment);
+    if (graphAttrs.getSplines() != Splines.ORTHO) {
+      new SameEndpointProcessor(dotAttachment).process();
+    }
 
     if (!drawGraph.needFlip()) {
       containerLabelPos(drawGraph);

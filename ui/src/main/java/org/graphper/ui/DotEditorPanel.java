@@ -832,9 +832,18 @@ public class DotEditorPanel extends JPanel {
       double millis = (System.nanoTime() - startNanos) / 1_000_000D;
       setStatus(String.format("Rendered in %.0f ms", millis), false);
     } catch (Exception e) {
-      Throwable cause = e.getCause() == null ? e : e.getCause();
-      setStatus(cause.getMessage() == null ? cause.toString() : cause.getMessage(), true);
+      Throwable cause = rootCause(e);
+      String message = cause.getMessage() == null ? cause.toString() : cause.getMessage();
+      setStatus("Render failed: " + message, true);
     }
+  }
+
+  private Throwable rootCause(Throwable throwable) {
+    Throwable cause = throwable;
+    while (cause.getCause() != null && cause.getCause() != cause) {
+      cause = cause.getCause();
+    }
+    return cause;
   }
 
   private File previewFile() throws IOException {
@@ -942,6 +951,7 @@ public class DotEditorPanel extends JPanel {
     statusDot.setForeground(error ? ERROR : SUCCESS);
     status.setForeground(error ? ERROR : MUTED);
     status.setText(message);
+    status.setToolTipText(error ? message : null);
   }
 
   private void showError(String title, Exception error) {

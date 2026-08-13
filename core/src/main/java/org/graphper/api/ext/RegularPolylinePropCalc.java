@@ -30,7 +30,6 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.UnfeasibleException;
 import org.graphper.def.Vectors;
 import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +40,6 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
   private static final Logger log = LoggerFactory.getLogger(RegularPolylinePropCalc.class);
 
   private int side = 4;
-
-  private List<FlatPoint> flatPoints;
 
   public RegularPolylinePropCalc() {
   }
@@ -66,11 +63,11 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
   public boolean in(Box box, FlatPoint point) {
     Asserts.nullArgument(box, "box");
     Asserts.nullArgument(point, "point");
-    initPoints(box);
+    List<FlatPoint> flatPoints = calcPoints(box);
 
     for (int i = 0; i < flatPoints.size(); i++) {
-      FlatPoint pre = adjPoint(i, true);
-      FlatPoint next = adjPoint(i, false);
+      FlatPoint pre = adjPoint(flatPoints, i, true);
+      FlatPoint next = adjPoint(flatPoints, i, false);
       FlatPoint current = flatPoints.get(i);
       if (!Vectors.inAngle(current, pre, next, point)) {
         return false;
@@ -78,18 +75,6 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     }
 
     return true;
-  }
-
-  public void initPoints(Box box) {
-    Asserts.nullArgument(box, "box");
-    if (flatPoints == null) {
-      flatPoints = new ArrayList<>(side);
-    }
-    if (CollectionUtils.isNotEmpty(flatPoints)) {
-      return;
-    }
-
-    flatPoints = calcPoints(box);
   }
 
   public List<FlatPoint> calcPoints(Box box) {
@@ -108,10 +93,6 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     }
 
     return points;
-  }
-
-  public List<FlatPoint> getPoints() {
-    return flatPoints;
   }
 
   // -------------------------- Shape proxy handler --------------------------
@@ -141,7 +122,9 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
       }
       size = size == null ? 4 : size;
 
-      RegularPolylinePropCalc propCalc = new RegularPolylinePropCalc(size);
+      boolean regular = Boolean.TRUE.equals(nodeAttrs.getRegular())
+          || nodeShape == org.graphper.api.attributes.NodeShapeEnum.REGULAR_POLYLINE;
+      RegularPolylinePropCalc propCalc = new StretchablePolygonPropCalc(size, regular);
       return (NodeShape) Proxy.newProxyInstance(
           NodeShape.class.getClassLoader(),
           new Class[]{NodeShape.class},
@@ -162,7 +145,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
   }
 
   // -------------------------- Shape proxy handler --------------------------
-  private double getStartArc(double perSideArc) {
+  protected double getStartArc(double perSideArc) {
     double arc = Math.PI / 2;
     if (side % 2 == 1) {
       return arc;
@@ -171,7 +154,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     return arc + (perSideArc / 2);
   }
 
-  private FlatPoint adjPoint(int idx, boolean isPre) {
+  private FlatPoint adjPoint(List<FlatPoint> flatPoints, int idx, boolean isPre) {
     Asserts.illegalArgument(idx < 0 || idx >= flatPoints.size(), "Wrong index");
     if (isPre) {
       if (idx == 0) {
@@ -186,6 +169,10 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     } else {
       return flatPoints.get(idx + 1);
     }
+  }
+
+  protected int getSide() {
+    return side;
   }
 
   private double expansion(double radius, double height, double width) {
@@ -242,6 +229,10 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
         return propCalc.in((Box) args[0], (FlatPoint) args[1]);
       }
       if (method.getName().equals("minContainerSize")) {
+        if (args.length == 4) {
+          return propCalc.minContainerSize((double) args[0], (double) args[1],
+                                           (double) args[2], (double) args[3]);
+        }
         return propCalc.minContainerSize((double) args[0], (double) args[1]);
       }
       if (method.getName().equals("getShapePropCalc")) {

@@ -19,6 +19,7 @@ package org.graphper.layout.dot;
 import static org.graphper.layout.LineHelper.lineDrawPropConnect;
 import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.Curves;
@@ -50,17 +51,52 @@ class SplineRouter extends CurveFitBoxRouter {
     List<FlatPoint> toPortPoints = throughParam.toPortPoints;
     lineDrawProp.markIsBesselCurve();
 
-    if (throughParam.throughPoints.size() < 2) {
+    List<ThroughPoint> throughPoints = simplifyThroughPoints(throughParam.throughPoints);
+    if (throughPoints.size() < 2) {
       lineDrawPropConnect(lineDrawProp, fromPortPoints, true);
       lineDrawPropConnect(lineDrawProp, toPortPoints, false);
       return;
     }
 
-    MultiBezierCurve curves = Curves.fitCurves(throughParam.throughPoints, 0.04);
+    MultiBezierCurve curves = Curves.fitCurves(throughPoints, 0.04);
     fixBox(throughParam.lineRouterBoxes, curves);
     multiBezierCurveToPoints(curves, lineDrawProp::add);
     lineDrawPropConnect(lineDrawProp, throughParam.fromPortPoints, true);
     lineDrawPropConnect(lineDrawProp, throughParam.toPortPoints, false);
+  }
+
+  static List<ThroughPoint> simplifyThroughPoints(List<ThroughPoint> points) {
+    if (points == null || points.size() < 3) {
+      return points;
+    }
+    List<ThroughPoint> simplified = new ArrayList<>(points.size());
+    for (ThroughPoint point : points) {
+      simplified.add(point);
+      while (simplified.size() >= 3) {
+        int last = simplified.size() - 1;
+        ThroughPoint a = simplified.get(last - 2);
+        ThroughPoint b = simplified.get(last - 1);
+        ThroughPoint c = simplified.get(last);
+        if (!sameDirection(a, b, c) || !axisAligned(a, b, c)) {
+          break;
+        }
+        simplified.remove(last - 1);
+      }
+    }
+    return simplified;
+  }
+
+  private static boolean sameDirection(FlatPoint a, FlatPoint b, FlatPoint c) {
+    double abX = b.getX() - a.getX();
+    double abY = b.getY() - a.getY();
+    double bcX = c.getX() - b.getX();
+    double bcY = c.getY() - b.getY();
+    return abX * bcX + abY * bcY >= 0;
+  }
+
+  private static boolean axisAligned(FlatPoint a, FlatPoint b, FlatPoint c) {
+    return Math.abs(a.getX() - b.getX()) <= 0.1 && Math.abs(b.getX() - c.getX()) <= 0.1
+        || Math.abs(a.getY() - b.getY()) <= 0.1 && Math.abs(b.getY() - c.getY()) <= 0.1;
   }
 
   // --------------------------------------------- SplineRouterFactory ---------------------------------------------

@@ -426,6 +426,17 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
+     * Forces polygon-based shapes to use equal width and height.
+     *
+     * @param regular whether to force a regular shape
+     * @return node builder
+     */
+    public NodeBuilder regular(boolean regular) {
+      nodeAttrs.regular = regular;
+      return this;
+    }
+
+    /**
      * Set the font size of node.
      *
      * @param fontSize font size

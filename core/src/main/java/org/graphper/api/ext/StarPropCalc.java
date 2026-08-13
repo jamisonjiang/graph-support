@@ -36,20 +36,41 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
 
   @Override
   public FlatPoint minContainerSize(double innerHeight, double innerWidth) {
-    double l = Math.max(innerHeight, innerWidth) / 2;
-    double radius = (l / (Math.pow(ValueUtils.cos(36), 2))) * IN_OUT_RATIO;
-    return new FlatPoint(2 * radius, 2 * radius);
+    double alpha = Math.PI / 10;
+    double radiusX = innerWidth / (2 * Math.cos(alpha));
+    double radiusY = innerHeight / (Math.sin(alpha) + Math.sin(3 * alpha));
+    double radius0 = Math.max(radiusX, radiusY);
+    double radius = radius0 * Math.sin(4 * alpha) * Math.cos(2 * alpha)
+        / (Math.cos(alpha) * Math.cos(4 * alpha));
+    return new FlatPoint(radius * (1 + Math.sin(3 * alpha)),
+                         2 * radius * Math.cos(alpha));
+  }
+
+  @Override
+  public FlatPoint minContainerSize(double innerHeight, double innerWidth,
+                                    double minHeight, double minWidth) {
+    FlatPoint size = minContainerSize(innerHeight, innerWidth);
+    double aspect = (1 + Math.sin(3 * Math.PI / 10)) / (2 * Math.cos(Math.PI / 10));
+    double width = Math.max(size.getWidth(), minWidth);
+    double height = Math.max(size.getHeight(), minHeight);
+    if (height / width > aspect) {
+      width = height / aspect;
+    } else {
+      height = width * aspect;
+    }
+    return new FlatPoint(height, width);
   }
 
   @Override
   public boolean in(Box box, FlatPoint point) {
-    double radius = box.getHeight() / 2;
+    double xRadius = box.getWidth() / 2;
+    double yRadius = box.getHeight() / 2;
 
     double arc = StarPropCalc.START_ARC;
     FlatPoint[] points = new FlatPoint[5];
     for (int i = 0; i < 5; i++) {
-      points[i] = new FlatPoint(box.getX() + Math.cos(arc) * radius,
-                                box.getY() - Math.sin(arc) * radius);
+      points[i] = new FlatPoint(box.getX() + Math.cos(arc) * xRadius,
+                                box.getY() - Math.sin(arc) * yRadius);
       arc += StarPropCalc.AXIS_ARC;
     }
 

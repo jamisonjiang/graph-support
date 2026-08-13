@@ -39,6 +39,18 @@ public interface ShapePropCalc {
   FlatPoint minContainerSize(double innerHeight, double innerWidth);
 
   /**
+   * Returns the smallest container that covers the inner rectangle and configured minimum
+   * dimensions. Aspect-ratio-sensitive shapes may override this method.
+   */
+  default FlatPoint minContainerSize(double innerHeight, double innerWidth,
+                                     double minHeight, double minWidth) {
+    FlatPoint size = minContainerSize(innerHeight, innerWidth);
+    size.setHeight(Math.max(size.getHeight(), minHeight));
+    size.setWidth(Math.max(size.getWidth(), minWidth));
+    return size;
+  }
+
+  /**
    * Confirm whether a specified point is within the shape through the center coordinates of the
    * shape and the width and height of the shape. This method uses this method as the judgment
    * standard for Newton's method iteration when performing line segment cutting.

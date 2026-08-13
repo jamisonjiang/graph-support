@@ -55,6 +55,10 @@ class DotAttachment extends LayoutAttach {
 
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
+  private List<DLine> nonConstraintLines;
+
+  private List<DLine> sameEndpointLines;
+
   public DotAttachment(DotDigraph dotDigraph, DrawGraph drawGraph, Map<Node, DNode> nodeRecord) {
     super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");
@@ -127,6 +131,36 @@ class DotAttachment extends LayoutAttach {
 
       labelLines.add(line);
     }
+  }
+
+  void addNonConstraintLine(DLine line) {
+    if (nonConstraintLines == null) {
+      nonConstraintLines = new ArrayList<>(2);
+    }
+    nonConstraintLines.add(line);
+  }
+
+  boolean haveNonConstraintLines() {
+    return nonConstraintLines != null;
+  }
+
+  List<DLine> getNonConstraintLines() {
+    return nonConstraintLines == null ? Collections.emptyList() : nonConstraintLines;
+  }
+
+  void addSameEndpointLine(DLine line) {
+    if (sameEndpointLines == null) {
+      sameEndpointLines = new ArrayList<>(4);
+    }
+    sameEndpointLines.add(line);
+  }
+
+  boolean haveSameEndpointLines() {
+    return sameEndpointLines != null;
+  }
+
+  List<DLine> getSameEndpointLines() {
+    return sameEndpointLines == null ? Collections.emptyList() : sameEndpointLines;
   }
 
   void put(Node node, DNode dNode) {
@@ -456,4 +490,3 @@ class DotAttachment extends LayoutAttach {
     }
   }
 }
-

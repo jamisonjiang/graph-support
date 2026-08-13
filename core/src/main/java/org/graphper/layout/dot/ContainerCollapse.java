@@ -338,6 +338,10 @@ class ContainerCollapse {
                                  Map<GraphContainer, RankTemp> clusterMerge) {
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
     for (Line line : dotAttachment.lines(graphContainer)) {
+      if (dotAttachment.haveNonConstraintLines()
+          && Boolean.FALSE.equals(drawGraph.lineAttrs(line).getConstraint())) {
+        continue;
+      }
       DNode from = dotAttachment.get(line.tail());
       DNode to = dotAttachment.get(line.head());
 

@@ -97,6 +97,8 @@ public class CombineShifter implements Shifter {
     for (ShifterStrategy shifterStrategy : shifterStrategies) {
       shifterStrategy.movePoint(lineDrawProp.getLabelCenter());
     }
+    moveSharedPoint(lineDrawProp.getSameTailPoint());
+    moveSharedPoint(lineDrawProp.getSameHeadPoint());
 
     List<RouterBox> routerBoxes = lineDrawProp.getBoxes();
     if (CollectionUtils.isNotEmpty(routerBoxes)) {
@@ -112,6 +114,16 @@ public class CombineShifter implements Shifter {
         shifterStrategy.movePoint(floatLabelCenter);
       }
     }
+  }
+
+  private void moveSharedPoint(FlatPoint point) {
+    if (point == null || isMark(point)) {
+      return;
+    }
+    for (ShifterStrategy shifterStrategy : shifterStrategies) {
+      shifterStrategy.movePoint(point);
+    }
+    markFlatPoint(point);
   }
 
   @Override

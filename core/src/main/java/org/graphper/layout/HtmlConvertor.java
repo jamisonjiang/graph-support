@@ -81,6 +81,10 @@ public class HtmlConvertor {
    * @throws CycleDependencyException if a cycle dependency is detected in table processing
    */
   public static Assemble toAssemble(Table table) {
+    return toAssemble(table, null);
+  }
+
+  public static Assemble toAssemble(Table table, String scope) {
     if (table == null) {
       return null;
     }
@@ -90,7 +94,7 @@ public class HtmlConvertor {
     tableLayout(table, tableHelper, tableHelper);
     tableHelper.releaseMark();
 
-    return convertToAssemble(table, tableHelper);
+    return convertToAssemble(table, tableHelper, scope);
   }
 
   /**
@@ -449,7 +453,7 @@ public class HtmlConvertor {
     } while (true);
   }
 
-  private static Assemble convertToAssemble(Table table, TableHelper tableHelper) {
+  private static Assemble convertToAssemble(Table table, TableHelper tableHelper, String scope) {
     double tabCellSpacing = (double) table.getCellSpacing() / (2 * PIXEL);
     double width = tableHelper.getWidth() / PIXEL;
     double height = tableHelper.getHeight() / PIXEL;
@@ -486,8 +490,10 @@ public class HtmlConvertor {
           height -= (tabCellSpacing * 2);
         }
 
+        String cellScope = scope == null ? null : scope + "::r" + r + "c" + c;
+        String internalId = cellScope == null ? td.getId() : cellScope;
         NodeBuilder cellBuilder = Node.builder()
-            .id(td.getId())
+            .id(internalId)
             .width(width)
             .height(height)
             .href(td.getHref(table))
@@ -509,7 +515,7 @@ public class HtmlConvertor {
 
         Table childTable = td.getTable();
         if (childTable != null) {
-          Assemble assemble = convertToAssemble(childTable, tdBox.tableHelper);
+          Assemble assemble = convertToAssemble(childTable, tdBox.tableHelper, cellScope);
           cellBuilder.assemble(assemble);
         }
 
@@ -523,7 +529,7 @@ public class HtmlConvertor {
           cellBuilder.assemble(assemble);
         }
 
-        assembleBuilder.addCell(horOffset, verOffset, cellBuilder.build());
+        assembleBuilder.addCell(horOffset, verOffset, td.getId(), cellBuilder.build());
       }
     }
 

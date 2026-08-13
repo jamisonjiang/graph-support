@@ -105,6 +105,19 @@ public class Assemble implements Serializable {
   }
 
   /**
+   * Returns the owner-local id of the cell. When no explicit local id was supplied, the node id is
+   * used for backward compatibility.
+   *
+   * @param cell cell to be detected
+   * @return owner-local cell id, or {@code null}
+   */
+  public String cellId(Node cell) {
+    CellPos cellPos = cells.get(cell);
+    Asserts.illegalArgument(cellPos == null, "Can not found cell offset info");
+    return cellPos.id != null ? cellPos.id : cell.nodeAttrs().getId();
+  }
+
+  /**
    * Returns the size of current assembler.
    *
    * @return size of current assembler
@@ -184,11 +197,25 @@ public class Assemble implements Serializable {
      * @throws NullPointerException set null cell
      */
     public synchronized AssembleBuilder addCell(double horOffset, double verOffset, Node cell) {
+      return addCell(horOffset, verOffset, null, cell);
+    }
+
+    /**
+     * Adds a cell with an owner-local id independent of the child node's global identity.
+     *
+     * @param horOffset horizontal offset of cell
+     * @param verOffset vertical offset of cell
+     * @param id        owner-local cell id
+     * @param cell      cell node
+     * @return assemble builder
+     */
+    public synchronized AssembleBuilder addCell(double horOffset, double verOffset, String id,
+                                                Node cell) {
       Asserts.nullArgument(cell, "Cell");
       if (cells == null) {
         cells = new LinkedHashMap<>();
       }
-      cells.put(cell, new CellPos(horOffset, verOffset));
+      cells.put(cell, new CellPos(horOffset, verOffset, id));
       return this;
     }
 
@@ -218,9 +245,16 @@ public class Assemble implements Serializable {
 
     private final double verOffset;
 
+    private final String id;
+
     public CellPos(double horOffset, double verOffset) {
+      this(horOffset, verOffset, null);
+    }
+
+    public CellPos(double horOffset, double verOffset, String id) {
       this.horOffset = horOffset * Graphviz.PIXEL;
       this.verOffset = verOffset * Graphviz.PIXEL;
+      this.id = id;
     }
   }
 }

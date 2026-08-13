@@ -58,12 +58,16 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
   private ContainerDrawProp cellContainer;
 
   public NodeDrawProp(Node node, NodeAttrs nodeAttrs) {
+    this(node, nodeAttrs, null);
+  }
+
+  public NodeDrawProp(Node node, NodeAttrs nodeAttrs, String cellScope) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(node, "nodeAttrs");
     this.node = node;
     this.nodeAttrs = nodeAttrs;
     this.margin = nodeAttrs.getMargin();
-    convertToAssemble(nodeAttrs.getTable(), nodeAttrs.getLabelTag());
+    convertToAssemble(nodeAttrs.getTable(), nodeAttrs.getLabelTag(), cellScope);
   }
 
   public Node getNode() {

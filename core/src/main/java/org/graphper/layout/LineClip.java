@@ -20,6 +20,8 @@ import static org.graphper.layout.AbstractLayoutEngine.setCellNodeOffset;
 import static org.graphper.layout.LineHelper.curveGetFloatLabelStart;
 import static org.graphper.layout.LineHelper.straightGetFloatLabelStart;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
@@ -135,8 +137,8 @@ public abstract class LineClip extends LineHandler {
     FlatPoint f = pathClip.pathFrom(path);
     FlatPoint t = pathClip.pathTo(path);
 
-    if ((!isSelfLine && needClip(line, lineAttrs, from))
-        || (isSelfLine && needClip(line, lineAttrs, from, false))) {
+      if ((!isSelfLine && needClip(line, lineAttrs, from))
+          || (isSelfLine && needClip(line, lineAttrs, from, false))) {
       ClusterDrawProp clusterDrawProp = null;
       if (!isSelfLine) {
         ANode node = layoutGraph.getNode(from);
@@ -149,14 +151,14 @@ public abstract class LineClip extends LineHandler {
 
       if (clusterDrawProp != null) {
         path = pathClip.clusterClip(clusterDrawProp, path);
-      } else {
-        path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp, true), path, true);
-      }
+        } else if (lineDrawProp.sameEndpoint(from) == null) {
+          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, fromProp, true), path, true);
+        }
     }
 
     if (pathClip.isNotNull(path)) {
-      if ((!isSelfLine && needClip(line, lineAttrs, to))
-          || (isSelfLine && needClip(line, lineAttrs, to, true))) {
+        if ((!isSelfLine && needClip(line, lineAttrs, to))
+            || (isSelfLine && needClip(line, lineAttrs, to, true))) {
         ClusterDrawProp clusterDrawProp = null;
         if (!isSelfLine) {
           ANode node = layoutGraph.getNode(to);
@@ -169,9 +171,9 @@ public abstract class LineClip extends LineHandler {
 
         if (clusterDrawProp != null) {
           path = pathClip.clusterClip(clusterDrawProp, path);
-        } else {
-          path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp, false), path, false);
-        }
+          } else if (lineDrawProp.sameEndpoint(to) == null) {
+            path = pathClip.nodeClip(getClipShapePosition(lineDrawProp, toProp, false), path, false);
+          }
       }
     }
 
@@ -184,6 +186,7 @@ public abstract class LineClip extends LineHandler {
       boolean fromArrowNeed =
           (haveTailArrow(line) && !reversal) || (haveHeadArrow(line) && reversal);
       boolean toArrowNeed = (haveHeadArrow(line) && !reversal) || (haveTailArrow(line) && reversal);
+      List<FlatPoint> nodeClippedPath = new ArrayList<>(path);
 
       if (fromArrowNeed) {
         path = pathClip
@@ -191,6 +194,7 @@ public abstract class LineClip extends LineHandler {
       }
 
       if (pathClip.isNull(path)) {
+        path = restorePath(lineDrawProp, nodeClippedPath);
         noPathArrowSet(line, reversal, f, t, noPathDirection, lineDrawProp);
       } else if (toArrowNeed) {
         path = pathClip
@@ -198,6 +202,7 @@ public abstract class LineClip extends LineHandler {
       }
 
       if (pathClip.isNull(path)) {
+        path = restorePath(lineDrawProp, nodeClippedPath);
         noPathArrowSet(line, reversal, f, t, noPathDirection, lineDrawProp);
       } else {
         FlatPoint nf = pathClip.pathFrom(path);
@@ -210,6 +215,12 @@ public abstract class LineClip extends LineHandler {
         }
       }
     }
+  }
+
+  private LineDrawProp restorePath(LineDrawProp lineDrawProp, List<FlatPoint> points) {
+    lineDrawProp.clear();
+    lineDrawProp.addAll(points);
+    return lineDrawProp;
   }
 
   protected void setFloatLabel(LineDrawProp lineDrawProp) {

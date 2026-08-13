@@ -44,6 +44,7 @@ public class NodeTest {
         .labelloc(Labelloc.BOTTOM)
         .margin(1, 2)
         .fixedSize(true)
+        .regular(true)
         .fontSize(22)
         .style(NodeStyle.BOLD)
         .sides(5)
@@ -58,6 +59,7 @@ public class NodeTest {
         n -> {
           Assertions.assertEquals(node.nodeAttrs(), n.nodeAttrs());
           Assertions.assertEquals(NodeShapeEnum.REGULAR_POLYLINE, n.nodeAttrs().getShape());
+          Assertions.assertEquals(Boolean.TRUE, n.nodeAttrs().getRegular());
           Assertions.assertEquals("#902924", n.nodeAttrs().getFillColor().value());
         });
   }

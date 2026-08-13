@@ -18,6 +18,7 @@ package org.graphper.parser;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -273,9 +274,7 @@ public class ParserUtils {
                 setEnum(sb::shape, ClusterShapeEnum.class, value);
                 break;
             case "style":
-                ClusterStyle[] clusterStyles = arrayConvert(value.toUpperCase(),
-                                                            ClusterStyle::valueOf,
-                                                            ClusterStyle.class);
+                ClusterStyle[] clusterStyles = enumValues(value, ClusterStyle.class);
                 if (clusterStyles != null) {
                     sb.style(clusterStyles);
                 }
@@ -354,7 +353,11 @@ public class ParserUtils {
                     setDouble(nodeBuilder::width, value);
                     break;
                 case "shape":
-                    setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
+                    if (NodeShapeEnum.M_RECORD.getName().equalsIgnoreCase(value)) {
+                        nodeBuilder.shape(NodeShapeEnum.M_RECORD);
+                    } else {
+                        setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
+                    }
                     break;
                 case "color":
                     nodeBuilder.color(colorOf(value));
@@ -387,6 +390,9 @@ public class ParserUtils {
                     break;
                 case "fixedsize":
                     setBoolean(nodeBuilder::fixedSize, value);
+                    break;
+                case "regular":
+                    setBoolean(nodeBuilder::regular, value);
                     break;
                 case "fontsize":
                     setDouble(nodeBuilder::fontSize, value);
@@ -471,9 +477,17 @@ public class ParserUtils {
                 case "minlen":
                     setInteger(builder::minlen, value);
                     break;
+                case "constraint":
+                    setBoolean(builder::constraint, value);
+                    break;
+                case "sametail":
+                    builder.sameTail(value);
+                    break;
+                case "samehead":
+                    builder.sameHead(value);
+                    break;
                 case "style":
-                    LineStyle[] lineStyles = arrayConvert(value.toUpperCase(),
-                                                          LineStyle::valueOf, LineStyle.class);
+                    LineStyle[] lineStyles = enumValues(value, LineStyle.class);
                     if (lineStyles != null) {
                         builder.style(lineStyles);
                     }
@@ -616,6 +630,9 @@ public class ParserUtils {
         setCommonAttributes(td, key, value);
 
         switch (key.toLowerCase()) {
+            case "port":
+                td.id(value);
+                break;
             case "border":
                 setInteger(td::border, value);
                 break;
@@ -772,9 +789,10 @@ public class ParserUtils {
     }
 
     private static void setBoolean(Consumer<Boolean> boolConsumer, String val) {
-        try {
-            boolConsumer.accept(Boolean.parseBoolean(val.toLowerCase()));
-        } catch (NumberFormatException ex) {
+        if ("true".equalsIgnoreCase(val)) {
+            boolConsumer.accept(true);
+        } else if ("false".equalsIgnoreCase(val)) {
+            boolConsumer.accept(false);
         }
     }
 
@@ -897,11 +915,28 @@ public class ParserUtils {
     }
 
     private static void setNodeStyle(Consumer<NodeStyle[]> styleConsumer, String style) {
-        NodeStyle[] nodeStyles = arrayConvert(style.toUpperCase(),
-                                              NodeStyle::valueOf,
-                                              NodeStyle.class);
+        NodeStyle[] nodeStyles = enumValues(style, NodeStyle.class);
         if (nodeStyles != null) {
             styleConsumer.accept(nodeStyles);
         }
+    }
+
+    private static <T extends Enum<T>> T[] enumValues(String value, Class<T> type) {
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        T[] values = Stream.of(value.split(SvgConstants.COMMA))
+            .map(String::trim)
+            .map(String::toUpperCase)
+            .map(name -> {
+                try {
+                    return Enum.valueOf(type, name);
+                } catch (IllegalArgumentException ignored) {
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .toArray(size -> (T[]) java.lang.reflect.Array.newInstance(type, size));
+        return values.length == 0 ? null : values;
     }
 }

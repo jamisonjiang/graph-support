@@ -485,6 +485,15 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     DNode start = line.from().getRankIndex() < line.to().getRankIndex() ? line.from() : line.to();
     DNode end = line.other(start);
+    double gapLeft = start.getX() + start.rightWidth();
+    double gapRight = end.getX() - end.leftWidth();
+    double gap = Math.max(0, gapRight - gapLeft);
+    double inset = Math.min(nodeSep, gap / 3);
+    double channelLeft = gapLeft + inset;
+    double channelRight = gapRight - inset;
+    if (channelLeft > channelRight) {
+      channelLeft = channelRight = (gapLeft + gapRight) / 2;
+    }
 
     lineRouterBoxes.add(
         new RouterBox(
@@ -498,8 +507,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     lineRouterBoxes.add(
         new RouterBox(
-            start.getX() + start.rightWidth() + nodeSep,
-            end.getX() - end.leftWidth() - nodeSep,
+            channelLeft,
+            channelRight,
             rankNode.getStartY() - maxHeight,
             rankNode.getStartY() - maxHeight + (maxHeight * lineNo / (line.getParallelNums() + 1))
         )

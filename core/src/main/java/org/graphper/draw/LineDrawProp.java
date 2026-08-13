@@ -59,6 +59,10 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private FlatPoint end;
 
+  private FlatPoint sameTailPoint;
+
+  private FlatPoint sameHeadPoint;
+
   private FlatPoint labelSize;
 
   // label container center
@@ -168,6 +172,32 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
    */
   public Line getLine() {
     return line;
+  }
+
+  public FlatPoint getSameTailPoint() {
+    return sameTailPoint;
+  }
+
+  public void setSameTailPoint(FlatPoint sameTailPoint) {
+    this.sameTailPoint = sameTailPoint;
+  }
+
+  public FlatPoint getSameHeadPoint() {
+    return sameHeadPoint;
+  }
+
+  public void setSameHeadPoint(FlatPoint sameHeadPoint) {
+    this.sameHeadPoint = sameHeadPoint;
+  }
+
+  public FlatPoint sameEndpoint(Node node) {
+    if (node == line.tail()) {
+      return sameTailPoint;
+    }
+    if (node == line.head()) {
+      return sameHeadPoint;
+    }
+    return null;
   }
 
   /**

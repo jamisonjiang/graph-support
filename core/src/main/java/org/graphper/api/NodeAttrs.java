@@ -70,6 +70,8 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   Boolean fixedSize;
 
+  Boolean regular;
+
   Double fontSize;
 
   Collection<NodeStyle> styles;
@@ -142,6 +144,10 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   public Boolean getFixedSize() {
     return fixedSize;
+  }
+
+  public Boolean getRegular() {
+    return regular;
   }
 
   public Double getFontSize() {
@@ -252,6 +258,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         && labeljust == nodeAttrs.labeljust && labelloc == nodeAttrs.labelloc
         && Objects.equals(margin, nodeAttrs.margin)
         && Objects.equals(shape, nodeAttrs.shape) && Objects.equals(fixedSize, nodeAttrs.fixedSize)
+        && Objects.equals(regular, nodeAttrs.regular)
         && Objects.equals(fontSize, nodeAttrs.fontSize) && Objects.equals(styles, nodeAttrs.styles)
         && Objects.equals(fontStyles, nodeAttrs.fontStyles)
         && Objects.equals(sides, nodeAttrs.sides) && Objects.equals(href, nodeAttrs.href)
@@ -265,7 +272,8 @@ public class NodeAttrs implements Serializable, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labelTag,
-                        labeljust, labelloc, margin, shape, fixedSize, fontSize, styles, fontStyles,
+                        labeljust, labelloc, margin, shape, fixedSize, regular, fontSize, styles,
+                        fontStyles,
                         sides, href, tooltip, image, imageSize, penWidth, table, recordTag,
                         assemble);
   }
@@ -287,6 +295,7 @@ public class NodeAttrs implements Serializable, Cloneable {
         ", margin=" + margin +
         ", shape=" + shape +
         ", fixedSize=" + fixedSize +
+        ", regular=" + regular +
         ", fontSize=" + fontSize +
         ", styles=" + styles +
         ", fontStyles=" + fontStyles +

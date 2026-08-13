@@ -83,13 +83,13 @@ public enum NodeShapeEnum implements NodeShape {
 
   CYLINDER("cylinder", new CylinderPropCalc()),
 
-  PENTAGON("pentagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(5)),
+  PENTAGON("pentagon", 0.5, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(5)),
 
-  HEXAGON("hexagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(6)),
+  HEXAGON("hexagon", 0.5, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(6)),
 
-  SEPTAGON("septagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(7)),
+  SEPTAGON("septagon", 0.5, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(7)),
 
-  OCTAGON("octagon", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(8)),
+  OCTAGON("octagon", 0.5, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost(8)),
 
   /**
    * Rules and more deformations, like: square, regular pentagon, regular hexagon. Please check
@@ -228,6 +228,11 @@ public enum NodeShapeEnum implements NodeShape {
   @Override
   public ShapePropCalc getShapePropCalc() {
     return shapePropCalc;
+  }
+
+  @Override
+  public boolean supportsRegular() {
+    return this != RECORD && this != M_RECORD;
   }
 
   public double getDefaultHeight() {

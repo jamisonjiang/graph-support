@@ -410,6 +410,31 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
+     * Sets whether this line participates in hierarchical rank assignment. This attribute affects
+     * only {@link Layout#DOT} and {@link Layout#DOTQ}; the line remains available to crossing
+     * minimization, coordinate assignment, labels, routing, clipping, and rendering.
+     *
+     * @param constraint whether the line constrains node ranks
+     * @return line builder
+     */
+    public LineBuilder constraint(boolean constraint) {
+      lineAttrs.constraint = constraint;
+      return this;
+    }
+
+    /** Groups edges that must share the same point on their logical tail node. */
+    public LineBuilder sameTail(String group) {
+      lineAttrs.sameTail = group;
+      return this;
+    }
+
+    /** Groups edges that must share the same point on their logical head node. */
+    public LineBuilder sameHead(String group) {
+      lineAttrs.sameHead = group;
+      return this;
+    }
+
+    /**
      * Set the style of line, Please check the details {@link LineStyle}.
      *
      * @param styles line styles

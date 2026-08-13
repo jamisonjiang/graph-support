@@ -49,6 +49,7 @@ import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
 import org.graphper.layout.ShifterStrategy;
+import org.graphper.layout.ShapeSizeUtils;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 import org.graphper.layout.fdp.OrthogonalRouter.OrthogonalRouterFactory;
 import org.graphper.layout.fdp.PolylineRouter.PolylineRouterFactory;
@@ -455,6 +456,10 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
 
     ShapePropCalc shapePropCalc = containerDrawProp.shapeProp();
     FlatPoint newSize = shapePropCalc.minContainerSize(areaGraph.height(), areaGraph.width());
+    if (containerDrawProp instanceof NodeDrawProp) {
+      NodeDrawProp node = (NodeDrawProp) containerDrawProp;
+      ShapeSizeUtils.applyRegular(node.nodeAttrs(), node.nodeAttrs().getShape(), newSize);
+    }
     double widthIncr = (newSize.getWidth() - areaGraph.width()) / 2;
     double heightIncr = (newSize.getHeight() - areaGraph.height()) / 2;
     leftMax = Math.max(leftMax, widthIncr);

@@ -12,16 +12,13 @@ It can be used as a Java library, a DOT parser, a command-line renderer, or a de
 
 ## Capabilities
 
-- Java builder API for nodes, edges, clusters, subgraphs, ports, labels, and styles
-- DOT parsing with hierarchical and force-directed layout engines
-- SVG, PNG, JPG, JPEG, GIF, TIFF, and PDF output
-- Transparent backgrounds and readable, CSS-friendly semantic SVG output
-- HTML-like tables, rich text, multiline labels, and record-shaped nodes
-- Graphviz-compatible `\l` / `\r` line alignment and tight zero-margin SVG canvases
-- Edge routing, labels, ports, arrow shapes, and cluster-aware layout
-- Layout-only access for applications that provide their own renderer
-- CLI rendering and a live desktop DOT Studio
-- Java 8+, with no native Graphviz installation required
+- Build graphs with a fluent Java API or parse existing DOT source
+- Hierarchical and force-directed layout engines for a range of graph topologies
+- Rich graph modeling with subgraphs, clusters, ports, labels, tables, and record nodes
+- Flexible edge routing with configurable paths, endpoints, labels, and arrow shapes
+- Vector, raster, and document output, including SVG, PNG, JPEG, TIFF, GIF, and PDF
+- Layout-only geometry access for applications that provide their own rendering pipeline
+- Command-line and desktop authoring tools, with Java 8+ support and no native Graphviz dependency
 
 ## Quick Start
 

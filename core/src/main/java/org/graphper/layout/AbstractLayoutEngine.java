@@ -419,6 +419,13 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
   private void nodeHandle(LayoutAttach attachment, DrawGraph drawGraph, GraphContainer container,
                           Map<Node, Integer> nodeId, Node node, RootCell rootCell, FlatPoint offset,
                           boolean isCell, boolean needCalcOffset, int depth) {
+    nodeHandle(attachment, drawGraph, container, nodeId, node, rootCell, offset, isCell,
+               needCalcOffset, depth, null);
+  }
+
+  private void nodeHandle(LayoutAttach attachment, DrawGraph drawGraph, GraphContainer container,
+                          Map<Node, Integer> nodeId, Node node, RootCell rootCell, FlatPoint offset,
+                          boolean isCell, boolean needCalcOffset, int depth, String localCellId) {
     Asserts.illegalArgument(depth > Graphviz.MAX_DEPTH,
                             "The nesting depth of cell exceeds the upper limit");
     NodeDrawProp nodeDrawProp = drawGraph.getNodeDrawProp(node);
@@ -442,16 +449,16 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
 
     if (nodeDrawProp == null) {
-      nodeDrawProp = new NodeDrawProp(node, nodeAttrs);
+      Integer n = nodeId.get(node);
+      if (n == null) {
+        n = nodeId.size();
+        nodeId.put(node, n);
+      }
+      nodeDrawProp = new NodeDrawProp(node, nodeAttrs, "node_" + n);
       drawGraph.nodePut(node, nodeDrawProp);
 
       // Node Id
-      Integer n = nodeId.get(node);
-      if (n == null) {
-        int nz = nodeId.size();
-        nodeDrawProp.setId(nz);
-        nodeId.put(node, nz);
-      }
+      nodeDrawProp.setId(n);
 
       nodeContainerSet(nodeDrawProp, nodeAttrs, drawGraph.needFlip());
 
@@ -463,7 +470,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
           nodeDrawProp.setCell(rootCell);
           cell = rootCell;
         } else {
-          String id = nodeAttrs.getId();
+          String id = localCellId != null ? localCellId : nodeAttrs.getId();
           if (id != null) {
             cell = new Cell(false);
             rootCell.put(id, cell);
@@ -515,7 +522,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
               );
 
               nodeHandle(attachment, drawGraph, container, nodeId, c, rootCell,
-                         of, true, needCalcOffset, depth + 1);
+                         of, true, needCalcOffset, depth + 1, assemble.cellId(c));
               NodeDrawProp cellProp = drawGraph.getNodeDrawProp(c);
               cellProp.setCellContainer(nodeDrawProp);
             }
@@ -681,18 +688,19 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
         FlatPoint imageSize = nodeAttrs.getImageSize();
         double h = Math.max(imageSize.getHeight() + verMargin, labelSize.getHeight());
         double w = Math.max(imageSize.getWidth() + horMargin, labelSize.getWidth());
-        boxSize = nodeShape.minContainerSize(h, w);
+        boxSize = nodeShape.minContainerSize(h, w, height, width);
       } else {
         boxSize = nodeShape.minContainerSize(labelSize.getHeight() + verMargin,
-                                             labelSize.getWidth() + horMargin);
+                                             labelSize.getWidth() + horMargin,
+                                             height, width);
       }
       Asserts.illegalArgument(boxSize == null,
                               "Node Shape can not return null box size from minContainerSize");
-      boxSize.setHeight(Math.max(boxSize.getHeight(), height));
-      boxSize.setWidth(Math.max(boxSize.getWidth(), width));
-      nodeShape.ratio(boxSize);
       nodeDrawProp.setLabelSize(labelSize);
     }
+
+    nodeShape.ratio(boxSize);
+    ShapeSizeUtils.applyRegular(nodeAttrs, nodeShape, boxSize);
 
     nodeDrawProp.setLeftBorder(0);
     nodeDrawProp.setRightBorder(boxSize.getWidth());

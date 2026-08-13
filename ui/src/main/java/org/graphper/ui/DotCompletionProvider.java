@@ -38,8 +38,9 @@ final class DotCompletionProvider {
       "fontname", "fontsize", "rankdir", "rank", "layout", "splines", "nodesep", "ranksep",
       "minlen", "weight", "constraint", "dir", "arrowhead", "arrowtail", "arrowsize",
       "headlabel", "taillabel", "headport", "tailport", "lhead", "ltail", "width", "height",
-      "fixedsize", "margin", "penwidth", "compound", "concentrate", "overlap", "tooltip",
-      "href"
+      "samehead", "sametail", "fixedsize", "margin", "penwidth", "peripheries", "orientation",
+      "sides", "regular",
+      "compound", "concentrate", "overlap", "tooltip", "href"
   };
 
   private static final String[] VALUES = {

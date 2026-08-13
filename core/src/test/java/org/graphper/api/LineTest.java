@@ -47,6 +47,9 @@ public class LineTest {
         .headclip(false)
         .tailclip(false)
         .minlen(3)
+        .constraint(false)
+        .sameTail("tail-group")
+        .sameHead("head-group")
         .style(LineStyle.DOTTED)
         .arrowHead(ArrowShape.CURVE)
         .arrowTail(ArrowShape.BOX)
@@ -66,6 +69,9 @@ public class LineTest {
         DocumentUtils.getTestSerialPath() + "line", line,
         l -> {
           Assertions.assertEquals(line.lineAttrs(), l.lineAttrs());
+          Assertions.assertEquals(Boolean.FALSE, l.lineAttrs().getConstraint());
+          Assertions.assertEquals("tail-group", l.lineAttrs().getSameTail());
+          Assertions.assertEquals("head-group", l.lineAttrs().getSameHead());
           Assertions.assertEquals(2, l.lineAttrs().getFloatLabels().length);
         });
   }

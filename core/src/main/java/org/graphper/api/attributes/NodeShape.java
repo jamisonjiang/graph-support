@@ -101,4 +101,9 @@ public interface NodeShape extends ShapeCenterCalc, ShapePropCalc, NodeShapePost
   default ShapePropCalc getShapePropCalc() {
     return this;
   }
+
+  /** Whether Graphviz's {@code regular=true} sizing rule applies to this shape. */
+  default boolean supportsRegular() {
+    return false;
+  }
 }

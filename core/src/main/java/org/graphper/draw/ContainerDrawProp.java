@@ -152,8 +152,12 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
   }
 
   protected void convertToAssemble(Table table, LabelTag labelTag) {
+    convertToAssemble(table, labelTag, null);
+  }
+
+  protected void convertToAssemble(Table table, LabelTag labelTag, String scope) {
     if (table != null) {
-      assemble = HtmlConvertor.toAssemble(table);
+      assemble = HtmlConvertor.toAssemble(table, scope);
       return;
     }
     assemble = HtmlConvertor.toAssemble(labelTag, labelAttrs());

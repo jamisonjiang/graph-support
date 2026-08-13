@@ -37,6 +37,9 @@ class DotEditorPanelTest {
     assertCompletion(panel, "lab", "label");
     assertCompletion(panel, "sha", "shape");
     assertCompletion(panel, "ran", "rankdir");
+    assertCompletion(panel, "reg", "regular");
+    assertCompletion(panel, "sameh", "samehead");
+    assertCompletion(panel, "samet", "sametail");
     assertCompletion(panel, "no", "node");
     assertCompletion(panel, "ed", "edge");
   }

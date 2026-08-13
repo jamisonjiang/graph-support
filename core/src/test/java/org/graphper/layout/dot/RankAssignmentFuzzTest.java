@@ -30,8 +30,13 @@ import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
 import org.graphper.api.Subgraph.SubgraphBuilder;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.ArrowShape;
+import org.graphper.api.attributes.Dir;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rank;
 import org.graphper.api.attributes.Rankdir;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +54,9 @@ import org.junit.jupiter.api.Test;
  * <p>Measured power on the pre-fix code: 16 of the first 4000 seeds threw
  * {@code NullPointerException: Cannot read field "next" because "preMaxNode" is null}; after the fix,
  * 0 of 4000. That whole range is the default here — it costs a few seconds. Widen it with
- * {@code -Dfuzz.seeds=...} when touching rank code.
+ * {@code -Dfuzz.seeds=...} when touching rank code. A minority of generated edges are also marked
+ * {@code constraint=false}, exercising the rank-only suspension path while retaining them for
+ * crossing minimization and routing.
  */
 public class RankAssignmentFuzzTest {
 
@@ -129,14 +136,29 @@ public class RankAssignmentFuzzTest {
     }
 
     int edgeCount = rnd.nextInt(nodeCount * 2);
+    List<Line> lines = new ArrayList<>();
     sb.append("nodes=").append(nodeCount).append(" nested=").append(nested).append(" edges=[");
     for (int e = 0; e < edgeCount; e++) {
       Node from = nodes.get(rnd.nextInt(nodeCount));
       Node to = nodes.get(rnd.nextInt(nodeCount));
       int minlen = MINLENS[rnd.nextInt(MINLENS.length)];
-      gb.addLine(Line.builder(from, to).minlen(minlen).build());
+      boolean constraint = rnd.nextInt(7) != 0;
+      Line line = Line.builder(from, to)
+          .minlen(minlen)
+          .constraint(constraint)
+          .weight(rnd.nextDouble() * 10)
+          .tailPort(Port.values()[rnd.nextInt(Port.values().length)])
+          .headPort(Port.values()[rnd.nextInt(Port.values().length)])
+          .tailclip(rnd.nextBoolean())
+          .headclip(rnd.nextBoolean())
+          .dir(Dir.values()[rnd.nextInt(Dir.values().length)])
+          .arrowHead(ArrowShape.values()[rnd.nextInt(ArrowShape.values().length)])
+          .arrowTail(ArrowShape.values()[rnd.nextInt(ArrowShape.values().length)])
+          .build();
+      lines.add(line);
+      gb.addLine(line);
       sb.append(from.nodeAttrs().getLabel()).append("->").append(to.nodeAttrs().getLabel())
-          .append('(').append(minlen).append(") ");
+          .append('(').append(minlen).append(',').append(constraint).append(") ");
     }
     sb.append(']');
 
@@ -153,6 +175,11 @@ public class RankAssignmentFuzzTest {
       sb.append(" rank=").append(rank);
     }
 
-    Layout.DOT.getLayoutEngine().layout(gb.build());
+    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(gb.build());
+    for (Line line : lines) {
+      LineDrawProp prop = drawGraph.getLineDrawProp(line);
+      Assertions.assertNotNull(prop);
+      Assertions.assertFalse(prop.isEmpty());
+    }
   }
 }
