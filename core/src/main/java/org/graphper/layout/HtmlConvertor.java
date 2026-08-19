@@ -350,16 +350,17 @@ public class HtmlConvertor {
 
   private static void alignSize(Table table, TableHelper tableHelper) {
     /*
-     * If the table is manually set with a width and height,
-     * if the width or height is greater than the currently
-     * calculated width or height, there need to lengthen the
-     * width and height of the corresponding cell
+     * Explicit dimensions are minimums for normal tables and exact outer dimensions for fixed
+     * tables. Keep natural cell geometry when an exact outer size is too small to preserve positive
+     * axis intervals.
      */
     Asserts.illegalArgument(tableHelper.horAxisNum() <= 1, "Only have one horizontal axis");
-    double heightIncr =
-        Math.max(table.getHeight() - tableHelper.getHeight(), 0) / (tableHelper.horAxisNum() - 1);
+    boolean fixedSize = Boolean.TRUE.equals(table.getFixedSize());
+    double heightDiff = table.getHeight() - tableHelper.getHeight();
+    double heightIncr = (fixedSize ? heightDiff : Math.max(heightDiff, 0))
+        / (tableHelper.horAxisNum() - 1);
 
-    if (heightIncr > 0) {
+    if (heightIncr != 0 && (!fixedSize || canAlignRows(tableHelper, heightIncr))) {
       double nextRangeLen = 0;
       for (int i = 0; i < tableHelper.horAxisNum(); i++) {
         TableAxis current = tableHelper.getRowAxis(i);
@@ -370,18 +371,27 @@ public class HtmlConvertor {
         }
         if (i > 0) {
           TableAxis pre = tableHelper.getRowAxis(i - 1);
-          current.refreshPos(pre.position + tmp + heightIncr);
+          current.alignPos(pre.position + tmp + heightIncr, fixedSize);
         }
 
-        tableHelper.refreshHeight(current.position);
+        if (!fixedSize) {
+          tableHelper.refreshHeight(current.position);
+        }
       }
 
-      tableHelper.refreshHeight(tableHelper.getHeight() + table.getCellSpacing());
+      if (!fixedSize) {
+        tableHelper.refreshHeight(tableHelper.getHeight() + table.getCellSpacing());
+      }
+    }
+    if (fixedSize) {
+      tableHelper.setHeight(table.getHeight());
     }
 
-    double widthIncr =
-        Math.max(table.getWidth() - tableHelper.getWidth(), 0) / tableHelper.verAxisNum();
-    if (widthIncr > 0) {
+    Asserts.illegalArgument(tableHelper.verAxisNum() <= 1, "Only have one vertical axis");
+    double widthDiff = table.getWidth() - tableHelper.getWidth();
+    double widthIncr = (fixedSize ? widthDiff : Math.max(widthDiff, 0))
+        / (tableHelper.verAxisNum() - 1);
+    if (widthIncr != 0 && (!fixedSize || canAlignColumns(tableHelper, widthIncr))) {
       double nextRangeLen = 0;
       Entry<Integer, TableAxis> current = tableHelper.firstColAxis();
       while (current != null) {
@@ -392,17 +402,49 @@ public class HtmlConvertor {
         }
         Entry<Integer, TableAxis> pre = tableHelper.lowerAxis(current.getValue());
         if (pre != null) {
-          current.getValue().refreshPos(pre.getValue().position + tmp + widthIncr);
+          current.getValue().alignPos(pre.getValue().position + tmp + widthIncr, fixedSize);
         }
 
-        tableHelper.refreshWidth(current.getValue().position);
+        if (!fixedSize) {
+          tableHelper.refreshWidth(current.getValue().position);
+        }
         current = next;
       }
-      tableHelper.refreshWidth(tableHelper.getWidth() + table.getCellSpacing());
+      if (!fixedSize) {
+        tableHelper.refreshWidth(tableHelper.getWidth() + table.getCellSpacing());
+      }
+    }
+    if (fixedSize) {
+      tableHelper.setWidth(table.getWidth());
     }
 
     tableHelper.releaseVerAxes();
     tableHelper.releaseHorAxes();
+  }
+
+  private static boolean canAlignRows(TableHelper tableHelper, double increment) {
+    for (int i = 0; i < tableHelper.horAxisNum() - 1; i++) {
+      if (tableHelper.getRowAxis(i + 1).position
+          - tableHelper.getRowAxis(i).position + increment <= 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean canAlignColumns(TableHelper tableHelper, double increment) {
+    Entry<Integer, TableAxis> current = tableHelper.firstColAxis();
+    while (current != null) {
+      Entry<Integer, TableAxis> next = tableHelper.higherAxis(current.getValue());
+      if (next == null) {
+        return true;
+      }
+      if (next.getValue().position - current.getValue().position + increment <= 0) {
+        return false;
+      }
+      current = next;
+    }
+    return true;
   }
 
   private static void balanceRowChildTds(TableHelper tableHelper, TdBox tdBox, boolean refresh) {
@@ -992,6 +1034,14 @@ public class HtmlConvertor {
       tableSize.setHeight(Math.max(height, tableSize.getHeight()));
     }
 
+    private void setWidth(double width) {
+      tableSize.setWidth(width);
+    }
+
+    private void setHeight(double height) {
+      tableSize.setHeight(height);
+    }
+
     private TdBox getBox(Td td) {
       if (tdBoxMap == null) {
         return null;
@@ -1146,6 +1196,15 @@ public class HtmlConvertor {
         return true;
       }
       return false;
+    }
+
+    private boolean alignPos(double pos, boolean allowShrink) {
+      if (!allowShrink) {
+        return refreshPos(pos);
+      }
+      boolean changed = position != pos;
+      position = pos;
+      return changed;
     }
 
     private double pixelPosition() {
