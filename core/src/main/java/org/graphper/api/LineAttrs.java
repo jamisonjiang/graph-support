@@ -305,12 +305,13 @@ public class LineAttrs implements Serializable, Cloneable {
   public int hashCode() {
     int result = Objects.hash(id, controlPoints, showboxes, arrowHead, arrowTail, arrowSize, color,
                               dir, fontColor, fontSize, fontName, headclip, tailclip, minlen,
-                              constraint, sameTail, sameHead, weight, label, labelTag, styles,
-                              lhead, ltail, radian,
-                              tailPort,
+                              weight, label, labelTag, styles, lhead, ltail, radian, tailPort,
                               headPort, tailCell, headCell, href, tooltip, penWidth, table,
                               assemble);
     result = 31 * result + Arrays.hashCode(floatLabels);
+    if (constraint != null || sameTail != null || sameHead != null) {
+      result = 31 * result + Objects.hash(constraint, sameTail, sameHead);
+    }
     return result;
   }
 

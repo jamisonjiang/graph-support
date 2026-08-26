@@ -211,6 +211,61 @@ abstract class AbstractCoordinate {
     } else if (needFlip) {
       refreshGraphBorder(drawGraph);
     }
+
+    if (EnvProp.qualityCheck()) {
+      checkClusterOverlap(drawGraph);
+    }
+  }
+
+  private void checkClusterOverlap(DrawGraph drawGraph) {
+    List<ClusterDrawProp> clusters = new ArrayList<>(drawGraph.clusters());
+    Graphviz graphviz = drawGraph.getGraphviz();
+    for (int i = 0; i < clusters.size(); i++) {
+      ClusterDrawProp left = clusters.get(i);
+      for (int j = i + 1; j < clusters.size(); j++) {
+        ClusterDrawProp right = clusters.get(j);
+        if (contains(graphviz, left.getCluster(), right.getCluster())
+            || contains(graphviz, right.getCluster(), left.getCluster())
+            || !overlapRanks(left.getCluster(), right.getCluster())) {
+          continue;
+        }
+
+        double overlapX = Math.min(left.getRightBorder(), right.getRightBorder())
+            - Math.max(left.getLeftBorder(), right.getLeftBorder());
+        double overlapY = Math.min(left.getDownBorder(), right.getDownBorder())
+            - Math.max(left.getUpBorder(), right.getUpBorder());
+        Asserts.illegalArgument(overlapX > 0 && overlapY > 0,
+                                "Clusters #" + i + " " + clusterRange(left)
+                                    + " and #" + j + " " + clusterRange(right)
+                                    + " overlap by " + overlapX + " x " + overlapY);
+      }
+    }
+  }
+
+  private boolean overlapRanks(Cluster left, Cluster right) {
+    ContainerBorder leftRange = containerRankRange.get(left);
+    ContainerBorder rightRange = containerRankRange.get(right);
+    return leftRange != null && rightRange != null
+        && leftRange.min <= rightRange.max && rightRange.min <= leftRange.max;
+  }
+
+  private String clusterRange(ClusterDrawProp cluster) {
+    ContainerBorder rankRange = containerRankRange.get(cluster.getCluster());
+    return cluster.getCluster().id() + " ranks="
+        + (rankRange == null ? "?" : rankRange.min + ".." + rankRange.max)
+        + " rect=[" + cluster.getLeftBorder() + "," + cluster.getUpBorder()
+        + " -> " + cluster.getRightBorder() + "," + cluster.getDownBorder() + "]";
+  }
+
+  private boolean contains(Graphviz graphviz, Cluster ancestor, Cluster descendant) {
+    GraphContainer container = descendant;
+    while (container != null && container.isCluster()) {
+      if (container == ancestor) {
+        return true;
+      }
+      container = graphviz.effectiveFather(container);
+    }
+    return false;
   }
 
   protected ContainerDrawProp getContainerDrawProp(GraphContainer container) {

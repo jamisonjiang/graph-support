@@ -1,0 +1,38 @@
+digraph G {
+  subgraph cluster_A {
+    label="machine cluster"
+    e
+    c
+
+    subgraph cluster_B {
+      label="test"
+      subgraph cluster_C {
+        label="kkk"
+        f
+      }
+      { rank=same; e -> g -> f }
+    }
+
+    { rank=same; a -> b -> c -> d }
+
+    subgraph cluster_D {
+      { rank=same; o -> t }
+      l -> o -> p
+    }
+
+    c -> e
+    d -> f
+    e -> f
+    a -> c
+    b -> e
+    a -> f
+    a -> g
+    d -> p
+    d -> t
+  }
+
+  o -> f
+  o -> f
+  t -> m [color="#FE0000"]
+  f -> m [weight=5]
+}

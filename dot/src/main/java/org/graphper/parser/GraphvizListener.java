@@ -40,8 +40,6 @@ import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
-import org.graphper.api.attributes.Layout;
-import org.graphper.api.attributes.Splines;
 import org.graphper.parser.grammar.DOTParser;
 import org.graphper.parser.grammar.DOTParser.Attr_stmtContext;
 import org.graphper.parser.grammar.DOTParser.GraphContext;
@@ -117,12 +115,6 @@ public class GraphvizListener extends DotTempAttrListener {
         GraphvizBuilder graphvizBuilder = (GraphvizBuilder) containerStack.pop();
         if (postGraphComponents != null) {
             postGraphComponents.postGraphviz(graphvizBuilder);
-        }
-        Graphviz candidate = graphvizBuilder.build();
-        Layout layout = candidate.graphAttrs().getLayout();
-        if (candidate.graphAttrs().getSplines() == null
-            && (layout == Layout.DOT || layout == Layout.DOTQ)) {
-            graphvizBuilder.splines(Splines.SPLINE);
         }
         graphviz = graphvizBuilder.build();
     }

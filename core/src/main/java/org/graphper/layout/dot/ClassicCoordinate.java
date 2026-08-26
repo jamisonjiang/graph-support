@@ -16,6 +16,12 @@
 
 package org.graphper.layout.dot;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
 
@@ -56,8 +62,139 @@ class ClassicCoordinate extends AbstractCoordinate {
   private DotDigraph createAuxGraph() {
     auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
     addClusterBorderEdge(auxDotDigraph, dotAttachment.getGraphviz());
-    accessNodes(this::nodeConsumer, null);
+    accessNodes(this::nodeConsumer, (node, cluster, border) -> border.refreshRankRange(node));
+    addClusterEdgesAcrossRoutingVirtuals();
+    addOverlappingSiblingClusterEdges(dotAttachment.getGraphviz());
     return auxDotDigraph;
+  }
+
+  private void addOverlappingSiblingClusterEdges(GraphContainer parent) {
+    List<Cluster> siblings = new ArrayList<>();
+    for (Cluster cluster : dotAttachment.clusters(parent)) {
+      siblings.add(cluster);
+      addOverlappingSiblingClusterEdges(cluster);
+    }
+
+    for (int i = 0; i < siblings.size(); i++) {
+      Cluster left = siblings.get(i);
+      ContainerBorder leftBorder = getContainerBorder(left);
+      if (leftBorder == null) {
+        continue;
+      }
+      for (int j = i + 1; j < siblings.size(); j++) {
+        Cluster right = siblings.get(j);
+        ContainerBorder rightBorder = getContainerBorder(right);
+        if (rightBorder == null || leftBorder.max < rightBorder.min
+            || rightBorder.max < leftBorder.min) {
+          continue;
+        }
+
+        ContainerContent leftContent = getContainerContent(left);
+        ContainerContent rightContent = getContainerContent(right);
+        if (reachable(leftContent.rightNode, rightContent.leftNode)) {
+          addClusterLimit(leftContent, rightContent);
+        } else if (reachable(rightContent.rightNode, leftContent.leftNode)) {
+          addClusterLimit(rightContent, leftContent);
+        } else if (comesBefore(leftBorder, rightBorder)) {
+          addClusterLimit(leftContent, rightContent);
+        } else {
+          addClusterLimit(rightContent, leftContent);
+        }
+      }
+    }
+  }
+
+  private void addClusterLimit(ContainerContent left, ContainerContent right) {
+    if (reachable(right.leftNode, left.rightNode)) {
+      return;
+    }
+    auxDotDigraph.addEdge(new DLine(left.rightNode, right.leftNode, 0, 16, false));
+  }
+
+  private boolean comesBefore(ContainerBorder left, ContainerBorder right) {
+    int bestDistance = Integer.MAX_VALUE;
+    double leftIndex = 0;
+    double rightIndex = 0;
+    for (Map.Entry<Integer, int[]> leftEntry : left.rankIndexRange.entrySet()) {
+      for (Map.Entry<Integer, int[]> rightEntry : right.rankIndexRange.entrySet()) {
+        int distance = Math.abs(leftEntry.getKey() - rightEntry.getKey());
+        if (distance >= bestDistance) {
+          continue;
+        }
+        bestDistance = distance;
+        int[] leftRange = leftEntry.getValue();
+        int[] rightRange = rightEntry.getValue();
+        leftIndex = (leftRange[0] + leftRange[1]) / 2D;
+        rightIndex = (rightRange[0] + rightRange[1]) / 2D;
+      }
+    }
+    return leftIndex <= rightIndex;
+  }
+
+  private boolean reachable(DNode from, DNode target) {
+    if (from == target) {
+      return true;
+    }
+
+    Queue<DNode> queue = new ArrayDeque<>();
+    List<DNode> visited = new ArrayList<>();
+    queue.offer(from);
+    visited.add(from);
+    while (!queue.isEmpty()) {
+      DNode node = queue.poll();
+      for (DLine line : auxDotDigraph.adjacent(node)) {
+        if (line.from() != node) {
+          continue;
+        }
+        DNode next = line.to();
+        if (next == target) {
+          return true;
+        }
+        if (!visited.contains(next)) {
+          visited.add(next);
+          queue.offer(next);
+        }
+      }
+    }
+    return false;
+  }
+
+  private void addClusterEdgesAcrossRoutingVirtuals() {
+    if (!dotAttachment.haveClusters()) {
+      return;
+    }
+
+    for (int r = rankContent.minRank(); r <= rankContent.maxRank(); r++) {
+      RankContent.RankNode rank = rankContent.get(r);
+      int i = 0;
+      while (i < rank.size()) {
+        if (!rank.get(i).isRoutingVirtual()) {
+          i++;
+          continue;
+        }
+
+        int leftIndex = i - 1;
+        while (i < rank.size() && rank.get(i).isRoutingVirtual()) {
+          i++;
+        }
+        if (leftIndex < 0 || i >= rank.size()) {
+          continue;
+        }
+
+        DNode leftNode = rank.get(leftIndex);
+        DNode rightNode = rank.get(i);
+        GraphContainer commonParent = dotAttachment.commonParent(leftNode, rightNode);
+        ContainerContent left = getContainerContent(
+            dotAttachment.clusterDirectContainer(commonParent, leftNode)
+        );
+        ContainerContent right = getContainerContent(
+            dotAttachment.clusterDirectContainer(commonParent, rightNode)
+        );
+        if (left != null && right != null && left.container != right.container) {
+          auxDotDigraph.addEdge(new DLine(left.rightNode, right.leftNode, 0, 16, false));
+        }
+      }
+    }
   }
 
   protected void nodeConsumer(DNode node) {
@@ -86,18 +223,15 @@ class ClassicCoordinate extends AbstractCoordinate {
      * [0, cluster_min_gap]
      * */
     node.switchNormalModel();
-    boolean normalRank = !rankContent.get(node.getRank()).noNormalNode();
-
     // Mode switch
     node.switchAuxModel();
     // Auxiliary edge addition across hierarchical edges
     crossRankAuxEdge(node);
     // Add auxiliary edges of vertices at the same level
-    sameRankAuxEdge(node, normalRank);
-    // Add cluster boundary edge
-    if (normalRank) {
-      containerBorderEdge(node);
-    }
+    sameRankAuxEdge(node);
+    // Keep every node inside its own parent cluster. Routing-only virtual nodes are exempt only
+    // from borders of unrelated adjacent clusters in adjClusterEdge.
+    containerBorderEdge(node);
 
     // Avoid separate nodes
     auxDotDigraph.add(node);
@@ -168,7 +302,7 @@ class ClassicCoordinate extends AbstractCoordinate {
     }
   }
 
-  private void sameRankAuxEdge(DNode node, boolean normalRank) {
+  private void sameRankAuxEdge(DNode node) {
     node.switchNormalModel();
     DNode other = rankContent.rankNextNode(node);
     node.switchAuxModel();
@@ -185,9 +319,7 @@ class ClassicCoordinate extends AbstractCoordinate {
     }
 
     sameRankLine((int) node.getNodeSep(), node, other, 0);
-    if (normalRank) {
-      adjClusterEdge(node, other);
-    }
+    adjClusterEdge(node, other);
   }
 
   private void sameRankLine(int minLen, DNode node, DNode other, double weight) {
@@ -210,6 +342,9 @@ class ClassicCoordinate extends AbstractCoordinate {
     }
 
     if (commonParent == node.getContainer()) {
+      if (node.isRoutingVirtual()) {
+        return;
+      }
 
       ContainerContent containerContent = getContainerContent(
           dotAttachment.clusterDirectContainer(commonParent, other)
@@ -218,6 +353,9 @@ class ClassicCoordinate extends AbstractCoordinate {
                                       (int) (20 + node.rightWidth()), false));
     }
     if (commonParent == other.getContainer()) {
+      if (other.isRoutingVirtual()) {
+        return;
+      }
 
       ContainerContent containerContent = getContainerContent(
           dotAttachment.clusterDirectContainer(commonParent, node)

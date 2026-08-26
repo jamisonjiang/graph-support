@@ -271,11 +271,11 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labelTag,
-                        labeljust, labelloc, margin, shape, fixedSize, regular, fontSize, styles,
-                        fontStyles,
-                        sides, href, tooltip, image, imageSize, penWidth, table, recordTag,
-                        assemble);
+    int result = Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label,
+                              labelTag, labeljust, labelloc, margin, shape, fixedSize, fontSize,
+                              styles, fontStyles, sides, href, tooltip, image, imageSize, penWidth,
+                              table, recordTag, assemble);
+    return regular == null ? result : 31 * result + regular.hashCode();
   }
 
   @Override

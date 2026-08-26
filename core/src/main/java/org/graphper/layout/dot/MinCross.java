@@ -81,7 +81,6 @@ class MinCross {
     this.rankContent = rankContent;
     this.dotAttachment = dotAttachment;
     this.useQuickMode = useQuickMode;
-
     // Cut the line which span over than 2
     reduceLongEdges();
 
@@ -93,6 +92,9 @@ class MinCross {
 
     // Sync node order
     syncRankOrder();
+
+    // Try bounded DFS orders of independent non-branching paths.
+    new NonBranchingPathSort(rankContent, dotAttachment.getDrawGraph(), digraphProxy).sort();
 
     this.rootCrossRank = null;
     this.clusterExpand = null;
@@ -205,7 +207,7 @@ class MinCross {
     DNode to;
     int end = getOldRank(edge.to());
     Graphviz graphviz = dotAttachment.getGraphviz();
-    GraphContainer container = DotAttachment.commonParent(graphviz, from, edge.to());
+    GraphContainer commonParent = DotAttachment.commonParent(graphviz, from, edge.to());
 
     List<DNode> virtualNodes = null;
     if (edge.haveLabel() && edge.getLabelSize() != null) {
@@ -222,7 +224,7 @@ class MinCross {
           continue;
         }
 
-        to = DNode.newVirtualNode(20, container);
+        to = DNode.newRoutingVirtualNode(20, commonParent);
         to.setRank(rankNode.rankIndex());
         rankNode.add(to);
 
@@ -264,7 +266,6 @@ class MinCross {
     for (Cluster cluster : dotAttachment.clusters(dotAttachment.getGraphviz())) {
       mincrossCluster(cluster);
     }
-
     if (log.isDebugEnabled()) {
       log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
     }
@@ -276,7 +277,6 @@ class MinCross {
     if (sameRankAdjacentRecord != null) {
       sameRankAdjacentRecord.clearMarkIn();
     }
-
     BasicCrossRank crossRank = clusterExpand.init(cluster);
     rootCrossRank.expand(clusterExpand);
     expandLine(crossRank);
@@ -525,7 +525,12 @@ class MinCross {
       rootCrossRank.updateCross(cn);
     }
 
-    if (useQuickMode) {
+    if (optimal.getCrossNum() == 0) {
+      BasicCrossRank orderedCandidate = optimal.getCrossRank().clone();
+      flatOrder(orderedCandidate, false);
+      CrossSnapshot ordered = rootCrossRank.tryCacheCrossNum(orderedCandidate);
+      rootCrossRank.updateCross(ordered.getCrossNum() == 0 ? ordered : optimal);
+    } else if (useQuickMode) {
       logQuickModeStep(0);
       flatOrder(optimal.getCrossRank());
       logQuickModeStep(1);
@@ -587,6 +592,10 @@ class MinCross {
   }
 
   private void flatOrder(CrossRank crossRank) {
+    flatOrder(crossRank, true);
+  }
+
+  private void flatOrder(CrossRank crossRank, boolean needSyncRankIdx) {
     SameRankAdjacentRecord sameRankAdjacentRecord = rootCrossRank.getSameRankAdjacentRecord();
     if (sameRankAdjacentRecord == null) {
       return;
@@ -624,7 +633,7 @@ class MinCross {
       Integer rightPost = postOrderRecord.get(right).getValue();
 
       return rightPost.compareTo(leftPost);
-    }, true);
+    }, needSyncRankIdx);
   }
 
   private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,

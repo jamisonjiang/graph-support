@@ -37,6 +37,8 @@ class DNode extends ANode implements Box, ShapePosition {
 
   private static final int NOT_ADJUST_MID = 0x400;
 
+  private static final int ROUTING_VIRTUAL = 0x800;
+
   private int rank;
 
   // The rank index of the node
@@ -106,10 +108,15 @@ class DNode extends ANode implements Box, ShapePosition {
     }
   }
 
-  static DNode newVirtualNode(double nodeSep, GraphContainer container) {
+  static DNode newRoutingVirtualNode(double nodeSep, GraphContainer container) {
     DNode node = new DNode(null, 20, 1, nodeSep);
     node.setContainer(container);
+    node.status |= ROUTING_VIRTUAL;
     return node;
+  }
+
+  boolean isRoutingVirtual() {
+    return (status & ROUTING_VIRTUAL) == ROUTING_VIRTUAL;
   }
 
   boolean isLabelNode() {
@@ -118,6 +125,7 @@ class DNode extends ANode implements Box, ShapePosition {
 
   void setLabelLine(Line labelLine) {
     this.labelLine = labelLine;
+    status &= ~ROUTING_VIRTUAL;
   }
 
   boolean isFlatLabelNode() {
@@ -299,7 +307,7 @@ class DNode extends ANode implements Box, ShapePosition {
   }
 
   void setRankIndex(int rankIndex) {
-    if (status == AUX_MODE) {
+    if (isAuxModel()) {
       return;
     }
     this.rankIndex = rankIndex;

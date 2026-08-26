@@ -276,7 +276,7 @@ class LabelSupplement {
       DNode virtual;
       FlatPoint labelSize = edge.getLabelSize();
       if (labelSize == null) {
-        virtual = DNode.newVirtualNode(
+        virtual = DNode.newRoutingVirtualNode(
             20,
             dotAttachment.commonParent(edge.from(), edge.to())
         );
@@ -604,7 +604,7 @@ class LabelSupplement {
   }
 
   private void cutLine(RankNode next, DLine removeLine) {
-    DNode virtual = DNode.newVirtualNode(
+    DNode virtual = DNode.newRoutingVirtualNode(
         20,
         dotAttachment.commonParent(removeLine.from(), removeLine.to())
     );

@@ -1,0 +1,39 @@
+digraph G {
+  c -> bb
+  b -> f
+  f -> gg
+  f -> ss
+  b -> d
+  c -> d
+  aa -> d
+  l -> aa
+
+  subgraph cluster_A {
+    label="Cluster A"
+    a -> c
+    b -> c
+  }
+
+  subgraph cluster_B {
+    label="Cluster B"
+    aa -> cc
+    bb -> cc
+  }
+
+  subgraph cluster_C {
+    label="Cluster C"
+    ss -> tt
+    gg -> pp
+    d -> f
+    l -> ff
+    ff -> ss
+  }
+
+  subgraph cluster_D {
+    label="Cluster D"
+    12 -> 45
+    34 -> 98
+    34 -> 45
+    45 -> 98
+  }
+}
