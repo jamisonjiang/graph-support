@@ -123,8 +123,8 @@ public final class Curves {
 
 		FlatPoint[] tmp = Arrays.copyOf(points, points.length);
 
-		for (int i = 0; i < points.length; i++) {
-			for (int j = 0; j < points.length - 1; j++) {
+		for (int i = points.length - 1; i > 0; i--) {
+			for (int j = 0; j < i; j++) {
 				Asserts.illegalArgument(tmp[j] == null, "Bessel curve contain null control point");
 				Asserts.illegalArgument(tmp[j + 1] == null, "");
 				tmp[j] = new FlatPoint(

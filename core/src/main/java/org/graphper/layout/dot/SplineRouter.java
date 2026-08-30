@@ -56,8 +56,11 @@ class SplineRouter extends CurveFitBoxRouter {
       return;
     }
 
-    MultiBezierCurve curves = Curves.fitCurves(throughParam.throughPoints, 0.04);
-    fixBox(throughParam.lineRouterBoxes, curves);
+    MultiBezierCurve curves = CorridorSpline.route(throughParam);
+    if (curves == null || curves.isEmpty()) {
+      curves = Curves.fitCurves(throughParam.throughPoints, 0.04);
+      fixBox(throughParam.lineRouterBoxes, curves);
+    }
     multiBezierCurveToPoints(curves, lineDrawProp::add);
     lineDrawPropConnect(lineDrawProp, throughParam.fromPortPoints, true);
     lineDrawPropConnect(lineDrawProp, throughParam.toPortPoints, false);

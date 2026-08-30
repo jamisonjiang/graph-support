@@ -51,6 +51,7 @@ import org.graphper.layout.dot.RootCrossRank.CrossSnapshot;
 import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.EnvProp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,6 +266,16 @@ class MinCross {
 
     for (Cluster cluster : dotAttachment.clusters(dotAttachment.getGraphviz())) {
       mincrossCluster(cluster);
+    }
+
+    /*
+     * Every cluster is expanded by now, so the crossing count finally describes the real edges
+     * instead of merge nodes standing in for whole ranks of a cluster. Only this pass can see - and
+     * therefore remove - crossings that were invisible while any cluster was collapsed.
+     */
+    if (clusterExpand != null) {
+      rootCrossRank.resetToRoot();
+      finalMincross(1, 2);
     }
     if (log.isDebugEnabled()) {
       log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
@@ -506,11 +517,16 @@ class MinCross {
     CrossSnapshot optimal = rootCrossRank.crossSnapshot();
 
     /*
-     * 1. Use the dfs initialize the default order to avoid obvious cross;
-     * 2. Select less cross sequence between top-bottom and bottom-top access.
+     * Try both rank directions and both within-rank directions. Every candidate starts from the
+     * same order, and collapsed child clusters are placed as complete rank blocks before any of
+     * their external edges are followed.
      */
-    BasicCrossRank c = optimal.getCrossRank().clone();
-    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true);
+    BasicCrossRank initial = optimal.getCrossRank().clone();
+
+    // The legacy two-direction initial sort, kept behaviourally identical to the original
+    // implementation, including the SameRankAdjacentRecord side effect performed by InitSort.
+    BasicCrossRank c = initial.clone();
+    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), true, true, false);
     CrossSnapshot cn = rootCrossRank.tryCacheCrossNum(c);
     if (c.container().haveChildCluster() || cn.getCrossNum() <= optimal.getCrossNum()) {
       optimal = cn;
@@ -518,11 +534,21 @@ class MinCross {
     }
 
     c = optimal.getCrossRank().clone();
-    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), false);
+    new InitSort(c, c.container(), dotAttachment.getDrawGraph(), false, true, false);
     cn = rootCrossRank.tryCacheCrossNum(c);
     if (cn.getCrossNum() < optimal.getCrossNum()) {
       optimal = cn;
       rootCrossRank.updateCross(cn);
+    }
+
+    /*
+     * Only when the legacy order still has crossings is it worth exploring the atomic cluster
+     * block candidates, which place every rank of a collapsed child cluster before following any
+     * of its external edges. A zero-cross legacy order is already optimal, and replacing it with
+     * a tied atomic order would only change an established topology for no measurable gain.
+     */
+    if (optimal.getCrossNum() > 0) {
+      optimal = tryAtomicInitSort(initial, optimal);
     }
 
     if (optimal.getCrossNum() == 0) {
@@ -546,6 +572,97 @@ class MinCross {
     rootCrossRank.syncChildOrder();
   }
 
+  /**
+   * Runs crossing reduction once every cluster is expanded. The existing order already preserves
+   * the cluster blocks established by the preceding passes, so this pass deliberately excludes
+   * both InitSort and flatOrder and only applies median sorting and adjacent transposition.
+   */
+  private void finalMincross(int startPass, int endPass) {
+    int maxIter = 24;
+    int minQuit = dotAttachment.getDrawGraph().getGraphviz().graphAttrs().getMclimit();
+    CrossSnapshot optimal = rootCrossRank.crossSnapshot();
+
+    for (int pass = startPass; pass <= endPass; pass++) {
+      int trying = 0;
+      for (int i = 0; i < maxIter; i++) {
+        if (log.isDebugEnabled()) {
+          log.debug("final pass {} iter {} trying {} best_cross {}", pass, i, trying,
+                    optimal.getCrossNum());
+        }
+
+        if (trying++ >= minQuit || optimal.getCrossNum() == 0) {
+          break;
+        }
+
+        int preOptimalCrossNum = optimal.getCrossNum();
+        rootCrossRank.vmedian(i);
+        rootCrossRank.transpose(i % 4 >= 2);
+        optimal = rootCrossRank.crossSnapshot();
+
+        if (preOptimalCrossNum * CONVERGENCE <= optimal.getCrossNum()) {
+          trying++;
+        }
+      }
+
+      if (optimal.getCrossNum() == 0) {
+        break;
+      }
+    }
+
+    rootCrossRank.transpose(false);
+    rootCrossRank.syncChildOrder();
+    checkClusterOrder();
+  }
+
+  private void checkClusterOrder() {
+    if (!EnvProp.qualityCheck()) {
+      return;
+    }
+    List<String> violations = ClusterOrderConsistency
+        .violations(rootCrossRank.getBasicCrossRank(), dotAttachment);
+    violations.addAll(ClusterOrderConsistency
+                          .contiguityViolations(rootCrossRank.getBasicCrossRank(), dotAttachment));
+    Asserts.illegalArgument(!violations.isEmpty(), "Cluster order changed: " + violations);
+  }
+
+  /**
+   * Explores the atomic cluster block initial orders in all four access directions and adopts the
+   * best one only if it beats {@code legacyOptimal}. Because {@link InitSort} installs its own
+   * {@link SameRankAdjacentRecord} into {@link #rootCrossRank} as a side effect, the record that
+   * belongs to the legacy order is restored whenever no atomic candidate wins, and the winning
+   * candidate always keeps its own record.
+   */
+  private CrossSnapshot tryAtomicInitSort(BasicCrossRank initial, CrossSnapshot legacyOptimal) {
+    SameRankAdjacentRecord legacyRecord = rootCrossRank.getSameRankAdjacentRecord();
+    CrossSnapshot best = null;
+    SameRankAdjacentRecord bestRecord = null;
+
+    for (boolean rankForward : new boolean[]{true, false}) {
+      for (boolean orderForward : new boolean[]{true, false}) {
+        BasicCrossRank candidate = initial.clone();
+        InitSort initSort = new InitSort(candidate, candidate.container(),
+                                         dotAttachment.getDrawGraph(), rankForward,
+                                         orderForward, true);
+        CrossSnapshot snapshot = rootCrossRank.tryCacheCrossNum(candidate);
+        if (best == null || snapshot.getCrossNum() < best.getCrossNum()) {
+          best = snapshot;
+          bestRecord = initSort.sameRankAdjacentRecord != null
+              ? initSort.sameRankAdjacentRecord : legacyRecord;
+        }
+      }
+    }
+
+    if (best == null || best.getCrossNum() >= legacyOptimal.getCrossNum()) {
+      rootCrossRank.setSameRankAdjacentRecord(legacyRecord);
+      rootCrossRank.updateCross(legacyOptimal);
+      return legacyOptimal;
+    }
+
+    rootCrossRank.setSameRankAdjacentRecord(bestRecord);
+    rootCrossRank.updateCross(best);
+    return best;
+  }
+
   private void logQuickModeStep(int time) {
     if (log.isDebugEnabled()) {
       CrossSnapshot crossSnapshot = rootCrossRank.crossSnapshot();
@@ -553,7 +670,8 @@ class MinCross {
     }
   }
 
-  private CrossSnapshot runDotMincrossProcess(int startPass, int endPass, int maxIter, int minQuit, CrossSnapshot optimal) {
+  private CrossSnapshot runDotMincrossProcess(int startPass, int endPass, int maxIter, int minQuit,
+                                             CrossSnapshot optimal) {
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
         flatOrder(optimal.getCrossRank());
@@ -797,19 +915,29 @@ class MinCross {
 
     private final boolean isOutDirection;
 
+    private final boolean isOrderForward;
+
+    private final boolean atomicClusterBlocks;
+
     private final CrossRank crossRank;
 
     private final GraphContainer graphContainer;
 
     private final List<ComOrder> components;
 
-    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph, boolean isOutDirection) {
+    private final Set<GraphContainer> placedClusterBlocks;
+
+    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph,
+             boolean isOutDirection, boolean isOrderForward, boolean atomicClusterBlocks) {
       this.isOutDirection = isOutDirection;
+      this.isOrderForward = isOrderForward;
+      this.atomicClusterBlocks = atomicClusterBlocks;
       this.nodeComOrderMap = new HashMap<>();
       this.rankAccessIndex = new HashMap<>();
       this.graphContainer = graphContainer;
       this.crossRank = crossRank;
       this.components = new ArrayList<>();
+      this.placedClusterBlocks = new HashSet<>();
 
       initByNatureDsfOrder(crossRank, drawGraph, isOutDirection);
     }
@@ -857,7 +985,9 @@ class MinCross {
 
       int componentNo = 0;
       for (int i = first; i != limit; i += addNum) {
-        for (int j = 0; j < crossRank.rankSize(i); j++) {
+        int rankSize = crossRank.rankSize(i);
+        for (int access = 0; access < rankSize; access++) {
+          int j = isOrderForward ? access : rankSize - access - 1;
           DNode node = crossRank.getNode(i, j);
           if (isMark(node)) {
             continue;
@@ -873,6 +1003,12 @@ class MinCross {
       if (sameRankAdjacentRecord != null) {
         rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord);
       }
+      if (EnvProp.qualityCheck()) {
+        List<String> violations = ClusterOrderConsistency.violations(crossRank, dotAttachment);
+        Asserts.illegalArgument(!violations.isEmpty(),
+                                "Cluster order changed between ranks in " + graphContainer.id()
+                                    + ": " + violations);
+      }
     }
 
     private void orderByComponents(CrossRank crossRank) {
@@ -885,31 +1021,37 @@ class MinCross {
       Comparator<DNode> comparator = (l, r) -> {
         ComOrder lc = nodeComOrderMap.get(l);
         ComOrder rc = nodeComOrderMap.get(r);
-        return lc.compareTo(rc);
+        int compare = lc.compareTo(rc);
+        return isOrderForward ? compare : -compare;
       };
       crossRank.sort(comparator, false);
     }
 
     private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
+      if (atomicClusterBlocks && clusterExpand != null && clusterExpand.clusterMerge != null) {
+        GraphContainer direct = dotAttachment.clusterDirectContainer(graphContainer, from);
+        // An already expanded cluster no longer owns merge nodes, so there is no block to place and
+        // the node has to be handled like any other, or it would be left without a component.
+        if (direct != null && direct.isCluster() && hasMergeNode((Cluster) direct)
+            && placedClusterBlocks.add(direct)) {
+          atomicClusterDfs((Cluster) direct, adjacentFunc, component);
+          return;
+        }
+      }
+
       mark(from, component);
 
-      int idx = rankAccessIndex.getOrDefault(from.getRank(), 0);
+      int idx = nextRankIndex(from.getRank());
       crossRank.exchange(from, crossRank.getNode(from.getRank(), idx), false);
-      rankAccessIndex.put(from.getRank(), idx + 1);
 
       GraphContainer fromContainer = dotAttachment
           .clusterDirectContainer(crossRank.container(), from);
       fromContainer = fromContainer == null ? from.getContainer() : fromContainer;
-      int fromMin = 0;
-      int fromMax = 0;
       DNode clusterAdjRankNode = null;
 
       if (fromContainer.isCluster() && clusterExpand != null
           && clusterExpand.clusterMerge != null) {
         Cluster cluster = (Cluster) fromContainer;
-        fromMin = clusterExpand.clusterMerge.minRank(cluster);
-        fromMax = clusterExpand.clusterMerge.maxRank(cluster);
-
         /*
          * Get merge node of adjacent of cluster
          */
@@ -920,7 +1062,7 @@ class MinCross {
       Iterable<DLine> adjacent = adjacentFunc.apply(from);
       for (DLine dLine : adjacent) {
         DNode to = dLine.other(from);
-        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, to, dLine, component);
+        toDfs(from, adjacentFunc, fromContainer, to, dLine, component);
       }
 
       /*
@@ -929,18 +1071,70 @@ class MinCross {
        * guarantee the next rank merge node accessed first even no any edges between them.
        */
       if (clusterAdjRankNode != null) {
-        toDfs(from, adjacentFunc, fromContainer, fromMin, fromMax, clusterAdjRankNode, null, component);
+        toDfs(from, adjacentFunc, fromContainer, clusterAdjRankNode, null, component);
       }
     }
 
+    private void atomicClusterDfs(Cluster cluster,
+                                  Function<DNode, Iterable<DLine>> adjacentFunc,
+                                  ComOrder component) {
+      List<DNode> representatives = new ArrayList<>();
+      clusterExpand.clusterMerge.clusterMergeNode(cluster).forEach(representatives::add);
+      if (!isOutDirection) {
+        Collections.reverse(representatives);
+      }
+
+      ComOrder existing = null;
+      for (DNode representative : representatives) {
+        ComOrder marked = nodeComOrderMap.get(representative);
+        if (marked != null) {
+          existing = marked;
+          break;
+        }
+      }
+      if (existing != null && existing != component) {
+        component.addRefCom(existing);
+        component = existing;
+      }
+
+      // Reserve every rank occupied by the collapsed cluster before following any external edge.
+      for (DNode representative : representatives) {
+        if (isMark(representative)) {
+          continue;
+        }
+        mark(representative, component);
+        int index = nextRankIndex(representative.getRank());
+        crossRank.exchange(representative,
+                           crossRank.getNode(representative.getRank(), index), false);
+      }
+
+      // With the complete block reserved, its edges can safely discover other collapsed blocks.
+      for (DNode representative : representatives) {
+        for (DLine line : adjacentFunc.apply(representative)) {
+          DNode to = line.other(representative);
+          toDfs(representative, adjacentFunc, cluster, to, line, component);
+        }
+      }
+    }
+
+    private boolean hasMergeNode(Cluster cluster) {
+      return clusterExpand.clusterMerge.clusterMergeNode(cluster).iterator().hasNext();
+    }
+
+    private int nextRankIndex(int rank) {
+      int accessed = rankAccessIndex.getOrDefault(rank, 0);
+      rankAccessIndex.put(rank, accessed + 1);
+      return isOrderForward ? accessed : crossRank.rankSize(rank) - accessed - 1;
+    }
+
     private void toDfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc,
-                       GraphContainer fromContainer, int fromMin,
-                       int fromMax, DNode to, DLine dLine, ComOrder component) {
+                       GraphContainer fromContainer, DNode to, DLine dLine,
+                       ComOrder component) {
       /*
        * 1. Make sure cluster of to not intersect with cluster of from;
        * 2. Make sure only access head or tail node when to node in different cluster.
        */
-      if (canNotAccessDiffCluster(from, fromContainer, fromMin, fromMax, to)) {
+      if (canNotAccessDiffCluster(from, fromContainer, to)) {
         return;
       }
 
@@ -969,8 +1163,7 @@ class MinCross {
       dfs(to, adjacentFunc, component);
     }
 
-    private boolean canNotAccessDiffCluster(DNode from, GraphContainer fromContainer,
-                                            int fromMin, int fromMax, DNode to) {
+    private boolean canNotAccessDiffCluster(DNode from, GraphContainer fromContainer, DNode to) {
       if (clusterExpand == null || clusterExpand.clusterMerge == null) {
         return false;
       }
@@ -981,16 +1174,26 @@ class MinCross {
         return false;
       }
 
-      // Clusters of two nodes should not have any intersect of rank
       GraphContainer toContainer = dotAttachment.clusterDirectContainer(crossRank.container(), to);
       toContainer = toContainer == null ? to.getContainer() : toContainer;
-      if (fromContainer != toContainer && fromContainer.isCluster() && toContainer.isCluster()) {
-        if (parentContainer != fromContainer && parentContainer != toContainer) {
-          int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
-          int toMax = clusterExpand.clusterMerge.maxRank((Cluster) toContainer);
-          if (intersect(fromMin, fromMax, toMin, toMax)) {
-            return true;
-          }
+
+      // Direct child clusters are placed as complete atomic rank blocks by dfs(). Once both sides
+      // are such blocks, following their edge cannot split either cluster across components, even
+      // when the edge enters at an intermediate rank.
+      if (atomicClusterBlocks && fromContainer != toContainer && fromContainer.isCluster()
+          && toContainer.isCluster()) {
+        return false;
+      }
+
+      if (!atomicClusterBlocks && fromContainer != toContainer && fromContainer.isCluster()
+          && toContainer.isCluster() && parentContainer != fromContainer
+          && parentContainer != toContainer) {
+        int fromMin = clusterExpand.clusterMerge.minRank((Cluster) fromContainer);
+        int fromMax = clusterExpand.clusterMerge.maxRank((Cluster) fromContainer);
+        int toMin = clusterExpand.clusterMerge.minRank((Cluster) toContainer);
+        int toMax = clusterExpand.clusterMerge.maxRank((Cluster) toContainer);
+        if (intersect(fromMin, fromMax, toMin, toMax)) {
+          return true;
         }
       }
 

@@ -59,6 +59,13 @@ class RootCrossRank implements CrossRank {
 
   private ClusterMerge clusterMerge;
 
+  /**
+   * Set once every cluster has been expanded. From then on a rank holds the cluster members
+   * themselves instead of one merge node per cluster, so keeping clusters contiguous is no longer
+   * automatic and has to be enforced when nodes trade places.
+   */
+  private boolean allClustersExpanded;
+
   RootCrossRank(DrawGraph drawGraph, ClusterMerge clusterMerge) {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
@@ -301,6 +308,18 @@ class RootCrossRank implements CrossRank {
 
     setBasicCrossRank(basicCrossRank);
     return basicCrossRank;
+  }
+
+  /**
+   * Drops the child arrangement so that the following passes act on every node of the graph. The
+   * rank start offsets belong to the child arrangement and index into it, so they have to go as
+   * well: the root arrangement is addressed by absolute rank indexes.
+   */
+  void resetToRoot() {
+    this.childCrossRank = null;
+    this.rankStartIndex = null;
+    this.allClustersExpanded = true;
+    setCacheExpired();
   }
 
   void syncChildOrder() {
@@ -696,17 +715,31 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean possibleClusterIntersect(DNode left, DNode right) {
-    if (childCrossRank == null || left.getContainer() == right.getContainer()) {
+    if (clusterMerge == null) {
       return false;
     }
 
-    GraphContainer container = childCrossRank.container;
+    // The final pass sees the expanded members rather than atomic cluster representatives. Moving
+    // one member across any container boundary would split that container, including nested ones.
+    if (allClustersExpanded) {
+      return left.getContainer() != right.getContainer();
+    }
+
+    if (left.getContainer() == right.getContainer()) {
+      return false;
+    }
+
+    GraphContainer container = childCrossRank == null ? root.container : childCrossRank.container;
     GraphContainer leftDirC = DotAttachment
         .clusterDirectContainer(drawGraph.getGraphviz(), container, left);
     GraphContainer rightDirC = DotAttachment
         .clusterDirectContainer(drawGraph.getGraphviz(), container, right);
 
-    if (leftDirC == null || rightDirC == null || leftDirC.isGraphviz() || rightDirC.isGraphviz()) {
+    if (leftDirC == null || rightDirC == null) {
+      return false;
+    }
+
+    if (leftDirC.isGraphviz() || rightDirC.isGraphviz()) {
       return false;
     }
 
