@@ -313,12 +313,12 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           if (downBaseLine == null) {
             downBaseLine = preferBelow ? routeRank.getEndY() : shapePosition.getY();
           }
-          double p = downBaseLine;
           downBaseLine = downBaseLine + (labelSize != null ? labelSize.getX() : 10);
-          routerBox = new RouterBox(leftMax, rightMin, p, downBaseLine);
+          routerBox = new RouterBox(leftMax, rightMin, downBaseLine,
+                                    downBaseLine + (labelSize != null ? labelSize.getX() : 10));
 
           if (labelSize != null) {
-            labelY = routerBox.getDownBorder() - labelSize.getX() / 2;
+            labelY = routerBox.getUpBorder() - labelSize.getX() / 2;
           }
         }
       } else {

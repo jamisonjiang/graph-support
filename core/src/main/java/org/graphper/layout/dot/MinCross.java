@@ -551,12 +551,7 @@ class MinCross {
       optimal = tryAtomicInitSort(initial, optimal);
     }
 
-    if (optimal.getCrossNum() == 0) {
-      BasicCrossRank orderedCandidate = optimal.getCrossRank().clone();
-      flatOrder(orderedCandidate, false);
-      CrossSnapshot ordered = rootCrossRank.tryCacheCrossNum(orderedCandidate);
-      rootCrossRank.updateCross(ordered.getCrossNum() == 0 ? ordered : optimal);
-    } else if (useQuickMode) {
+    if (useQuickMode) {
       logQuickModeStep(0);
       flatOrder(optimal.getCrossRank());
       logQuickModeStep(1);
@@ -733,8 +728,7 @@ class MinCross {
           continue;
         }
 
-        rootCrossRank.setCacheExpired(j - 1);
-        rootCrossRank.setCacheExpired(j);
+        rootCrossRank.setCacheExpired(i);
         postOrder(connectNo++, no, node, mark, postOrderRecord);
       }
     }

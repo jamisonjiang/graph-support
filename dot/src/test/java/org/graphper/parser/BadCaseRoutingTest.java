@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
+import org.graphper.api.Node;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Layout;
 import org.graphper.def.Curves;
@@ -30,6 +31,58 @@ public class BadCaseRoutingTest {
     DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
     Assertions.assertFalse(intersects(lineByColor(graph, draw, "#00000F"),
                                        lineByColor(graph, draw, "#00001F")));
+  }
+
+  @Test
+  public void minlenZeroTailPrecedesHeadWithoutStrongerConflict() throws Exception {
+    Graphviz graph = parseResource("/minlen-zero-directed-order.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    NodeDrawProp note = nodeById(graph, draw, "note");
+    NodeDrawProp target = nodeById(graph, draw, "target");
+
+    Assertions.assertNotNull(note);
+    Assertions.assertNotNull(target);
+    Assertions.assertTrue(note.getRightBorder() < target.getLeftBorder(),
+                          "minlen=0 tail must remain left of its head");
+  }
+
+  @Test
+  public void minlenZeroDirectionAndCrossingReductionAreBothPreserved() throws Exception {
+    Graphviz graph = parseResource("/minlen-zero-crossing.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    NodeDrawProp tail = nodeById(graph, draw, "sh0013");
+    NodeDrawProp head = nodeById(graph, draw, "sh0012");
+
+    Assertions.assertNotNull(tail);
+    Assertions.assertNotNull(head);
+    Assertions.assertTrue(tail.getRightBorder() < head.getLeftBorder(),
+                          "crossing reduction must not reverse a minlen=0 edge");
+    Assertions.assertFalse(intersects(lineByColor(graph, draw, "#000022"),
+                                       lineByColor(graph, draw, "#000026")),
+                           "crossing reduction must reorder the unconstrained upstream path");
+  }
+
+  @Test
+  public void roundedLabeledParallelEdgesUseDistinctCorridors() throws Exception {
+    String source = resourceText("/rounded-parallel-edge-overlap.dot");
+    assertRoundedParallelEdgesUseDistinctCorridors(DotParser.parse(source));
+    assertRoundedParallelEdgesUseDistinctCorridors(
+        DotParser.parse(source.replaceFirst("\\{", "{ splines=rounded;")));
+  }
+
+  private void assertRoundedParallelEdgesUseDistinctCorridors(Graphviz graph) throws Exception {
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    LineDrawProp first = lineByColor(graph, draw, "#00001D");
+    LineDrawProp second = lineByColor(graph, draw, "#000021");
+
+    Assertions.assertNotNull(first);
+    Assertions.assertNotNull(second);
+    Assertions.assertFalse(samePath(first, second),
+                           "rounded parallel edges collapsed onto the same path");
+    Assertions.assertNotNull(first.getLabelCenter());
+    Assertions.assertNotNull(second.getLabelCenter());
+    Assertions.assertNotEquals(first.getLabelCenter().getY(), second.getLabelCenter().getY(), 1e-6,
+                               "parallel edge labels collapsed onto the same lane");
   }
 
   @Test
@@ -170,8 +223,17 @@ public class BadCaseRoutingTest {
   }
 
   private NodeDrawProp nodeByColor(Graphviz graph, DrawGraph draw, String color) {
-    for (org.graphper.api.Node node : graph.nodes()) {
+    for (Node node : graph.nodes()) {
       if (Color.ofRGB(color).equals(node.nodeAttrs().getColor())) {
+        return draw.getNodeDrawProp(node);
+      }
+    }
+    return null;
+  }
+
+  private NodeDrawProp nodeById(Graphviz graph, DrawGraph draw, String id) {
+    for (Node node : graph.nodes()) {
+      if (id.equals(node.nodeAttrs().getId())) {
         return draw.getNodeDrawProp(node);
       }
     }
@@ -203,6 +265,18 @@ public class BadCaseRoutingTest {
     return false;
   }
 
+  private boolean samePath(LineDrawProp first, LineDrawProp second) {
+    if (first.size() != second.size()) {
+      return false;
+    }
+    for (int i = 0; i < first.size(); i++) {
+      if (FlatPoint.twoFlatPointDistance(first.get(i), second.get(i)) > 1e-6) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private List<FlatPoint> sample(LineDrawProp line) {
     List<FlatPoint> result = new ArrayList<>();
     result.add(line.get(0));
@@ -231,6 +305,10 @@ public class BadCaseRoutingTest {
 
 
   private Graphviz parseResource(String path) throws Exception {
+    return DotParser.parse(resourceText(path));
+  }
+
+  private String resourceText(String path) throws Exception {
     InputStream input = BadCaseRoutingTest.class.getResourceAsStream(path);
     Assertions.assertNotNull(input);
     try (InputStream in = input; ByteArrayOutputStream output = new ByteArrayOutputStream()) {
@@ -239,7 +317,7 @@ public class BadCaseRoutingTest {
       while ((read = in.read(buffer)) != -1) {
         output.write(buffer, 0, read);
       }
-      return DotParser.parse(new String(output.toByteArray(), StandardCharsets.UTF_8));
+      return new String(output.toByteArray(), StandardCharsets.UTF_8);
     }
   }
 }
