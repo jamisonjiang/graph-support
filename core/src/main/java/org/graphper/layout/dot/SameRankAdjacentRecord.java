@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import org.graphper.util.CollectionUtils;
@@ -148,14 +147,6 @@ class SameRankAdjacentRecord {
 
   boolean haveOut(DNode node) {
     return CollectionUtils.isNotEmpty(outAdjacent(node));
-  }
-
-  boolean haveIn(DNode node) {
-    if (inSameRankRecord == null) {
-      return false;
-    }
-
-    return Objects.equals(inSameRankRecord.get(node), Boolean.TRUE);
   }
 
   int sameRankNodeCompare(DNode n, DNode w) {

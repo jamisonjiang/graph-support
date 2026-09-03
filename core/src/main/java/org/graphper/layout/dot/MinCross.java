@@ -16,8 +16,8 @@
 
 package org.graphper.layout.dot;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -705,65 +705,105 @@ class MinCross {
   }
 
   private void flatOrder(CrossRank crossRank) {
-    flatOrder(crossRank, true);
-  }
-
-  private void flatOrder(CrossRank crossRank, boolean needSyncRankIdx) {
     SameRankAdjacentRecord sameRankAdjacentRecord = rootCrossRank.getSameRankAdjacentRecord();
     if (sameRankAdjacentRecord == null) {
       return;
     }
 
+    initialFlatOrder(crossRank, sameRankAdjacentRecord);
+    repairFlatOrder(crossRank, sameRankAdjacentRecord);
+  }
+
+  private void initialFlatOrder(CrossRank crossRank,
+                                SameRankAdjacentRecord sameRankAdjacentRecord) {
     int[] no = {0};
     int connectNo = 0;
     Set<DNode> mark = new HashSet<>();
     Map<DNode, Map.Entry<Integer, Integer>> postOrderRecord = new HashMap<>();
-
-    for (int i = crossRank.minRank(); i <= crossRank.maxRank(); i++) {
-
-      for (int j = 0; j < crossRank.rankSize(i); j++) {
-        DNode node = crossRank.getNode(i, j);
-
-        if (mark.contains(node) || sameRankAdjacentRecord.haveIn(node)) {
+    for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
+      for (int index = 0; index < crossRank.rankSize(rank); index++) {
+        DNode node = crossRank.getNode(rank, index);
+        if (mark.contains(node)) {
           continue;
         }
-
-        rootCrossRank.setCacheExpired(i);
+        rootCrossRank.setCacheExpired(rank);
         postOrder(connectNo++, no, node, mark, postOrderRecord);
       }
     }
-
     crossRank.sort((left, right) -> {
       Integer leftConnect = postOrderRecord.get(left).getKey();
       Integer rightConnect = postOrderRecord.get(right).getKey();
-
       if (!Objects.equals(leftConnect, rightConnect)) {
         return leftConnect.compareTo(rightConnect);
       }
+      return postOrderRecord.get(right).getValue().compareTo(postOrderRecord.get(left).getValue());
+    }, true);
+  }
 
-      Integer leftPost = postOrderRecord.get(left).getValue();
-      Integer rightPost = postOrderRecord.get(right).getValue();
+  private void repairFlatOrder(CrossRank crossRank,
+                               SameRankAdjacentRecord sameRankAdjacentRecord) {
+    for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
+      List<DNode> original = new ArrayList<>(crossRank.getNodes(rank));
+      Set<DNode> rankNodes = new HashSet<>(original);
+      Map<DNode, Integer> indegree = new HashMap<>();
+      for (DNode node : original) {
+        indegree.put(node, 0);
+      }
+      for (DNode node : original) {
+        for (DNode adjacent : sameRankAdjacentRecord.outAdjacent(node)) {
+          if (node.getContainer() == adjacent.getContainer() && rankNodes.contains(adjacent)) {
+            indegree.put(adjacent, indegree.get(adjacent) + 1);
+          }
+        }
+      }
 
-      return rightPost.compareTo(leftPost);
-    }, needSyncRankIdx);
+      Set<DNode> remaining = new LinkedHashSet<>(original);
+      List<DNode> ordered = new ArrayList<>(original.size());
+      while (!remaining.isEmpty()) {
+        DNode next = null;
+        for (DNode node : remaining) {
+          if (indegree.get(node) == 0) {
+            next = node;
+            break;
+          }
+        }
+        // A directed cycle cannot satisfy every flat constraint. Preserve the current order when
+        // choosing where to break it, then continue honoring every constraint that remains acyclic.
+        if (next == null) {
+          next = remaining.iterator().next();
+        }
+        remaining.remove(next);
+        ordered.add(next);
+        for (DNode adjacent : sameRankAdjacentRecord.outAdjacent(next)) {
+          if (next.getContainer() == adjacent.getContainer() && remaining.contains(adjacent)) {
+            indegree.put(adjacent, indegree.get(adjacent) - 1);
+          }
+        }
+      }
+
+      Map<DNode, Integer> order = new HashMap<>();
+      boolean changed = false;
+      for (int i = 0; i < ordered.size(); i++) {
+        DNode node = ordered.get(i);
+        order.put(node, i);
+        changed |= node != original.get(i);
+      }
+      if (changed) {
+        rootCrossRank.setCacheExpired(rank);
+        crossRank.sort(rank, Comparator.comparingInt(order::get), true);
+      }
+    }
   }
 
   private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,
                         Map<DNode, Map.Entry<Integer, Integer>> orderRecord) {
     mark.add(node);
-
-    if (rootCrossRank.getSameRankAdjacentRecord() == null) {
-      orderRecord.put(node, new AbstractMap.SimpleEntry<>(connectNo, no[0]++));
-      return connectNo;
-    }
-
     Set<DNode> adjacent = rootCrossRank.getSameRankAdjacentRecord().outAdjacent(node);
     if (CollectionUtils.isNotEmpty(adjacent)) {
       for (DNode dNode : adjacent) {
         if (node.getContainer() != dNode.getContainer()) {
           continue;
         }
-
         if (mark.contains(dNode)) {
           Entry<Integer, Integer> accessOrder = orderRecord.get(dNode);
           if (accessOrder != null) {
@@ -771,11 +811,9 @@ class MinCross {
           }
           continue;
         }
-
         connectNo = postOrder(connectNo, no, dNode, mark, orderRecord);
       }
     }
-
     orderRecord.put(node, new AbstractMap.SimpleEntry<>(connectNo, no[0]++));
     return connectNo;
   }

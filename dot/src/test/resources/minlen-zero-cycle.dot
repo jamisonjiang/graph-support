@@ -1,0 +1,5 @@
+digraph G {
+  a -> b [minlen=0];
+  b -> c [minlen=0];
+  c -> a [minlen=0];
+}

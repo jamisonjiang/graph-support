@@ -385,11 +385,10 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     for (FlatParallelLineParam parallelLineParam : flatParallelLineParams) {
       LineAttrs lineAttrs = parallelLineParam.line.lineAttrs();
-      boolean overflowUp = itemsMinY < routeRank.getStartY();
-      boolean overflowDown = itemsMaxY > routeRank.getEndY();
+      boolean overflowUp = itemsMinY < minY;
+      boolean overflowDown = itemsMaxY > maxY;
       if (!havePort(lineAttrs) && overflowUp != overflowDown) {
-        double offset = overflowUp ? routeRank.getStartY() - itemsMinY
-            : routeRank.getEndY() - itemsMaxY;
+        double offset = overflowUp ? minY - itemsMinY : maxY - itemsMaxY;
         FlatShifterStrategy shifter = new FlatShifterStrategy(0, offset);
 
         for (RouterBox routerBox : parallelLineParam.routerBoxes) {

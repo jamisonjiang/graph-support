@@ -63,11 +63,50 @@ public class BadCaseRoutingTest {
   }
 
   @Test
+  public void minlenZeroFanoutPlacesTailBeforeEveryHead() throws Exception {
+    Graphviz graph = parseResource("/minlen-zero-fanout.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    NodeDrawProp tail = nodeById(graph, draw, "sh0010");
+
+    Assertions.assertNotNull(tail);
+    for (String headId : new String[]{"sh0006", "sh0008", "sh0009"}) {
+      NodeDrawProp head = nodeById(graph, draw, headId);
+      Assertions.assertNotNull(head);
+      Assertions.assertTrue(tail.getRightBorder() < head.getLeftBorder(),
+                            "flat fan-out tail must precede " + headId);
+    }
+  }
+
+  @Test
+  public void minlenZeroCycleStillReceivesACompleteOrder() throws Exception {
+    Graphviz graph = parseResource("/minlen-zero-cycle.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+
+    for (String id : new String[]{"a", "b", "c"}) {
+      Assertions.assertNotNull(nodeById(graph, draw, id), "cycle node missing: " + id);
+    }
+    Assertions.assertEquals(3, draw.lines().size());
+  }
+
+  @Test
   public void roundedLabeledParallelEdgesUseDistinctCorridors() throws Exception {
     String source = resourceText("/rounded-parallel-edge-overlap.dot");
     assertRoundedParallelEdgesUseDistinctCorridors(DotParser.parse(source));
     assertRoundedParallelEdgesUseDistinctCorridors(
         DotParser.parse(source.replaceFirst("\\{", "{ splines=rounded;")));
+  }
+
+  @Test
+  public void flatEdgesStayOutsideTheirOwnLabelsWithinTheRankEnvelope() throws Exception {
+    Graphviz graph = parseResource("/flat-label-route-envelope.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+
+    for (String color : new String[]{"#00000E", "#000012"}) {
+      LineDrawProp line = lineByColor(graph, draw, color);
+      Assertions.assertNotNull(line);
+      Assertions.assertFalse(intersectsLabelInterior(line),
+                             color + " passes through its own label");
+    }
   }
 
   private void assertRoundedParallelEdgesUseDistinctCorridors(Graphviz graph) throws Exception {
@@ -275,6 +314,54 @@ public class BadCaseRoutingTest {
       }
     }
     return true;
+  }
+
+  private boolean intersectsLabelInterior(LineDrawProp line) {
+    FlatPoint center = line.getLabelCenter();
+    FlatPoint size = line.getLabelSize();
+    if (center == null || size == null) {
+      return false;
+    }
+
+    double epsilon = 1e-6;
+    double left = center.getX() - size.getWidth() / 2 + epsilon;
+    double right = center.getX() + size.getWidth() / 2 - epsilon;
+    double top = center.getY() - size.getHeight() / 2 + epsilon;
+    double bottom = center.getY() + size.getHeight() / 2 - epsilon;
+    List<FlatPoint> points = sample(line);
+    for (int i = 0; i + 1 < points.size(); i++) {
+      if (segmentIntersectsBox(points.get(i), points.get(i + 1), left, right, top, bottom)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean segmentIntersectsBox(FlatPoint from, FlatPoint to, double left, double right,
+                                       double top, double bottom) {
+    double minX = Math.min(from.getX(), to.getX());
+    double maxX = Math.max(from.getX(), to.getX());
+    double minY = Math.min(from.getY(), to.getY());
+    double maxY = Math.max(from.getY(), to.getY());
+    if (maxX < left || minX > right || maxY < top || minY > bottom) {
+      return false;
+    }
+    if (from.getX() >= left && from.getX() <= right && from.getY() >= top
+        && from.getY() <= bottom) {
+      return true;
+    }
+    if (to.getX() >= left && to.getX() <= right && to.getY() >= top
+        && to.getY() <= bottom) {
+      return true;
+    }
+    FlatPoint upperLeft = new FlatPoint(left, top);
+    FlatPoint upperRight = new FlatPoint(right, top);
+    FlatPoint lowerLeft = new FlatPoint(left, bottom);
+    FlatPoint lowerRight = new FlatPoint(right, bottom);
+    return segmentIntersects(from, to, upperLeft, upperRight)
+        || segmentIntersects(from, to, upperRight, lowerRight)
+        || segmentIntersects(from, to, lowerRight, lowerLeft)
+        || segmentIntersects(from, to, lowerLeft, upperLeft);
   }
 
   private List<FlatPoint> sample(LineDrawProp line) {

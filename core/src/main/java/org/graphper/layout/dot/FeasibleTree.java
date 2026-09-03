@@ -463,6 +463,23 @@ class FeasibleTree {
           }
 
           DLine dLine = uLine.getdLine();
+
+          /*
+           * Seed of a connected component: neither endpoint is in the tree yet, so there is no
+           * tree side to move and the tightening below would shift a node set that does not
+           * contain either endpoint, admitting the edge with positive slack.
+           *
+           * Anchor one endpoint as the component seed and re-offer all of its incident edges,
+           * this edge included. The next poll then tightens the seed's minimum-slack incident
+           * edge, which is what keeps the remaining edges feasible: the shift equals the smallest
+           * slack crossing from the tree to the rest of the graph, so no slack can go negative.
+           */
+          if (!tree.containNode(dLine.from()) && !tree.containNode(dLine.to())) {
+            tree.add(dLine.from());
+            addSeedEdgesQueen(treeAdjacentEdges, dLine.from());
+            continue;
+          }
+
           DNode next = tree.containNode(dLine.from()) ? dLine.to() : dLine.from();
 
           if (tree.containNode(next)) {
@@ -488,6 +505,15 @@ class FeasibleTree {
           tree.addEdge(uLine);
         }
       }
+    }
+
+    /*
+     * Offer every edge incident to a freshly seeded component root, the edge that triggered the
+     * seeding included, so that the next poll picks the minimum-slack edge leaving the one-node
+     * tree instead of tightening an arbitrary one.
+     */
+    private void addSeedEdgesQueen(Queue<ULine> treeAdjacentEdges, DNode seed) {
+      addAdjEdgesQueen(treeAdjacentEdges, null, seed);
     }
 
     private void addAdjEdgesQueen(Queue<ULine> treeAdjacentEdges, ULine uLine) {
