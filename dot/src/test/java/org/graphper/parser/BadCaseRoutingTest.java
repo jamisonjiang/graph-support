@@ -89,6 +89,25 @@ public class BadCaseRoutingTest {
   }
 
   @Test
+  public void minlenZeroOrderSurvivesClusterCollapseAndFinalMincross() throws Exception {
+    Graphviz graph = parseResource("/minlen-zero-cluster-order.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+
+    for (Line line : graph.lines()) {
+      if (line.lineAttrs().getMinlen() != 0) {
+        continue;
+      }
+      NodeDrawProp tail = draw.getNodeDrawProp(line.tail());
+      NodeDrawProp head = draw.getNodeDrawProp(line.head());
+      Assertions.assertEquals(tail.getY(), head.getY(), 1e-6,
+                              "minlen=0 endpoints left the same rank");
+      Assertions.assertTrue(tail.getRightBorder() <= head.getLeftBorder() + 1e-6,
+                            line.tail().nodeAttrs().getId() + " must precede "
+                                + line.head().nodeAttrs().getId());
+    }
+  }
+
+  @Test
   public void roundedLabeledParallelEdgesUseDistinctCorridors() throws Exception {
     String source = resourceText("/rounded-parallel-edge-overlap.dot");
     assertRoundedParallelEdgesUseDistinctCorridors(DotParser.parse(source));

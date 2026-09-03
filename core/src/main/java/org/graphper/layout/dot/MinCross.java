@@ -275,6 +275,7 @@ class MinCross {
      */
     if (clusterExpand != null) {
       rootCrossRank.resetToRoot();
+      rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord());
       finalMincross(1, 2);
     }
     if (log.isDebugEnabled()) {
@@ -324,6 +325,21 @@ class MinCross {
         }
       }
     }
+  }
+
+  private SameRankAdjacentRecord sameRankAdjacentRecord() {
+    SameRankAdjacentRecord record = null;
+    for (DLine line : digraphProxy.edges()) {
+      DNode from = line.from();
+      if (from.getRank() != line.to().getRank()) {
+        continue;
+      }
+      if (record == null) {
+        record = new SameRankAdjacentRecord();
+      }
+      record.addOutAdjacent(from, line);
+    }
+    return record;
   }
 
   private void initRootCrossRank() {
@@ -547,9 +563,7 @@ class MinCross {
      * of its external edges. A zero-cross legacy order is already optimal, and replacing it with
      * a tied atomic order would only change an established topology for no measurable gain.
      */
-    if (optimal.getCrossNum() > 0) {
-      optimal = tryAtomicInitSort(initial, optimal);
-    }
+    optimal = tryAtomicInitSort(initial, optimal);
 
     if (useQuickMode) {
       logQuickModeStep(0);
@@ -631,6 +645,8 @@ class MinCross {
     SameRankAdjacentRecord legacyRecord = rootCrossRank.getSameRankAdjacentRecord();
     CrossSnapshot best = null;
     SameRankAdjacentRecord bestRecord = null;
+    int legacyViolations = crossClusterFlatViolations(legacyOptimal.getCrossRank());
+    int bestViolations = Integer.MAX_VALUE;
 
     for (boolean rankForward : new boolean[]{true, false}) {
       for (boolean orderForward : new boolean[]{true, false}) {
@@ -639,15 +655,20 @@ class MinCross {
                                          dotAttachment.getDrawGraph(), rankForward,
                                          orderForward, true);
         CrossSnapshot snapshot = rootCrossRank.tryCacheCrossNum(candidate);
-        if (best == null || snapshot.getCrossNum() < best.getCrossNum()) {
+        int violations = crossClusterFlatViolations(candidate);
+        if (best == null || violations < bestViolations
+            || violations == bestViolations && snapshot.getCrossNum() < best.getCrossNum()) {
           best = snapshot;
+          bestViolations = violations;
           bestRecord = initSort.sameRankAdjacentRecord != null
               ? initSort.sameRankAdjacentRecord : legacyRecord;
         }
       }
     }
 
-    if (best == null || best.getCrossNum() >= legacyOptimal.getCrossNum()) {
+    if (best == null || bestViolations > legacyViolations
+        || bestViolations == legacyViolations
+        && best.getCrossNum() >= legacyOptimal.getCrossNum()) {
       rootCrossRank.setSameRankAdjacentRecord(legacyRecord);
       rootCrossRank.updateCross(legacyOptimal);
       return legacyOptimal;
@@ -656,6 +677,30 @@ class MinCross {
     rootCrossRank.setSameRankAdjacentRecord(bestRecord);
     rootCrossRank.updateCross(best);
     return best;
+  }
+
+  private int crossClusterFlatViolations(CrossRank crossRank) {
+    int violations = 0;
+    for (DLine line : rootCrossRank.getDigraphProxy().edges()) {
+      DNode from = line.from();
+      DNode to = line.to();
+      if (from.getRank() != to.getRank()) {
+        continue;
+      }
+      GraphContainer fromContainer = dotAttachment
+          .clusterDirectContainer(crossRank.container(), from);
+      GraphContainer toContainer = dotAttachment
+          .clusterDirectContainer(crossRank.container(), to);
+      if (fromContainer == toContainer) {
+        continue;
+      }
+      Integer fromIndex = crossRank.safeGetRankIndex(from);
+      Integer toIndex = crossRank.safeGetRankIndex(to);
+      if (fromIndex != null && toIndex != null && fromIndex >= toIndex) {
+        violations++;
+      }
+    }
+    return violations;
   }
 
   private void logQuickModeStep(int time) {

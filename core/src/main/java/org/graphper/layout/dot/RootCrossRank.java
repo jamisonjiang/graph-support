@@ -699,13 +699,14 @@ class RootCrossRank implements CrossRank {
       return false;
     }
 
-    Integer leftIdx = childCrossRank.safeGetRankIndex(left);
+    CrossRank current = getBasicCrossRank();
+    Integer leftIdx = current.safeGetRankIndex(left);
     if (leftIdx == null) {
       return true;
     }
     Set<DNode> inAdjs = sameRankAdjacentRecord.inAdjacent(right);
     for (DNode in : inAdjs) {
-      Integer idx = childCrossRank.safeGetRankIndex(in);
+      Integer idx = current.safeGetRankIndex(in);
       if (idx != null && idx > leftIdx) {
         return false;
       }
