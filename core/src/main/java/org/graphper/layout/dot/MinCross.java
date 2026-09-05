@@ -563,7 +563,9 @@ class MinCross {
      * of its external edges. A zero-cross legacy order is already optimal, and replacing it with
      * a tied atomic order would only change an established topology for no measurable gain.
      */
-    optimal = tryAtomicInitSort(initial, optimal);
+    if (optimal.getCrossNum() > 0 || crossClusterFlatViolations(optimal.getCrossRank()) > 0) {
+      optimal = tryAtomicInitSort(initial, optimal);
+    }
 
     if (useQuickMode) {
       logQuickModeStep(0);

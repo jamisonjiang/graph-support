@@ -227,7 +227,8 @@ public abstract class LineClip extends LineHandler {
     return lineDrawProp;
   }
 
-  protected void setFloatLabel(LineDrawProp lineDrawProp) {
+  protected void setFloatLabel(LineDrawProp lineDrawProp,
+                               List<ExternalLabelPlacer.Placement> placements) {
     if (lineDrawProp == null) {
       return;
     }
@@ -245,6 +246,7 @@ public abstract class LineClip extends LineHandler {
     for (FloatLabel floatLabel : floatLabels) {
       FlatPoint startPoint;
       FlatPoint offset = floatLabel.getOffset();
+      NodeDrawProp endpoint = null;
       if (floatLabel.getTend() == null) {
         if (lineDrawProp.isBesselCurve()) {
           startPoint = curveGetFloatLabelStart(
@@ -261,16 +263,18 @@ public abstract class LineClip extends LineHandler {
         }
       } else {
         Tend tend = floatLabel.getTend();
-        NodeDrawProp node;
         if (tend == Tend.TAIL) {
-          startPoint = lineDrawProp.get(0);
-          node = drawGraph.getNodeDrawProp(lineDrawProp.getLine().tail());
+          startPoint = lineDrawProp.isHeadStart()
+              ? lineDrawProp.get(lineDrawProp.size() - 1) : lineDrawProp.get(0);
+          endpoint = drawGraph.getNodeDrawProp(lineDrawProp.getLine().tail());
         } else {
-          startPoint = lineDrawProp.get(lineDrawProp.size() - 1);
-          node = drawGraph.getNodeDrawProp(lineDrawProp.getLine().head());
+          startPoint = lineDrawProp.isHeadStart()
+              ? lineDrawProp.get(0) : lineDrawProp.get(lineDrawProp.size() - 1);
+          endpoint = drawGraph.getNodeDrawProp(lineDrawProp.getLine().head());
         }
 
-        offset = getFloatLabelLeftOffset(node, lineDrawProp, startPoint, offset, tend == Tend.TAIL);
+        offset = getFloatLabelLeftOffset(endpoint, lineDrawProp, startPoint, offset,
+                                        tend == Tend.TAIL);
       }
 
       FlatPoint labelSize;
@@ -288,11 +292,16 @@ public abstract class LineClip extends LineHandler {
         }
       } else {
         labelSize = assemble.size();
-        setCellNodeOffset(drawGraph, startPoint, assemble, true);
       }
 
       if (startPoint != null) {
         FlatPoint center = floatPointCenter(startPoint, labelSize, offset);
+        if (floatLabel.getTend() != null) {
+          placements.add(new ExternalLabelPlacer.Placement(lineDrawProp, floatLabel, startPoint,
+                                                           center, labelSize, assemble, endpoint));
+          continue;
+        }
+
         if (assemble == null) {
           lineDrawProp.addFloatLabelCenter(floatLabel, center);
         } else {

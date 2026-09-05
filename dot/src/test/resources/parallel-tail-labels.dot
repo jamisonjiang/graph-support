@@ -1,0 +1,8 @@
+digraph unix {
+  nodesep=0.486111;
+  ranksep=0.833333;
+  sh0006->sh0008[arrowtail=none,arrowhead=none,minlen=0,color="#00000E",taillabel=<<TABLE BGCOLOR="#000011" FIXEDSIZE="TRUE" WIDTH="135" HEIGHT="15"><TR><TD></TD></TR></TABLE>>];
+  sh0006->sh0008[arrowtail=none,arrowhead=none,minlen=0,color="#000012",taillabel=<<TABLE BGCOLOR="#000015" FIXEDSIZE="TRUE" WIDTH="106" HEIGHT="15"><TR><TD></TD></TR></TABLE>>];
+  sh0006 [shape=rect,label="",width=2.186089,height=0.666667,color="#000006"];
+  sh0008 [shape=rect,label="",width=1.524807,height=0.666667,color="#000008"];
+}

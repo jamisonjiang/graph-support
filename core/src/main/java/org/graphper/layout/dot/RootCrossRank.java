@@ -852,46 +852,114 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean isCross(DLine line1, DLine line2, boolean useRankIdx) {
-    DNode u = line1.from();
-    DNode x = line1.to();
-    DNode v = line2.from();
-    DNode y = line2.to();
+    if (shareEndpoint(line1, line2)) {
+      return sharedEndpointEdgesCross(line1, line2, useRankIdx);
+    }
 
-    if (u == v || u == y || x == v || x == y) {
-      if ((u == v) == (x == y)) {
+    boolean line1Flat = line1.isSameRank();
+    boolean line2Flat = line2.isSameRank();
+    if (line1Flat || line2Flat) {
+      if ((line1Flat && !isRealFlatEdge(line1)) || (line2Flat && !isRealFlatEdge(line2))) {
         return false;
       }
-
-      if (u == v) {
-        double up = getCompareNo(line1, u);
-        double vp = getCompareNo(line2, v);
-
-        if (x.getRank() == u.getRank()) {
-          return comparePointX(up, vp) < 0 == lessRankIdx(x, y, useRankIdx);
-        }
-        return locationTag(up, vp) * locationTag(y, x, useRankIdx)
-            + locationTag(vp, up) * locationTag(x, y, useRankIdx) == 1;
-      }
-
-      double xp = getCompareNo(line1, x);
-      double yp = getCompareNo(line2, y);
-
-      if (u.getRank() == x.getRank()) {
-        return comparePointX(xp, yp) < 0 == lessRankIdx(u, v, useRankIdx);
-      }
-      return locationTag(u, v, useRankIdx) * locationTag(yp, xp)
-          + locationTag(v, u, useRankIdx) * locationTag(xp, yp) == 1;
+      return flatEdgesCross(line1, line2, line1Flat, line2Flat, useRankIdx);
     }
 
-    boolean line1InSameRank = u.getRank() == x.getRank();
-    boolean line2InSameRank = v.getRank() == y.getRank();
+    return differentRankEdgesCross(line1, line2, useRankIdx);
+  }
 
-    if (line1InSameRank || line2InSameRank) {
+  private boolean isRealFlatEdge(DLine line) {
+    return line.getLineDrawProp() != null && Integer.valueOf(0).equals(line.lineAttrs().getMinlen());
+  }
+
+  private boolean shareEndpoint(DLine line1, DLine line2) {
+    return line1.from() == line2.from() || line1.from() == line2.to()
+        || line1.to() == line2.from() || line1.to() == line2.to();
+  }
+
+  private boolean sharedEndpointEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
+    DNode line1Tail = line1.from();
+    DNode line1Head = line1.to();
+    DNode line2Tail = line2.from();
+    DNode line2Head = line2.to();
+
+    // Parallel and opposing edges use separate routing and do not cross each other here.
+    if ((line1Tail == line2Tail && line1Head == line2Head)
+        || (line1Tail == line2Head && line1Head == line2Tail)) {
       return false;
     }
+    if (line1Tail == line2Tail) {
+      return commonTailEdgesCross(line1, line2, useRankIdx);
+    }
+    if (line1Head == line2Head) {
+      return commonHeadEdgesCross(line1, line2, useRankIdx);
+    }
+    // A head-to-tail chain only touches at its shared node.
+    return false;
+  }
 
-    return locationTag(u, v, useRankIdx) * locationTag(y, x, useRankIdx)
-        + locationTag(v, u, useRankIdx) * locationTag(x, y, useRankIdx) == 1;
+  private boolean commonTailEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
+    DNode tail = line1.from();
+    DNode line1Head = line1.to();
+    DNode line2Head = line2.to();
+    double line1Port = getCompareNo(line1, tail);
+    double line2Port = getCompareNo(line2, tail);
+
+    if (line1.isSameRank()) {
+      return comparePointX(line1Port, line2Port) < 0
+          == lessRankIdx(line1Head, line2Head, useRankIdx);
+    }
+    return locationTag(line1Port, line2Port) * locationTag(line2Head, line1Head, useRankIdx)
+        + locationTag(line2Port, line1Port) * locationTag(line1Head, line2Head, useRankIdx) == 1;
+  }
+
+  private boolean commonHeadEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
+    DNode line1Tail = line1.from();
+    DNode line2Tail = line2.from();
+    double line1Port = getCompareNo(line1, line1.to());
+    double line2Port = getCompareNo(line2, line2.to());
+
+    if (line1.isSameRank()) {
+      return comparePointX(line1Port, line2Port) < 0
+          == lessRankIdx(line1Tail, line2Tail, useRankIdx);
+    }
+    return locationTag(line1Tail, line2Tail, useRankIdx) * locationTag(line2Port, line1Port)
+        + locationTag(line2Tail, line1Tail, useRankIdx) * locationTag(line1Port, line2Port) == 1;
+  }
+
+  private boolean differentRankEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
+    return locationTag(line1.from(), line2.from(), useRankIdx)
+        * locationTag(line2.to(), line1.to(), useRankIdx)
+        + locationTag(line2.from(), line1.from(), useRankIdx)
+        * locationTag(line1.to(), line2.to(), useRankIdx) == 1;
+  }
+
+  private boolean flatEdgesCross(DLine line1, DLine line2, boolean line1Flat,
+                                 boolean line2Flat, boolean useRankIdx) {
+    DLine flat = line1Flat ? line1 : line2;
+    DLine other = line1Flat ? line2 : line1;
+    if (line1Flat && line2Flat) {
+      if (flat.from().getRank() != other.from().getRank()) {
+        return false;
+      }
+      return between(flat, other.from(), useRankIdx)
+          != between(flat, other.to(), useRankIdx);
+    }
+
+    DNode sameRankEndpoint = endpointAtRank(other, flat.from().getRank());
+    return sameRankEndpoint != null && between(flat, sameRankEndpoint, useRankIdx);
+  }
+
+  private DNode endpointAtRank(DLine line, int rank) {
+    if (line.from().getRank() == rank) {
+      return line.from();
+    }
+    return line.to().getRank() == rank ? line.to() : null;
+  }
+
+  private boolean between(DLine line, DNode node, boolean useRankIdx) {
+    return lessRankIdx(line.from(), node, useRankIdx)
+        != lessRankIdx(line.to(), node, useRankIdx);
   }
 
   private int locationTag(DNode v, DNode w, boolean useRankIdx) {

@@ -9,11 +9,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import org.graphper.api.Assemble;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.Tend;
 import org.graphper.def.Curves;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
@@ -125,6 +127,89 @@ public class BadCaseRoutingTest {
       Assertions.assertNotNull(line);
       Assertions.assertFalse(intersectsLabelInterior(line),
                              color + " passes through its own label");
+    }
+  }
+
+  @Test
+  public void parallelHtmlHeadLabelsAvoidEachOtherAndEndpointNodes() throws Exception {
+    assertParallelEndpointLabelsAvoidObstacles("/parallel-head-labels.dot");
+  }
+
+  @Test
+  public void parallelHtmlTailLabelsAvoidEachOtherAndEndpointNodes() throws Exception {
+    assertParallelEndpointLabelsAvoidObstacles("/parallel-tail-labels.dot");
+  }
+
+  @Test
+  public void endpointLabelsStayOutsideTheirOwnerEdge() throws Exception {
+    assertEndpointLabelsOutsideOwnerEdge("/endpoint-label-owner-edge.dot");
+    assertEndpointLabelsOutsideOwnerEdge("/wide-tail-label-owner-edge.dot");
+  }
+
+  @Test
+  public void spanningFlatEdgeParticipatesInLocalCrossingReduction() throws Exception {
+    Graphviz graph = parseResource("/flat-edge-local-crossing.dot");
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    LineDrawProp flat = lineByColor(graph, draw, "#000013");
+    NodeDrawProp tail = nodeById(graph, draw, "sh0007");
+    NodeDrawProp head = nodeById(graph, draw, "sh0006");
+
+    Assertions.assertTrue(tail.getRightBorder() <= head.getLeftBorder(),
+                          "flat crossing reduction reversed the edge");
+    for (Node node : graph.nodes()) {
+      NodeDrawProp candidate = draw.getNodeDrawProp(node);
+      if (candidate == tail || candidate == head || Math.abs(candidate.getY() - tail.getY()) > 1e-6) {
+        continue;
+      }
+      Assertions.assertFalse(candidate.getX() > tail.getX() && candidate.getX() < head.getX(),
+                             node.nodeAttrs().getId() + " remains inside the flat edge span");
+    }
+    for (Line line : graph.lines()) {
+      if (line.tail() == flat.getLine().tail() || line.tail() == flat.getLine().head()
+          || line.head() == flat.getLine().tail() || line.head() == flat.getLine().head()) {
+        continue;
+      }
+      Assertions.assertFalse(intersects(flat, draw.getLineDrawProp(line)),
+                             "flat edge still crosses " + line.lineAttrs().getColor());
+    }
+  }
+
+  private void assertParallelEndpointLabelsAvoidObstacles(String resource) throws Exception {
+    Graphviz graph = parseResource(resource);
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    LineDrawProp first = lineByColor(graph, draw, "#00000E");
+    LineDrawProp second = lineByColor(graph, draw, "#000012");
+    LabelBox firstLabel = floatAssembleBox(draw, first);
+    LabelBox secondLabel = floatAssembleBox(draw, second);
+
+    Assertions.assertNotNull(firstLabel);
+    Assertions.assertNotNull(secondLabel);
+    Assertions.assertFalse(firstLabel.overlaps(secondLabel), "parallel headlabels overlap");
+    Tend tend = first.lineAttrs().getFloatLabels()[0].getTend();
+    String endpointId = tend == Tend.HEAD ? "sh0008" : "sh0006";
+    NodeDrawProp endpoint = nodeById(graph, draw, endpointId);
+    LabelBox endpointBox = LabelBox.of(endpoint);
+    Assertions.assertEquals(4, firstLabel.distanceTo(endpointBox), 1e-6);
+    Assertions.assertEquals(4, secondLabel.distanceTo(endpointBox), 1e-6);
+    for (String nodeId : new String[]{"sh0006", "sh0008"}) {
+      NodeDrawProp node = nodeById(graph, draw, nodeId);
+      Assertions.assertFalse(firstLabel.overlaps(LabelBox.of(node)),
+                             "first headlabel overlaps " + nodeId);
+      Assertions.assertFalse(secondLabel.overlaps(LabelBox.of(node)),
+                             "second headlabel overlaps " + nodeId);
+    }
+  }
+
+  private void assertEndpointLabelsOutsideOwnerEdge(String resource) throws Exception {
+    Graphviz graph = parseResource(resource);
+    DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+    for (Line line : graph.lines()) {
+      LineDrawProp lineProp = draw.getLineDrawProp(line);
+      for (Assemble assemble : lineProp.getFloatAssembles()) {
+        LabelBox label = floatAssembleBox(draw, lineProp, assemble);
+        Assertions.assertFalse(intersectsBox(lineProp, label),
+                               "endpoint label is pierced by its owner edge in " + resource);
+      }
     }
   }
 
@@ -381,6 +466,73 @@ public class BadCaseRoutingTest {
         || segmentIntersects(from, to, upperRight, lowerRight)
         || segmentIntersects(from, to, lowerRight, lowerLeft)
         || segmentIntersects(from, to, lowerLeft, upperLeft);
+  }
+
+  private LabelBox floatAssembleBox(DrawGraph draw, LineDrawProp line) {
+    for (Assemble assemble : line.getFloatAssembles()) {
+      return floatAssembleBox(draw, line, assemble);
+    }
+    return null;
+  }
+
+  private LabelBox floatAssembleBox(DrawGraph draw, LineDrawProp line, Assemble assemble) {
+    LabelBox box = null;
+    for (Node cell : assemble.getCells()) {
+      NodeDrawProp cellProp = draw.getNodeDrawProp(cell);
+      box = box == null ? LabelBox.of(cellProp) : box.union(cellProp);
+    }
+    return box;
+  }
+
+  private boolean intersectsBox(LineDrawProp line, LabelBox box) {
+    double epsilon = 1e-6;
+    List<FlatPoint> points = sample(line);
+    for (int i = 0; i + 1 < points.size(); i++) {
+      if (segmentIntersectsBox(points.get(i), points.get(i + 1),
+                              box.left + epsilon, box.right - epsilon,
+                              box.top + epsilon, box.bottom - epsilon)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static final class LabelBox {
+
+    private final double left;
+    private final double right;
+    private final double top;
+    private final double bottom;
+
+    private LabelBox(double left, double right, double top, double bottom) {
+      this.left = left;
+      this.right = right;
+      this.top = top;
+      this.bottom = bottom;
+    }
+
+    private static LabelBox of(NodeDrawProp node) {
+      return new LabelBox(node.getLeftBorder(), node.getRightBorder(),
+                          node.getUpBorder(), node.getDownBorder());
+    }
+
+    private LabelBox union(NodeDrawProp node) {
+      return new LabelBox(Math.min(left, node.getLeftBorder()),
+                          Math.max(right, node.getRightBorder()),
+                          Math.min(top, node.getUpBorder()),
+                          Math.max(bottom, node.getDownBorder()));
+    }
+
+    private boolean overlaps(LabelBox other) {
+      return Math.min(right, other.right) - Math.max(left, other.left) > 1e-6
+          && Math.min(bottom, other.bottom) - Math.max(top, other.top) > 1e-6;
+    }
+
+    private double distanceTo(LabelBox other) {
+      double dx = Math.max(Math.max(left - other.right, 0), other.left - right);
+      double dy = Math.max(Math.max(top - other.bottom, 0), other.top - bottom);
+      return Math.hypot(dx, dy);
+    }
   }
 
   private List<FlatPoint> sample(LineDrawProp line) {

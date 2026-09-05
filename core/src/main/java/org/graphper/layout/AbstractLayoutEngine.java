@@ -927,6 +927,7 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
     }
 
     public void clipAllLines() {
+      List<ExternalLabelPlacer.Placement> externalLabels = new ArrayList<>();
       for (LineDrawProp line : drawGraph.lines()) {
         PathClip pathClip;
         if (line.isBesselCurve()) {
@@ -948,9 +949,10 @@ public abstract class AbstractLayoutEngine implements LayoutEngine {
 
         line.setStart(line.get(0));
         line.setEnd(line.get(line.size() - 1));
-        setFloatLabel(line);
+        setFloatLabel(line, externalLabels);
       }
 
+      ExternalLabelPlacer.place(drawGraph, externalLabels);
       drawGraph.syncToGraphvizBorder();
     }
   }
