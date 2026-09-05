@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.draw.ExecuteException;
@@ -25,6 +26,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 
+@VisualTags({"label", "text"})
 public class LabelTest extends GraphvizVisual {
 
   @Test

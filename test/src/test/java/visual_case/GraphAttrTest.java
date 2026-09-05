@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.stream.Stream;
 import org.graphper.api.Html;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.graphper.api.attributes.NodeStyle;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 
+@VisualTags({"graph", "attributes"})
 public class GraphAttrTest extends GraphvizVisual {
 
   static Stream<GraphvizBuilder> basicBuilder() {

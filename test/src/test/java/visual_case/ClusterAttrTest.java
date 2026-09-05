@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.stream.Stream;
 import org.graphper.api.attributes.ClusterShapeEnum;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.NodeStyle;
 
+@VisualTags({"cluster", "attributes"})
 public class ClusterAttrTest extends GraphvizVisual {
 
   static Stream<ClusterBuilder> labelCases() {

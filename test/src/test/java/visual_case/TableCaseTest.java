@@ -27,6 +27,7 @@ import static org.graphper.api.Html.underline;
 
 import helper.DocumentUtils;
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import helper.TableUtils;
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +55,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@VisualTags({"label", "html-label", "table"})
 public class TableCaseTest extends GraphvizVisual {
 
   @Test

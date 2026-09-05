@@ -14,146 +14,530 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-
+<!doctype html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>
-  <title>graph_visual</title>
-  <style type="text/css">
-.sk_list{
-	float: left;
-}
-.sk_list ul li{
-	float: left;
-}
-.sk_list ul li a{
-	display: block;
-	font-size: 16px;
-	color: #000;
-	font-weight: 700;
-	padding: 0 28px;
-	line-height: 45px;
-}
-.sk_con{
-	float: left;
-}
-.sk_con ul li{
-	float: left;
-}
-.sk_con ul li a{
-	display: block;
-	font-size: 14px;
-	color: #666666;
-	padding: 0 23px;
-	line-height: 48px;
-}
-.sk_con ul li:last-child a::after{
-	content: '\e901';
-	font-family: 'icomoon';
-}
-.sk_bd {
-	margin-top: 25px;
-}
-.sk_bd ul li {
-	display: inline-block;
-	overflow: hidden;
-	width: 590px;
-	height: 461px;
-	border: 1px solid transparent;
-}
-.sk_bd ul li:hover{
-	border: 1px solid #0b99ac;
-}
-.sk_bd ul li p {
-	margin: 0 12px;
-	font-size: 14px;
-	color: #666;
-}
-.sk_price {
-	margin: 0 12px;
-	margin-top: 16px;
-	font-size: 22px;
-	color: #0b99ac;
-}
-.sk_price s {
-	font-size: 14px;
-	color: #a4a4a4;
-}
-.sk_prom {
-	position: relative;
-	margin-top: 13px;
-	height: 10px;
-	width: 100%;
-}
-.sk_prom p {
-	float: left;
-	font-size: 14px;
-	color: #0b99ac;
-}
-.prom_bar {
-	position: absolute;
-	top: 3px;
-	left: 78px;
-	width: 132px;
-	height: 12px;
-	border: 1px solid #0b99ac;
-	border-radius: 6px;
-}
-.bar_in {
-	width: 87%;
-	height: 10px;
-	background-color: #0b99ac;
-}
-.sk_prom .prom{
-	float: right;
-	font-size: 14px;
-	color: #666;
-	margin: 0 13px;
-}
-.sk_prom .prom span{
-	font-size: 16px;
-	color: #e33d41;
-}
-.sk_rush{
-	height: 50px;
-	width: 100%;
-	background-color: #0b99ac;
-	font-size: 20px;
-	color: #fff;
-	line-height: 50px;
-	text-align: center;
-	margin-top: 15px;
-}
-img{
-    max-height:400px;
-}
-.images-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    box-sizing: border-box;
-    /* Ensure padding and border are included in the width */
-}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>graph-support visual tests</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d9e0ea;
+      --soft-line: #edf1f6;
+      --surface: #ffffff;
+      --canvas: #f5f7fb;
+      --native: #e9f1ff;
+      --batik: #e6f8ed;
+      --native-ink: #175cd3;
+      --batik-ink: #067647;
+      --accent: #3448c5;
+      --accent-hover: #26389f;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-.images-container img {
-    width: 50%;
-    /* Make the images fill the container width */
-    box-sizing: border-box;
-    /* Ensure padding and border are included in the width */
-}
-</style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-size: 14px;
+    }
+
+    button, input, select { font: inherit; }
+
+    .topbar {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0 auto 0 0;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .count {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .control {
+      height: 34px;
+      border: 1px solid #c8d0dc;
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    input.control {
+      width: min(280px, 30vw);
+      padding: 0 11px;
+    }
+
+    select.control { padding: 0 28px 0 9px; }
+
+    button.control {
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button.control:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    button.control:disabled { cursor: default; opacity: 0.45; }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    .tagbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding-top: 10px;
+    }
+
+    .tag-filter {
+      padding: 4px 9px;
+      border: 1px solid #d0d7e2;
+      border-radius: 999px;
+      background: #f8fafc;
+      color: #475467;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .tag-filter:hover { border-color: #8d9bea; color: var(--accent); }
+    .tag-filter.active { border-color: var(--accent); background: #eef0ff; color: var(--accent); }
+
+    .page-status { color: var(--muted); }
+
+    main { padding: 16px; }
+
+    .case-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+      align-items: start;
+      gap: 12px;
+      max-width: 1920px;
+      margin: 0 auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .case-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+    }
+
+    .case-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .case-index {
+      min-width: 62px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .case-meta {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .case-method {
+      overflow: hidden;
+      font-size: 12px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-name {
+      overflow: hidden;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .case-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+
+    .tag {
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #f0f2f6;
+      color: #475467;
+      font-size: 10px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .preview { min-width: 0; }
+    .preview + .preview { border-left: 1px solid var(--line); }
+
+    .preview-title {
+      margin: 0;
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .preview.local .preview-title { color: var(--native-ink); background: var(--native); }
+    .preview.batik .preview-title { color: var(--batik-ink); background: var(--batik); }
+
+    .image-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 160px;
+      padding: 8px;
+      background:
+          linear-gradient(45deg, #f7f9fc 25%, transparent 25%) 0 0 / 18px 18px,
+          linear-gradient(-45deg, #f7f9fc 25%, transparent 25%) 0 9px / 18px 18px,
+          linear-gradient(45deg, transparent 75%, #f7f9fc 75%) 9px -9px / 18px 18px,
+          linear-gradient(-45deg, transparent 75%, #f7f9fc 75%) -9px 0 / 18px 18px,
+          #fff;
+    }
+
+    .image-link img {
+      display: block;
+      max-width: 100%;
+      max-height: 144px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .case-actions {
+      display: flex;
+      gap: 8px;
+      padding: 7px 9px;
+      border-top: 1px solid var(--soft-line);
+    }
+
+    .case-actions a {
+      padding: 4px 8px;
+      border: 1px solid #c7d0dd;
+      border-radius: 6px;
+      color: var(--ink);
+      font-size: 11px;
+      text-decoration: none;
+    }
+
+    .case-actions a:hover { border-color: var(--accent); color: var(--accent); }
+
+    .empty {
+      display: none;
+      padding: 80px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .viewer {
+      position: fixed;
+      z-index: 30;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      background: rgba(9, 14, 29, 0.82);
+    }
+
+    .viewer.open { display: flex; }
+
+    .viewer-dialog {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+      width: min(1280px, 96vw);
+      height: min(900px, 92vh);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
+    }
+
+    .viewer-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 9px 11px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .viewer-title {
+      overflow: hidden;
+      margin-right: auto;
+      font-size: 13px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .viewer-action {
+      padding: 5px 9px;
+      border: 1px solid #c7d0dd;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      text-decoration: none;
+    }
+
+    .viewer-action:hover { border-color: var(--accent); color: var(--accent); }
+
+    .viewer-close {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #667085;
+      cursor: pointer;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .viewer-close:hover,
+    .viewer-close:focus-visible {
+      outline: none;
+      background: #eef0f5;
+      color: #101828;
+    }
+
+    .viewer-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      background: #f1f4f8;
+    }
+
+    .viewer-content img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .viewer-content iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    @media (max-width: 640px) {
+      .topbar-row { flex-wrap: wrap; }
+      h1 { flex-basis: 100%; }
+      input.control { flex: 1 1 180px; width: auto; }
+      .case-list { grid-template-columns: 1fr; }
+      .case-header { align-items: flex-start; flex-wrap: wrap; }
+      .case-tags { flex-basis: 100%; justify-content: flex-start; padding-left: 70px; }
+      main { padding: 10px; }
+      .image-link { height: 150px; }
+      .image-link img { max-height: 134px; }
+      .viewer { padding: 8px; }
+      .viewer-dialog { width: 100%; height: 94vh; border-radius: 9px; }
+      .viewer-open { display: none; }
+    }
+  </style>
 </head>
 <body>
-<div class="w sk_container">
-  <div class="sk_hd">
-    <img src="upload/sk1_03.jpg" alt="">
+<header class="topbar">
+  <div class="topbar-row">
+    <h1>graph-support visual tests</h1>
+    <label class="count" id="count"></label>
+    <input class="control" id="search" type="search" placeholder="Filter by case or file">
+    <select class="control" id="pageSize" aria-label="Cases per page">
+      <option value="10">10 / page</option>
+      <option value="20" selected>20 / page</option>
+      <option value="50">50 / page</option>
+      <option value="100">100 / page</option>
+      <option value="0">All</option>
+    </select>
   </div>
-  <div class="sk_bd">
-    <ul>%s</ul>
-  </div>
+  <nav class="pagination" aria-label="Pagination">
+    <button class="control" id="previous" type="button">Previous</button>
+    <span class="page-status" id="pageStatus"></span>
+    <button class="control" id="next" type="button">Next</button>
+  </nav>
+  <div class="tagbar" id="tagbar" aria-label="Case tags"></div>
+</header>
+<main>
+  <ol class="case-list" id="caseList"><!-- graph-cases --></ol>
+  <div class="empty" id="empty">No visual cases match this filter.</div>
+</main>
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+  <section class="viewer-dialog">
+    <header class="viewer-header">
+      <span class="viewer-title" id="viewerTitle"></span>
+      <a class="viewer-action" id="viewerDownload" download>Download</a>
+      <a class="viewer-action viewer-open" id="viewerOpen" target="_blank" rel="noopener">Open in new tab</a>
+      <button class="viewer-close" id="viewerClose" type="button" aria-label="Close">&times;</button>
+    </header>
+    <div class="viewer-content" id="viewerContent"></div>
+  </section>
 </div>
-</body>
+<script>
+  (() => {
+    const cases = Array.from(document.querySelectorAll('.case-card'));
+    const search = document.getElementById('search');
+    const pageSize = document.getElementById('pageSize');
+    const previous = document.getElementById('previous');
+    const next = document.getElementById('next');
+    const status = document.getElementById('pageStatus');
+    const count = document.getElementById('count');
+    const empty = document.getElementById('empty');
+    const tagbar = document.getElementById('tagbar');
+    const viewer = document.getElementById('viewer');
+    const viewerTitle = document.getElementById('viewerTitle');
+    const viewerContent = document.getElementById('viewerContent');
+    const viewerDownload = document.getElementById('viewerDownload');
+    const viewerOpen = document.getElementById('viewerOpen');
+    const viewerClose = document.getElementById('viewerClose');
+    let page = 0;
+    const activeTags = new Set();
 
+    cases.forEach((item, index) => {
+      item.querySelector('.case-index').textContent = `Case ${String(index + 1).padStart(3, '0')}`;
+    });
+
+    const tagCounts = new Map();
+    cases.forEach(item => item.dataset.tags.split(',').filter(Boolean).forEach(tag => {
+      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+    }));
+    Array.from(tagCounts).sort((left, right) => left[0].localeCompare(right[0])).forEach(([tag, amount]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'tag-filter';
+      button.dataset.tag = tag;
+      button.textContent = `${tag} ${amount}`;
+      button.addEventListener('click', () => {
+        activeTags.has(tag) ? activeTags.delete(tag) : activeTags.add(tag);
+        button.classList.toggle('active', activeTags.has(tag));
+        page = 0;
+        render();
+      });
+      tagbar.appendChild(button);
+    });
+
+    function filteredCases() {
+      const query = search.value.trim().toLowerCase();
+      return cases.filter(item => {
+        const textMatches = !query || `${item.dataset.search} ${item.textContent}`
+            .toLowerCase().includes(query);
+        const tags = new Set(item.dataset.tags.split(',').filter(Boolean));
+        const tagsMatch = Array.from(activeTags).every(tag => tags.has(tag));
+        return textMatches && tagsMatch;
+      });
+    }
+
+    function render() {
+      const filtered = filteredCases();
+      const size = Number(pageSize.value);
+      const pageCount = size ? Math.max(1, Math.ceil(filtered.length / size)) : 1;
+      page = Math.min(page, pageCount - 1);
+      const start = size ? page * size : 0;
+      const visible = new Set(filtered.slice(start, size ? start + size : undefined));
+      cases.forEach(item => item.hidden = !visible.has(item));
+      count.textContent = `${filtered.length} / ${cases.length} cases`;
+      status.textContent = `Page ${page + 1} / ${pageCount}`;
+      previous.disabled = page === 0;
+      next.disabled = page >= pageCount - 1;
+      empty.style.display = filtered.length ? 'none' : 'block';
+    }
+
+    search.addEventListener('input', () => { page = 0; render(); });
+    pageSize.addEventListener('change', () => { page = 0; render(); });
+    previous.addEventListener('click', () => { page--; render(); scrollTo({top: 0, behavior: 'smooth'}); });
+    next.addEventListener('click', () => { page++; render(); scrollTo({top: 0, behavior: 'smooth'}); });
+
+    function openViewer(url, title, image) {
+      viewerTitle.textContent = title;
+      viewerDownload.href = url;
+      viewerOpen.href = url;
+      viewerContent.replaceChildren();
+      const content = document.createElement(image ? 'img' : 'iframe');
+      if (image) {
+        content.alt = title;
+      } else {
+        content.title = title;
+      }
+      content.src = url;
+      viewerContent.appendChild(content);
+      viewer.classList.add('open');
+      viewerClose.focus();
+    }
+
+    function closeViewer() {
+      viewer.classList.remove('open');
+      viewerContent.replaceChildren();
+    }
+
+    document.addEventListener('click', event => {
+      const image = event.target.closest('.image-link img');
+      if (image) {
+        event.preventDefault();
+        openViewer(image.src, image.alt, true);
+        return;
+      }
+      const file = event.target.closest('.preview-file');
+      if (file) {
+        event.preventDefault();
+        const name = file.closest('.case-card').querySelector('.file-name').textContent;
+        openViewer(file.href, `${file.dataset.kind} · ${name}`, false);
+      } else if (event.target === viewer) {
+        closeViewer();
+      }
+    });
+    viewerClose.addEventListener('click', closeViewer);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeViewer();
+    });
+    render();
+  })();
+</script>
+</body>
 </html>

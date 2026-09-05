@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Graphviz.GraphvizBuilder;
 import org.graphper.api.Line;
@@ -30,6 +31,7 @@ import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 import org.junit.jupiter.api.Test;
 
+@VisualTags({"orthogonal", "port", "edge-routing"})
 public class OrthoPortTest extends GraphvizVisual {
 
   @Test

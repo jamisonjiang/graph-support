@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@VisualTags({"self-loop", "edge-routing"})
 public class SelfLineTest extends GraphvizVisual {
 
   static Iterable<Port> ALL_PORTS = new UnaryConcatIterable<>(Collections.singletonList(null),

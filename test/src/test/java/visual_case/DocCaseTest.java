@@ -20,6 +20,7 @@ import static org.graphper.api.Html.table;
 import static org.graphper.api.Html.td;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Some tests of the example programs in the documentation.
  */
+@VisualTags({"documentation", "gallery"})
 public class DocCaseTest extends GraphvizVisual {
 
   @Test
