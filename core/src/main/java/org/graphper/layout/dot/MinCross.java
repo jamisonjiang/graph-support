@@ -94,9 +94,6 @@ class MinCross {
     // Sync node order
     syncRankOrder();
 
-    // Try bounded DFS orders of independent non-branching paths.
-    new NonBranchingPathSort(rankContent, dotAttachment.getDrawGraph(), digraphProxy).sort();
-
     this.rootCrossRank = null;
     this.clusterExpand = null;
   }
