@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.graphper.api.Assemble;
 import org.graphper.api.Graphviz;
@@ -171,6 +172,87 @@ public class BadCaseRoutingTest {
       }
       Assertions.assertFalse(intersects(flat, draw.getLineDrawProp(line)),
                              "flat edge still crosses " + line.lineAttrs().getColor());
+    }
+  }
+
+  @Test
+  public void boxGuideRoutersAvoidUnrelatedClusterBorders() throws Exception {
+    String source = resourceText("/box-guide-cluster-obstacle.dot");
+    for (String rankdir : new String[]{"TB", "BT", "LR", "RL"}) {
+      for (String mode : new String[]{"rounded", "polyline", "spline"}) {
+        Graphviz graph = DotParser.parse(
+            source.replaceFirst("\\{", "{ rankdir=" + rankdir + "; splines=" + mode + ";"));
+        DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+        LineDrawProp route = lineByColor(graph, draw, "#ff0000");
+        ClusterDrawProp obstacle = clusterById(draw, "cluster_B");
+
+        Assertions.assertNotNull(route);
+        Assertions.assertNotNull(obstacle);
+        Assertions.assertFalse(intersectsBox(route,
+                                              new LabelBox(obstacle.getLeftBorder(),
+                                                           obstacle.getRightBorder(),
+                                                           obstacle.getUpBorder(),
+                                                           obstacle.getDownBorder())),
+                               mode + "/" + rankdir + " route enters an unrelated cluster");
+      }
+    }
+  }
+
+  @Test
+  public void boxGuideRoutersMayEnterEndpointClusters() throws Exception {
+    String source = resourceText("/box-guide-endpoint-clusters.dot");
+    for (String mode : new String[]{"rounded", "polyline", "spline"}) {
+      Graphviz graph = DotParser.parse(source.replaceFirst("\\{", "{ splines=" + mode + ";"));
+      DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+      LineDrawProp route = lineByColor(graph, draw, "#ff0000");
+      ClusterDrawProp sourceCluster = clusterById(draw, "cluster_source");
+      ClusterDrawProp targetCluster = clusterById(draw, "cluster_target");
+
+      Assertions.assertNotNull(route);
+      Assertions.assertFalse(route.isEmpty());
+      Assertions.assertTrue(endpointTouches(route, sourceCluster),
+                            mode + " route was moved away from its ltail cluster");
+      Assertions.assertTrue(endpointTouches(route, targetCluster),
+                            mode + " route was moved away from its lhead cluster");
+    }
+  }
+
+  @Test
+  public void clusterDetoursNeverCutThroughOtherNodes() throws Exception {
+    String source = resourceText("/box-guide-node-before-cluster.dot");
+    for (String direction : new String[]{"TB", "BT", "LR", "RL"}) {
+      for (String mode : new String[]{"rounded", "polyline", "spline"}) {
+        Graphviz graph = DotParser.parse(source.replaceFirst("\\{",
+            "{ rankdir=" + direction + "; splines=" + mode + ";"));
+        DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+        for (Line edge : graph.lines()) {
+          for (Node node : graph.nodes()) {
+            if (node == edge.tail() || node == edge.head()) {
+              continue;
+            }
+            Assertions.assertFalse(intersectsBox(draw.getLineDrawProp(edge),
+                                                  LabelBox.of(draw.getNodeDrawProp(node))),
+                mode + "/" + direction + ": " + edge.tail().nodeAttrs().getId() + "->"
+                    + edge.head().nodeAttrs().getId() + " crosses " + node.nodeAttrs().getId());
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  public void boxGuideRoutersEnterTargetClusterOnlyAtTheTerminalSegment() throws Exception {
+    String source = resourceText("/box-guide-terminal-cluster-entry.dot");
+    for (String mode : new String[]{"rounded", "polyline", "spline"}) {
+      Graphviz graph = DotParser.parse(source.replaceFirst("\\{", "{ splines=" + mode + ";"));
+      DrawGraph draw = Layout.DOT.getLayoutEngine().layout(graph);
+      LineDrawProp route = lineByColor(graph, draw, "#ff0000");
+      ClusterDrawProp target = clusterById(draw, "cluster_C");
+
+      Assertions.assertNotNull(route);
+      Assertions.assertNotNull(target);
+      Assertions.assertTrue(terminalClusterEntry(route, target),
+                            mode + " route enters or leaves its target cluster before the endpoint");
     }
   }
 
@@ -495,6 +577,44 @@ public class BadCaseRoutingTest {
       }
     }
     return false;
+  }
+
+  private boolean endpointTouches(LineDrawProp line, ClusterDrawProp cluster) {
+    return touches(line.get(0), cluster) || touches(line.get(line.size() - 1), cluster);
+  }
+
+  private boolean terminalClusterEntry(LineDrawProp line, ClusterDrawProp cluster) {
+    List<FlatPoint> points = sample(line);
+    if (line.isHeadStart()) {
+      Collections.reverse(points);
+    }
+    boolean entered = false;
+    for (int i = 0; i < points.size(); i++) {
+      FlatPoint point = points.get(i);
+      boolean inside = point.getX() > cluster.getLeftBorder()
+          && point.getX() < cluster.getRightBorder()
+          && point.getY() > cluster.getUpBorder()
+          && point.getY() < cluster.getDownBorder();
+      if (inside) {
+        entered = true;
+      } else if (entered && i < points.size() - 1) {
+        return false;
+      }
+    }
+    return entered;
+  }
+
+  private boolean touches(FlatPoint point, ClusterDrawProp cluster) {
+    double tolerance = 2;
+    boolean withinX = point.getX() >= cluster.getLeftBorder() - tolerance
+        && point.getX() <= cluster.getRightBorder() + tolerance;
+    boolean withinY = point.getY() >= cluster.getUpBorder() - tolerance
+        && point.getY() <= cluster.getDownBorder() + tolerance;
+    return withinX && withinY
+        && (Math.abs(point.getX() - cluster.getLeftBorder()) <= tolerance
+        || Math.abs(point.getX() - cluster.getRightBorder()) <= tolerance
+        || Math.abs(point.getY() - cluster.getUpBorder()) <= tolerance
+        || Math.abs(point.getY() - cluster.getDownBorder()) <= tolerance);
   }
 
   private static final class LabelBox {

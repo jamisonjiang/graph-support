@@ -41,7 +41,8 @@ class RoundedRouter extends CurveFitBoxRouter {
 
     connectWithRoundedCorner(lineDrawProp, throughParam.fromPortPoints,
                              throughParam.toPortPoints, throughPoints,
-                             curves -> fixBox(throughParam.lineRouterBoxes, curves));
+                              curves -> fixBox(throughParam.lineRouterBoxes, curves),
+                              throughParam.preserveWaypoints);
   }
 
   // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------

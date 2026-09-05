@@ -229,6 +229,15 @@ public class LineHelper {
                                               List<FlatPoint> endPoints,
                                               List<? extends FlatPoint> throughPoints,
                                               UnaryOperator<MultiBezierCurve> fitFunction) {
+    connectWithRoundedCorner(line, startPoints, endPoints, throughPoints, fitFunction, false);
+  }
+
+  public static void connectWithRoundedCorner(LineDrawProp line,
+                                              List<FlatPoint> startPoints,
+                                              List<FlatPoint> endPoints,
+                                              List<? extends FlatPoint> throughPoints,
+                                              UnaryOperator<MultiBezierCurve> fitFunction,
+                                              boolean preserveWaypoints) {
     if (Objects.isNull(line)) {
       return;
     }
@@ -275,12 +284,16 @@ public class LineHelper {
         line.add(p1);
       }
 
-      if (isCorner(p1, p2, p3)) {
+      if (preserveWaypoints && !p1.equals(p2) && !p2.equals(p3) || isCorner(p1, p2, p3)) {
         ThirdOrderBezierCurve corner = null;
         FlatPoint lt = getLeftTangle(line);
         FlatPoint rt = i < throughPoints.size() - 1 ? throughPoints.get(i + 1) : null;
 
-        MultiBezierCurve curves = getCorner(lt, p1, p2, p3, rt, radian, fitFunction);
+        // Obstacle waypoints must survive even shallow turns or short adjacent segments.
+        double radius = preserveWaypoints
+            ? Math.min(radian, Math.min(FlatPoint.twoFlatPointDistance(p1, p2),
+                                       FlatPoint.twoFlatPointDistance(p2, p3)) / 2) : radian;
+        MultiBezierCurve curves = getCorner(lt, p1, p2, p3, rt, radius, fitFunction);
         if (curves.size() == 1) {
           line.add(prepre);
         }

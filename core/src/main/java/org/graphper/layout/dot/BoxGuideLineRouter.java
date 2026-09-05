@@ -21,11 +21,14 @@ import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.UnaryOperator;
+import org.graphper.api.Cluster;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.NodeShapeEnum;
@@ -64,8 +67,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   private static final int HALF_PORT_ADAPT_LEN = PORT_ADAPT_LEN / 2;
 
+  private ClusterObstacleIndex clusterObstacleIndex;
+
   @Override
   protected Object attach() {
+    if (clusterObstacleIndex == null) {
+      clusterObstacleIndex = new ClusterObstacleIndex(rankContent, drawGraph);
+    }
     return new ArrayList<RouterBox>();
   }
 
@@ -578,14 +586,26 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
   }
 
   private void lineCompute(LineDrawProp line, List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
+    lineCompute(line, lineRouterBoxes, from, to, new HashSet<>());
+  }
+
+  private void lineCompute(LineDrawProp line, List<RouterBox> lineRouterBoxes, DNode from, DNode to,
+                           Set<Cluster> ignoredClusters) {
     if (CollectionUtils.isEmpty(lineRouterBoxes) || CollectionUtils.isNotEmpty(line)) {
       return;
     }
 
+    List<RouterBox> originalRouterBoxes = copyRouterBoxes(lineRouterBoxes);
     List<RouterBox> originRouterBoxes = splitPortBox(from.getRank() != to.getRank(),
                                                      line, lineRouterBoxes);
+    ClusterAwareBoxGuide.ClusterRoute clusterRoute = ClusterAwareBoxGuide
+        .routeBoxes(line.getLine(), from, to, lineRouterBoxes, from.getRank() == to.getRank(),
+                    drawGraph, clusterObstacleIndex, ignoredClusters);
+    lineRouterBoxes = clusterRoute.boxes();
 
     List<ThroughPoint> throughPoints = null;
+    int[] splitBudget = clusterRoute.avoidedClusters().isEmpty()
+        ? null : new int[]{Math.max(32, lineRouterBoxes.size() * 8), -1};
     RouterBox pre = null;
     Integer preIdx = null;
     for (int i = 0; i < lineRouterBoxes.size(); i++) {
@@ -625,8 +645,19 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           }
         }
 
-        throughPointCompute(throughPoints, lineRouterBoxes, preIdx, i, throughPoints.size(),
-                            start, end, from.getRank() != to.getRank());
+        int split = throughPointCompute(throughPoints, lineRouterBoxes, preIdx, i,
+                                        throughPoints.size(), start, end,
+                                        from.getRank() != to.getRank(), splitBudget);
+        if (split < 0 && !clusterRoute.avoidedClusters().isEmpty()) {
+          Set<Cluster> blocking = clusterRoute.restrictionsAt(splitBudget[1]);
+          // Remove one restriction at a time, retaining independently routable obstacles.
+          Cluster failed = (blocking.isEmpty() ? clusterRoute.avoidedClusters() : blocking)
+              .iterator().next();
+          ignoredClusters.add(failed);
+          line.clear();
+          lineCompute(line, originalRouterBoxes, from, to, ignoredClusters);
+          return;
+        }
       }
 
       pre = routerBox;
@@ -651,6 +682,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       ThroughParam throughParam = new ThroughParam();
       throughParam.line = line.getLine();
       throughParam.lineRouterBoxes = lineRouterBoxes;
+      throughParam.preserveWaypoints = !clusterRoute.avoidedClusters().isEmpty();
       throughParam.lineDrawProp = line;
       throughParam.from = from;
       throughParam.to = to;
@@ -725,13 +757,37 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       }
 
       throughPointHandle(throughParam);
+      Set<Cluster> crossed = ClusterAwareBoxGuide.crossedAvoidedClusters(line, clusterRoute);
+      if (crossed.isEmpty() && !clusterRoute.avoidedClusters().isEmpty()
+          && ClusterAwareBoxGuide.crossesNode(line, clusterObstacleIndex)) {
+        // Cluster avoidance is best effort; it must not override the existing node corridors.
+        crossed = Collections.singleton(clusterRoute.avoidedClusters().iterator().next());
+      }
+      if (!crossed.isEmpty()) {
+        ignoredClusters.addAll(crossed);
+        line.clear();
+        lineCompute(line, originalRouterBoxes, from, to, ignoredClusters);
+      }
     }
+  }
+
+  private List<RouterBox> copyRouterBoxes(List<RouterBox> boxes) {
+    List<RouterBox> copy = new ArrayList<>(boxes.size());
+    for (RouterBox box : boxes) {
+      copy.add(new RouterBox(box.getLeftBorder(), box.getRightBorder(),
+                             box.getUpBorder(), box.getDownBorder(), box.getNode()));
+    }
+    return copy;
   }
 
   private int throughPointCompute(List<ThroughPoint> throughPoints,
                                   List<RouterBox> lineRouterBoxes, int boxStartIndex,
                                   int boxEndIndex, int insertIndex, FlatPoint start,
-                                  FlatPoint end, boolean vertical) {
+                                  FlatPoint end, boolean vertical, int[] splitBudget) {
+    if (splitBudget != null && --splitBudget[0] < 0) {
+      splitBudget[1] = boxStartIndex;
+      return -1;
+    }
     if ((vertical && start.getY() == end.getY())
         || (!vertical && start.getX() == end.getX())) {
       return 0;
@@ -820,11 +876,23 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     // Recursively split the original line segment into two segments.
     ThroughPoint splitPoint = new ThroughPoint(fastX, fastY, splitIndex);
+    if (splitBudget != null && (FlatPoint.twoFlatPointDistance(start, splitPoint) < 1e-6
+        || FlatPoint.twoFlatPointDistance(splitPoint, end) < 1e-6)) {
+      splitBudget[1] = splitIndex;
+      return -1;
+    }
     throughPoints.add(insertIndex, splitPoint);
     int a = throughPointCompute(throughPoints, lineRouterBoxes, boxStartIndex,
-                                splitIndex, insertIndex, start, splitPoint, vertical);
+                                splitIndex, insertIndex, start, splitPoint, vertical, splitBudget);
+    if (a < 0) {
+      return -1;
+    }
     int b = throughPointCompute(throughPoints, lineRouterBoxes, splitIndex + 1,
-                                boxEndIndex, insertIndex + a + 1, splitPoint, end, vertical);
+                                boxEndIndex, insertIndex + a + 1, splitPoint, end, vertical,
+                                splitBudget);
+    if (b < 0) {
+      return -1;
+    }
     return a + b + 1;
   }
 
@@ -1197,6 +1265,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     public LineDrawProp lineDrawProp;
     public List<ThroughPoint> throughPoints;
     public List<RouterBox> lineRouterBoxes;
+
+    public boolean preserveWaypoints;
     public boolean isHorizontal;
     public List<FlatPoint> fromPortPoints;
     public List<FlatPoint> toPortPoints;
