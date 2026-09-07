@@ -482,15 +482,15 @@ public class Node implements Comparable<Node>, Serializable {
 
     /**
      * Set the number of sides of the node's polygon. When the shape of the node is
-     * {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute to control the number of polygons,
-     * at least 4 sides are required, and no more than 20 sides.
+     * {@link NodeShapeEnum#POLYGON} or {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute
+     * to control the number of sides, from 3 to 20.
      *
      * @param sides the number of sides of the node's polygon
      * @return node builder
-     * @throws IllegalArgumentException sides must be between 4 and 20
+     * @throws IllegalArgumentException sides must be between 3 and 20
      */
     public NodeBuilder sides(int sides) {
-      Asserts.illegalArgument(sides < 4, "side can not be lower than 4");
+      Asserts.illegalArgument(sides < 3, "side can not be lower than 3");
       Asserts.illegalArgument(sides > 20, "side can not be large than 20");
       nodeAttrs.sides = sides;
       return this;

@@ -151,6 +151,7 @@ public class LineAttrTest extends GraphvizVisual {
               .label("shape=" + arrowShape.name())
               .arrowTail(arrowShape)
               .arrowHead(arrowShape)
+              .dir(Dir.BOTH)
               .arrowSize(0.4 * (lines.size() + 1))
               .build()
       );
@@ -305,6 +306,7 @@ public class LineAttrTest extends GraphvizVisual {
 
   @ParameterizedTest
   @MethodSource("arrowHeadTailCases")
+  @VisualTags({"arrow", "arrowhead", "arrowtail", "filled", "hollow"})
   public void testArrowHeadTail(Line line) {
     visual("arrowHead_arrowTail_test", line);
   }

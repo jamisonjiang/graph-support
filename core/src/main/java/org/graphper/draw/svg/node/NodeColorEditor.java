@@ -33,6 +33,11 @@ public class NodeColorEditor extends AbstractNodeShapeEditor {
       Color color = nodeAttrs.getColor();
       element.setAttribute(SvgConstants.STROKE, color.value());
 
+      if ("true".equals(element.getAttribute(ExpandedNodeShapeRender.DECORATION))) {
+        element.setAttribute(FILL, NONE);
+        continue;
+      }
+
       Color fillColor = nodeAttrs.getFillColor();
       if (fillColor == null) {
         fillColor = nodeAttrs.getShape().defaultFillColor();

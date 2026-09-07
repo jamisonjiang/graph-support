@@ -353,11 +353,7 @@ public class ParserUtils {
                     setDouble(nodeBuilder::width, value);
                     break;
                 case "shape":
-                    if (NodeShapeEnum.M_RECORD.getName().equalsIgnoreCase(value)) {
-                        nodeBuilder.shape(NodeShapeEnum.M_RECORD);
-                    } else {
-                        setEnum(nodeBuilder::shape, NodeShapeEnum.class, value.toUpperCase());
-                    }
+                    setNodeShape(nodeBuilder::shape, value);
                     break;
                 case "color":
                     nodeBuilder.color(colorOf(value));
@@ -493,10 +489,10 @@ public class ParserUtils {
                     }
                     break;
                 case "arrowhead":
-                    setEnum(builder::arrowHead, ArrowShape.class, value.toUpperCase());
+                    setArrowShape(builder::arrowHead, value);
                     break;
                 case "arrowtail":
-                    setEnum(builder::arrowTail, ArrowShape.class, value.toUpperCase());
+                    setArrowShape(builder::arrowTail, value);
                     break;
                 case "arrowsize":
                     setDouble(builder::arrowSize, value);
@@ -652,7 +648,7 @@ public class ParserUtils {
                 setInteger(td::fontSize, value);
                 break;
             case "shape":
-                setEnum(td::shape, NodeShapeEnum.class, value);
+                setNodeShape(td::shape, value);
                 break;
             default:
                 break;
@@ -794,6 +790,28 @@ public class ParserUtils {
         } else if ("false".equalsIgnoreCase(val) || "no".equalsIgnoreCase(val)
             || "0".equals(val)) {
             boolConsumer.accept(false);
+        }
+    }
+
+    private static void setNodeShape(Consumer<NodeShapeEnum> consumer, String name) {
+        for (NodeShapeEnum shape : NodeShapeEnum.values()) {
+            if (shape.getName().equalsIgnoreCase(name) || shape.name().equalsIgnoreCase(name)) {
+                consumer.accept(shape);
+                return;
+            }
+        }
+    }
+
+    private static void setArrowShape(Consumer<ArrowShape> consumer, String name) {
+        // Graphviz's legacy names for the supported primitive/open forms.
+        if ("empty".equalsIgnoreCase(name)) {
+            consumer.accept(ArrowShape.ONORMAL);
+        } else if ("invempty".equalsIgnoreCase(name)) {
+            consumer.accept(ArrowShape.OINV);
+        } else if ("open".equalsIgnoreCase(name)) {
+            consumer.accept(ArrowShape.VEE);
+        } else {
+            setEnum(consumer, ArrowShape.class, name);
         }
     }
 

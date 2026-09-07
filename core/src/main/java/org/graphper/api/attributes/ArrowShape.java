@@ -17,7 +17,8 @@
 package org.graphper.api.attributes;
 
 /**
- * An enumeration of the different shapes of the line's arrowhead.
+ * Fixed shapes for a line's head or tail arrow. Hollow variants have an unfilled interior.
+ * Composite arrows and left/right modifiers are not supported.
  *
  * @author Jamison Jiang
  */
@@ -33,7 +34,27 @@ public enum ArrowShape {
 
   NONE(1, false),
 
-  NORMAL(1, true);
+  NORMAL(1, true),
+
+  DIAMOND(1.2, true),
+
+  INV(1, true),
+
+  TEE(0.5, true),
+
+  CROW(1, true),
+
+  ICURVE(1, false),
+
+  ONORMAL(1, false),
+
+  OINV(1, false),
+
+  OBOX(0.75, false),
+
+  ODOT(0.75, false),
+
+  ODIAMOND(1.2, false);
 
   ArrowShape(double clipRatio, boolean needFill) {
     this.clipRatio = clipRatio;

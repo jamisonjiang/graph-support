@@ -30,6 +30,7 @@ public abstract class AbstractNodeShapeEditor implements NodeEditor<SvgBrush>, S
 
     if (nodeShape == NodeShapeEnum.CIRCLE
         || nodeShape == NodeShapeEnum.ELLIPSE
+        || nodeShape == NodeShapeEnum.OVAL
         || nodeShape == NodeShapeEnum.POINT) {
       return NodeShapeEnum.ELLIPSE.getName();
     }

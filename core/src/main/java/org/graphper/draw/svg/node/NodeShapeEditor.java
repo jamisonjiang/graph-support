@@ -66,6 +66,24 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
   private void drawNodeShapeEnum(NodeDrawProp nodeDrawProp,
                                  NodeShapeEnum nodeShape, SvgBrush brush) {
     switch (nodeShape) {
+      case NONE:
+        break;
+      case SQUARE:
+      case HOUSE:
+      case INVHOUSE:
+      case DOUBLECIRCLE:
+      case DOUBLEOCTAGON:
+      case TRIPLEOCTAGON:
+      case M_DIAMOND:
+      case M_SQUARE:
+      case M_CIRCLE:
+      case TAB:
+      case FOLDER:
+      case BOX3D:
+      case COMPONENT:
+        ExpandedNodeShapeRender.draw(nodeDrawProp, brush);
+        break;
+      case OVAL:
       case ELLIPSE:
         ellipse(nodeDrawProp, singleElement(nodeDrawProp, brush));
         break;
@@ -78,6 +96,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
         break;
       case BOX:
       case RECT:
+      case RECTANGLE:
         rect(nodeDrawProp, brush);
         break;
       case TRIANGLE:

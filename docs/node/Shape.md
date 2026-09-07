@@ -27,6 +27,74 @@ Node node = Node.builder()
 
 ## Available Shapes
 
+### Expanded Shapes
+
+The following 17 node shapes are available in addition to the original shapes below:
+
+| Shape name | Java `NodeShapeEnum` | Appearance |
+| --- | --- | --- |
+| `oval` | `OVAL` | Ellipse alias |
+| `none` | `NONE` | Label without a visible outline |
+| `rectangle` | `RECTANGLE` | Box/rect alias |
+| `square` | `SQUARE` | Square |
+| `polygon` | `POLYGON` | Configurable polygon, four sides by default |
+| `house` | `HOUSE` | House-shaped pentagon |
+| `invhouse` | `INVHOUSE` | Inverted house |
+| `doublecircle` | `DOUBLECIRCLE` | Circle with two outlines |
+| `doubleoctagon` | `DOUBLEOCTAGON` | Octagon with two outlines |
+| `tripleoctagon` | `TRIPLEOCTAGON` | Octagon with three outlines |
+| `Mdiamond` | `M_DIAMOND` | Marked diamond |
+| `Msquare` | `M_SQUARE` | Marked square |
+| `Mcircle` | `M_CIRCLE` | Marked circle |
+| `tab` | `TAB` | Tabbed box |
+| `folder` | `FOLDER` | Folder |
+| `box3d` | `BOX3D` | Three-dimensional box |
+| `component` | `COMPONENT` | Simplified UML component box with inset terminals |
+
+### Polygon Sides
+
+Use `sides` with `polygon` or `regular_polyline` to choose the number of sides;
+the default is four. The upcoming supported range is **3 through 20, inclusive**.
+The current builder requires at least four sides, so three-sided polygons must wait
+for that range update; use `triangle` in the meantime.
+
+```java
+Node polygon = Node.builder()
+    .shape(NodeShapeEnum.POLYGON)
+    .sides(6)
+    .build();
+```
+
+The corresponding DOT attributes are `shape=polygon, sides=6`. See
+[Regular](Regular.md) for stretching versus equal width and height.
+
+### Limitations
+
+General `orientation`, `skew`, `distortion`, and `peripheries` attributes are not
+supported. Named shapes such as `doublecircle` and `tripleoctagon` have fixed
+outline counts; they do not imply support for arbitrary `peripheries` values.
+Arrow shapes are also fixed choices: general arrow composition and the `l`/`r`
+(left/right half) modifiers are not supported.
+
+### Visual Gallery
+
+`visual_case.ExpandedShapeTest#testExpandedShapeGallery` renders one compact graph
+containing all 17 additions as filled/unfilled node pairs (`none` remains
+outline-free). Labeled edges show all arrow choices, including filled and hollow
+variants, at both head and tail with `dir=BOTH`. The existing `GraphvizVisual`
+helper exercises `toSvg()` and adds SVG, PNG, and PDF previews to the visual index.
+
+Run from the repository root, without another Maven run in progress:
+
+```sh
+mvn -pl test -am -Dtest=ExpandedShapeTest -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+Open `test/target/test-classes/visual/graph-visual.html` and filter by `gallery` or
+`expanded-shape`.
+
+### Original Shapes
+
 ```dot
 digraph shapes_demo {
     size=10
@@ -56,7 +124,7 @@ digraph shapes_demo {
     septagon       [shape=septagon       label="septagon"];
     octagon        [shape=octagon        label="octagon"];
 
-    // A regular polyline (by default 4 sides, but can be overridden in some Graphviz variants)
+    // Configurable polygon (4 sides by default)
     regular_polyline [shape=regular_polyline label="regular_polyline" sides=20];
 
     // Record-Based Shapes

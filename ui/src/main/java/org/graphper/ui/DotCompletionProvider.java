@@ -47,7 +47,11 @@ final class DotCompletionProvider {
       "TB", "BT", "LR", "RL", "dot", "dotq", "fdp", "jfdp", "gfdp", "spline",
       "polyline", "ortho", "solid", "dashed", "dotted", "bold", "filled", "rounded", "box",
       "ellipse", "circle", "diamond", "point", "record", "cylinder", "normal", "vee", "both",
-      "forward", "back", "same", "min", "max", "source", "sink", "true", "false"
+      "forward", "back", "same", "min", "max", "source", "sink", "true", "false",
+      "rectangle", "oval", "none", "square", "polygon", "house", "invhouse",
+      "doublecircle", "doubleoctagon", "tripleoctagon", "Mdiamond", "Msquare", "Mcircle",
+      "tab", "folder", "box3d", "component", "inv", "tee", "crow", "icurve",
+      "onormal", "oinv", "obox", "odot", "odiamond", "empty", "invempty", "open"
   };
 
   private DotCompletionProvider() {

@@ -77,6 +77,14 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
   }
 
+  public static class PolygonShapeRender extends RegularShapeRender {
+
+    @Override
+    public String getShapeName() {
+      return NodeShapeEnum.POLYGON.getName();
+    }
+  }
+
   public static class HexagonShapeRender extends RegularShapeRender {
 
     @Override

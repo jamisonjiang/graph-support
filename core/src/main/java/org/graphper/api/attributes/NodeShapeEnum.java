@@ -26,6 +26,10 @@ import org.graphper.api.ext.DiamondPropCalc;
 import org.graphper.api.ext.EllipsePropCalc;
 import org.graphper.api.ext.NodeShapePost;
 import org.graphper.api.ext.NotePropCalc;
+import org.graphper.api.ext.MarkedCirclePropCalc;
+import org.graphper.api.ext.PeripheryNodePropCalc;
+import org.graphper.api.ext.PolygonNodePropCalc;
+import org.graphper.api.ext.PolygonNodePropCalc.Type;
 import org.graphper.api.ext.ParallelogramPropCalc;
 import org.graphper.api.ext.PlainPropCalc;
 import org.graphper.api.ext.PointPropCalc;
@@ -36,6 +40,7 @@ import org.graphper.api.ext.RegularPolylinePropCalc.RegularPolyShapePost;
 import org.graphper.api.ext.ShapeCenterCalc;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.api.ext.StarPropCalc;
+import org.graphper.api.ext.StretchablePolygonPropCalc;
 import org.graphper.api.ext.SymmetryShapeCenterCalc;
 import org.graphper.api.ext.TrapeziumPropCalc;
 import org.graphper.api.ext.TrianglePropCalc;
@@ -59,11 +64,46 @@ public enum NodeShapeEnum implements NodeShape {
 
   ELLIPSE("ellipse", new EllipsePropCalc()),
 
+  OVAL("oval", new EllipsePropCalc()),
+
+  NONE("none", new EllipsePropCalc()),
+
   CIRCLE("circle", 0.75, 0.75, new CirclePropCalc()),
 
   BOX ("box", new RectanglePropCalc()),
 
   RECT("rect", new RectanglePropCalc()),
+
+  RECTANGLE("rectangle", new RectanglePropCalc()),
+
+  SQUARE("square", 0.5, 0.5, new PolygonNodePropCalc(Type.SQUARE)),
+
+  POLYGON("polygon", 0.5, 0.75, new StretchablePolygonPropCalc(4),
+          new RegularPolyShapePost()),
+
+  HOUSE("house", new PolygonNodePropCalc(Type.HOUSE)),
+
+  INVHOUSE("invhouse", new PolygonNodePropCalc(Type.INVHOUSE)),
+
+  DOUBLECIRCLE("doublecircle", 0.75, 0.75, new PeripheryNodePropCalc(true, 2)),
+
+  DOUBLEOCTAGON("doubleoctagon", new PeripheryNodePropCalc(false, 2)),
+
+  TRIPLEOCTAGON("tripleoctagon", new PeripheryNodePropCalc(false, 3)),
+
+  M_DIAMOND("Mdiamond", new PolygonNodePropCalc(Type.M_DIAMOND)),
+
+  M_SQUARE("Msquare", 0.5, 0.5, new PolygonNodePropCalc(Type.M_SQUARE)),
+
+  M_CIRCLE("Mcircle", 0.75, 0.75, new MarkedCirclePropCalc()),
+
+  TAB("tab", new PolygonNodePropCalc(Type.TAB)),
+
+  FOLDER("folder", new PolygonNodePropCalc(Type.FOLDER)),
+
+  BOX3D("box3d", new PolygonNodePropCalc(Type.BOX3D)),
+
+  COMPONENT("component", new PolygonNodePropCalc(Type.COMPONENT)),
 
   POINT("point", 0.1, 0.1, new PointPropCalc()),
 
