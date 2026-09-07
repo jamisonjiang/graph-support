@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -462,6 +463,66 @@ class RootCrossRank implements CrossRank {
     return tryCacheCrossNum(getBasicCrossRank());
   }
 
+  /**
+   * Move a flat leaf together with its neighbor past one adjacent node. Moving just the leaf can
+   * increase crossings, trapping ordinary transpose even when moving the intact pair improves them.
+   * This is one bounded scan, not a search over arbitrary nonadjacent permutations.
+   */
+  void transposeFlatPairs() {
+    if (!allClustersExpanded || crossSnapshot().getCrossNum() == 0) {
+      return;
+    }
+    CrossRank current = calcCrossRank();
+    for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
+      for (int i = 0; i + 2 < current.rankSize(rank); i++) {
+        for (boolean pairFirst : new boolean[]{true, false}) {
+          DNode a = current.getNode(rank, i);
+          DNode b = current.getNode(rank, i + 1);
+          DNode c = current.getNode(rank, i + 2);
+          DNode first = pairFirst ? a : b;
+          DNode second = pairFirst ? b : c;
+          boolean flatLeaf = false;
+          for (DNode leaf : new DNode[]{first, second}) {
+            if (digraphProxy.degree(leaf) != 1) {
+              continue;
+            }
+            for (DLine line : digraphProxy.outAdjacent(leaf)) {
+              flatLeaf |= line.isSameRank() && line.other(leaf) == (leaf == first ? second : first);
+            }
+            for (DLine line : digraphProxy.inAdjacent(leaf)) {
+              flatLeaf |= line.isSameRank() && line.other(leaf) == (leaf == first ? second : first);
+            }
+          }
+          if (!flatLeaf || !canExchange(pairFirst ? b : a, pairFirst ? c : b)) {
+            continue;
+          }
+          // Flat edges also affect pairs incident to other nodes, so the adjacent-edge delta is
+          // insufficient here. Recount only the two affected layers, never the whole graph.
+          int before = computeCrossNum(rank, false);
+          if (rank > minRank()) {
+            before += computeCrossNum(rank - 1, false);
+          }
+          exchange(pairFirst ? b : a, pairFirst ? c : b, true);
+          if (!canExchange(a, c)) {
+            exchange(pairFirst ? b : a, pairFirst ? c : b, true);
+            continue;
+          }
+          exchange(a, c, true);
+          int after = computeCrossNum(rank, false);
+          if (rank > minRank()) {
+            after += computeCrossNum(rank - 1, false);
+          }
+          if (after < before) {
+            setCacheExpired(rank);
+          } else {
+            exchange(a, c, true);
+            exchange(pairFirst ? b : a, pairFirst ? c : b, true);
+          }
+        }
+      }
+    }
+  }
+
   CrossSnapshot tryCacheCrossNum(BasicCrossRank basicCrossRank) {
     BasicCrossRank originalBasicRank = getBasicCrossRank();
     CrossCache originalCache = this.crossCache;
@@ -487,7 +548,7 @@ class RootCrossRank implements CrossRank {
 
   private void crossNum(CrossCache cache, boolean refreshRankIdx) {
     int num = 0;
-    for (int i = minRank(); i <= maxRank() - 1; i++) {
+    for (int i = minRank(); i <= maxRank(); i++) {
       RankCrossCache rankCrossCache = cache.getRankCacheIfAbsent(i);
 
       if (rankCrossCache.effective) {
@@ -792,12 +853,9 @@ class RootCrossRank implements CrossRank {
       right.setRankIndex(leftSortIndex);
     }
 
-    if (h != minRank()) {
-      result[0] = inCross(left, right);
-    }
-    if (h != maxRank()) {
-      result[1] = outCross(left, right);
-    }
+    result[0] = h != minRank() ? inCross(left, right) : 0;
+    result[1] = h != maxRank() ? outCross(left, right) : 0;
+    result[1] += flatCross(left, right);
     result[2] = result[0] + result[1];
 
     if (needExchange) {
@@ -807,10 +865,6 @@ class RootCrossRank implements CrossRank {
   }
 
   private int computeCrossNum(int rank, boolean refreshRankIdx) {
-    if (rank == maxRank()) {
-      return 0;
-    }
-
     int crossNum = 0;
     int rankSize = rankSize(rank);
     for (int i = 0; i < rankSize; i++) {
@@ -841,6 +895,55 @@ class RootCrossRank implements CrossRank {
     }
 
     return crossNum;
+  }
+
+  private int flatCross(DNode left, DNode right) {
+    List<DLine> leftLines = null;
+    List<DLine> rightLines = null;
+    for (int i = 0; i < 2; i++) {
+      DNode node = i == 0 ? left : right;
+      List<DLine> lines = null;
+      for (DLine line : digraphProxy.outAdjacent(node)) {
+        if (line.isSameRank()) {
+          if (lines == null) {
+            lines = new ArrayList<>();
+          }
+          lines.add(line);
+        }
+      }
+      for (DLine line : digraphProxy.inAdjacent(node)) {
+        if (line.isSameRank() && line.from() != node) {
+          if (lines == null) {
+            lines = new ArrayList<>();
+          }
+          lines.add(line);
+        }
+      }
+      if (lines == null) {
+        return 0;
+      }
+      if (i == 0) {
+        leftLines = lines;
+      } else {
+        rightLines = lines;
+      }
+    }
+
+    int count = 0;
+    for (DLine a : leftLines) {
+      for (DLine b : rightLines) {
+        // Match the total's distinct-origin pairs and argument order, including shared heads.
+        // Pairs present in both orientations connect left to right and cannot cross each other.
+        if (a.from() == b.from()) {
+          continue;
+        }
+        boolean ordered = a.from().getRankIndex() < b.from().getRankIndex();
+        if (isCross(ordered ? a : b, ordered ? b : a, true)) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
 
   private int inCross(DNode n, DNode w) {
@@ -1202,7 +1305,8 @@ class RootCrossRank implements CrossRank {
     }
 
     private void innerAccept(DLine l2) {
-      if (isCross(currentL1, l2, true)) {
+      // Flat-flat pairs belong only to their own rank and include both IN and OUT incidences.
+      if (!(currentL1.isSameRank() && l2.isSameRank()) && isCross(currentL1, l2, true)) {
         crossNum++;
       }
     }

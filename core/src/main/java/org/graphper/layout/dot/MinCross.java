@@ -334,9 +334,15 @@ class MinCross {
       if (record == null) {
         record = new SameRankAdjacentRecord();
       }
-      record.addOutAdjacent(from, line);
+      record.addOutAdjacent(flatOrderFirst(line), line);
     }
     return record;
+  }
+
+  private DNode flatOrderFirst(DLine line) {
+    // LR/RL map increasing internal X to decreasing visual Y. Reverse only flat precedence,
+    // not the edge or the transform, so unrelated within-rank layouts retain their orientation.
+    return dotAttachment.getDrawGraph().needFlip() ? line.to() : line.from();
   }
 
   private void initRootCrossRank() {
@@ -555,10 +561,9 @@ class MinCross {
     }
 
     /*
-     * Only when the legacy order still has crossings is it worth exploring the atomic cluster
-     * block candidates, which place every rank of a collapsed child cluster before following any
-     * of its external edges. A zero-cross legacy order is already optimal, and replacing it with
-     * a tied atomic order would only change an established topology for no measurable gain.
+     * Atomic candidates place every rank of a collapsed child cluster before following any of
+     * its external edges. Explore them for remaining crossings or backward cross-container flat
+     * edges; on a crossing tie, prefer the order with fewer backward flat edges.
      */
     if (optimal.getCrossNum() > 0 || crossClusterFlatViolations(optimal.getCrossRank()) > 0) {
       optimal = tryAtomicInitSort(initial, optimal);
@@ -589,6 +594,15 @@ class MinCross {
     int maxIter = 24;
     int minQuit = dotAttachment.getDrawGraph().getGraphviz().graphAttrs().getMclimit();
     CrossSnapshot optimal = rootCrossRank.crossSnapshot();
+    SameRankAdjacentRecord flatPreferences = rootCrossRank.getSameRankAdjacentRecord();
+    CrossSnapshot preferred = null;
+    if (dotAttachment.getDrawGraph().needFlip() && optimal.getCrossNum() > 0
+        && flatPreferences != null) {
+      // Once all clusters are expanded, flat precedence must not prevent a strictly better
+      // crossing result. Keep cluster restrictions and restore the preferred arrangement on ties.
+      preferred = rootCrossRank.tryCacheCrossNum(optimal.getCrossRank().clone());
+      rootCrossRank.setSameRankAdjacentRecord(null);
+    }
 
     for (int pass = startPass; pass <= endPass; pass++) {
       int trying = 0;
@@ -618,6 +632,11 @@ class MinCross {
     }
 
     rootCrossRank.transpose(false);
+    if (preferred != null && rootCrossRank.crossSnapshot().getCrossNum() >= preferred.getCrossNum()) {
+      rootCrossRank.updateCross(preferred);
+    }
+    rootCrossRank.setSameRankAdjacentRecord(flatPreferences);
+    rootCrossRank.transposeFlatPairs();
     rootCrossRank.syncChildOrder();
     checkClusterOrder();
   }
@@ -655,8 +674,8 @@ class MinCross {
                                          orderForward, true);
         CrossSnapshot snapshot = rootCrossRank.tryCacheCrossNum(candidate);
         int violations = crossClusterFlatViolations(candidate);
-        if (best == null || violations < bestViolations
-            || violations == bestViolations && snapshot.getCrossNum() < best.getCrossNum()) {
+        if (best == null || snapshot.getCrossNum() < best.getCrossNum()
+            || snapshot.getCrossNum() == best.getCrossNum() && violations < bestViolations) {
           best = snapshot;
           bestViolations = violations;
           bestRecord = initSort.sameRankAdjacentRecord != null
@@ -665,9 +684,9 @@ class MinCross {
       }
     }
 
-    if (best == null || bestViolations > legacyViolations
-        || bestViolations == legacyViolations
-        && best.getCrossNum() >= legacyOptimal.getCrossNum()) {
+    if (best == null || best.getCrossNum() > legacyOptimal.getCrossNum()
+        || best.getCrossNum() == legacyOptimal.getCrossNum()
+        && bestViolations >= legacyViolations) {
       rootCrossRank.setSameRankAdjacentRecord(legacyRecord);
       rootCrossRank.updateCross(legacyOptimal);
       return legacyOptimal;
@@ -681,8 +700,8 @@ class MinCross {
   private int crossClusterFlatViolations(CrossRank crossRank) {
     int violations = 0;
     for (DLine line : rootCrossRank.getDigraphProxy().edges()) {
-      DNode from = line.from();
-      DNode to = line.to();
+      DNode from = flatOrderFirst(line);
+      DNode to = line.other(from);
       if (from.getRank() != to.getRank()) {
         continue;
       }
@@ -750,12 +769,87 @@ class MinCross {
 
   private void flatOrder(CrossRank crossRank) {
     SameRankAdjacentRecord sameRankAdjacentRecord = rootCrossRank.getSameRankAdjacentRecord();
-    if (sameRankAdjacentRecord == null) {
+    if (sameRankAdjacentRecord != null) {
+      initialFlatOrder(crossRank, sameRankAdjacentRecord);
+      repairFlatOrder(crossRank, sameRankAdjacentRecord);
+    }
+
+    orderFlatClusterBlocks();
+  }
+
+  private void orderFlatClusterBlocks() {
+    BasicCrossRank current = rootCrossRank.getBasicCrossRank();
+    if (!current.container().haveChildCluster() || crossClusterFlatViolations(current) == 0) {
       return;
     }
 
-    initialFlatOrder(crossRank, sameRankAdjacentRecord);
-    repairFlatOrder(crossRank, sameRankAdjacentRecord);
+    // Each child cluster is still collapsed here. Give all its rank representatives one key,
+    // so a flat edge orders whole sibling blocks at this ancestor, never individual members.
+    Map<DNode, Object> blocks = new HashMap<>();
+    Map<Object, Set<Object>> outgoing = new LinkedHashMap<>();
+    Map<Object, Integer> indegree = new HashMap<>();
+    for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
+      for (DNode node : current.getNodes(rank)) {
+        GraphContainer direct = dotAttachment.clusterDirectContainer(current.container(), node);
+        Object block = direct != null && direct.isCluster()
+            ? direct : node;
+        blocks.put(node, block);
+        outgoing.computeIfAbsent(block, k -> new LinkedHashSet<>());
+        indegree.putIfAbsent(block, 0);
+      }
+    }
+    // Use the proxy edges, not DFS's adjacency record: DFS may legitimately refuse to traverse
+    // an edge entering an intermediate cluster rank. That edge still supplies a flat preference.
+    for (DLine line : rootCrossRank.getDigraphProxy().edges()) {
+      if (!line.isSameRank()) {
+        continue;
+      }
+      DNode first = flatOrderFirst(line);
+      Object from = blocks.get(first);
+      Object to = blocks.get(line.other(first));
+      if (from != null && to != null && from != to && outgoing.get(from).add(to)) {
+        indegree.put(to, indegree.get(to) + 1);
+      }
+    }
+
+    Set<Object> remaining = new LinkedHashSet<>(outgoing.keySet());
+    Map<Object, Integer> order = new HashMap<>();
+    while (!remaining.isEmpty()) {
+      Object next = null;
+      for (Object block : remaining) {
+        if (indegree.get(block) == 0) {
+          next = block;
+          break;
+        }
+      }
+      // Conflicting directions cannot all be satisfied. Break cycles in the existing order.
+      if (next == null) {
+        next = remaining.iterator().next();
+      }
+      remaining.remove(next);
+      order.put(next, order.size());
+      for (Object to : outgoing.get(next)) {
+        indegree.put(to, indegree.get(to) - 1);
+      }
+    }
+
+    BasicCrossRank candidate = current.clone();
+    candidate.sort(Comparator.comparingInt(n -> order.get(blocks.get(n))), false);
+    CrossSnapshot original = rootCrossRank.crossSnapshot();
+    CrossSnapshot preferred = rootCrossRank.tryCacheCrossNum(candidate);
+    if (preferred.getCrossNum() > original.getCrossNum()) {
+      // Moving whole blocks can invert an edge through a free routing/label node on another rank.
+      // Let adjacent transposition repair the candidate before rejecting it on crossing cost.
+      rootCrossRank.updateCross(preferred);
+      rootCrossRank.transpose(false);
+      rootCrossRank.setCacheExpired();
+      preferred = rootCrossRank.crossSnapshot();
+      rootCrossRank.updateCross(original);
+    }
+    if (preferred.getCrossNum() <= original.getCrossNum()
+        && crossClusterFlatViolations(candidate) < crossClusterFlatViolations(current)) {
+      rootCrossRank.updateCross(preferred);
+    }
   }
 
   private void initialFlatOrder(CrossRank crossRank,
@@ -1224,7 +1318,7 @@ class MinCross {
             sameRankAdjacentRecord = new SameRankAdjacentRecord();
           }
 
-          sameRankAdjacentRecord.addOutAdjacent(from, dLine);
+          sameRankAdjacentRecord.addOutAdjacent(flatOrderFirst(dLine), dLine);
         }
         return;
       }

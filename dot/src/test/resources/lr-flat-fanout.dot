@@ -1,0 +1,29 @@
+digraph unix {
+  nodesep=.486111;
+  ranksep=.833333;
+  remincross=true;
+  searchsize=500;
+  rankdir=LR;
+  sh0015 -> sh0010 [minlen=0, arrowhead=none, arrowtail=none];
+  sh0015 -> sh0013 [minlen=0, arrowhead=none, arrowtail=none];
+  sh0014 -> sh0011 [minlen=0, arrowhead=none, arrowtail=none];
+  sh0014 -> sh0012 [minlen=0, arrowhead=none, arrowtail=none];
+  sh0014 [shape=rect, label="", width=.767619, height=1.062337];
+  sh0015 [shape=rect, label="", width=.946682, height=1.062337];
+  subgraph cluster6p0 {
+    label="";
+    subgraph cluster6 {
+      style=solid;
+      color="#000006";
+      label=<<TABLE BGCOLOR="#000007" FIXEDSIZE="TRUE" WIDTH="48" HEIGHT="11"><TR><TD></TD></TR></TABLE>>;
+      labeljust=c;
+      subgraph cluster6p1 {
+        label="";
+        sh0010 [shape=ellipse, label="", width=1.843913, height=.435449];
+        sh0011 [shape=ellipse, label="", width=2.152684, height=.497204];
+        sh0012 [shape=ellipse, label="", width=3.115948, height=.689856];
+        sh0013 [shape=ellipse, label="", width=2.421842, height=.551035];
+      }
+    }
+  }
+}
