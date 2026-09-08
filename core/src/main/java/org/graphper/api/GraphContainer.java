@@ -83,7 +83,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Graphviz}。
+   * Returns whether the container is {@link Graphviz}.
    *
    * @return <tt>true</tt> if current container is {@code Graphviz}
    */
@@ -92,7 +92,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Subgraph}。
+   * Returns whether the container is {@link Subgraph}.
    *
    * @return <tt>true</tt> if current container is {@code Subgraph}
    */
@@ -101,7 +101,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Cluster}。
+   * Returns whether the container is {@link Cluster}.
    *
    * @return <tt>true</tt> if current container is {@code Cluster}
    */
