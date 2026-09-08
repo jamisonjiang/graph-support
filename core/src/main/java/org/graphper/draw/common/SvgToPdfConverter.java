@@ -50,7 +50,7 @@ public class SvgToPdfConverter extends BatikImgConverter {
       SVG_A_TRANSCODER = Class.forName("org.apache.batik.transcoder.SVGAbstractTranscoder");
       XML_A_TRANSCODER = Class.forName("org.apache.batik.transcoder.XMLAbstractTranscoder");
       SVG_DOM_IMPL = Class.forName("org.apache.batik.anim.dom.SVGDOMImplementation");
-    } catch (Exception e) {
+    } catch (Exception | LinkageError e) {
       // ignore
     }
   }
@@ -69,6 +69,10 @@ public class SvgToPdfConverter extends BatikImgConverter {
    * Checks if the current environment supports image conversion to PDF. Specifically, it checks for
    * the availability of required AWT, Apache Batik, and Apache FOP classes.
    *
+   * <p>Every class this converter dereferences reflectively is checked, so an incomplete
+   * Batik/FOP classpath deselects the converter instead of failing at conversion time. Required
+   * security hints must be applicable to the PDF transcoder as well.</p>
+   *
    * @return {@code true} if the environment supports conversion to PDF, {@code false} otherwise
    */
   @Override
@@ -76,7 +80,16 @@ public class SvgToPdfConverter extends BatikImgConverter {
     if (!super.envSupport()) {
       return false;
     }
-    return PDF_TRANSCODER != null && SVG_DOM_IMPL != null;
+    if (PDF_TRANSCODER == null || TRANSCODING_HINTS == null || SVG_A_TRANSCODER == null
+        || XML_A_TRANSCODER == null || SVG_DOM_IMPL == null) {
+      return false;
+    }
+    try {
+      configureSecurityHints(ClassUtils.newObject(PDF_TRANSCODER));
+      return true;
+    } catch (Exception | LinkageError e) {
+      return false;
+    }
   }
 
   /**
@@ -111,7 +124,9 @@ public class SvgToPdfConverter extends BatikImgConverter {
       throw new FailInitResourceException("Can not get svg");
     }
 
-    try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {
+    try {
+      // PDF is vector output: maxOutputPixels applies to raster export, not page dimensions.
+      svg = SecureSvg.prepare(svg, drawGraph.getGraphviz().graphAttrs().getSecurityPolicy(), false);
       Object transcoder = ClassUtils.newObject(PDF_TRANSCODER);
       Object transcodingHints = ClassUtils.newObject(TRANSCODING_HINTS);
       Class<?>[] paramTypes = {Object.class, Object.class};
@@ -131,8 +146,10 @@ public class SvgToPdfConverter extends BatikImgConverter {
                         FileType.SVG.getType());
       ClassUtils.invoke(transcoder, "setTranscodingHints", transcodingHints);
       configureSecurityHints(transcoder);
-      return getFileGraphResource(drawGraph, FileType.PDF, is, transcoder);
-    } catch (Exception e) {
+      try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {
+        return getFileGraphResource(drawGraph, FileType.PDF, is, transcoder);
+      }
+    } catch (Exception | LinkageError e) {
       throw new FailInitResourceException(e);
     }
   }

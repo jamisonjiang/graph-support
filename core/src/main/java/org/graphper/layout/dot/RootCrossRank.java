@@ -33,12 +33,17 @@ import org.graphper.api.attributes.Layout;
 import org.graphper.def.DedirectedEdgeGraph;
 import org.graphper.def.EdgeDedigraph;
 import org.graphper.draw.DrawGraph;
+import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.MinCross.ClusterMerge;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
 class RootCrossRank implements CrossRank {
+
+  private static final int FLAT_SPAN_MAX_PASSES = 2;
+  private static final int FLAT_SPAN_MAX_TRIALS = 32;
+  private static final long FLAT_SPAN_MAX_WORK = 250_000;
 
   private final DrawGraph drawGraph;
 
@@ -59,6 +64,15 @@ class RootCrossRank implements CrossRank {
   private SameRankAdjacentRecord sameRankAdjacentRecord;
 
   private ClusterMerge clusterMerge;
+
+  /**
+   * Set as soon as one same-rank edge is known. Flat edges are the only reason a comparison has to
+   * look at a node's incoming edges on top of its outgoing ones, and that extra sweep is pure
+   * overhead - and, through the adjacency iterables, allocation - on the graphs that have none. The
+   * flag is never cleared: over-reporting only costs the shortcut, under-reporting would lose
+   * crossings.
+   */
+  private boolean anyFlatEdge;
 
   /**
    * Set once every cluster has been expanded. From then on a rank holds the cluster members
@@ -88,6 +102,8 @@ class RootCrossRank implements CrossRank {
     for (DNode node : digraphProxy) {
       addNode(node, Boolean.FALSE);
     }
+    // The graph arrives fully built here, so the flat flag has to be derived once up front.
+    digraphProxy.forEachEdges(this::recordFlatEdge);
   }
 
   void updateCross(CrossSnapshot crossSnapshot) {
@@ -215,14 +231,68 @@ class RootCrossRank implements CrossRank {
   @Override
   public void exchange(DNode v, DNode w, boolean needSyncRankIdx) {
     crossRank().exchange(v, w, needSyncRankIdx);
+    syncNodeRankIdx(needSyncRankIdx, v, w);
+  }
+
+  /**
+   * Restores the whole-graph index on the nodes a child arrangement just moved.
+   *
+   * <p>A child arrangement numbers its own members from zero, whereas every index this class hands
+   * out - and every index the crossing predicates compare - counts from the start of the rank. A
+   * child that does not begin at the start of its rank therefore leaves the moved nodes carrying a
+   * number that cannot be compared against a node outside the child, which silently corrupts the
+   * swap delta and, through it, the cached total.
+   */
+  private void syncNodeRankIdx(boolean needSyncRankIdx, DNode v, DNode w) {
+    if (!needSyncRankIdx || childCrossRank == null) {
+      return;
+    }
+    v.setRankIndex(getRankIndex(v));
+    w.setRankIndex(getRankIndex(w));
   }
 
   @Override
   public void sort(Comparator<DNode> comparator, boolean needSyncRankIdx) {
     if (childCrossRank != null) {
       childCrossRank.sort(comparator, needSyncRankIdx);
+      syncChildNodeRankIdx(needSyncRankIdx, childCrossRank.minRank(), childCrossRank.maxRank());
     } else {
       root.sort(comparator, needSyncRankIdx);
+    }
+  }
+
+  private void syncChildNodeRankIdx(boolean needSyncRankIdx, int minRank, int maxRank) {
+    if (!needSyncRankIdx || childCrossRank == null) {
+      return;
+    }
+    for (int rank = minRank; rank <= maxRank; rank++) {
+      int size = childCrossRank.rankSize(rank);
+      int start = getChildRankStartIndex(rank);
+      for (int i = 0; i < size; i++) {
+        childCrossRank.getNode(rank, i).setRankIndex(start + i);
+      }
+    }
+  }
+
+  /**
+   * Stamps the whole-graph index of every node onto the node.
+   *
+   * <p>The crossing predicates read that field rather than looking the index up, which is what
+   * keeps a candidate swap cheap. The field can only be trusted if every reorder wrote it back, and
+   * a child arrangement reached directly - {@link BasicCrossRank#sort(Comparator, boolean)} on the
+   * arrangement this class handed out, say - numbers from its own start instead. One linear pass
+   * before a run of comparisons is far cheaper than looking the index up per comparison, and it
+   * makes the run independent of who reordered the arrangement last.
+   */
+  private void refreshNodeRankIdx() {
+    for (int rank = minRank(); rank <= maxRank(); rank++) {
+      int size = rankSize(rank);
+      for (int i = 0; i < size; i++) {
+        DNode node = getNode(rank, i);
+        if (node != null) {
+          node.setRankIndex(i);
+        }
+      }
     }
   }
 
@@ -230,6 +300,7 @@ class RootCrossRank implements CrossRank {
   public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
     if (childCrossRank != null) {
       childCrossRank.sort(rank, comparator, needSyncRankIdx);
+      syncChildNodeRankIdx(needSyncRankIdx, rank, rank);
     } else {
       root.sort(rank, comparator, needSyncRankIdx);
     }
@@ -254,6 +325,12 @@ class RootCrossRank implements CrossRank {
 
   void addEdge(DLine line) {
     digraphProxy.addEdge(line);
+    recordFlatEdge(line);
+  }
+
+  private void recordFlatEdge(DLine line) {
+    // Ranks are final before any edge reaches this class, so one test per edge is enough.
+    anyFlatEdge |= line != null && line.isSameRank();
   }
 
   BasicCrossRank expand(ExpandInfoProvider expandInfoProvider) {
@@ -421,6 +498,7 @@ class RootCrossRank implements CrossRank {
     int delta;
     int[] leftCrossRecord = new int[3];
     int[] rightCrossRecord = new int[3];
+    refreshNodeRankIdx();
     CrossRank crossRank = calcCrossRank();
 
     /*
@@ -469,9 +547,34 @@ class RootCrossRank implements CrossRank {
    * This is one bounded scan, not a search over arbitrary nonadjacent permutations.
    */
   void transposeFlatPairs() {
-    if (!allClustersExpanded || crossSnapshot().getCrossNum() == 0) {
+    if (!anyFlatEdge || !clusterContiguityFullyGuarded() || crossSnapshot().getCrossNum() == 0) {
       return;
     }
+    refreshNodeRankIdx();
+    transposeFlatNeighbours();
+  }
+
+  /**
+   * Whether every move this pass can make is already answered for by {@link #canExchange(DNode,
+   * DNode)}.
+   *
+   * <p>The pass moves a node past a neighbour it is not adjacent to, so unlike plain transposition
+   * it can carry a node clear across a container. Two situations make that safe, and they are not
+   * the same situation:
+   *
+   * <ul>
+   *   <li>every cluster has been expanded, so a rank holds the members themselves and the guard
+   *   compares containers directly;</li>
+   *   <li>the graph has no cluster at all, so there is no container to split. Tying the pass to the
+   *   expansion flag alone made it unreachable for those graphs, because nothing expands and
+   *   nothing sets the flag.</li>
+   * </ul>
+   */
+  private boolean clusterContiguityFullyGuarded() {
+    return allClustersExpanded || clusterMerge == null;
+  }
+
+  private void transposeFlatNeighbours() {
     CrossRank current = calcCrossRank();
     for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
       for (int i = 0; i + 2 < current.rankSize(rank); i++) {
@@ -521,6 +624,175 @@ class RootCrossRank implements CrossRank {
         }
       }
     }
+  }
+
+  /**
+   * Pulls the two ends of a wide flat edge together.
+   *
+   * <p>The total has a term for every node that sits under a flat edge and carries an edge to the
+   * next rank, so a flat edge stretched across a rank can be expensive. Adjacent transposition can
+   * only ever move the two nodes at its border, and {@link #transposeFlatNeighbours()} only moves a
+   * pair whose ends already touch, so a wide flat edge is a minimum neither of them can leave -
+   * measured on {@code hal-flat-order.dot}, where the ends of one flat edge came to rest at
+   * opposite ends of a 22 node rank.
+   *
+   * <p>The walk is one end sliding to the other, step by step, and every step is the same guarded
+   * exchange used elsewhere, so flat precedence and cluster contiguity are respected exactly as
+   * they are during transpose. Only a strictly lower count for the two ranks a reorder can touch is
+   * kept, so this never trades a crossing away for a tidier flat edge.
+   */
+  void contractFlatSpans() {
+    if (!isDot() || !anyFlatEdge || !clusterContiguityFullyGuarded()
+        || crossSnapshot().getCrossNum() == 0) {
+      return;
+    }
+    refreshNodeRankIdx();
+    CrossRank current = calcCrossRank();
+    int trials = 0;
+    long remainingWork = FLAT_SPAN_MAX_WORK;
+    for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
+      int size = current.rankSize(rank);
+      if (size < 3) {
+        continue;
+      }
+
+      long trialWork = flatSpanTrialWork(rank);
+      if (trialWork > remainingWork) {
+        continue;
+      }
+      List<DLine> spans = wideFlatEdges(current, rank);
+      if (CollectionUtils.isEmpty(spans)) {
+        continue;
+      }
+
+      // Strict descent alone can still take many expensive recounts. Budgets are shared across
+      // ranks and charged before a trial, so exhaustion never leaves an unevaluated partial move.
+      boolean improved = true;
+      for (int pass = 0; pass < FLAT_SPAN_MAX_PASSES && improved; pass++) {
+        improved = false;
+        for (DLine span : spans) {
+          Integer fromIdx = current.safeGetRankIndex(span.from());
+          Integer toIdx = current.safeGetRankIndex(span.to());
+          if (fromIdx == null || toIdx == null || Math.abs(fromIdx - toIdx) < 2) {
+            continue;
+          }
+          if (trials >= FLAT_SPAN_MAX_TRIALS || trialWork > remainingWork) {
+            return;
+          }
+          trials++;
+          remainingWork -= trialWork;
+          improved |= contractFlatSpan(current, rank, span);
+        }
+      }
+    }
+  }
+
+  /**
+   * Conservative work units for three two-layer recounts, two walks and indexed restores.
+   * This bounds estimated work, not elapsed time; adjacency/precedence lookups are not uniform.
+   */
+  private long flatSpanTrialWork(int rank) {
+    long work = 0;
+    for (int r = Math.max(minRank(), rank - 1); r <= rank; r++) {
+      long size = rankSize(r) + 1L;
+      if (size > FLAT_SPAN_MAX_WORK) {
+        return FLAT_SPAN_MAX_WORK + 1;
+      }
+      for (int i = 0; i < rankSize(r); i++) {
+        size += digraphProxy.outDegree(getNode(r, i));
+        if (size > FLAT_SPAN_MAX_WORK || 4 * size * size > FLAT_SPAN_MAX_WORK) {
+          return FLAT_SPAN_MAX_WORK + 1;
+        }
+      }
+      work += 4 * size * size;
+      if (work > FLAT_SPAN_MAX_WORK) {
+        return FLAT_SPAN_MAX_WORK + 1;
+      }
+    }
+    return work;
+  }
+
+  private List<DLine> wideFlatEdges(CrossRank current, int rank) {
+    List<DLine> spans = null;
+    int size = current.rankSize(rank);
+    for (int i = 0; i < size; i++) {
+      for (DLine line : digraphProxy.outAdjacent(current.getNode(rank, i))) {
+        if (!line.isSameRank() || line.from() == line.to()) {
+          continue;
+        }
+        Integer from = current.safeGetRankIndex(line.from());
+        Integer to = current.safeGetRankIndex(line.to());
+        if (from == null || to == null || Math.abs(from - to) < 2) {
+          continue;
+        }
+        if (spans == null) {
+          spans = new ArrayList<>(2);
+        }
+        spans.add(line);
+      }
+    }
+    return spans;
+  }
+
+  private boolean contractFlatSpan(CrossRank current, int rank, DLine span) {
+    int before = affectedRanksCrossNum(rank);
+    // The order is put back from saved indexes rather than by walking back: the exchange guard is not
+    // symmetric, so a step that was allowed one way is not guaranteed to be allowed in reverse, and
+    // a walk that stalled halfway back would leave behind an order that was never evaluated.
+    Map<DNode, Integer> restore = new HashMap<>();
+    List<DNode> nodes = current.getNodes(rank);
+    for (int i = 0; i < nodes.size(); i++) {
+      restore.put(nodes.get(i), i);
+    }
+    for (int moved = 0; moved < 2; moved++) {
+      DNode walker = moved == 0 ? span.from() : span.to();
+      DNode anchor = moved == 0 ? span.to() : span.from();
+      int target = current.getRankIndex(anchor);
+      target += current.getRankIndex(walker) < target ? -1 : 1;
+
+      if (!slide(current, rank, walker, target)) {
+        continue;
+      }
+      if (affectedRanksCrossNum(rank) < before) {
+        setCacheExpired(rank);
+        return true;
+      }
+      sort(rank, Comparator.comparingInt(restore::get), true);
+    }
+    return false;
+  }
+
+  /**
+   * Walks {@code node} towards {@code target} one guarded exchange at a time. A step the guard
+   * refuses ends the walk where it stands - a shorter walk is still a legal order, and it is judged
+   * on the same count as a complete one.
+   *
+   * @return whether the node moved at all
+   */
+  private boolean slide(CrossRank current, int rank, DNode node, int target) {
+    int idx = current.getRankIndex(node);
+    int step = target > idx ? 1 : -1;
+    boolean moved = false;
+    while (idx != target) {
+      DNode neighbour = current.getNode(rank, idx + step);
+      DNode left = step > 0 ? node : neighbour;
+      DNode right = step > 0 ? neighbour : node;
+      if (neighbour == null || !canExchange(left, right)) {
+        break;
+      }
+      exchange(left, right, true);
+      idx += step;
+      moved = true;
+    }
+    return moved;
+  }
+
+  private int affectedRanksCrossNum(int rank) {
+    int num = computeCrossNum(rank, false);
+    if (rank > minRank()) {
+      num += computeCrossNum(rank - 1, false);
+    }
+    return num;
   }
 
   CrossSnapshot tryCacheCrossNum(BasicCrossRank basicCrossRank) {
@@ -834,6 +1106,33 @@ class RootCrossRank implements CrossRank {
     }
   }
 
+  /**
+   * Scores the two orders of one adjacent pair, so that the difference of {@code result[2]} is the
+   * exact change of the total that {@link #computeCrossNum(int, boolean)} would report.
+   *
+   * <p>That total pairs up the <em>outgoing</em> edges of two nodes that share a rank, so a term of
+   * it is identified by the two distinct tails it comes from. Swapping {@code left} with
+   * {@code right} flips exactly one order relation, so a term can only move if one of its edges
+   * touches {@code left} and the other touches {@code right}. Enumerating those:
+   *
+   * <ul>
+   *   <li>outgoing against outgoing - a term of this rank, both for plain and for flat edges.</li>
+   *   <li>outgoing against an <em>incoming flat</em> edge - still a term of this rank, because a
+   *   flat edge's tail sits on this very rank. Missing these used to hide real improvements: a swap
+   *   that pulls a node out from under a flat edge scored 0.</li>
+   *   <li>incoming flat against incoming flat - a term of this rank for the same reason.</li>
+   *   <li>incoming plain against incoming plain - a term of the rank above, whose tails live
+   *   there.</li>
+   *   <li>incoming plain against incoming flat - <em>not</em> a term at all: one tail is on this
+   *   rank and the other on the rank above, so the total never pairs them. Counting these used to
+   *   push the cached total below zero.</li>
+   *   <li>outgoing against incoming plain - not a term either, same reason.</li>
+   * </ul>
+   *
+   * @param left  the node that ends up first
+   * @param right the node that ends up second
+   * @param result [0] terms owned by the rank above, [1] terms owned by this rank, [2] their sum
+   */
   private void crossing(DNode left, DNode right, int[] result) {
     int h;
     if ((h = left.getRank()) != right.getRank()) {
@@ -853,9 +1152,8 @@ class RootCrossRank implements CrossRank {
       right.setRankIndex(leftSortIndex);
     }
 
-    result[0] = h != minRank() ? inCross(left, right) : 0;
-    result[1] = h != maxRank() ? outCross(left, right) : 0;
-    result[1] += flatCross(left, right);
+    result[0] = h != minRank() ? crossCalc.interRankInCross(left, right) : 0;
+    result[1] = crossCalc.originRankCross(left, right);
     result[2] = result[0] + result[1];
 
     if (needExchange) {
@@ -864,94 +1162,32 @@ class RootCrossRank implements CrossRank {
     }
   }
 
+  /**
+   * Rank-owned objective: unordered edge pairs with distinct tails on this rank, evaluated in
+   * tail order. Flat/outgoing span penalties extend the inter-rank model; flat/incoming pairs
+   * have different origin ranks and are excluded from both this total and its swap deltas.
+   * This is not invariant under reversing all ranks/edges, nor a count of routed intersections.
+   * Graphviz instead keeps flat adjacency separate from rcross's inter-rank adjacency, using it
+   * for precedence in flat_reorder/left2right (lib/dotgen/mincross.c and fastgr.c).
+   */
   private int computeCrossNum(int rank, boolean refreshRankIdx) {
-    int crossNum = 0;
     int rankSize = rankSize(rank);
-    for (int i = 0; i < rankSize; i++) {
-      DNode current = getNode(rank, i);
-      if (refreshRankIdx) {
-        current.setRankIndex(i);
+    if (refreshRankIdx) {
+      // Hoisted out of the pair loops: the count below addresses the arrangement, not this field.
+      for (int i = 0; i < rankSize; i++) {
+        getNode(rank, i).setRankIndex(i);
       }
+    }
 
+    int crossNum = 0;
+    for (int i = 0; i < rankSize; i++) {
+      crossCalc.openOutgoing(getNode(rank, i));
       for (int j = i + 1; j < rankSize; j++) {
-        DNode next = getNode(rank, j);
-        if (refreshRankIdx) {
-          next.setRankIndex(j);
-        }
-
-        // current node adjacent nodes
-        Iterable<DLine> curIter = digraphProxy.outAdjacent(current);
-        // next node adjacent nodes
-        Iterable<DLine> nextIter = digraphProxy.outAdjacent(next);
-
-        for (DLine curAdjLine : curIter) {
-          for (DLine nextAdjLine : nextIter) {
-            if (isCross(curAdjLine, nextAdjLine, false)) {
-              crossNum++;
-            }
-          }
-        }
+        crossNum += crossCalc.outCross(getNode(rank, j));
       }
     }
 
     return crossNum;
-  }
-
-  private int flatCross(DNode left, DNode right) {
-    List<DLine> leftLines = null;
-    List<DLine> rightLines = null;
-    for (int i = 0; i < 2; i++) {
-      DNode node = i == 0 ? left : right;
-      List<DLine> lines = null;
-      for (DLine line : digraphProxy.outAdjacent(node)) {
-        if (line.isSameRank()) {
-          if (lines == null) {
-            lines = new ArrayList<>();
-          }
-          lines.add(line);
-        }
-      }
-      for (DLine line : digraphProxy.inAdjacent(node)) {
-        if (line.isSameRank() && line.from() != node) {
-          if (lines == null) {
-            lines = new ArrayList<>();
-          }
-          lines.add(line);
-        }
-      }
-      if (lines == null) {
-        return 0;
-      }
-      if (i == 0) {
-        leftLines = lines;
-      } else {
-        rightLines = lines;
-      }
-    }
-
-    int count = 0;
-    for (DLine a : leftLines) {
-      for (DLine b : rightLines) {
-        // Match the total's distinct-origin pairs and argument order, including shared heads.
-        // Pairs present in both orientations connect left to right and cannot cross each other.
-        if (a.from() == b.from()) {
-          continue;
-        }
-        boolean ordered = a.from().getRankIndex() < b.from().getRankIndex();
-        if (isCross(ordered ? a : b, ordered ? b : a, true)) {
-          count++;
-        }
-      }
-    }
-    return count;
-  }
-
-  private int inCross(DNode n, DNode w) {
-    return crossCalc.inCross(n, w);
-  }
-
-  private int outCross(DNode n, DNode w) {
-    return crossCalc.outCross(n, w);
   }
 
   private boolean isCross(DLine line1, DLine line2, boolean useRankIdx) {
@@ -971,8 +1207,22 @@ class RootCrossRank implements CrossRank {
     return differentRankEdgesCross(line1, line2, useRankIdx);
   }
 
+  /**
+   * Whether a same-rank edge is a drawn flat edge rather than a collapsed cluster's stand-in.
+   *
+   * <p>Flatness is rank membership, not {@code minlen}. A {@code minlen} of zero is one way to end
+   * up on one rank, but not the only one: a same-rank constraint puts both ends on one rank while
+   * leaving the default {@code minlen} of {@code 1} in place (see {@code DefaultVal}), and
+   * {@link MinCross} already derives flat precedence from exactly those edges. Reading
+   * {@code minlen} therefore ordered them without ever counting them, so no swap could be scored as
+   * an improvement.
+   *
+   * <p>The draw-property guard stays. While a cluster is collapsed its external edges are replaced
+   * by edges built with a {@code null} draw property, which stand in for whole ranks of that
+   * cluster rather than for anything drawn between two nodes.
+   */
   private boolean isRealFlatEdge(DLine line) {
-    return line.getLineDrawProp() != null && Integer.valueOf(0).equals(line.lineAttrs().getMinlen());
+    return line.getLineDrawProp() != null && line.isSameRank();
   }
 
   private boolean shareEndpoint(DLine line1, DLine line2) {
@@ -1084,7 +1334,14 @@ class RootCrossRank implements CrossRank {
   }
 
   private double getCompareNo(DLine line, DNode node) {
-    return PortHelper.portCompareNo(line.getLineDrawProp(), node, drawGraph);
+    LineDrawProp prop = line.getLineDrawProp();
+    // Skip the call in the two cases it answers 0 by definition. Its argument checks build their
+    // message before testing it, so on a rank full of virtual nodes - which is what long edge
+    // splitting leaves behind - the string was the bulk of a port comparison.
+    if (prop == null || node.isVirtual()) {
+      return 0;
+    }
+    return PortHelper.portCompareNo(prop, node, drawGraph);
   }
 
   private int comparePointX(double p1, double p2) {
@@ -1176,20 +1433,22 @@ class RootCrossRank implements CrossRank {
       }
     }
 
+    /**
+     * Reordering one rank invalidates the terms that rank owns and the terms the rank above owns,
+     * because the latter are pairs of edges that end here. Both have to be dropped independently:
+     * skipping the rank above whenever this rank happens to have no entry yet would leave a stale
+     * value that {@link #isEffective()} still reports as usable.
+     */
     void setCacheExpired(int rank) {
+      expire(rank);
+      expire(rank - 1);
+    }
+
+    private void expire(int rank) {
       RankCrossCache rankCrossCache = rankCrossCacheMap.get(rank);
-      if (rankCrossCache == null) {
-        return;
+      if (rankCrossCache != null) {
+        rankCrossCache.effective = false;
       }
-
-      rankCrossCache.effective = false;
-
-      rankCrossCache = rankCrossCacheMap.get(rank - 1);
-      if (rankCrossCache == null) {
-        return;
-      }
-
-      rankCrossCache.effective = false;
     }
 
     RankCrossCache getRankCacheIfAbsent(int rank) {
@@ -1263,58 +1522,186 @@ class RootCrossRank implements CrossRank {
   }
 
   /**
-   * Reusable consumer for cross calculations to avoid creating consumer objects
+   * Counts crossing edge pairs for two nodes that share a rank.
+   *
+   * <p>The edges of each side are read into a buffer first and paired afterwards. Two things come
+   * out of that. The adjacency is read through {@code forEachOutAdjacent}/{@code forEachInAdjacent}
+   * rather than the iterable form, which allocates - an incoming iterable is a fresh lambda over a
+   * fresh reverse iterator over a fresh iterator. And the reading uses a single consumer, so the
+   * quadratic part of the work is a plain loop over an array with one crossing test in it, instead
+   * of a virtual call into one of several consumers; a call site that sees several implementations
+   * stops being inlined, which in turn costs allocation inside the crossing test itself. The
+   * buffers live as long as this object, so a steady state run allocates nothing at all.
    */
   private class CrossCalc {
-    private DNode w;
-    private int crossNum;
-    private DLine currentL1; // Current line from outer loop
-    
-    private final Consumer<DLine> inOuterConsumer = this::inOuterAccept;
-    private final Consumer<DLine> innerConsumer = this::innerAccept;
-    private final Consumer<DLine> outOuterConsumer = this::outOuterAccept;
 
-    int inCross(DNode n, DNode w) {
-      this.w = w;
-      this.crossNum = 0;
-      
-      digraphProxy.forEachInAdjacent(n, inOuterConsumer);
-      int result = crossNum;
-      reset();
-      return result;
+    /** Take every edge. */
+    private static final int ALL = 0;
+    /** Take flat edges reached through the incoming adjacency of the node they end at. */
+    private static final int INCOMING_FLAT = 1;
+    /** Take only edges that are not flat. */
+    private static final int NON_FLAT = 2;
+
+    private DLine[] first = new DLine[8];
+    private int firstSize;
+    private DLine[] second = new DLine[8];
+    private int secondSize;
+
+    private boolean intoFirst;
+    private int filter;
+
+    /**
+     * Set when a buffered edge does not start at the node it was read from, which is only possible
+     * for a flat edge read through an incoming adjacency. While it is clear, the tails are the two
+     * nodes being compared, in that order, and the pairing loop needs neither a tail comparison nor
+     * a shared tail test.
+     */
+    private boolean foreignTail;
+
+    private final Consumer<DLine> collector = this::collect;
+
+    /**
+     * Loads the outgoing edges of the node that comes first. Split out from the counting so that a
+     * whole-rank recount reads each node's adjacency once rather than once per partner.
+     */
+    void openOutgoing(DNode node) {
+      firstSize = 0;
+      foreignTail = false;
+      read(node, true, ALL, false);
     }
 
-    int outCross(DNode n, DNode w) {
-      this.w = w;
-      this.crossNum = 0;
-      
-      digraphProxy.forEachOutAdjacent(n, outOuterConsumer);
-      int result = crossNum;
-      reset();
-      return result;
+    /**
+     * One term of the global total: the crossings between the outgoing edges loaded by
+     * {@link #openOutgoing(DNode)} and the outgoing edges of {@code node}, which has to come later
+     * in the rank.
+     */
+    int outCross(DNode node) {
+      secondSize = 0;
+      read(node, false, ALL, false);
+      return countByArrangement();
     }
 
-    private void inOuterAccept(DLine l1) {
-      this.currentL1 = l1;
-      digraphProxy.forEachInAdjacent(w, innerConsumer);
+    /**
+     * The terms this rank owns for the pair {@code (left, right)}. Alongside the outgoing edges that
+     * {@link #outCross(DNode)} pairs up, a node's incoming flat edges take part: a flat edge has its
+     * tail on this rank, so pairing it with the other node's outgoing edge is a term of this rank,
+     * and swapping the two nodes can switch that term on or off.
+     */
+    int originRankCross(DNode left, DNode right) {
+      firstSize = 0;
+      secondSize = 0;
+      foreignTail = false;
+      read(left, true, ALL, false);
+      read(right, false, ALL, false);
+      if (anyFlatEdge) {
+        read(left, true, INCOMING_FLAT, true);
+        read(right, false, INCOMING_FLAT, true);
+      }
+      return countByNodeIdx();
     }
 
-    private void outOuterAccept(DLine l1) {
-      this.currentL1 = l1;
-      digraphProxy.forEachOutAdjacent(w, innerConsumer);
+    /**
+     * The terms the rank above owns for the pair {@code (left, right)}: incoming edges on both
+     * sides, and only the ones that really descend from up there. A flat edge's tail is on
+     * <em>this</em> rank, so pairing it with an edge from the rank above would score a pair that the
+     * global total, which only ever pairs edges whose tails share a rank, does not have.
+     */
+    int interRankInCross(DNode left, DNode right) {
+      firstSize = 0;
+      secondSize = 0;
+      // Both tails are on the rank above in no particular order, so they have to be compared.
+      foreignTail = true;
+      read(left, true, NON_FLAT, true);
+      read(right, false, NON_FLAT, true);
+      return countByNodeIdx();
     }
 
-    private void innerAccept(DLine l2) {
-      // Flat-flat pairs belong only to their own rank and include both IN and OUT incidences.
-      if (!(currentL1.isSameRank() && l2.isSameRank()) && isCross(currentL1, l2, true)) {
-        crossNum++;
+    private void read(DNode node, boolean into, int lineFilter, boolean incoming) {
+      this.intoFirst = into;
+      this.filter = lineFilter;
+      if (incoming) {
+        digraphProxy.forEachInAdjacent(node, collector);
+      } else {
+        digraphProxy.forEachOutAdjacent(node, collector);
       }
     }
 
-    void reset() {
-      this.w = null;
-      this.crossNum = 0;
-      this.currentL1 = null;
+    private void collect(DLine line) {
+      if (filter == INCOMING_FLAT) {
+        // Self loops show up here too, and belong to the outgoing adjacency that already has them.
+        if (!line.isSameRank() || line.from() == line.to()) {
+          return;
+        }
+        foreignTail = true;
+      } else if (filter == NON_FLAT && line.isSameRank()) {
+        return;
+      }
+
+      if (intoFirst) {
+        if (firstSize == first.length) {
+          first = Arrays.copyOf(first, firstSize * 2);
+        }
+        first[firstSize++] = line;
+      } else {
+        if (secondSize == second.length) {
+          second = Arrays.copyOf(second, secondSize * 2);
+        }
+        second[secondSize++] = line;
+      }
+    }
+
+    /**
+     * Pairs everything read for the first node with everything read for the second, the way the
+     * global total does: distinct tails only - a shared tail is never a term - and the tail that
+     * comes first supplies the first argument, which decides the port comparison of flat edges.
+     *
+     * <p>The counterpart {@link #countByArrangement()} is a separate method on purpose. The
+     * crossing test branches on where to take an index from, and it is only cheap while that choice
+     * is a constant at the call site; handing it in as a flag keeps both halves of every such branch
+     * reachable, which grew the test past the point where it still gets inlined and turned the port
+     * comparison inside it into a per-comparison allocation.
+     */
+    private int countByNodeIdx() {
+      int num = 0;
+      for (int i = 0; i < firstSize; i++) {
+        DLine a = first[i];
+        for (int j = 0; j < secondSize; j++) {
+          DLine b = second[j];
+          if (!foreignTail) {
+            if (isCross(a, b, true)) {
+              num++;
+            }
+            continue;
+          }
+
+          if (a.from() == b.from()) {
+            continue;
+          }
+          boolean ordered = a.from().getRankIndex() < b.from().getRankIndex();
+          if (isCross(ordered ? a : b, ordered ? b : a, true)) {
+            num++;
+          }
+        }
+      }
+      return num;
+    }
+
+    /**
+     * The same pairing for the global total, which reads the arrangement rather than the node
+     * fields. Every buffered edge starts at the node it was read from here, so the tails are the
+     * two nodes being compared and their order is already known.
+     */
+    private int countByArrangement() {
+      int num = 0;
+      for (int i = 0; i < firstSize; i++) {
+        DLine a = first[i];
+        for (int j = 0; j < secondSize; j++) {
+          if (isCross(a, second[j], false)) {
+            num++;
+          }
+        }
+      }
+      return num;
     }
   }
 }

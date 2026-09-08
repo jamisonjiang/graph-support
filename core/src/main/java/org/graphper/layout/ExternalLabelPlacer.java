@@ -82,13 +82,17 @@ final class ExternalLabelPlacer {
 
   private static FlatPoint bestCenter(Placement placement, List<LabelBox> obstacles,
                                       List<Placement> placements) {
-    List<Candidate> candidates = candidates(placement);
     FlatPoint best = placement.preferred;
     Score bestScore = score(new Candidate(best, 0), placement, obstacles, placements);
     if (bestScore.intersections == 0) {
       return best;
     }
 
+    // Only reached when the preferred position is blocked. The alternatives are a fixed, bounded
+    // set that does not depend on the score above, so generating them here rather than before the
+    // check is outcome neutral: candidates.get(0) is the preferred position itself, which is
+    // already the incumbent, hence the loop below still starts at index 1.
+    List<Candidate> candidates = candidates(placement);
     for (int i = 1; i < candidates.size(); i++) {
       Candidate candidate = candidates.get(i);
       Score candidateScore = score(candidate, placement, obstacles, placements);

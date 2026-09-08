@@ -31,6 +31,7 @@ import org.graphper.api.Html.Table;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.layout.HtmlConvertor;
+import org.graphper.layout.HtmlConvertor.LabelIdSpace;
 import org.graphper.layout.LabelAttributes;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
@@ -94,6 +95,21 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     this.lineAttrs = lineAttrs;
     this.drawGraph = drawGraph;
     convertTables();
+  }
+
+  /**
+   * Identity scope of this line's html-like labels.
+   *
+   * <p>Every owner of an html label in a graph must answer something different here: the scope is
+   * the fallback identity of the generated cells, used whenever the author's own id is missing or
+   * already owned by something else - see
+   * {@link org.graphper.layout.HtmlConvertor#toAssemble(Table, String, LabelIdSpace)}. A line is
+   * registered with the {@link DrawGraph} immediately after it is constructed, so the number of
+   * lines already registered is this line's own sequence number, in the same order the engine
+   * numbers lines.
+   */
+  private String labelScope() {
+    return "line_" + drawGraph.lines().size();
   }
 
   @Override
@@ -359,16 +375,20 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
   }
 
   private void convertTables() {
-    assemble = convertToAssemble(lineAttrs.getTable(),  lineAttrs.getLabelTag());
+    String scope = labelScope();
+    assemble = convertToAssemble(lineAttrs.getTable(), lineAttrs.getLabelTag(), scope);
     FloatLabel[] floatLabels = lineAttrs.getFloatLabels();
     if (floatLabels == null) {
       return;
     }
 
-    for (FloatLabel floatLabel : floatLabels) {
+    for (int i = 0; i < floatLabels.length; i++) {
+      FloatLabel floatLabel = floatLabels[i];
       Assemble floatLabelAssemble = floatLabel.getAssemble();
       if (floatLabelAssemble == null) {
-        floatLabelAssemble = convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag());
+        // Each float label is a label of its own and needs a scope of its own.
+        floatLabelAssemble = convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag(),
+                                               scope + "::f" + i);
       }
 
       if (floatLabelAssemble == null) {
@@ -382,9 +402,10 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     }
   }
 
-  private Assemble convertToAssemble(Table table, LabelTag labelTag) {
+  private Assemble convertToAssemble(Table table, LabelTag labelTag, String scope) {
     if (table != null) {
-      return HtmlConvertor.toAssemble(table);
+      return HtmlConvertor.toAssemble(table, scope,
+                                      drawGraph.getGraphvizDrawProp().labelIdSpace());
     }
     Double fontSize = lineAttrs.getFontSize();
     fontSize = fontSize != null ? fontSize : 0;

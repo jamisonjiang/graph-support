@@ -114,6 +114,8 @@ public class CommonDrawBoard extends SvgDrawBoard {
   }
 
   private void throwsUnsupportedImgConvert() throws FailInitResourceException {
-    throw new FailInitResourceException("Do not have Converter");
+    throw new FailInitResourceException("No secure converter available for " + fileType
+        + ". TIFF/PDF require supported modern Batik with external-resource and script security"
+        + " hints (PDF also requires compatible FOP). PNG/JPEG can use the native AWT converter.");
   }
 }

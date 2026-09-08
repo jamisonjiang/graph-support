@@ -17,6 +17,8 @@
 package org.graphper.api;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.IDN;
 import java.net.URI;
@@ -35,6 +37,24 @@ import org.graphper.util.Asserts;
  *
  * <p>The default policy allows ordinary web/mail links and bounded embedded data images. Network
  * and filesystem image access are disabled unless explicitly enabled.</p>
+ *
+ * <p><b>Scope of the remote image guarantees.</b> This class decides whether a reference may be
+ * used at all. The address level restrictions apply to the shared image loader used by the native
+ * raster renderer and by SVG preparation for Batik/FOP conversion: it resolves the allow-listed
+ * hostname, refuses the reference unless
+ * every resolved address is public, and then connects to one of exactly those addresses while
+ * keeping the hostname for the {@code Host} header, for TLS SNI and for TLS hostname verification.
+ * It does not follow redirects and accepts only an HTTP {@code 200} response with a decodable
+ * raster content type.</p>
+ *
+ * <p>SVG output itself is deliberately <em>not</em> covered: it embeds the approved reference as
+ * an {@code xlink:href}, so whatever renders that SVG performs its own fetch under its own rules.
+ * Before Batik/FOP conversion, approved images are loaded under this policy, raster-validated and
+ * embedded as canonical data URIs. Batik never receives an external image reference. Conversion
+ * also requires support for disabling external resources and scripts (Batik 1.13+ security hints)
+ * and fails closed if either protection is unavailable. SVG conversion has additional fixed
+ * structural and aggregate image budgets; these are not a general complexity or memory guarantee
+ * for arbitrary untrusted SVG.</p>
  */
 public final class SecurityPolicy implements Serializable {
 
@@ -43,7 +63,7 @@ public final class SecurityPolicy implements Serializable {
   private static final SecurityPolicy DEFAULT = builder().build();
 
   private final boolean allowRemoteImages;
-  private final Set<String> allowedRemoteImageHosts;
+  private Set<String> allowedRemoteImageHosts;
   private final String localImageBaseDirectory;
   private final int connectTimeoutMillis;
   private final int readTimeoutMillis;
@@ -63,6 +83,35 @@ public final class SecurityPolicy implements Serializable {
     maxOutputPixels = builder.maxOutputPixels;
   }
 
+  private void readObject(ObjectInputStream input) throws IOException, ClassNotFoundException {
+    input.defaultReadObject();
+    try {
+      Builder validated = builder().allowRemoteImages(allowRemoteImages)
+          .connectTimeoutMillis(connectTimeoutMillis).readTimeoutMillis(readTimeoutMillis)
+          .maxImageBytes(maxImageBytes).maxImagePixels(maxImagePixels)
+          .maxOutputPixels(maxOutputPixels);
+      for (String host : allowedRemoteImageHosts) {
+        validated.allowRemoteImageHost(host);
+      }
+      if (!validated.allowedRemoteImageHosts.equals(allowedRemoteImageHosts)) {
+        throw new IllegalArgumentException("remote image hosts must be normalized");
+      }
+      if (localImageBaseDirectory != null) {
+        validated.localImageBaseDirectory(Paths.get(localImageBaseDirectory));
+        if (!localImageBaseDirectory.equals(validated.localImageBaseDirectory)) {
+          throw new IllegalArgumentException("local image base must be absolute and normalized");
+        }
+      }
+      // Do not retain a mutable collection aliased elsewhere in the serialized object graph.
+      allowedRemoteImageHosts = Collections.unmodifiableSet(
+          new LinkedHashSet<>(validated.allowedRemoteImageHosts));
+    } catch (RuntimeException e) {
+      InvalidObjectException invalid = new InvalidObjectException("Invalid image security policy");
+      invalid.initCause(e);
+      throw invalid;
+    }
+  }
+
   public static SecurityPolicy defaultPolicy() {
     return DEFAULT;
   }
@@ -75,6 +124,12 @@ public final class SecurityPolicy implements Serializable {
     return allowRemoteImages;
   }
 
+  /**
+   * Budget for both the hostname resolution and the TCP connect of a remote image fetch, each
+   * taken separately.
+   *
+   * @return connect budget in milliseconds
+   */
   public int getConnectTimeoutMillis() {
     return connectTimeoutMillis;
   }
@@ -83,6 +138,13 @@ public final class SecurityPolicy implements Serializable {
     return allowedRemoteImageHosts;
   }
 
+  /**
+   * Total budget for one remote image response, covering the TLS handshake, the request and every
+   * read of the response. It is an aggregate deadline rather than a per-read allowance, so a slow
+   * drip cannot outlast it by staying just under a single socket timeout.
+   *
+   * @return response budget in milliseconds
+   */
   public int getReadTimeoutMillis() {
     return readTimeoutMillis;
   }
@@ -128,6 +190,12 @@ public final class SecurityPolicy implements Serializable {
 
   /**
    * Returns a normalized, policy-approved image reference, or {@code null} when access is denied.
+   *
+   * <p>Approval here is purely about the reference: an {@code http}/{@code https} reference needs
+   * {@link #isAllowRemoteImages()} plus exact membership in {@link #getAllowedRemoteImageHosts()},
+   * carries no user info, and a filesystem reference must resolve inside
+   * {@link #getLocalImageBaseDirectory()}. Where the hostname actually points is checked later, by
+   * the loader that performs the fetch.</p>
    */
   public String sanitizeImage(String value) {
     String uriValue = clean(value);
@@ -243,7 +311,10 @@ public final class SecurityPolicy implements Serializable {
       return this;
     }
 
-    /** Adds a DNS hostname that may be used for an opt-in remote image. */
+    /**
+     * Adds a DNS hostname that may be used for an opt-in remote image. Membership is matched
+     * exactly after IDN and case normalization; subdomains are not implied.
+     */
     public Builder allowRemoteImageHost(String host) {
       Asserts.nullArgument(host, "host");
       String normalized = IDN.toASCII(host.trim()).toLowerCase(Locale.ROOT);
@@ -262,12 +333,14 @@ public final class SecurityPolicy implements Serializable {
       return this;
     }
 
+    /** Sets the per-step budget for resolving and for connecting to a remote image host. */
     public Builder connectTimeoutMillis(int timeout) {
       Asserts.illegalArgument(timeout <= 0, "connect timeout must be positive");
       connectTimeoutMillis = timeout;
       return this;
     }
 
+    /** Sets the total budget for one remote image response, not the budget of a single read. */
     public Builder readTimeoutMillis(int timeout) {
       Asserts.illegalArgument(timeout <= 0, "read timeout must be positive");
       readTimeoutMillis = timeout;

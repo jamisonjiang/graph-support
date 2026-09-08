@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,10 @@ final class ClusterAwareBoxGuide {
                                  boolean horizontal, DrawGraph drawGraph,
                                  ClusterObstacleIndex obstacleIndex, Set<Cluster> ignored) {
     if (line == null || boxes == null || boxes.isEmpty() || drawGraph.clusters().isEmpty()) {
-      return new ClusterRoute(boxes, Collections.emptySet(), Collections.emptyMap(),
+      // Copy on every path: callers mutate the returned boxes, so aliasing their list here would
+      // make the contract depend on whether the graph happens to have clusters.
+      return new ClusterRoute(boxes == null ? Collections.emptyList() : copy(boxes),
+                              Collections.emptySet(), Collections.emptyMap(),
                               Collections.emptyMap(), Collections.emptySet());
     }
 
@@ -60,7 +64,9 @@ final class ClusterAwareBoxGuide {
     DNode tail = line.tail() == from.getNode() ? from : to;
     DNode head = tail == from ? to : from;
     Map<Cluster, EndpointRole> roles = clusterRoles(tail, head, drawGraph);
-    Map<Integer, Set<Cluster>> restrictions = new HashMap<>();
+    // Keyed by box identity, not list position: a later obstacle can split a box and shift every
+    // index above it, which would otherwise make the router abandon the wrong cluster on retry.
+    Map<RouterBox, Set<Cluster>> restrictions = new IdentityHashMap<>();
     Set<ClusterObstacle> candidates = obstacleIndex.query(boxes);
     for (ClusterObstacle obstacle : candidates) {
       ClusterDrawProp cluster = obstacle.drawProp();
@@ -94,14 +100,24 @@ final class ClusterAwareBoxGuide {
       if (!first && !second) {
         // A whole-gap detour can disconnect the corridor when an endpoint box is narrow. Restrict
         // only the slice the cluster really occupies so consecutive boxes keep overlapping.
-        affected = splitAffected(routed, cluster, tail, head, role, horizontal);
+        List<RouterBox> beforeSplit = new ArrayList<>(routed);
+        Map<RouterBox, Set<Cluster>> beforeRestrictions = new IdentityHashMap<>(restrictions);
+        affected = splitAffected(routed, cluster, tail, head, role, horizontal, restrictions);
         first = restrict(routed, affected, cluster, horizontal, preferLow);
         second = !first && restrict(routed, affected, cluster, horizontal, !preferLow);
+        if (!first && !second) {
+          // restrict() already restored the borders it touched, but the split itself is structural
+          // and must be undone too, otherwise an unusable station survives with no restriction.
+          rollbackSplit(routed, beforeSplit, restrictions);
+          restrictions.clear();
+          restrictions.putAll(beforeRestrictions);
+        }
       }
       if (first || second) {
         avoided.add(cluster);
         for (int index : affected) {
-          restrictions.computeIfAbsent(index, key -> new LinkedHashSet<>()).add(cluster.getCluster());
+          restrictions.computeIfAbsent(routed.get(index), key -> new LinkedHashSet<>())
+              .add(cluster.getCluster());
         }
       }
     }
@@ -430,20 +446,42 @@ final class ClusterAwareBoxGuide {
     return true;
   }
 
+  private static void rollbackSplit(List<RouterBox> boxes, List<RouterBox> before,
+                                    Map<RouterBox, Set<Cluster>> restrictions) {
+    for (RouterBox box : boxes) {
+      if (!containsIdentity(before, box)) {
+        restrictions.remove(box);
+      }
+    }
+    boxes.clear();
+    boxes.addAll(before);
+  }
+
+  private static boolean containsIdentity(List<RouterBox> boxes, RouterBox target) {
+    for (RouterBox box : boxes) {
+      if (box == target) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static List<Integer> splitAffected(List<RouterBox> boxes, ClusterDrawProp cluster,
                                              DNode tail, DNode head, EndpointRole role,
-                                             boolean horizontal) {
+                                             boolean horizontal,
+                                             Map<RouterBox, Set<Cluster>> restrictions) {
     if (horizontal) {
-      splitAt(boxes, cluster.getLeftBorder() - CLEARANCE, true);
-      splitAt(boxes, cluster.getRightBorder() + CLEARANCE, true);
+      splitAt(boxes, cluster.getLeftBorder() - CLEARANCE, true, restrictions);
+      splitAt(boxes, cluster.getRightBorder() + CLEARANCE, true, restrictions);
     } else {
-      splitAt(boxes, cluster.getUpBorder() - CLEARANCE, false);
-      splitAt(boxes, cluster.getDownBorder() + CLEARANCE, false);
+      splitAt(boxes, cluster.getUpBorder() - CLEARANCE, false, restrictions);
+      splitAt(boxes, cluster.getDownBorder() + CLEARANCE, false, restrictions);
     }
     return affectedBoxes(boxes, cluster, tail, head, role);
   }
 
-  private static void splitAt(List<RouterBox> boxes, double position, boolean horizontal) {
+  private static void splitAt(List<RouterBox> boxes, double position, boolean horizontal,
+                              Map<RouterBox, Set<Cluster>> restrictions) {
     for (int i = 0; i < boxes.size(); i++) {
       RouterBox box = boxes.get(i);
       // Endpoint boxes anchor a real node, so they must stay whole.
@@ -461,6 +499,12 @@ final class ClusterAwareBoxGuide {
       RouterBox trail = horizontal
           ? new RouterBox(position, high, box.getUpBorder(), box.getDownBorder(), null)
           : new RouterBox(box.getLeftBorder(), box.getRightBorder(), position, high, null);
+      // Both halves inherit whatever the replaced station already had to avoid.
+      Set<Cluster> inherited = restrictions.remove(box);
+      if (inherited != null) {
+        restrictions.put(lead, new LinkedHashSet<>(inherited));
+        restrictions.put(trail, new LinkedHashSet<>(inherited));
+      }
       boxes.set(i, lead);
       boxes.add(i + 1, trail);
       return;
@@ -494,13 +538,13 @@ final class ClusterAwareBoxGuide {
 
     private final Map<Cluster, EndpointRole> roles;
 
-    private final Map<Integer, Set<Cluster>> restrictions;
+    private final Map<RouterBox, Set<Cluster>> restrictions;
 
     private final Set<ClusterObstacle> candidates;
 
     private ClusterRoute(List<RouterBox> boxes, Set<ClusterDrawProp> avoided,
                          Map<Cluster, EndpointRole> roles,
-                         Map<Integer, Set<Cluster>> restrictions,
+                         Map<RouterBox, Set<Cluster>> restrictions,
                          Set<ClusterObstacle> candidates) {
       this.boxes = boxes;
       this.avoided = avoided;
@@ -522,7 +566,10 @@ final class ClusterAwareBoxGuide {
     }
 
     Set<Cluster> restrictionsAt(int box) {
-      return restrictions.getOrDefault(box, Collections.emptySet());
+      if (box < 0 || box >= boxes.size()) {
+        return Collections.emptySet();
+      }
+      return restrictions.getOrDefault(boxes.get(box), Collections.emptySet());
     }
   }
 

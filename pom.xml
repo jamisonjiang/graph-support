@@ -203,6 +203,16 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M4</version>
+        <configuration>
+          <!--
+            The renderer draws through java.awt (DefaultImgConverter, AWTMeasureText) and the ui
+            module builds real Swing components, so without this the forked test JVM registers as a
+            GUI application and steals window focus on macOS. Passed on the JVM command line rather
+            than through systemPropertyVariables so it is in place before GraphicsEnvironment is
+            first touched.
+          -->
+          <argLine>-Djava.awt.headless=true</argLine>
+        </configuration>
         <dependencies>
           <dependency>
             <groupId>org.junit.jupiter</groupId>

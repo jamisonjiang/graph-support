@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
@@ -274,6 +275,20 @@ class MinCross {
       rootCrossRank.resetToRoot();
       rootCrossRank.setSameRankAdjacentRecord(sameRankAdjacentRecord());
       finalMincross(1, 2);
+    } else {
+      /*
+       * Without clusters there is nothing to expand, so no pass ever reaches finalMincross and the
+       * order mincross() left behind is already final. The flat-pair pass is the only one that can
+       * move a flat leaf together with the neighbour it hangs off, which adjacent transposition
+       * cannot do, so leaving it out of this branch denied cluster-free graphs that improvement
+       * entirely. It only ever keeps a strictly lower count, so it cannot undo mincross().
+       */
+      rootCrossRank.transposeFlatPairs();
+    }
+    // DOTQ retains the cheap adjacent flat-pair scan, but not the wider span search.
+    if (!useQuickMode) {
+      rootCrossRank.contractFlatSpans();
+      rootCrossRank.syncChildOrder();
     }
     if (log.isDebugEnabled()) {
       log.debug("Mincross finished, using {}ms", System.currentTimeMillis() - start);
@@ -812,25 +827,11 @@ class MinCross {
       }
     }
 
-    Set<Object> remaining = new LinkedHashSet<>(outgoing.keySet());
+    List<Object> ordered = topologicalOrder(new ArrayList<>(outgoing.keySet()), indegree,
+                                            outgoing::get);
     Map<Object, Integer> order = new HashMap<>();
-    while (!remaining.isEmpty()) {
-      Object next = null;
-      for (Object block : remaining) {
-        if (indegree.get(block) == 0) {
-          next = block;
-          break;
-        }
-      }
-      // Conflicting directions cannot all be satisfied. Break cycles in the existing order.
-      if (next == null) {
-        next = remaining.iterator().next();
-      }
-      remaining.remove(next);
-      order.put(next, order.size());
-      for (Object to : outgoing.get(next)) {
-        indegree.put(to, indegree.get(to) - 1);
-      }
+    for (Object block : ordered) {
+      order.put(block, order.size());
     }
 
     BasicCrossRank candidate = current.clone();
@@ -888,36 +889,16 @@ class MinCross {
         indegree.put(node, 0);
       }
       for (DNode node : original) {
-        for (DNode adjacent : sameRankAdjacentRecord.outAdjacent(node)) {
-          if (node.getContainer() == adjacent.getContainer() && rankNodes.contains(adjacent)) {
+        for (DNode adjacent : sameContainerFlatAdjacent(sameRankAdjacentRecord, node)) {
+          if (rankNodes.contains(adjacent)) {
             indegree.put(adjacent, indegree.get(adjacent) + 1);
           }
         }
       }
 
-      Set<DNode> remaining = new LinkedHashSet<>(original);
-      List<DNode> ordered = new ArrayList<>(original.size());
-      while (!remaining.isEmpty()) {
-        DNode next = null;
-        for (DNode node : remaining) {
-          if (indegree.get(node) == 0) {
-            next = node;
-            break;
-          }
-        }
-        // A directed cycle cannot satisfy every flat constraint. Preserve the current order when
-        // choosing where to break it, then continue honoring every constraint that remains acyclic.
-        if (next == null) {
-          next = remaining.iterator().next();
-        }
-        remaining.remove(next);
-        ordered.add(next);
-        for (DNode adjacent : sameRankAdjacentRecord.outAdjacent(next)) {
-          if (next.getContainer() == adjacent.getContainer() && remaining.contains(adjacent)) {
-            indegree.put(adjacent, indegree.get(adjacent) - 1);
-          }
-        }
-      }
+      List<DNode> ordered = topologicalOrder(original, indegree,
+                                             n -> sameContainerFlatAdjacent(
+                                                 sameRankAdjacentRecord, n));
 
       Map<DNode, Integer> order = new HashMap<>();
       boolean changed = false;
@@ -931,6 +912,82 @@ class MinCross {
         crossRank.sort(rank, Comparator.comparingInt(order::get), true);
       }
     }
+  }
+
+  /**
+   * The flat successors of {@code node} that share its container, which are exactly the ones a
+   * flat order can honour. Both the indegree count and the placement have to read the same set, so
+   * they read it from here.
+   */
+  private static List<DNode> sameContainerFlatAdjacent(SameRankAdjacentRecord record, DNode node) {
+    List<DNode> out = null;
+    for (DNode adjacent : record.outAdjacent(node)) {
+      if (node.getContainer() != adjacent.getContainer()) {
+        continue;
+      }
+      if (out == null) {
+        out = new ArrayList<>(2);
+      }
+      out.add(adjacent);
+    }
+    return out == null ? Collections.emptyList() : out;
+  }
+
+  /**
+   * Places nodes in dependency order, breaking a cycle in the order given, with the exact
+   * tie-breaking of a repeated linear scan: of the nodes still to place, the ready one that comes
+   * first in {@code items}, or - when a directed cycle leaves nothing ready - simply the one that
+   * comes first.
+   *
+   * <p>The scan was the cost. Every placement restarted it from the front, so a directed cycle of
+   * {@code k} nodes ahead of {@code m} ready ones needed {@code k * m} examinations before the
+   * first placement even happened: quadratic in the node count however few edges there are. Both
+   * callers support cycles on purpose, so that shape is reachable rather than hypothetical. Two
+   * index-ordered sets - everything still to place, and the ready subset of it - answer both
+   * questions in logarithmic time and name the node the scan would have named.
+   *
+   * <p>A node's indegree only ever drops while it waits, and never leaves zero once it gets there,
+   * which is what makes the ready subset maintainable incrementally.
+   *
+   * @param items      the nodes, distinct, in the order the scan used to visit them
+   * @param indegree   unplaced predecessors per node, consumed here
+   * @param successors successors of a node, filtered exactly as {@code indegree} was counted
+   * @return the nodes in placement order
+   */
+  private static <T> List<T> topologicalOrder(List<T> items, Map<T, Integer> indegree,
+                                              Function<T, Iterable<T>> successors) {
+    Map<T, Integer> index = new HashMap<>(items.size());
+    NavigableSet<Integer> remaining = new TreeSet<>();
+    NavigableSet<Integer> ready = new TreeSet<>();
+    for (int i = 0; i < items.size(); i++) {
+      index.put(items.get(i), i);
+      remaining.add(i);
+      if (indegree.get(items.get(i)) == 0) {
+        ready.add(i);
+      }
+    }
+
+    List<T> ordered = new ArrayList<>(items.size());
+    while (!remaining.isEmpty()) {
+      Integer nextIdx = ready.isEmpty() ? remaining.first() : ready.first();
+      ready.remove(nextIdx);
+      remaining.remove(nextIdx);
+      T next = items.get(nextIdx);
+      ordered.add(next);
+
+      for (T to : successors.apply(next)) {
+        Integer toIdx = index.get(to);
+        if (toIdx == null || !remaining.contains(toIdx)) {
+          continue;
+        }
+        int left = indegree.get(to) - 1;
+        indegree.put(to, left);
+        if (left == 0) {
+          ready.add(toIdx);
+        }
+      }
+    }
+    return ordered;
   }
 
   private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,

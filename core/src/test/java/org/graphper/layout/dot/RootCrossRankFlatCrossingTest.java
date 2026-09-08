@@ -16,9 +16,14 @@
 
 package org.graphper.layout.dot;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
@@ -237,10 +242,18 @@ class RootCrossRankFlatCrossingTest {
     f.assertCache();
   }
 
-  private static class Fixture {
+  static class Fixture {
     final DrawGraph draw = new DrawGraph(Graphviz.digraph().rankdir(Rankdir.LR).build());
-    final RootCrossRank root = new RootCrossRank(draw, new MinCross.ClusterMerge());
+    final RootCrossRank root;
     final List<DLine> edges = new ArrayList<>();
+
+    Fixture() {
+      this(null);
+    }
+
+    Fixture(RootCrossRank root) {
+      this.root = root == null ? new RootCrossRank(draw, new MinCross.ClusterMerge()) : root;
+    }
 
     DNode node(String id, int rank) {
       Node node = Node.builder().id(id).build();
@@ -310,6 +323,69 @@ class RootCrossRankFlatCrossingTest {
       Assertions.assertEquals(expected, root.crossSnapshot().getCrossNum(), "cached count");
       root.setCacheExpired();
       Assertions.assertEquals(expected, root.crossSnapshot().getCrossNum(), "fresh count");
+    }
+
+    /**
+     * The three properties the cache has to keep, checked without expiring anything: the total is
+     * the sum of the ranks, no part of it is negative, and it agrees with a recount of the current
+     * arrangement.
+     */
+    void assertCacheConsistent(String where) throws Exception {
+      int cached = root.crossSnapshot().getCrossNum();
+      Map<Integer, Integer> ranks = rankCaches();
+      int sum = 0;
+      for (Map.Entry<Integer, Integer> entry : ranks.entrySet()) {
+        Assertions.assertTrue(entry.getValue() >= 0,
+            where + ": rank " + entry.getKey() + " cache is negative, " + ranks);
+        sum += entry.getValue();
+      }
+      Assertions.assertTrue(cached >= 0, where + ": cached total is negative, " + cached);
+      Assertions.assertEquals(cached, sum, where + ": total is not the sum of the ranks " + ranks);
+      Assertions.assertEquals(oracle(), cached, where + ": cached total disagrees with a recount");
+      root.setCacheExpired();
+      Assertions.assertEquals(oracle(), root.crossSnapshot().getCrossNum(),
+          where + ": forced recount disagrees with the oracle");
+    }
+
+    /** How much the independently counted total drops when the two nodes trade places. */
+    int oracleDelta(DNode left, DNode right) throws Exception {
+      int before = oracle();
+      root.exchange(left, right, true);
+      int after = oracle();
+      root.exchange(left, right, true);
+      return before - after;
+    }
+
+    /** Orders one rank explicitly, keeping every index in sync. */
+    void order(int rank, DNode... nodes) {
+      List<DNode> wanted = Arrays.asList(nodes);
+      Assertions.assertEquals(root.rankSize(rank), wanted.size(), "order must be a permutation");
+      root.sort(rank, Comparator.comparingInt(wanted::indexOf), true);
+      root.setCacheExpired();
+    }
+
+    void crossing(DNode left, DNode right, int[] result) throws Exception {
+      Method crossing = RootCrossRank.class.getDeclaredMethod("crossing", DNode.class,
+          DNode.class, int[].class);
+      crossing.setAccessible(true);
+      crossing.invoke(root, left, right, result);
+    }
+
+    /** Per-rank cached counts, keyed by rank, without touching the effective flags. */
+    Map<Integer, Integer> rankCaches() throws Exception {
+      Field cacheField = RootCrossRank.class.getDeclaredField("crossCache");
+      cacheField.setAccessible(true);
+      Object cache = cacheField.get(root);
+      Field mapField = cache.getClass().getDeclaredField("rankCrossCacheMap");
+      mapField.setAccessible(true);
+      Map<?, ?> raw = (Map<?, ?>) mapField.get(cache);
+      Map<Integer, Integer> out = new TreeMap<>();
+      Field numField = RootCrossRank.RankCrossCache.class.getDeclaredField("crossNum");
+      numField.setAccessible(true);
+      for (Map.Entry<?, ?> entry : raw.entrySet()) {
+        out.put((Integer) entry.getKey(), (Integer) numField.get(entry.getValue()));
+      }
+      return out;
     }
   }
 }

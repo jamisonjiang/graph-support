@@ -33,11 +33,11 @@ The following 17 node shapes are available in addition to the original shapes be
 
 | Shape name | Java `NodeShapeEnum` | Appearance |
 | --- | --- | --- |
-| `oval` | `OVAL` | Ellipse alias |
-| `none` | `NONE` | Label without a visible outline |
-| `rectangle` | `RECTANGLE` | Box/rect alias |
+| `oval` | `OVAL` | Ellipse alias, a separate constant from `ELLIPSE` |
+| `none` | `NONE` | Label only; no outline element is emitted, so there is nothing to fill |
+| `rectangle` | `RECTANGLE` | Box/rect alias, a separate constant from `BOX` and `RECT` |
 | `square` | `SQUARE` | Square |
-| `polygon` | `POLYGON` | Configurable polygon, four sides by default |
+| `polygon` | `POLYGON` | Configurable polygon, 3 to 20 sides via `sides`, four by default |
 | `house` | `HOUSE` | House-shaped pentagon |
 | `invhouse` | `INVHOUSE` | Inverted house |
 | `doublecircle` | `DOUBLECIRCLE` | Circle with two outlines |
@@ -51,17 +51,29 @@ The following 17 node shapes are available in addition to the original shapes be
 | `box3d` | `BOX3D` | Three-dimensional box |
 | `component` | `COMPONENT` | Simplified UML component box with inset terminals |
 
+Each alias above is its own `NodeShapeEnum` constant, so `oval` resolves to `OVAL`
+rather than to `ELLIPSE`, and `rectangle` resolves to `RECTANGLE` rather than to
+`BOX` or `RECT`; the aliases only share geometry. Shape names are resolved by name,
+never by position. These constants are declared after `M_RECORD` so that the
+ordinals of the shapes that existed before them are unchanged.
+
 ### Polygon Sides
 
 Use `sides` with `polygon` or `regular_polyline` to choose the number of sides;
-the default is four. The upcoming supported range is **3 through 20, inclusive**.
-The current builder requires at least four sides, so three-sided polygons must wait
-for that range update; use `triangle` in the meantime.
+the default is four. The supported range is **3 through 20, inclusive**.
+`NodeBuilder#sides(int)` throws `IllegalArgumentException` outside that range, and
+the DOT parser accepts the same values, so `sides=3` produces a three-sided polygon
+directly.
 
 ```java
 Node polygon = Node.builder()
     .shape(NodeShapeEnum.POLYGON)
     .sides(6)
+    .build();
+
+Node triangleFromPolygon = Node.builder()
+    .shape(NodeShapeEnum.POLYGON)
+    .sides(3)
     .build();
 ```
 

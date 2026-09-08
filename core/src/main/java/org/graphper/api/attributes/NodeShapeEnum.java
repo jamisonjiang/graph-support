@@ -50,6 +50,12 @@ import org.graphper.util.Asserts;
 /**
  * Enumeration of node shapes supported by the system by default.
  *
+ * <p><strong>Declaration order is part of the compatibility contract.</strong> Constants are
+ * never inserted in the middle of this enum, because {@link Enum#ordinal()} of every existing
+ * constant would shift and any consumer that stored a raw ordinal, a positional index or a bit
+ * position would silently re-map to a different shape. New shapes are always appended after the
+ * last constant. {@code NodeShapeEnumOrdinalTest} pins the historical block.</p>
+ *
  * @author Jamison Jiang
  */
 public enum NodeShapeEnum implements NodeShape {
@@ -64,46 +70,11 @@ public enum NodeShapeEnum implements NodeShape {
 
   ELLIPSE("ellipse", new EllipsePropCalc()),
 
-  OVAL("oval", new EllipsePropCalc()),
-
-  NONE("none", new EllipsePropCalc()),
-
   CIRCLE("circle", 0.75, 0.75, new CirclePropCalc()),
 
   BOX ("box", new RectanglePropCalc()),
 
   RECT("rect", new RectanglePropCalc()),
-
-  RECTANGLE("rectangle", new RectanglePropCalc()),
-
-  SQUARE("square", 0.5, 0.5, new PolygonNodePropCalc(Type.SQUARE)),
-
-  POLYGON("polygon", 0.5, 0.75, new StretchablePolygonPropCalc(4),
-          new RegularPolyShapePost()),
-
-  HOUSE("house", new PolygonNodePropCalc(Type.HOUSE)),
-
-  INVHOUSE("invhouse", new PolygonNodePropCalc(Type.INVHOUSE)),
-
-  DOUBLECIRCLE("doublecircle", 0.75, 0.75, new PeripheryNodePropCalc(true, 2)),
-
-  DOUBLEOCTAGON("doubleoctagon", new PeripheryNodePropCalc(false, 2)),
-
-  TRIPLEOCTAGON("tripleoctagon", new PeripheryNodePropCalc(false, 3)),
-
-  M_DIAMOND("Mdiamond", new PolygonNodePropCalc(Type.M_DIAMOND)),
-
-  M_SQUARE("Msquare", 0.5, 0.5, new PolygonNodePropCalc(Type.M_SQUARE)),
-
-  M_CIRCLE("Mcircle", 0.75, 0.75, new MarkedCirclePropCalc()),
-
-  TAB("tab", new PolygonNodePropCalc(Type.TAB)),
-
-  FOLDER("folder", new PolygonNodePropCalc(Type.FOLDER)),
-
-  BOX3D("box3d", new PolygonNodePropCalc(Type.BOX3D)),
-
-  COMPONENT("component", new PolygonNodePropCalc(Type.COMPONENT)),
 
   POINT("point", 0.1, 0.1, new PointPropCalc()),
 
@@ -149,7 +120,47 @@ public enum NodeShapeEnum implements NodeShape {
    * The Mrecord shape is identical to a {@link #RECORD}, except that the outermost box has rounded
    * corners.
    */
-  M_RECORD("Mrecord", 0.75, 1, new RecordPropCalc(true));
+  M_RECORD("Mrecord", 0.75, 1, new RecordPropCalc(true)),
+
+  // ---------------------------------------------------------------------------------------------
+  // Shapes added after the constants above. Everything below is appended, never inserted, so that
+  // the ordinals of the constants above stay stable across releases. Append new shapes here.
+  // ---------------------------------------------------------------------------------------------
+
+  OVAL("oval", new EllipsePropCalc()),
+
+  NONE("none", new EllipsePropCalc()),
+
+  RECTANGLE("rectangle", new RectanglePropCalc()),
+
+  SQUARE("square", 0.5, 0.5, new PolygonNodePropCalc(Type.SQUARE)),
+
+  POLYGON("polygon", 0.5, 0.75, new StretchablePolygonPropCalc(4),
+          new RegularPolyShapePost()),
+
+  HOUSE("house", new PolygonNodePropCalc(Type.HOUSE)),
+
+  INVHOUSE("invhouse", new PolygonNodePropCalc(Type.INVHOUSE)),
+
+  DOUBLECIRCLE("doublecircle", 0.75, 0.75, new PeripheryNodePropCalc(true, 2)),
+
+  DOUBLEOCTAGON("doubleoctagon", new PeripheryNodePropCalc(false, 2)),
+
+  TRIPLEOCTAGON("tripleoctagon", new PeripheryNodePropCalc(false, 3)),
+
+  M_DIAMOND("Mdiamond", new PolygonNodePropCalc(Type.M_DIAMOND)),
+
+  M_SQUARE("Msquare", 0.5, 0.5, new PolygonNodePropCalc(Type.M_SQUARE)),
+
+  M_CIRCLE("Mcircle", 0.75, 0.75, new MarkedCirclePropCalc()),
+
+  TAB("tab", new PolygonNodePropCalc(Type.TAB)),
+
+  FOLDER("folder", new PolygonNodePropCalc(Type.FOLDER)),
+
+  BOX3D("box3d", new PolygonNodePropCalc(Type.BOX3D)),
+
+  COMPONENT("component", new PolygonNodePropCalc(Type.COMPONENT));
 
   private final String name;
 

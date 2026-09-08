@@ -62,6 +62,12 @@ public abstract class LineClip extends LineHandler {
   private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
 
   /**
+   * Endpoint labels collected by the batch that is currently running, {@code null} when
+   * {@link #setFloatLabel(LineDrawProp)} is called outside a batch.
+   */
+  private List<ExternalLabelPlacer.Placement> endpointLabelSink;
+
+  /**
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis
    * length and axis direction of the arrow and the position of the axis end point.
    *
@@ -227,8 +233,59 @@ public abstract class LineClip extends LineHandler {
     return lineDrawProp;
   }
 
-  protected void setFloatLabel(LineDrawProp lineDrawProp,
-                               List<ExternalLabelPlacer.Placement> placements) {
+  /**
+   * Batch entry point used by the layout engine: collects the endpoint labels of every line into a
+   * shared list first and lets {@link ExternalLabelPlacer} resolve them together, so that a label
+   * can see the labels of the other lines as obstacles.
+   *
+   * <p>Deliberately package private. Its parameter mentions {@code ExternalLabelPlacer.Placement},
+   * which is not public API; a {@code protected} declaration would put a type that out-of-package
+   * subclasses cannot name into the inheritable surface of this public class. The overridable hook
+   * is {@link #setFloatLabel(LineDrawProp)}, which this method always dispatches through, so
+   * overriding that single-argument method still intercepts the batch.
+   *
+   * @param lineDrawProp the line whose float labels are being resolved
+   * @param placements   sink collecting the endpoint labels of the current batch
+   */
+  final void setFloatLabel(LineDrawProp lineDrawProp,
+                           List<ExternalLabelPlacer.Placement> placements) {
+    List<ExternalLabelPlacer.Placement> previous = this.endpointLabelSink;
+    this.endpointLabelSink = placements;
+    try {
+      setFloatLabel(lineDrawProp);
+    } finally {
+      this.endpointLabelSink = previous;
+    }
+  }
+
+  /**
+   * Computes the position of every {@link FloatLabel} of the given line.
+   *
+   * <p>Labels placed along the edge ({@link FloatLabel#getTend()} is {@code null}) are written
+   * immediately. Endpoint labels are deferred: when this method runs inside a batch started by the
+   * layout engine they are handed to {@link ExternalLabelPlacer} together with the endpoint labels
+   * of the other lines, otherwise they are resolved on their own before this method returns. Either
+   * way the label positions of {@code lineDrawProp} are final once the call completes.
+   *
+   * <p>This is the extension point for subclasses: overriding it replaces the whole float label
+   * treatment of a line, and {@code super.setFloatLabel(lineDrawProp)} keeps the default one.
+   *
+   * @param lineDrawProp the line whose float labels are being resolved, {@code null} is ignored
+   */
+  protected void setFloatLabel(LineDrawProp lineDrawProp) {
+    List<ExternalLabelPlacer.Placement> sink = this.endpointLabelSink;
+    if (sink != null) {
+      collectFloatLabels(lineDrawProp, sink);
+      return;
+    }
+
+    List<ExternalLabelPlacer.Placement> standalone = new ArrayList<>(2);
+    collectFloatLabels(lineDrawProp, standalone);
+    ExternalLabelPlacer.place(drawGraph, standalone);
+  }
+
+  private void collectFloatLabels(LineDrawProp lineDrawProp,
+                                  List<ExternalLabelPlacer.Placement> placements) {
     if (lineDrawProp == null) {
       return;
     }

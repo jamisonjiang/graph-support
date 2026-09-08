@@ -21,13 +21,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
 import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link SvgConverter} that uses Apache Batik to convert SVG documents into
@@ -39,7 +45,7 @@ import org.graphper.util.ClassUtils;
  */
 public class BatikImgConverter implements SvgConverter {
 
-  private static final double CSS_PIXELS_PER_POINT = 96D / 72D;
+  private static final Logger log = LoggerFactory.getLogger(BatikImgConverter.class);
 
   private static final String T_IN_C = "org.apache.batik.transcoder.TranscoderInput";
   private static final String T_OUT_C = "org.apache.batik.transcoder.TranscoderOutput";
@@ -47,6 +53,29 @@ public class BatikImgConverter implements SvgConverter {
   private static final String P_T_C = "org.apache.batik.transcoder.image.PNGTranscoder";
   private static final String J_T_C = "org.apache.batik.transcoder.image.JPEGTranscoder";
   private static final String TF_T_C = "org.apache.batik.transcoder.image.TIFFTranscoder";
+  private static final String SVG_A_T_C = "org.apache.batik.transcoder.SVGAbstractTranscoder";
+  private static final String HINT_KEY_C = "org.apache.batik.transcoder.TranscodingHints$Key";
+
+  /**
+   * Hardening hints switched off before transcoding, most restrictive first.
+   * {@code KEY_ALLOW_EXTERNAL_RESOURCES} only exists from Batik 1.13 onwards, so it is probed
+   * rather than assumed.
+   */
+  private static final String[] SECURITY_HINT_FIELDS = {
+      "KEY_ALLOW_EXTERNAL_RESOURCES", "KEY_EXECUTE_ONLOAD"
+  };
+
+  /** Sentinel stored for a hint that this Batik build does not expose. */
+  private static final Object ABSENT_HINT = new Object();
+
+  /** Probe results, so a missing field costs one reflective failure rather than one per convert. */
+  private static final Map<String, Object> HINT_KEYS = new ConcurrentHashMap<>();
+
+  /**
+   * Hints already reported as unavailable. Package-private so the one-time warning can be asserted
+   * by tests.
+   */
+  static final Set<String> DEGRADED_HINTS = ConcurrentHashMap.newKeySet();
 
   /**
    * Returns the priority order of this converter. The default order is set to 0.
@@ -62,6 +91,9 @@ public class BatikImgConverter implements SvgConverter {
    * Checks if the current environment supports image conversion. Specifically, it checks for the
    * availability of required AWT and Batik classes.
    *
+   * <p>Required security hints must also be applicable. Otherwise the native PNG/JPEG converter
+   * remains available, but this converter is not selected.</p>
+   *
    * @return {@code true} if the environment supports image conversion, {@code false} otherwise
    */
   @Override
@@ -74,8 +106,13 @@ public class BatikImgConverter implements SvgConverter {
       Class.forName(P_T_C);
       Class.forName(J_T_C);
       Class.forName(TF_T_C);
+      Class.forName(SVG_A_T_C);
+      Class.forName(HINT_KEY_C);
+      configureSecurityHints(ClassUtils.newObject(Class.forName(P_T_C)));
+      configureSecurityHints(ClassUtils.newObject(Class.forName(J_T_C)));
+      configureSecurityHints(ClassUtils.newObject(Class.forName(TF_T_C)));
       return true;
-    } catch (ClassNotFoundException e) {
+    } catch (Exception | LinkageError e) {
       return false;
     }
   }
@@ -111,9 +148,8 @@ public class BatikImgConverter implements SvgConverter {
     if (StringUtils.isEmpty(svg)) {
       throw new FailInitResourceException("Can not get svg");
     }
-    try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {
-      validateRasterSize(document, drawGraph);
-
+    try {
+      svg = SecureSvg.prepare(svg, drawGraph.getGraphviz().graphAttrs().getSecurityPolicy(), true);
       Object transcoder;
       switch (fileType) {
         case PNG:
@@ -133,58 +169,109 @@ public class BatikImgConverter implements SvgConverter {
 
       configureSecurityHints(transcoder);
 
-      return getFileGraphResource(drawGraph, fileType, is, transcoder);
-    } catch (Exception e) {
+      try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {
+        return getFileGraphResource(drawGraph, fileType, is, transcoder);
+      }
+    } catch (Exception | LinkageError e) {
       throw new FailInitResourceException(e);
     }
   }
 
+  /**
+   * Converts static SVG to PNG without allowing Batik to fetch external resources. Policy-approved
+   * image references, including opt-in remote and local sources, are loaded by the shared secure
+   * image loader, raster-validated, and replaced with canonical data URIs before transcoding.
+   * Local file URIs must resolve inside the policy's real base directory; relative paths resolve
+   * against that base. Fixed SVG structural/aggregate image limits and the policy's output pixel
+   * budget are checked before transcoding. These limits are not a general complexity guarantee
+   * for arbitrary untrusted SVG.
+   *
+   * @param svg SVG source, including sources not generated by graph-support
+   * @param policy rendering policy, or {@code null} for the secure default
+   * @return PNG bytes
+   * @throws FailInitResourceException if SVG is unsafe or secure Batik conversion is unavailable
+   */
+  public byte[] pngBytes(String svg, SecurityPolicy policy) throws FailInitResourceException {
+    try {
+      String safeSvg = SecureSvg.prepare(svg,
+          policy == null ? SecurityPolicy.defaultPolicy() : policy, true);
+      Object transcoder = ClassUtils.newObject(Class.forName(P_T_C));
+      configureSecurityHints(transcoder);
+      try (InputStream input = new ByteArrayInputStream(safeSvg.getBytes(StandardCharsets.UTF_8))) {
+        return transcodeAndReturnOS(input, transcoder).toByteArray();
+      }
+    } catch (Exception | LinkageError e) {
+      throw new FailInitResourceException(e);
+    }
+  }
+
+  /**
+   * Switches off external resource loading and on-load script execution for {@code transcoder}.
+   *
+   * <p>A missing or rejected hint aborts conversion, including direct calls that bypass converter
+   * selection.</p>
+   *
+   * @param transcoder the Batik transcoder to harden
+   * @throws Exception if the Batik transcoder base classes are missing altogether
+   */
   protected void configureSecurityHints(Object transcoder) throws Exception {
-    Class<?> svgTranscoder = Class.forName("org.apache.batik.transcoder.SVGAbstractTranscoder");
-    Class<?> hintKey = Class.forName("org.apache.batik.transcoder.TranscodingHints$Key");
-    Object allowExternal = ClassUtils.getStaticField(svgTranscoder,
-                                                     "KEY_ALLOW_EXTERNAL_RESOURCES");
-    Object executeOnLoad = ClassUtils.getStaticField(svgTranscoder, "KEY_EXECUTE_ONLOAD");
-    ClassUtils.invoke(transcoder, "addTranscodingHint",
-                      new Class[]{hintKey, Object.class}, allowExternal, Boolean.FALSE);
-    ClassUtils.invoke(transcoder, "addTranscodingHint",
-                      new Class[]{hintKey, Object.class}, executeOnLoad, Boolean.FALSE);
+    applySecurityHints(transcoder, Class.forName(SVG_A_T_C), Class.forName(HINT_KEY_C));
   }
 
-  private void validateRasterSize(Document document, DrawGraph drawGraph) {
-    long maximum = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy().getMaxOutputPixels();
-    document.accessEles((element, children) -> {
-      if (!"svg".equals(element.tagName())) {
-        return;
+  /**
+   * Applies every required hardening hint. Package-private so tests can supply a transcoder base
+   * that is missing a hint field.
+   *
+   * @param transcoder      transcoder receiving the hints
+   * @param transcoderBase  class declaring the hint key constants
+   * @param hintKeyType     declared parameter type of {@code addTranscodingHint}
+   */
+  static void applySecurityHints(Object transcoder, Class<?> transcoderBase, Class<?> hintKeyType) {
+    for (String field : SECURITY_HINT_FIELDS) {
+      Object key = hintKey(transcoderBase, field);
+      if (key == ABSENT_HINT) {
+        throw insecureBatik(field, null);
       }
-      double width = Math.ceil(parsePointLength(element.getAttribute("width"))
-                                   * CSS_PIXELS_PER_POINT);
-      double height = Math.ceil(parsePointLength(element.getAttribute("height"))
-                                    * CSS_PIXELS_PER_POINT);
-      if (!Double.isFinite(width) || !Double.isFinite(height) || width <= 0 || height <= 0
-          || width > maximum / height) {
-        throw new IllegalArgumentException("Rendered image " + width + "x" + height
-                                               + " exceeds the security policy pixel limit "
-                                               + maximum);
+      try {
+        ClassUtils.invoke(transcoder, "addTranscodingHint",
+                          new Class[]{hintKeyType, Object.class}, key, Boolean.FALSE);
+      } catch (Exception | LinkageError e) {
+        throw insecureBatik(field, e);
       }
-    });
+    }
   }
 
-  private double parsePointLength(String length) {
-    if (StringUtils.isBlank(length)) {
-      throw new IllegalArgumentException("SVG raster dimension is missing");
+  /**
+   * Returns the hint key constant declared by {@code transcoderBase}, or {@link #ABSENT_HINT} when
+   * this Batik build does not declare it. Probed once per class and field name.
+   */
+  private static Object hintKey(Class<?> transcoderBase, String field) {
+    String cacheKey = transcoderBase.getName() + '#' + field;
+    Object cached = HINT_KEYS.get(cacheKey);
+    if (cached != null) {
+      return cached;
     }
+    Object key;
+    try {
+      key = ClassUtils.getStaticField(transcoderBase, field);
+      if (key == null) {
+        key = ABSENT_HINT;
+      }
+    } catch (Exception | LinkageError e) {
+      key = ABSENT_HINT;
+    }
+    HINT_KEYS.put(cacheKey, key);
+    return key;
+  }
 
-    String normalized = length.trim();
-    if (!normalized.endsWith("pt")) {
-      throw new IllegalArgumentException("SVG raster dimension must use pt units");
+  private static IllegalStateException insecureBatik(String field, Throwable cause) {
+    String message = "No secure Batik/FOP converter: required security hint " + field
+        + " is unavailable or rejected. Use a supported modern Batik (1.13+ security hints)"
+        + " and compatible FOP for TIFF/PDF; graph PNG/JPEG can use the native converter.";
+    if (DEGRADED_HINTS.add(field)) {
+      log.warn(message, cause);
     }
-
-    String value = normalized.substring(0, normalized.length() - 2).trim();
-    if (value.isEmpty()) {
-      throw new IllegalArgumentException("SVG raster dimension is missing");
-    }
-    return Double.parseDouble(value);
+    return new IllegalStateException(message, cause);
   }
 
   /**

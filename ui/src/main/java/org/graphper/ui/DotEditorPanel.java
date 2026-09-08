@@ -17,16 +17,19 @@
 package org.graphper.ui;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import java.awt.AWTError;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.io.File;
@@ -34,6 +37,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -121,6 +125,8 @@ public class DotEditorPanel extends JPanel {
   private final CanvasInteraction canvasInteraction = new CanvasInteraction(preview);
 
   private String lastSvg;
+  private JButton exportPng;
+  private SwingWorker<byte[], Void> pngExportWorker;
   private File currentFile;
   private File previewFile;
 
@@ -167,6 +173,17 @@ public class DotEditorPanel extends JPanel {
 
   JButton renderButton() {
     return renderButton;
+  }
+
+  @Override
+  public void removeNotify() {
+    SwingWorker<byte[], Void> worker = pngExportWorker;
+    pngExportWorker = null;
+    if (worker != null) {
+      worker.cancel(true);
+      exportPng.setEnabled(true);
+    }
+    super.removeNotify();
   }
 
   // ------------------------------------ editor setup ------------------------------------
@@ -433,10 +450,33 @@ public class DotEditorPanel extends JPanel {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void installFindShortcut() {
-    int shortcut = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    bindKey(KeyStroke.getKeyStroke('F', shortcut), "dot-find", event -> showFindDialog());
+    bindKey(KeyStroke.getKeyStroke('F', menuShortcutMask()), "dot-find", event -> showFindDialog());
+  }
+
+  /**
+   * @return the platform menu accelerator modifier, or {@link #fallbackMenuShortcutMask()} when the
+   *     AWT toolkit cannot answer. {@code Toolkit} refuses this query without a display, and a
+   *     missing accelerator modifier is not a reason to fail the whole editor: every other binding,
+   *     the document model and the render pipeline stay usable, so the panel degrades to a
+   *     best-guess modifier instead of throwing out of its constructor.
+   */
+  @SuppressWarnings("deprecation")
+  private static int menuShortcutMask() {
+    try {
+      return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    } catch (HeadlessException | AWTError e) {
+      return fallbackMenuShortcutMask();
+    }
+  }
+
+  /**
+   * @return the modifier the platform would normally report - Command on macOS, Control elsewhere
+   */
+  @SuppressWarnings("deprecation")
+  private static int fallbackMenuShortcutMask() {
+    String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+    return os.contains("mac") ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
   }
 
   private void showFindDialog() {
@@ -569,8 +609,7 @@ public class DotEditorPanel extends JPanel {
   private void addExportActions(JPanel toolbar) {
     JButton exportSvg = actionButton("SVG", UiIcon.Kind.EXPORT,
                                      event -> export("svg", currentSvgBytes()));
-    JButton exportPng = actionButton("PNG", UiIcon.Kind.EXPORT,
-                                     event -> export("png", currentPngBytes()));
+    exportPng = actionButton("PNG", UiIcon.Kind.EXPORT, event -> exportPng());
     toolbar.add(label("Export", MUTED, Font.PLAIN, 12f));
     toolbar.add(Box.createHorizontalStrut(7));
     toolbar.add(exportSvg);
@@ -890,7 +929,7 @@ public class DotEditorPanel extends JPanel {
     }
   }
 
-  private void export(String extension, byte[] bytes) {
+  void export(String extension, byte[] bytes) {
     if (bytes == null) {
       JOptionPane.showMessageDialog(this, "Render the graph before exporting.",
                                     "Nothing to export", JOptionPane.INFORMATION_MESSAGE);
@@ -913,8 +952,47 @@ public class DotEditorPanel extends JPanel {
     return lastSvg == null ? null : renderService.svgBytes(lastSvg);
   }
 
-  private byte[] currentPngBytes() {
-    return lastSvg == null ? null : renderService.pngBytes(lastSvg);
+  private void exportPng() {
+    if (pngExportWorker != null) {
+      return;
+    }
+    final String svg = lastSvg;
+    if (svg == null) {
+      export("png", null);
+      return;
+    }
+    // Capture the preview and its policy-bearing service on the EDT, not in the worker.
+    final DotRenderService service = renderService;
+    exportPng.setEnabled(false);
+    pngExportWorker = new SwingWorker<byte[], Void>() {
+      @Override
+      protected byte[] doInBackground() {
+        return service.pngBytes(svg);
+      }
+
+      @Override
+      protected void done() {
+        if (pngExportWorker != this) {
+          return;
+        }
+        try {
+          if (!svg.equals(lastSvg)) {
+            setStatus("Preview changed; export PNG again.", false);
+            return;
+          }
+          export("png", get());
+        } catch (Exception e) {
+          Throwable cause = rootCause(e);
+          showError("Unable to export PNG", cause instanceof Exception ? (Exception) cause : e);
+        } finally {
+          if (pngExportWorker == this) {
+            pngExportWorker = null;
+            exportPng.setEnabled(true);
+          }
+        }
+      }
+    };
+    pngExportWorker.execute();
   }
 
   private static void writeFile(File file, byte[] bytes) throws IOException {
@@ -954,7 +1032,7 @@ public class DotEditorPanel extends JPanel {
     status.setToolTipText(error ? message : null);
   }
 
-  private void showError(String title, Exception error) {
+  void showError(String title, Exception error) {
     setStatus(error.getMessage(), true);
     JOptionPane.showMessageDialog(this, error.getMessage(), title, JOptionPane.ERROR_MESSAGE);
   }

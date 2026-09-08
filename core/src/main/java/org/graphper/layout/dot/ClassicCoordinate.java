@@ -18,9 +18,12 @@ package org.graphper.layout.dot;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.def.EdgeDedigraph;
@@ -131,13 +134,21 @@ class ClassicCoordinate extends AbstractCoordinate {
     return leftIndex <= rightIndex;
   }
 
+  /**
+   * Whether {@code target} is reachable from {@code from} in the auxiliary graph.
+   *
+   * <p>{@code DNode} does not override {@code equals}, so membership of the visited collection is
+   * reference identity. An identity-hashed set gives that in constant time, which keeps the
+   * traversal at O(V + E); a list would have made every examined successor scan the whole visited
+   * prefix.
+   */
   private boolean reachable(DNode from, DNode target) {
     if (from == target) {
       return true;
     }
 
     Queue<DNode> queue = new ArrayDeque<>();
-    List<DNode> visited = new ArrayList<>();
+    Set<DNode> visited = Collections.newSetFromMap(new IdentityHashMap<>());
     queue.offer(from);
     visited.add(from);
     while (!queue.isEmpty()) {
@@ -150,8 +161,7 @@ class ClassicCoordinate extends AbstractCoordinate {
         if (next == target) {
           return true;
         }
-        if (!visited.contains(next)) {
-          visited.add(next);
+        if (visited.add(next)) {
           queue.offer(next);
         }
       }

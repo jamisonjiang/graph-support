@@ -55,6 +55,18 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
   }
 
   /**
+   * Identity scope of the cluster label, used as the fallback identity of the generated cells. The
+   * cluster number is assigned by the layout engine after construction and is unique per graph,
+   * which is one of the reasons {@link ContainerDrawProp} defers the label conversion until the
+   * label is first needed; the other is that the cluster only joins its
+   * {@link org.graphper.layout.HtmlConvertor.LabelIdSpace} once it joins the {@link DrawGraph}.
+   */
+  @Override
+  protected String labelScope() {
+    return "cluster_" + clusterNo;
+  }
+
+  /**
    * Returns current cluster.
    *
    * @return current cluster

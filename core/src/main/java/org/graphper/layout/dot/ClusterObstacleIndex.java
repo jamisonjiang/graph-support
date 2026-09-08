@@ -42,6 +42,13 @@ final class ClusterObstacleIndex {
   private final RectangleTree<DNode> nodes = new RectangleTree<>(8);
 
   ClusterObstacleIndex(RankContent rankContent, DrawGraph drawGraph) {
+    if (drawGraph.clusters().isEmpty()) {
+      // The node index only serves cluster detours, so a cluster-free graph must not pay for it.
+      rankEnds = new double[0];
+      byRank = Collections.emptyMap();
+      return;
+    }
+
     rankEnds = new double[rankContent.maxRank() - rankContent.minRank() + 1];
     for (int i = 0; i < rankEnds.length; i++) {
       rankEnds[i] = rankContent.get(rankContent.minRank() + i).getEndY();
@@ -50,10 +57,6 @@ final class ClusterObstacleIndex {
           nodes.insert(node);
         }
       }
-    }
-    if (drawGraph.clusters().isEmpty()) {
-      byRank = Collections.emptyMap();
-      return;
     }
 
     Graphviz graphviz = drawGraph.getGraphviz();

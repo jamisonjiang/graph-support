@@ -68,6 +68,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     if (node == null || nodeDrawProp == null) {
       return;
     }
+    nodeDrawProp.setLabelIdSpace(graphvizDrawProp.labelIdSpace());
     nodeDrawPropMap.put(node, nodeDrawProp);
   }
 
@@ -88,6 +89,7 @@ public class DrawGraph extends Rectangle implements Serializable {
       clusterDrawPropMap = new HashMap<>(graphvizDrawProp.getGraphviz().clusters().size());
     }
 
+    clusterDrawProp.setLabelIdSpace(graphvizDrawProp.labelIdSpace());
     clusterDrawPropMap.put(cluster, clusterDrawProp);
   }
 
