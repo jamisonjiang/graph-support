@@ -26,9 +26,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Generic adjacency list that can store vertices or edges with degree and selfloop tracking.
- * Uses composition with an internal ArrayList to ensure all modifications are properly tracked.
- * Enhanced with doubly-linked list structure for efficient next/previous navigation.
+ * Generic adjacency list that can store vertices or edges with degree and selfloop tracking. Uses
+ * composition with an internal ArrayList to ensure all modifications are properly tracked. Enhanced
+ * with doubly-linked list structure for efficient next/previous navigation.
  *
  * @param <V> the type of vertex
  * @param <T> the type of adjacent object (vertex or edge)
@@ -37,39 +37,25 @@ import java.util.function.Predicate;
 public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   private static final long serialVersionUID = -1234567890123456789L;
 
-  /**
-   * Internal list for storing adjacent objects.
-   */
+  /** Internal list for storing adjacent objects. */
   private final List<T> inner;
 
-  /**
-   * The vertex this adjacency list belongs to.
-   */
+  /** The vertex this adjacency list belongs to. */
   private final V owner;
 
-  /**
-   * Number of self-loops in this adjacency list.
-   */
+  /** Number of self-loops in this adjacency list. */
   private int selfLoopCount;
 
-  /**
-   * Function to determine if an adjacent object represents a self-loop.
-   */
+  /** Function to determine if an adjacent object represents a self-loop. */
   private final Function<T, Boolean> selfLoopChecker;
 
-  /**
-   * Whether this adjacency list is for an undirected graph.
-   */
+  /** Whether this adjacency list is for an undirected graph. */
   private final boolean isUndirected;
 
-  /**
-   * Previous vertex in the linked list for efficient traversal.
-   */
+  /** Previous vertex in the linked list for efficient traversal. */
   private transient AdjacencyList<V, T> pre;
 
-  /**
-   * Next vertex in the linked list for efficient traversal.
-   */
+  /** Next vertex in the linked list for efficient traversal. */
   private transient AdjacencyList<V, T> next;
 
   /**
@@ -105,7 +91,7 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     this.pre = null;
     this.next = null;
     this.isUndirected = isUndirected;
-    
+
     // Default self-loop checker for vertices
     if (selfLoopChecker == null) {
       this.selfLoopChecker = (T adjacent) -> Objects.equals(adjacent, owner);
@@ -133,14 +119,15 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
    * @param selfLoopChecker function to check if an adjacent object is a self-loop
    * @param isUndirected whether this adjacency list is for an undirected graph
    */
-  private AdjacencyList(V owner, int initialCapacity, Function<T, Boolean> selfLoopChecker, boolean isUndirected) {
+  private AdjacencyList(
+      V owner, int initialCapacity, Function<T, Boolean> selfLoopChecker, boolean isUndirected) {
     this.inner = new ArrayList<>(initialCapacity);
     this.owner = owner;
     this.selfLoopCount = 0;
     this.pre = null;
     this.next = null;
     this.isUndirected = isUndirected;
-    
+
     // Default self-loop checker for vertices
     if (selfLoopChecker == null) {
       this.selfLoopChecker = (T adjacent) -> Objects.equals(adjacent, owner);
@@ -174,17 +161,14 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
 
   // AdjacencyList specific methods
 
-  /**
-   * Get the number of self-loops in this adjacency list.
-   */
+  /** Get the number of self-loops in this adjacency list. */
   public int getSelfLoopCount() {
     return selfLoopCount;
   }
 
   /**
-   * Get the degree.
-   * For undirected graphs, the degree includes the self-loop count.
-   * For directed graphs, the degree is simply the number of adjacent elements.
+   * Get the degree. For undirected graphs, the degree includes the self-loop count. For directed
+   * graphs, the degree is simply the number of adjacent elements.
    */
   public int getDegree() {
     if (isUndirected) {
@@ -194,23 +178,17 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     }
   }
 
-  /**
-   * Get the owner vertex of this adjacency list.
-   */
+  /** Get the owner vertex of this adjacency list. */
   public V getOwner() {
     return owner;
   }
 
-  /**
-   * Check if this adjacency list contains a self-loop.
-   */
+  /** Check if this adjacency list contains a self-loop. */
   public boolean hasSelfLoop() {
     return selfLoopCount > 0;
   }
 
-  /**
-   * Check if this adjacency list is for an undirected graph.
-   */
+  /** Check if this adjacency list is for an undirected graph. */
   public boolean isUndirected() {
     return isUndirected;
   }
@@ -265,8 +243,8 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   /**
-   * Set the previous adjacency list in the linked list.
-   * This method is package-private to be used by graph implementations.
+   * Set the previous adjacency list in the linked list. This method is package-private to be used
+   * by graph implementations.
    *
    * @param pre previous adjacency list
    */
@@ -275,8 +253,8 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   /**
-   * Set the next adjacency list in the linked list.
-   * This method is package-private to be used by graph implementations.
+   * Set the next adjacency list in the linked list. This method is package-private to be used by
+   * graph implementations.
    *
    * @param next next adjacency list
    */
@@ -285,8 +263,8 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   /**
-   * Insert this adjacency list after the specified adjacency list.
-   * This method maintains the doubly-linked list structure.
+   * Insert this adjacency list after the specified adjacency list. This method maintains the
+   * doubly-linked list structure.
    *
    * @param after the adjacency list after which this should be inserted
    */
@@ -294,10 +272,10 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     if (after == null) {
       return;
     }
-    
+
     this.pre = after;
     this.next = after.next;
-    
+
     if (after.next != null) {
       after.next.pre = this;
     }
@@ -305,8 +283,8 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   /**
-   * Insert this adjacency list before the specified adjacency list.
-   * This method maintains the doubly-linked list structure.
+   * Insert this adjacency list before the specified adjacency list. This method maintains the
+   * doubly-linked list structure.
    *
    * @param before the adjacency list before which this should be inserted
    */
@@ -314,10 +292,10 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     if (before == null) {
       return;
     }
-    
+
     this.next = before;
     this.pre = before.pre;
-    
+
     if (before.pre != null) {
       before.pre.next = this;
     }
@@ -325,8 +303,8 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
   }
 
   /**
-   * Remove this adjacency list from the linked list.
-   * This method maintains the doubly-linked list structure.
+   * Remove this adjacency list from the linked list. This method maintains the doubly-linked list
+   * structure.
    */
   void unlinkFromList() {
     if (pre != null) {
@@ -339,18 +317,14 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     next = null;
   }
 
-  /**
-   * Update metadata when adding an adjacent object.
-   */
+  /** Update metadata when adding an adjacent object. */
   private void updateMetadataOnAdd(T adjacent) {
     if (Boolean.TRUE.equals(selfLoopChecker.apply(adjacent))) {
       selfLoopCount++;
     }
   }
 
-  /**
-   * Update metadata when removing an adjacent object.
-   */
+  /** Update metadata when removing an adjacent object. */
   private void updateMetadataOnRemove(T adjacent) {
     if (Boolean.TRUE.equals(selfLoopChecker.apply(adjacent))) {
       selfLoopCount--;
@@ -359,53 +333,45 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
 
   // Factory methods
 
-  /**
-   * Create a new adjacency list for vertices.
-   */
+  /** Create a new adjacency list for vertices. */
   public static <V> AdjacencyList<V, V> forUndirectedVertices(V owner) {
     return new AdjacencyList<>(owner, null, true);
   }
 
-  /**
-   * Create a new adjacency list for vertices.
-   */
+  /** Create a new adjacency list for vertices. */
   public static <V> AdjacencyList<V, V> forDirectedVertices(V owner) {
     return new AdjacencyList<>(owner, null);
   }
 
-  /**
-   * Create a new adjacency list for edges.
-   */
+  /** Create a new adjacency list for edges. */
   public static <V, E extends BaseEdge<V, E>> AdjacencyList<V, E> forUndirectedEdges(V owner) {
-    Function<E, Boolean> selfLoopChecker = (E edge) -> {
-      if (edge == null) {
-        return false;
-      }
-      V other = edge.other(owner);
-      return Objects.equals(owner, other);
-    };
+    Function<E, Boolean> selfLoopChecker =
+        (E edge) -> {
+          if (edge == null) {
+            return false;
+          }
+          V other = edge.other(owner);
+          return Objects.equals(owner, other);
+        };
     return new AdjacencyList<>(owner, selfLoopChecker, true);
   }
 
-  /**
-   * Create a new adjacency list for edges.
-   */
+  /** Create a new adjacency list for edges. */
   public static <V, E extends DirectedEdge<V, E>> AdjacencyList<V, E> forDirectedEdges(V owner) {
-    Function<E, Boolean> selfLoopChecker = (E edge) -> {
-      if (edge == null) {
-        return false;
-      }
-      return Objects.equals(edge.from(), edge.to());
-    };
-    
+    Function<E, Boolean> selfLoopChecker =
+        (E edge) -> {
+          if (edge == null) {
+            return false;
+          }
+          return Objects.equals(edge.from(), edge.to());
+        };
+
     return new AdjacencyList<>(owner, selfLoopChecker);
   }
 
   // Iterator that updates metadata on remove operations
 
-  /**
-   * Iterator wrapper that updates metadata on remove operations.
-   */
+  /** Iterator wrapper that updates metadata on remove operations. */
   private class MetadataUpdatingIterator implements Iterator<T> {
     private final Iterator<T> delegate;
     private final boolean supportRemove;
@@ -450,14 +416,14 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     @SuppressWarnings("unchecked")
     AdjacencyList<V, T> other = (AdjacencyList<V, T>) obj;
-    
-    return Objects.equals(owner, other.owner) &&
-           selfLoopCount == other.selfLoopCount &&
-           isUndirected == other.isUndirected &&
-           Objects.equals(inner, other.inner);
+
+    return Objects.equals(owner, other.owner)
+        && selfLoopCount == other.selfLoopCount
+        && isUndirected == other.isUndirected
+        && Objects.equals(inner, other.inner);
   }
 
   @Override
@@ -467,12 +433,17 @@ public class AdjacencyList<V, T> implements Iterable<T>, Serializable {
 
   @Override
   public String toString() {
-    return "AdjacencyList{" +
-        "owner=" + owner +
-        ", selfLoopCount=" + selfLoopCount +
-        ", isUndirected=" + isUndirected +
-        ", degree=" + getDegree() +
-        ", elements=" + inner +
-        '}';
+    return "AdjacencyList{"
+        + "owner="
+        + owner
+        + ", selfLoopCount="
+        + selfLoopCount
+        + ", isUndirected="
+        + isUndirected
+        + ", degree="
+        + getDegree()
+        + ", elements="
+        + inner
+        + '}';
   }
 }

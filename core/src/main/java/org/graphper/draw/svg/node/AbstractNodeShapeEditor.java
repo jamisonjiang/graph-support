@@ -23,6 +23,7 @@ import org.graphper.draw.NodeEditor;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Provides shared SVG shape element access for node editors. */
 public abstract class AbstractNodeShapeEditor implements NodeEditor<SvgBrush>, SvgConstants {
 
   protected String getShapeElement(NodeDrawProp nodeDrawProp) {
@@ -30,6 +31,7 @@ public abstract class AbstractNodeShapeEditor implements NodeEditor<SvgBrush>, S
 
     if (nodeShape == NodeShapeEnum.CIRCLE
         || nodeShape == NodeShapeEnum.ELLIPSE
+        || nodeShape == NodeShapeEnum.OVAL
         || nodeShape == NodeShapeEnum.POINT) {
       return NodeShapeEnum.ELLIPSE.getName();
     }

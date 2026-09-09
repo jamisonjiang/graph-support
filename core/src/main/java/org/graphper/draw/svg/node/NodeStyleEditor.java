@@ -27,6 +27,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
+/** Applies node stroke styles to SVG shapes. */
 public class NodeStyleEditor extends AbstractNodeShapeEditor {
 
   @Override

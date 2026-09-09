@@ -45,13 +45,24 @@ class DLine extends ALine<DNode, DLine> {
     this(left, right, null, weight, limit, null, realTimeLimit);
   }
 
-  DLine(DNode left, DNode right, LineDrawProp lineDrawProp, double weight,
-        int limit, FlatPoint labelSize) {
+  DLine(
+      DNode left,
+      DNode right,
+      LineDrawProp lineDrawProp,
+      double weight,
+      int limit,
+      FlatPoint labelSize) {
     this(left, right, lineDrawProp, weight, limit, labelSize, false);
   }
 
-  DLine(DNode left, DNode right, LineDrawProp lineDrawProp, double weight, int limit,
-        FlatPoint labelSize, boolean realTimeLimit) {
+  DLine(
+      DNode left,
+      DNode right,
+      LineDrawProp lineDrawProp,
+      double weight,
+      int limit,
+      FlatPoint labelSize,
+      boolean realTimeLimit) {
     super(left, right, weight, lineDrawProp);
 
     this.limit = limit;
@@ -106,7 +117,6 @@ class DLine extends ALine<DNode, DLine> {
 
     return slack - limit();
   }
-
 
   /**
    * Returns whether the two nodes of an edge are at the same rank.
@@ -170,14 +180,12 @@ class DLine extends ALine<DNode, DLine> {
 
   @Override
   public DLine reverse() {
-    return new DLine(right, left, lineDrawProp,
-                     weight, limit, labelSize, realTimeLimit);
+    return new DLine(right, left, lineDrawProp, weight, limit, labelSize, realTimeLimit);
   }
 
   @Override
   public DLine copy() {
-    DLine repl = new DLine(left, right, lineDrawProp,
-                           weight, limit, labelSize, realTimeLimit);
+    DLine repl = new DLine(left, right, lineDrawProp, weight, limit, labelSize, realTimeLimit);
     repl.cutVal = cutVal;
     return repl;
   }
@@ -194,9 +202,9 @@ class DLine extends ALine<DNode, DLine> {
       return false;
     }
     DLine line1 = (DLine) o;
-    return Double.compare(line1.cutVal, cutVal) == 0 &&
-        limit == line1.limit &&
-        Objects.equals(getLine(), line1.getLine());
+    return Double.compare(line1.cutVal, cutVal) == 0
+        && limit == line1.limit
+        && Objects.equals(getLine(), line1.getLine());
   }
 
   @Override
@@ -206,10 +214,7 @@ class DLine extends ALine<DNode, DLine> {
 
   @Override
   public String toString() {
-    return "{from:" + left + "," +
-        "to:" + right + "," +
-        "weight:" + weight + "," +
-        "limit:" + limit + "," +
-        "cutval:" + cutVal + "}";
+    return "{from:" + left + "," + "to:" + right + "," + "weight:" + weight + "," + "limit:" + limit
+        + "," + "cutval:" + cutVal + "}";
   }
 }

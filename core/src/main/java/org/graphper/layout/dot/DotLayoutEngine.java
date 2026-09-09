@@ -66,16 +66,19 @@ import org.graphper.util.CollectionUtils;
  * edge length.
  *
  * <p>Dot layout mainly has the following aesthetic principles:
+ *
  * <ul>
- *   <li>A1: Expose hierarchical structure in the graph. In particular, aim edges in the same general
- *   direction if possible. This aids finding directed paths and highlights source and sink nodes;
- *   <li>A2: Avoid visual anomalies that do not convey information about the underlying graph.
- *   For example, avoid edge crossings and sharp bends;
+ *   <li>A1: Expose hierarchical structure in the graph. In particular, aim edges in the same
+ *       general direction if possible. This aids finding directed paths and highlights source and
+ *       sink nodes;
+ *   <li>A2: Avoid visual anomalies that do not convey information about the underlying graph. For
+ *       example, avoid edge crossings and sharp bends;
  *   <li>A3: Keep edges short. This makes it easier to find related nodes and contributes to A2;
  *   <li>A4: Favor symmetry and balance.
  * </ul>
  *
  * <p>The overall process of Dot layout is as follows:
+ *
  * <pre>{@code
  * 1. procedure draw_graph()
  * 2. begin
@@ -96,32 +99,30 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
   private static final long serialVersionUID = 1932138711284862609L;
 
-  /**
-   * Whether to use quick coordinate algorithm
-   */
+  /** Whether to use quick coordinate algorithm. */
   private final boolean useQuickCoordinate;
 
-  /**
-   * Spline router factory
-   */
+  /** Spline router factory. */
   private static final List<DotLineRouterFactory<?>> SPLINES_HANDLERS;
 
   static {
-    SPLINES_HANDLERS = Arrays.asList(new RoundedRouterFactory(), new SplineRouterFactory(),
-                                     new PolyLineRouterFactory(), new LineRouterBuilder(),
-                                     new OrthogonalRouterFactory());
+    SPLINES_HANDLERS =
+        Arrays.asList(
+            new RoundedRouterFactory(),
+            new SplineRouterFactory(),
+            new PolyLineRouterFactory(),
+            new LineRouterBuilder(),
+            new OrthogonalRouterFactory());
   }
 
-  /**
-   * Default constructor using classic layout
-   */
+  /** Default constructor using classic layout. */
   public DotLayoutEngine() {
     this(false);
   }
 
   /**
-   * Constructor with specified coordinate algorithm
-   * 
+   * Constructor with specified coordinate algorithm.
+   *
    * @param useQuickCoordinate whether to use quick coordinate algorithm
    */
   public DotLayoutEngine(boolean useQuickCoordinate) {
@@ -139,15 +140,15 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
   @Override
   protected LayoutAttach attachment(DrawGraph drawGraph) {
     Map<Node, DNode> nodeRecord = new HashMap<>(drawGraph.getGraphviz().nodeNum());
-    DotDigraph dotDigraph = new DotDigraph(drawGraph.getGraphviz().nodeNum(),
-                                           drawGraph.getGraphviz(), nodeRecord);
+    DotDigraph dotDigraph =
+        new DotDigraph(drawGraph.getGraphviz().nodeNum(), drawGraph.getGraphviz(), nodeRecord);
 
     return new DotAttachment(dotDigraph, drawGraph, nodeRecord);
   }
 
   @Override
-  protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
-                              GraphContainer parentContainer) {
+  protected void consumerNode(
+      Node node, LayoutAttach attachment, DrawGraph drawGraph, GraphContainer parentContainer) {
     DotAttachment dotAttachment = (DotAttachment) attachment;
 
     DNode dn = dotAttachment.get(node);
@@ -196,11 +197,23 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
       labelSize.flip();
     }
 
-    DLine dLine = new DLine(source, target, lineDrawProp,
-                            lineAttrs.getWeight() == null ? line.weight() : lineAttrs.getWeight(),
-                            lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1, labelSize);
+    DLine dLine =
+        new DLine(
+            source,
+            target,
+            lineDrawProp,
+            lineAttrs.getWeight() == null ? line.weight() : lineAttrs.getWeight(),
+            lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1,
+            labelSize);
 
     dotAttachment.addEdge(dLine);
+    if (Boolean.FALSE.equals(lineAttrs.getConstraint())) {
+      dotAttachment.addNonConstraintLine(dLine);
+    }
+    if (StringUtils.isNotEmpty(lineAttrs.getSameTail())
+        || StringUtils.isNotEmpty(lineAttrs.getSameHead())) {
+      dotAttachment.addSameEndpointLine(dLine);
+    }
   }
 
   @Override
@@ -253,14 +266,25 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     GraphAttrs graphAttrs = graphviz.graphAttrs();
 
     // Collapse subgraphs and clusters, then assign the rank for per node
-    ContainerCollapse containerCollapse = new ContainerCollapse(dotAttachment, graphviz);
-    RankContent rankContent = containerCollapse.getRankContent();
+    boolean haveNonConstraintLines = dotAttachment.haveNonConstraintLines();
+    RankContent rankContent;
+    if (haveNonConstraintLines) {
+      List<DLine> suspendedLines = dotAttachment.getNonConstraintLines();
+      dotDigraph.suspendEdges(suspendedLines);
+      try {
+        rankContent = new ContainerCollapse(dotAttachment, graphviz).getRankContent();
+      } finally {
+        dotDigraph.restoreEdges(suspendedLines);
+      }
+    } else {
+      rankContent = new ContainerCollapse(dotAttachment, graphviz).getRankContent();
+    }
 
     if (rankContent == null) {
       throw new ExecuteException("Graph is empty");
     }
 
-    if (dotAttachment.haveClusters() || dotAttachment.haveSubgraphs()) {
+    if (haveNonConstraintLines || dotAttachment.haveClusters() || dotAttachment.haveSubgraphs()) {
       /*
        * 1.Find self loop line, remove it.
        * 2. If there is an edge where the rank of from is greater
@@ -286,6 +310,9 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
 
     // If cell not set port, auto generate port for line to get more reasonable routing
     autoGeneratePort(dotAttachment);
+    if (graphAttrs.getSplines() != Splines.ORTHO) {
+      new SameEndpointProcessor(dotAttachment).process();
+    }
 
     if (!drawGraph.needFlip()) {
       containerLabelPos(drawGraph);
@@ -293,7 +320,8 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     splines(drawGraph, dotDigraph, rankContent, digraphProxy);
   }
 
-  // --------------------------------------------- private method ---------------------------------------------
+  // --------------------------------------------- private method
+  // ---------------------------------------------
 
   private void handleLegalLine(DotDigraph dotDigraph, DrawGraph drawGraph) {
     List<DLine> reverseLines = null;
@@ -359,7 +387,8 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         Port port = closestPort(ports, fromCellBox, line.getTo());
 
         if (port != null) {
-          setLinePort(line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, drawGraph));
+          setLinePort(
+              line.getLine(), line.getFrom(), FlipShifterStrategy.backPort(port, drawGraph));
         }
       }
       if (toCellBox != null) {
@@ -433,8 +462,11 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
     return Math.abs(y - target.getY());
   }
 
-  private void splines(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,
-                       EdgeDedigraph<DNode, DLine> digraphProxy) {
+  private void splines(
+      DrawGraph drawGraph,
+      DotDigraph dotDigraph,
+      RankContent rankContent,
+      EdgeDedigraph<DNode, DLine> digraphProxy) {
     Splines splines = drawGraph.getGraphviz().graphAttrs().getSplines();
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
 
@@ -448,8 +480,10 @@ public class DotLayoutEngine extends AbstractLayoutEngine implements Serializabl
         continue;
       }
 
-      LineRouter dotLineRouter = linesHandlerFactory.newInstance(drawGraph, dotDigraph,
-                                                                 rankContent, digraphProxy);
+      LineRouter dotLineRouter =
+          linesHandlerFactory.newInstance(
+              drawGraph, dotDigraph,
+              rankContent, digraphProxy);
       dotLineRouter.route();
     }
   }

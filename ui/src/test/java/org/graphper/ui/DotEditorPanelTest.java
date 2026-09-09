@@ -5,14 +5,38 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.Action;
+import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.junit.jupiter.api.Test;
 
 class DotEditorPanelTest {
+
+  /**
+   * Guards the headless tolerance of the find accelerator: the surefire JVM runs with
+   * {@code java.awt.headless=true}, where the toolkit refuses to report a menu shortcut mask, so
+   * this exercises the fallback. On a machine with a display it exercises the toolkit path instead.
+   * Either way the shortcut must exist and stay behind a modifier.
+   */
+  @Test
+  void bindsTheFindShortcutBehindAMenuModifier() {
+    DotEditorPanel panel = new DotEditorPanel(new DotRenderService());
+    InputMap inputMap = panel.editor().getInputMap();
+
+    KeyStroke find = Arrays.stream(inputMap.keys())
+        .filter(keyStroke -> "dot-find".equals(inputMap.get(keyStroke)))
+        .findFirst()
+        .orElseThrow(AssertionError::new);
+
+    assertEquals(KeyEvent.VK_F, find.getKeyCode());
+    assertTrue(find.getModifiers() != 0);
+    assertNotNull(panel.editor().getActionMap().get("dot-find"));
+  }
 
   @Test
   void createsAnEditorPreviewAndDefaultExample() {
@@ -37,6 +61,9 @@ class DotEditorPanelTest {
     assertCompletion(panel, "lab", "label");
     assertCompletion(panel, "sha", "shape");
     assertCompletion(panel, "ran", "rankdir");
+    assertCompletion(panel, "reg", "regular");
+    assertCompletion(panel, "sameh", "samehead");
+    assertCompletion(panel, "samet", "sametail");
     assertCompletion(panel, "no", "node");
     assertCompletion(panel, "ed", "edge");
   }

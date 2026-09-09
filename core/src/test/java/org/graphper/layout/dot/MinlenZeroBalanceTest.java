@@ -189,6 +189,164 @@ public class MinlenZeroBalanceTest {
     assertNotAbove(y, n0, n2, 0);
   }
 
+  /**
+   * The reference case: as two plain nodes, {@code left -> right} with {@code minlen=0} is
+   * horizontal. Putting the same two endpoints into two sibling clusters must not change that.
+   *
+   * <p>The cluster collapse pass rewrites the edge into a fork from one auxiliary node to the two
+   * cluster proxies, both with limit 0. That fork is the first thing entering the initial feasible
+   * tree, and its first edge used to be admitted with slack, ranking the clusters one apart.
+   */
+  @Test
+  public void minlenZeroAcrossSiblingClustersStaysOnSameRank() throws ExecuteException {
+    Node left = Node.builder().id("left").label("Notifications").build();
+    Node right = Node.builder().id("right").label("Event Handler").build();
+    Cluster leftInner = Cluster.builder().id("left_inner").addNode(left).build();
+    Cluster rightInner = Cluster.builder().id("right_inner").addNode(right).build();
+    Cluster leftOuter = Cluster.builder().id("left_outer").cluster(leftInner).build();
+    Cluster rightOuter = Cluster.builder().id("right_outer").cluster(rightInner).build();
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(leftOuter)
+        .cluster(rightOuter)
+        .addLine(Line.builder(left, right).minlen(0).build())
+        .build();
+
+    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(graphviz);
+    Map<Node, Double> y = centerYByNode(drawGraph);
+
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "cross-cluster minlen=0 endpoints must remain on the same rank");
+  }
+
+  /** Baseline: the same edge without clusters. Establishes what the cluster cases must match. */
+  @Test
+  public void minlenZeroBetweenPlainNodesStaysOnSameRank() throws ExecuteException {
+    Node left = Node.builder().id("left").label("left").build();
+    Node right = Node.builder().id("right").label("right").build();
+    Graphviz graphviz = Graphviz.digraph()
+        .addLine(Line.builder(left, right).minlen(0).build())
+        .build();
+
+    Map<Node, Double> y = centerYByNode(Layout.DOT.getLayoutEngine().layout(graphviz));
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "minlen=0 between plain nodes must be horizontal");
+  }
+
+  /** One cluster level only, so the failure does not depend on nesting depth. */
+  @Test
+  public void minlenZeroAcrossFlatSiblingClustersStaysOnSameRank() throws ExecuteException {
+    Node left = Node.builder().id("left").label("left").build();
+    Node right = Node.builder().id("right").label("right").build();
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(Cluster.builder().id("cluster_left").addNode(left).build())
+        .cluster(Cluster.builder().id("cluster_right").addNode(right).build())
+        .addLine(Line.builder(left, right).minlen(0).build())
+        .build();
+
+    Map<Node, Double> y = centerYByNode(Layout.DOT.getLayoutEngine().layout(graphviz));
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "minlen=0 across flat sibling clusters must stay on one rank");
+  }
+
+  /**
+   * The PlantUML shape from the report: a shared {@code p0} wrapper holding a {@code visible}
+   * cluster on each side, each of which holds the endpoint. Three levels of nesting on both sides.
+   */
+  @Test
+  public void minlenZeroAcrossNestedPlantUmlStyleClustersStaysOnSameRank()
+      throws ExecuteException {
+    Node left = Node.builder().id("left").label("Notifications").build();
+    Node right = Node.builder().id("right").label("Event Handler").build();
+
+    Cluster leftVisible = Cluster.builder().id("cluster_left_visible").addNode(left).build();
+    Cluster rightVisible = Cluster.builder().id("cluster_right_visible").addNode(right).build();
+    Cluster leftP1 = Cluster.builder().id("cluster_left_p1").cluster(leftVisible).build();
+    Cluster rightP1 = Cluster.builder().id("cluster_right_p1").cluster(rightVisible).build();
+    Cluster p0 = Cluster.builder().id("cluster_p0")
+        .cluster(leftP1)
+        .cluster(rightP1)
+        .build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(p0)
+        .addLine(Line.builder(left, right).minlen(0).build())
+        .build();
+
+    Map<Node, Double> y = centerYByNode(Layout.DOT.getLayoutEngine().layout(graphviz));
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "minlen=0 across nested p0/visible/p1 clusters must stay on one rank");
+  }
+
+  /**
+   * With more than one node per cluster the proxy no longer coincides with the endpoint, so the
+   * rank offset between the endpoint and its cluster's minimum rank participates in the collapsed
+   * edge's limit. The endpoints still have to share a rank.
+   */
+  @Test
+  public void minlenZeroAcrossPopulatedSiblingClustersStaysOnSameRank() throws ExecuteException {
+    Node leftTop = Node.builder().id("left_top").label("left_top").build();
+    Node left = Node.builder().id("left").label("left").build();
+    Node rightTop = Node.builder().id("right_top").label("right_top").build();
+    Node right = Node.builder().id("right").label("right").build();
+
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(Cluster.builder().id("cluster_left")
+                     .addLine(Line.builder(leftTop, left).build())
+                     .build())
+        .cluster(Cluster.builder().id("cluster_right")
+                     .addLine(Line.builder(rightTop, right).build())
+                     .build())
+        .addLine(Line.builder(left, right).minlen(0).build())
+        .build();
+
+    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(graphviz);
+    Map<Node, Double> y = centerYByNode(drawGraph);
+
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "minlen=0 endpoints below their cluster tops must share a rank");
+    assertNotAbove(y, leftTop, left, 1);
+    assertNotAbove(y, rightTop, right, 1);
+  }
+
+  /**
+   * Reversed direction of the cross-cluster edge. Which endpoint the tree seeding anchors depends
+   * on edge orientation, so both directions must hold.
+   */
+  @Test
+  public void minlenZeroAcrossSiblingClustersIsDirectionIndependent() throws ExecuteException {
+    Node left = Node.builder().id("left").label("left").build();
+    Node right = Node.builder().id("right").label("right").build();
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(Cluster.builder().id("cluster_left").addNode(left).build())
+        .cluster(Cluster.builder().id("cluster_right").addNode(right).build())
+        .addLine(Line.builder(right, left).minlen(0).build())
+        .build();
+
+    Map<Node, Double> y = centerYByNode(Layout.DOT.getLayoutEngine().layout(graphviz));
+    Assertions.assertEquals(y.get(left), y.get(right), 0.5,
+                            "minlen=0 across clusters must be horizontal in either direction");
+  }
+
+  /**
+   * A positive minlen across the same cluster nesting must still separate the endpoints — the fix
+   * must not have collapsed everything onto one rank.
+   */
+  @Test
+  public void positiveMinlenAcrossSiblingClustersStillSeparatesRanks() throws ExecuteException {
+    Node left = Node.builder().id("left").label("left").build();
+    Node right = Node.builder().id("right").label("right").build();
+    Graphviz graphviz = Graphviz.digraph()
+        .cluster(Cluster.builder().id("cluster_left").addNode(left).build())
+        .cluster(Cluster.builder().id("cluster_right").addNode(right).build())
+        .addLine(Line.builder(left, right).minlen(2).build())
+        .build();
+
+    Map<Node, Double> y = centerYByNode(Layout.DOT.getLayoutEngine().layout(graphviz));
+    Assertions.assertTrue(y.get(right) > y.get(left),
+                          "minlen=2 across clusters must still descend, got left=" + y.get(left)
+                              + " right=" + y.get(right));
+  }
+
   // ------------------------------- helpers -------------------------------
 
   private Map<Node, Double> centerYByNode(DrawGraph drawGraph) {

@@ -39,8 +39,8 @@ import org.graphper.util.CollectionUtils;
 /**
  * When multiple {@link Subgraph}s contain some common nodes, according to different {@link Rank}
  * attributes, sometimes these {@link Subgraph}s need to be regarded as the same {@link Subgraph}.
- * But not all {@link Subgraph}s can be merged, some ranks are mutually exclusive, and
- * {@link SubgrahOppositRankException} will be thrown.
+ * But not all {@link Subgraph}s can be merged, some ranks are mutually exclusive, and {@link
+ * SubgrahOppositRankException} will be thrown.
  *
  * @author Jamison Jiang
  */
@@ -58,23 +58,24 @@ class SubgraphMerge {
 
   private static final SubgraphMerge EMPTY_SUBGRAPH_MERGE = new SubgraphMerge(null, null, null);
 
-  private SubgraphMerge(GraphContainer container,
-                        List<SubNode> subNodes,
-                        DotAttachment dotAttachment) {
+  private SubgraphMerge(
+      GraphContainer container, List<SubNode> subNodes, DotAttachment dotAttachment) {
     this.container = container;
     this.subNodes = subNodes;
     this.dotAttachment = dotAttachment;
 
     /*
-     * Use undirected connect graph, make sure the subgraphs who have common node use the same SubKey,
+     * Use undirected connect graph, make sure the subgraphs who have common node use the same
+     * SubKey,
      * and let these subgrah's nodes map to the unique merge node.
      */
     subConnect();
   }
 
-  static SubgraphMerge newSubgraphMerge(GraphContainer container,
-                                        DotAttachment dotAttachment,
-                                        Consumer<GraphContainer> containerConsumer) {
+  static SubgraphMerge newSubgraphMerge(
+      GraphContainer container,
+      DotAttachment dotAttachment,
+      Consumer<GraphContainer> containerConsumer) {
     Asserts.nullArgument(container, "container");
     Asserts.nullArgument(dotAttachment, "dotAttachment");
 
@@ -115,10 +116,11 @@ class SubgraphMerge {
     return mergeNodeMap == null;
   }
 
-  private static void addSubNode(GraphContainer container,
-                                 List<SubNode> subNodes,
-                                 DotAttachment dotAttachment,
-                                 Consumer<GraphContainer> containerConsumer) {
+  private static void addSubNode(
+      GraphContainer container,
+      List<SubNode> subNodes,
+      DotAttachment dotAttachment,
+      Consumer<GraphContainer> containerConsumer) {
     if (containerConsumer != null) {
       containerConsumer.accept(container);
     }
@@ -203,8 +205,8 @@ class SubgraphMerge {
   /*
    * Nodes in the same connected component will have the same key (SubKey).
    */
-  private void dfs(SubKey subKey, SubNode subNode, Set<SubNode> mark,
-                   VertexGraph<SubNode> connectGraph) {
+  private void dfs(
+      SubKey subKey, SubNode subNode, Set<SubNode> mark, VertexGraph<SubNode> connectGraph) {
     mark.add(subNode);
     subKey.key.rank = compareRankKey(subKey.key.rank, subNode.subgraph.getRank());
     subNode.subKey = subKey;
@@ -275,9 +277,7 @@ class SubgraphMerge {
 
   // ---------------------------------------- static class ----------------------------------------
 
-  /**
-   * The node of Subgraph is used to judge the connection of subgraph.
-   */
+  /** The node of Subgraph is used to judge the connection of subgraph. */
   private static class SubNode {
 
     private static final long serialVersionUID = 6756911716157476290L;
@@ -313,7 +313,8 @@ class SubgraphMerge {
         return false;
       }
 
-      for (int i = bitNodeIds.length - 1, j = subNode.bitNodeIds.length - 1; i >= 0 && j >= 0;
+      for (int i = bitNodeIds.length - 1, j = subNode.bitNodeIds.length - 1;
+          i >= 0 && j >= 0;
           i--, j--) {
         if ((bitNodeIds[i] & subNode.bitNodeIds[j]) > 0) {
           return true;

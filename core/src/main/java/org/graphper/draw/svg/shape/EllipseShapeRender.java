@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Renders elliptical node and cluster outlines in SVG. */
 public class EllipseShapeRender extends CustomizeShapeRender {
 
   @Override

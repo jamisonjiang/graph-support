@@ -16,6 +16,7 @@
 
 package org.graphper.api.ext;
 
+/** Provides rectangular label geometry without margins. */
 public class PlainPropCalc extends RectanglePropCalc {
 
   private static final long serialVersionUID = -5011222556684270924L;

@@ -18,8 +18,8 @@ package org.graphper.layout.dot;
 
 import java.util.Objects;
 import org.graphper.api.attributes.Splines;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.EdgeDedigraph;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.ALine;
 import org.graphper.layout.ANode;
@@ -37,8 +37,10 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
 
   @Override
   public void route() {
-    DotOrthogonalRouter router = new DotOrthogonalRouter(rankContent, drawGraph,
-                                                         layoutGraph, digraphProxy);
+    DotOrthogonalRouter router =
+        new DotOrthogonalRouter(
+            rankContent, drawGraph,
+            layoutGraph, digraphProxy);
     router.route();
   }
 
@@ -48,9 +50,11 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
 
     protected EdgeDedigraph<DNode, DLine> digraphProxy;
 
-    public DotOrthogonalRouter(RankContent rankContent, DrawGraph drawGraph,
-                               LayoutGraph<?, ?> layoutGraph,
-                               EdgeDedigraph<DNode, DLine> digraphProxy) {
+    public DotOrthogonalRouter(
+        RankContent rankContent,
+        DrawGraph drawGraph,
+        LayoutGraph<?, ?> layoutGraph,
+        EdgeDedigraph<DNode, DLine> digraphProxy) {
       super(drawGraph, layoutGraph);
       this.maze = new DotMaze(rankContent, drawGraph);
       this.rankContent = rankContent;
@@ -79,10 +83,10 @@ class OrthogonalRouter extends AbstractDotLineRouter implements LineRouter {
     }
   }
 
-  // --------------------------------------------- OrthogonalRouterFactory ---------------------------------------------
+  // --------------------------------------------- OrthogonalRouterFactory
+  // ---------------------------------------------
 
-  static class OrthogonalRouterFactory extends
-      AbstractDotLineRouterFactory<OrthogonalRouter> {
+  static class OrthogonalRouterFactory extends AbstractDotLineRouterFactory<OrthogonalRouter> {
 
     @Override
     public boolean needDeal(Splines splines) {

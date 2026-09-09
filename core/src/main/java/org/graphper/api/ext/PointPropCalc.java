@@ -18,6 +18,7 @@ package org.graphper.api.ext;
 
 import org.graphper.api.attributes.Color;
 
+/** Provides circular point geometry without labels or margins. */
 public class PointPropCalc extends CirclePropCalc {
 
   private static final long serialVersionUID = -3153454718323111406L;

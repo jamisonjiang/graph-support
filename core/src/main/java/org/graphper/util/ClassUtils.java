@@ -24,14 +24,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Utility class for working with reflection and class instantiation.
- */
+/** Utility class for working with reflection and class instantiation. */
 @SuppressWarnings("all")
 public class ClassUtils {
 
-  private ClassUtils() {
-  }
+  private ClassUtils() {}
 
   /**
    * Creates a new instance of the specified class without parameters.
@@ -45,23 +42,9 @@ public class ClassUtils {
   }
 
   /**
-   * Creates a new instance of the specified class with a single parameter.
-   *
-   * @param clazz         The class to instantiate.
-   * @param parameterType The type of the parameter.
-   * @param param         The parameter value.
-   * @return The new instance of the class.
-   * @throws Exception If instantiation fails.
-   */
-  public static Object newObjectOne(Class<?> clazz, Class<?> parameterType, Object param)
-      throws Exception {
-    return newObject(clazz, new Class[]{parameterType}, param);
-  }
-
-  /**
    * Creates a new instance of the specified class with parameters.
    *
-   * @param clazz  The class to instantiate.
+   * @param clazz The class to instantiate.
    * @param params The parameter values.
    * @return The new instance of the class.
    * @throws Exception If instantiation fails.
@@ -82,9 +65,9 @@ public class ClassUtils {
   /**
    * Creates a new instance of the specified class with parameters.
    *
-   * @param clazz          The class to instantiate.
+   * @param clazz The class to instantiate.
    * @param parameterTypes The types of the parameters.
-   * @param params         The parameter values.
+   * @param params The parameter values.
    * @return The new instance of the class.
    * @throws Exception If instantiation fails.
    */
@@ -96,9 +79,23 @@ public class ClassUtils {
   }
 
   /**
+   * Creates a new instance of the specified class with a single parameter.
+   *
+   * @param clazz The class to instantiate.
+   * @param parameterType The type of the parameter.
+   * @param param The parameter value.
+   * @return The new instance of the class.
+   * @throws Exception If instantiation fails.
+   */
+  public static Object newObjectOne(Class<?> clazz, Class<?> parameterType, Object param)
+      throws Exception {
+    return newObject(clazz, new Class[] {parameterType}, param);
+  }
+
+  /**
    * Invokes a method with no parameters on the specified object.
    *
-   * @param obj        The object on which to invoke the method.
+   * @param obj The object on which to invoke the method.
    * @param methodName The name of the method to invoke.
    * @return The result of the method invocation.
    * @throws Exception If method invocation fails.
@@ -110,9 +107,9 @@ public class ClassUtils {
   /**
    * Invokes a method with parameters on the specified object.
    *
-   * @param obj        The object on which to invoke the method.
+   * @param obj The object on which to invoke the method.
    * @param methodName The name of the method to invoke.
-   * @param params     The parameter values.
+   * @param params The parameter values.
    * @return The result of the method invocation.
    * @throws Exception If method invocation fails.
    */
@@ -129,41 +126,41 @@ public class ClassUtils {
   }
 
   /**
-   * Invokes a method with a single parameter on the specified object.
-   *
-   * @param obj           The object on which to invoke the method.
-   * @param methodName    The name of the method to invoke.
-   * @param parameterType The type of the parameter.
-   * @param param         The parameter value.
-   * @return The result of the method invocation.
-   * @throws Exception If method invocation fails.
-   */
-  public static Object invokeOne(Object obj, String methodName,
-                                 Class<?> parameterType, Object param) throws Exception {
-    return invoke(obj, methodName, new Class[]{parameterType}, param);
-  }
-
-  /**
    * Invokes a method with parameters on the specified object.
    *
-   * @param obj            The object on which to invoke the method.
-   * @param methodName     The name of the method to invoke.
+   * @param obj The object on which to invoke the method.
+   * @param methodName The name of the method to invoke.
    * @param parameterTypes The types of the parameters.
-   * @param params         The parameter values.
+   * @param params The parameter values.
    * @return The result of the method invocation.
    * @throws Exception If method invocation fails.
    */
-  public static Object invoke(Object obj, String methodName, Class<?>[] parameterTypes,
-                              Object... params) throws Exception {
+  public static Object invoke(
+      Object obj, String methodName, Class<?>[] parameterTypes, Object... params) throws Exception {
     Asserts.nullArgument(obj, "obj");
     Method method = obj.getClass().getMethod(methodName, parameterTypes);
     return method.invoke(obj, params);
   }
 
   /**
+   * Invokes a method with a single parameter on the specified object.
+   *
+   * @param obj The object on which to invoke the method.
+   * @param methodName The name of the method to invoke.
+   * @param parameterType The type of the parameter.
+   * @param param The parameter value.
+   * @return The result of the method invocation.
+   * @throws Exception If method invocation fails.
+   */
+  public static Object invokeOne(
+      Object obj, String methodName, Class<?> parameterType, Object param) throws Exception {
+    return invoke(obj, methodName, new Class[] {parameterType}, param);
+  }
+
+  /**
    * Retrieves the value of a field from the specified object.
    *
-   * @param obj       The object from which to retrieve the field value.
+   * @param obj The object from which to retrieve the field value.
    * @param fieldName The name of the field.
    * @return The value of the field.
    * @throws Exception If field retrieval fails.
@@ -181,7 +178,7 @@ public class ClassUtils {
   /**
    * Invokes a static method on the specified class with no parameters.
    *
-   * @param clazz      The class on which to invoke the static method.
+   * @param clazz The class on which to invoke the static method.
    * @param methodName The name of the static method to invoke.
    * @return The result of the static method invocation.
    * @throws Exception If static method invocation fails.
@@ -193,15 +190,16 @@ public class ClassUtils {
   /**
    * Invokes a static method on the specified class with parameters.
    *
-   * @param clazz          The class on which to invoke the static method.
-   * @param methodName     The name of the static method to invoke.
+   * @param clazz The class on which to invoke the static method.
+   * @param methodName The name of the static method to invoke.
    * @param parameterTypes The types of the parameters.
-   * @param params         The parameter values.
+   * @param params The parameter values.
    * @return The result of the static method invocation.
    * @throws Exception If static method invocation fails.
    */
-  public static Object invokeStatic(Class<?> clazz, String methodName,
-                                    Class<?>[] parameterTypes, Object... params) throws Exception {
+  public static Object invokeStatic(
+      Class<?> clazz, String methodName, Class<?>[] parameterTypes, Object... params)
+      throws Exception {
     Asserts.nullArgument(clazz, "class");
     Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
     method.setAccessible(true);
@@ -211,7 +209,7 @@ public class ClassUtils {
   /**
    * Retrieves the value of a static field from the specified class.
    *
-   * @param clazz     The class from which to retrieve the static field value.
+   * @param clazz The class from which to retrieve the static field value.
    * @param fieldName The name of the static field.
    * @return The value of the static field.
    * @throws Exception If static field retrieval fails.
@@ -228,34 +226,25 @@ public class ClassUtils {
    *
    * @param obj object to be acquired
    * @return a map of attributes and attribute values
-   * @throws SecurityException           If a security manager, <i>s</i>, is present and any of the
-   *                                     following conditions is met:
+   * @throws SecurityException If a security manager, <i>s</i>, is present and any of the following
+   *     conditions is met:
+   *     <ul>
+   *       <li>the caller's class loader is not the same as the class loader of this class and
+   *           invocation of {@link SecurityManager#checkPermission s.checkPermission} method with
+   *           {@code RuntimePermission("accessDeclaredMembers")} denies access to the declared
+   *           fields within this class.
+   *       <li>the caller's class loader is not the same as or an ancestor of the class loader for
+   *           the current class and invocation of {@link SecurityManager#checkPackageAccess
+   *           s.checkPackageAccess()} denies access to the package of this class.
+   *       <li>if the request is denied.
+   *     </ul>
    *
-   *                                     <ul>
-   *
-   *                                     <li> the caller's class loader is not the same as the
-   *                                     class loader of this class and invocation of
-   *                                     {@link SecurityManager#checkPermission
-   *                                     s.checkPermission} method with
-   *                                     {@code RuntimePermission("accessDeclaredMembers")}
-   *                                     denies access to the declared fields within this class.
-   *
-   *                                     <li> the caller's class loader is not the same as or an
-   *                                     ancestor of the class loader for the current class and
-   *                                     invocation of {@link SecurityManager#checkPackageAccess
-   *                                     s.checkPackageAccess()} denies access to the package
-   *                                     of this class.
-   *
-   *                                     <li>if the request is denied.
-   *
-   *                                     </ul>
-   * @throws IllegalAccessException      if this {@code Field} object is enforcing Java language
-   *                                     access control and the underlying field is inaccessible.
-   * @throws IllegalArgumentException    if the specified object is not an instance of the class or
-   *                                     interface declaring the underlying field (or a subclass or
-   *                                     implementor thereof).
-   * @throws NullPointerException        if the specified object is null and the field is an
-   *                                     instance field.
+   * @throws IllegalAccessException if this {@code Field} object is enforcing Java language access
+   *     control and the underlying field is inaccessible.
+   * @throws IllegalArgumentException if the specified object is not an instance of the class or
+   *     interface declaring the underlying field (or a subclass or implementor thereof).
+   * @throws NullPointerException if the specified object is null and the field is an instance
+   *     field.
    * @throws ExceptionInInitializerError if the initialization provoked by this method fails.
    */
   public static Map<String, Object> propValMap(Object obj) throws IllegalAccessException {
@@ -289,6 +278,7 @@ public class ClassUtils {
     return map;
   }
 
+  /** Updates a declared instance field while preserving its accessibility flag. */
   public static void modifyField(Object obj, String fieldName, Object value)
       throws NoSuchFieldException, IllegalAccessException {
     Asserts.nullArgument(obj, "Null object");

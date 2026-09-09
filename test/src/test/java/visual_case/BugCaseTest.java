@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.Cluster;
 import org.graphper.api.FloatLabel;
 import org.graphper.api.Graphviz;
@@ -36,6 +37,7 @@ import org.graphper.api.attributes.Splines;
 import org.graphper.api.attributes.Tend;
 import org.junit.jupiter.api.Test;
 
+@VisualTags({"regression", "bug"})
 public class BugCaseTest extends GraphvizVisual {
 
   @Test

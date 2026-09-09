@@ -26,8 +26,7 @@ import java.util.function.Consumer;
  * @param <V> the type of vertex
  * @author Jamison Jiang
  */
-public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
-    implements Digraph.VertexDigraph<V> {
+public class DirectedGraph<V> extends AbstractAdjGraph<V, V> implements Digraph.VertexDigraph<V> {
 
   private static final long serialVersionUID = -7910958796521952955L;
 
@@ -118,13 +117,14 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, V> adj) {
     AtomicInteger removeNum = new AtomicInteger(0);
-    adj.removeFirstIf(adjacent -> {
-      if (Objects.equals(adjacent, v)) {
-        removeNum.incrementAndGet();
-        return true;
-      }
-      return false;
-    });
+    adj.removeFirstIf(
+        adjacent -> {
+          if (Objects.equals(adjacent, v)) {
+            removeNum.incrementAndGet();
+            return true;
+          }
+          return false;
+        });
     edgeNum -= removeNum.get();
   }
 
@@ -136,7 +136,7 @@ public class DirectedGraph<V> extends AbstractAdjGraph<V, V>
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     return super.equals(obj);
   }
 

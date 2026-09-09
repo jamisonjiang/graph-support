@@ -30,7 +30,7 @@ public interface NodeEditor<B extends Brush> extends Editor<NodeDrawProp, B> {
    * Edit node, return <tt>false</tt> if you want to terminate the process.
    *
    * @param nodeDrawProp node to be drawn
-   * @param brush        node brush
+   * @param brush node brush
    * @return <tt>true</tt> if the next editor continues editing
    */
   @Override
@@ -43,7 +43,7 @@ public interface NodeEditor<B extends Brush> extends Editor<NodeDrawProp, B> {
   /**
    * Edit node, return <tt>false</tt> if you want to terminate the process.
    *
-   * @param node  node to be drawn
+   * @param node node to be drawn
    * @param brush node brush
    * @return <tt>true</tt> if the next editor continues editing
    */

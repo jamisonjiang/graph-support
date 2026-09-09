@@ -29,6 +29,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
+/** Draws cluster outlines using the configured shape renderer. */
 public class ClusterShapeEditor implements ClusterEditor<SvgBrush> {
 
   @Override
@@ -36,15 +37,15 @@ public class ClusterShapeEditor implements ClusterEditor<SvgBrush> {
     cluster.check();
 
     ClusterShape shape = cluster.getCluster().clusterAttrs().getShape();
-    CustomizeShapeRender customizeShapeRender = CustomizeShapeRender
-        .getCustomizeShapeRender(shape.getName());
+    CustomizeShapeRender customizeShapeRender =
+        CustomizeShapeRender.getCustomizeShapeRender(shape.getName());
     if (customizeShapeRender != null) {
       customizeShapeRender.drawClusterSvg(brush, cluster);
     }
     ClusterAttrs clusterAttrs = cluster.getCluster().clusterAttrs();
     double penWidth = clusterAttrs.getPenWidth();
-    penWidth = SvgEditor.strokeWidth(penWidth,
-                                     clusterAttrs.getStyles().contains(ClusterStyle.BOLD));
+    penWidth =
+        SvgEditor.strokeWidth(penWidth, clusterAttrs.getStyles().contains(ClusterStyle.BOLD));
     for (Element clusterEle : brush.getEleGroup(SHAPE_GROUP_KEY)) {
       clusterEle.setAttribute(STROKE_WIDTH, String.valueOf(penWidth));
     }

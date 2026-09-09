@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+/** Indicates incompatible rank constraints among subgraphs. */
 public class SubgrahOppositRankException extends RuntimeException {
 
   private static final long serialVersionUID = -36599932715465366L;

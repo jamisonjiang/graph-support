@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.Cluster;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
@@ -35,6 +36,7 @@ import org.graphper.api.attributes.Rankdir;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@VisualTags({"cluster", "container"})
 public class ClusterTest extends GraphvizVisual {
 
   @BeforeEach

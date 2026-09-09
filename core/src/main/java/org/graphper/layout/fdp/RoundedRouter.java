@@ -47,7 +47,8 @@ class RoundedRouter extends AroundLineRouter {
     connectWithRoundedCorner(lineDrawProp, null, null, throughPoints, null);
   }
 
-  // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
+  // --------------------------------------------- RoundedHandlerFactory
+  // ---------------------------------------------
 
   static class RoundedRouterFactory extends LineRouterFactory<RoundedRouter> {
 

@@ -26,6 +26,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
+/** Expands node bounds and positions self-loops grouped by their endpoint ports and cells. */
 public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
   private static final int LEFT = 0;
@@ -36,6 +37,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
 
   private static final int DOWN = 3;
 
+  /** Builds port-aware self-loop paths and reserves their label clearance. */
   public PortNodeSizeExpanderV2(DrawGraph drawGraph, ANode node) {
     Asserts.nullArgument(node, "node");
     Asserts.illegalArgument(node.isVirtual(), "Node is virtual node");
@@ -67,8 +69,8 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     }
   }
 
-  private double setSamePointLine(GroupKey groupKey, DrawGraph drawGraph,
-                                  double interval, LineDrawProp line) {
+  private double setSamePointLine(
+      GroupKey groupKey, DrawGraph drawGraph, double interval, LineDrawProp line) {
     if (!groupKey.samePoint()) {
       return 0;
     }
@@ -103,8 +105,8 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return addLabelByLastPoint(false, true, line);
   }
 
-  private double setUpDownLine(GroupKey groupKey, DrawGraph drawGraph,
-                               double interval, LineDrawProp line) {
+  private double setUpDownLine(
+      GroupKey groupKey, DrawGraph drawGraph, double interval, LineDrawProp line) {
     if (!groupKey.isOnlySameHor()) {
       return 0;
     }
@@ -131,8 +133,8 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return interval;
   }
 
-  private double setLeftRightLine(GroupKey groupKey, DrawGraph drawGraph,
-                                  double interval, LineDrawProp line) {
+  private double setLeftRightLine(
+      GroupKey groupKey, DrawGraph drawGraph, double interval, LineDrawProp line) {
     if (groupKey.samePoint() || groupKey.isOnlySameHor()) {
       return 0;
     }
@@ -167,8 +169,7 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return interval;
   }
 
-  private double addLabelByLastPoint(boolean isHor, boolean isAdd,
-                                     LineDrawProp line) {
+  private double addLabelByLastPoint(boolean isHor, boolean isAdd, LineDrawProp line) {
     if (line.getLabelSize() == null || CollectionUtils.isEmpty(line)) {
       return 0;
     }
@@ -179,27 +180,23 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return addLabel(isHor, isAdd, line, lastPoint, labelSize);
   }
 
-  private double addLabel(boolean isHor, boolean isAdd, LineDrawProp line,
-                          FlatPoint lastPoint, FlatPoint labelSize) {
+  private double addLabel(
+      boolean isHor, boolean isAdd, LineDrawProp line, FlatPoint lastPoint, FlatPoint labelSize) {
     FlatPoint labelCenter;
     if (isHor) {
       if (isAdd) {
-        labelCenter = new FlatPoint(lastPoint.getX() + labelSize.getWidth() / 2,
-                                    lastPoint.getY());
+        labelCenter = new FlatPoint(lastPoint.getX() + labelSize.getWidth() / 2, lastPoint.getY());
       } else {
-        labelCenter = new FlatPoint(lastPoint.getX() - labelSize.getWidth() / 2,
-                                    lastPoint.getY());
+        labelCenter = new FlatPoint(lastPoint.getX() - labelSize.getWidth() / 2, lastPoint.getY());
       }
       addLabel(line, labelSize, labelCenter);
       return labelSize.getWidth();
     }
 
     if (isAdd) {
-      labelCenter = new FlatPoint(lastPoint.getX(),
-                                  lastPoint.getY() + labelSize.getHeight() / 2);
+      labelCenter = new FlatPoint(lastPoint.getX(), lastPoint.getY() + labelSize.getHeight() / 2);
     } else {
-      labelCenter = new FlatPoint(lastPoint.getX(),
-                                  lastPoint.getY() - labelSize.getHeight() / 2);
+      labelCenter = new FlatPoint(lastPoint.getX(), lastPoint.getY() - labelSize.getHeight() / 2);
     }
     addLabel(line, labelSize, labelCenter);
     return labelSize.getHeight();
@@ -219,35 +216,44 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     refreshVolume(labelCenter.getX() + halfWidth, labelCenter.getY() + halfHeight);
   }
 
-  private int portDirection(Port port, DrawGraph drawGraph) {
-    return portDirection(FlipShifterStrategy.movePort(port, drawGraph));
-  }
-
   private int sameCellHorDirection(Port port, DrawGraph drawGraph) {
     return sameCellHorDirection(FlipShifterStrategy.movePort(port, drawGraph));
-  }
-
-  private int sameCellVerDirection(Port port, DrawGraph drawGraph) {
-    return sameCellVerDirection(FlipShifterStrategy.movePort(port, drawGraph));
   }
 
   private int sameCellHorDirection(Port tailPort, Port headPort, DrawGraph drawGraph) {
     tailPort = FlipShifterStrategy.movePort(tailPort, drawGraph);
     headPort = FlipShifterStrategy.movePort(headPort, drawGraph);
 
-    if (isNW_S(tailPort, headPort) || isNW_S(headPort, tailPort)
-        || isN_SW(tailPort, headPort) || isN_SW(headPort, tailPort)
-        || isN_W(tailPort, headPort) || isN_W(headPort, tailPort)
-        || isNE_W(tailPort, headPort) || isNE_W(headPort, tailPort)
-        || isNE_SW(tailPort, headPort) || isNE_SW(headPort, tailPort)
-        || isSE_W(tailPort, headPort) || isSE_W(headPort, tailPort)
-        || isS_W(tailPort, headPort) || isS_W(headPort, tailPort)
-        || isC_NW(tailPort, headPort) || isC_NW(headPort, tailPort)
-        || isC_SW(tailPort, headPort) || isC_SW(headPort, tailPort)) {
+    if (isNW_S(tailPort, headPort)
+        || isNW_S(headPort, tailPort)
+        || isN_SW(tailPort, headPort)
+        || isN_SW(headPort, tailPort)
+        || isN_W(tailPort, headPort)
+        || isN_W(headPort, tailPort)
+        || isNE_W(tailPort, headPort)
+        || isNE_W(headPort, tailPort)
+        || isNE_SW(tailPort, headPort)
+        || isNE_SW(headPort, tailPort)
+        || isSE_W(tailPort, headPort)
+        || isSE_W(headPort, tailPort)
+        || isS_W(tailPort, headPort)
+        || isS_W(headPort, tailPort)
+        || isC_NW(tailPort, headPort)
+        || isC_NW(headPort, tailPort)
+        || isC_SW(tailPort, headPort)
+        || isC_SW(headPort, tailPort)) {
       return LEFT;
     }
 
     return RIGHT;
+  }
+
+  private int sameCellHorDirection(Port port) {
+    if (port == Port.SOUTH_WEST || port == Port.SOUTH || port == Port.SOUTH_EAST) {
+      return DOWN;
+    }
+
+    return UP;
   }
 
   private boolean isNW_S(Port p1, Port p2) {
@@ -293,6 +299,10 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return RIGHT;
   }
 
+  private int portDirection(Port port, DrawGraph drawGraph) {
+    return portDirection(FlipShifterStrategy.movePort(port, drawGraph));
+  }
+
   private int portDirection(Port port) {
     if (port == Port.NORTH) {
       return UP;
@@ -309,12 +319,8 @@ public class PortNodeSizeExpanderV2 extends NodeSizeExpander {
     return RIGHT;
   }
 
-  private int sameCellHorDirection(Port port) {
-    if (port == Port.SOUTH_WEST || port == Port.SOUTH || port == Port.SOUTH_EAST) {
-      return DOWN;
-    }
-
-    return UP;
+  private int sameCellVerDirection(Port port, DrawGraph drawGraph) {
+    return sameCellVerDirection(FlipShifterStrategy.movePort(port, drawGraph));
   }
 
   private int sameCellVerDirection(Port port) {

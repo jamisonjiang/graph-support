@@ -2,3 +2,12 @@
 target/
 workspace.xml
 graph-support.iml
+
+# Local AI/coding tool configuration and generated browser artifacts
+.opencode/
+.claude/
+.agents/
+.codex/
+.cursor/
+.gemini/
+.playwright-mcp/

@@ -32,6 +32,7 @@ import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 import org.graphper.util.FontUtils;
 
+/** Draws floating edge labels as SVG text. */
 public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   private static final String FLOAT_LABEL = "float_label";
@@ -39,8 +40,8 @@ public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
     int i = 0;
-    for (Entry<FloatLabel, FlatPoint> flatPointEntry : lineDrawProp
-        .getFloatLabelFlatCenters().entrySet()) {
+    for (Entry<FloatLabel, FlatPoint> flatPointEntry :
+        lineDrawProp.getFloatLabelFlatCenters().entrySet()) {
 
       FloatLabel floatLabel = flatPointEntry.getKey();
       if (floatLabel.ignoreTextLabel()) {
@@ -49,21 +50,31 @@ public class LineFloatLabelsEditor implements LineEditor<SvgBrush>, SvgConstants
       FlatPoint flatPointCenter = flatPointEntry.getValue();
 
       final int n = i;
-      Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-        String id = SvgConstants.TEXT_ELE
-            + SvgConstants.UNDERSCORE + FLOAT_LABEL
-            + n + textLineAttribute.getLineNo();
+      Consumer<TextLineAttribute> lineConsumer =
+          textLineAttribute -> {
+            String id =
+                SvgConstants.TEXT_ELE
+                    + SvgConstants.UNDERSCORE
+                    + FLOAT_LABEL
+                    + n
+                    + textLineAttribute.getLineNo();
 
-        Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
-        setText(text, floatLabel.getFontSize(), textLineAttribute);
-        text.setTextContent(textLineAttribute.getLine());
-      };
+            Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
+            setText(text, floatLabel.getFontSize(), textLineAttribute);
+            text.setTextContent(textLineAttribute.getLine());
+          };
 
-      text(new TextAttribute(flatPointCenter, floatLabel.getFontSize(), floatLabel.getLabel(),
-                              lineDrawProp.lineAttrs().getFontColor(), floatLabel.getFontName(),
-                              FontUtils.measure(floatLabel.getLabel(), floatLabel.getFontName(),
-                                                floatLabel.getFontSize(), 0).getWidth(),
-                              lineConsumer));
+      text(
+          new TextAttribute(
+              flatPointCenter,
+              floatLabel.getFontSize(),
+              floatLabel.getLabel(),
+              lineDrawProp.lineAttrs().getFontColor(),
+              floatLabel.getFontName(),
+              FontUtils.measure(
+                      floatLabel.getLabel(), floatLabel.getFontName(), floatLabel.getFontSize(), 0)
+                  .getWidth(),
+              lineConsumer));
       i++;
     }
 

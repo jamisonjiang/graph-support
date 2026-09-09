@@ -25,3 +25,4 @@ org.graphper.draw.svg.shape.RegularShapeRender$PentagonShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender$HexagonShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender$SeptagonShapeRender
 org.graphper.draw.svg.shape.RegularShapeRender$OctagonShapeRender
+org.graphper.draw.svg.shape.RegularShapeRender$PolygonShapeRender

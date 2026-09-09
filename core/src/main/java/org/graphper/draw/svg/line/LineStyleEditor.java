@@ -29,6 +29,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
+/** Applies edge stroke styles to SVG paths. */
 public class LineStyleEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -77,9 +78,7 @@ public class LineStyleEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   private static void setArrowStyle(Double penWidth, Color color, Element ele, boolean needFill) {
     ele.setAttribute(SvgConstants.STROKE, color.value());
-    if (needFill) {
-      ele.setAttribute(SvgConstants.FILL, color.value());
-    }
+    ele.setAttribute(SvgConstants.FILL, needFill ? color.value() : SvgConstants.NONE);
     if (penWidth == null) {
       return;
     }

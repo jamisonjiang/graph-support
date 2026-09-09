@@ -32,6 +32,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
+/** Shared geometry helpers for routing parallel edges and constructing line paths. */
 public class LineHandler {
 
   protected DrawGraph drawGraph;
@@ -89,9 +90,11 @@ public class LineHandler {
     FlatPoint fromPoint = new FlatPoint(from.getX(), from.getY());
     FlatPoint toPoint = new FlatPoint(to.getX(), to.getY());
 
-    double distUnit = (drawGraph.getGraphviz().graphAttrs().getNodeSep()
-        + drawGraph.getGraphviz().graphAttrs().getRankSep()
-        + FlatPoint.twoFlatPointDistance(fromPoint, toPoint)) / 20;
+    double distUnit =
+        (drawGraph.getGraphviz().graphAttrs().getNodeSep()
+                + drawGraph.getGraphviz().graphAttrs().getRankSep()
+                + FlatPoint.twoFlatPointDistance(fromPoint, toPoint))
+            / 20;
 
     for (int i = 0; i < parallelLines.size(); i++) {
       parallelEdges(parallelLines.get(i), parallelLines.size(), distUnit, i + 1);
@@ -123,8 +126,10 @@ public class LineHandler {
       LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(edge.getLine());
       ANode from = edge.from();
       ANode to = edge.to();
-      Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
-      Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
+      Port fromPort =
+          PortHelper.getLineEndPointPort(from.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
+      Port toPort =
+          PortHelper.getLineEndPointPort(to.getNodeDrawProp(), edge.getLineDrawProp(), drawGraph);
       String headCell = lineDrawProp.lineAttrs().getHeadCell();
       String tailCell = lineDrawProp.lineAttrs().getTailCell();
 
@@ -142,8 +147,8 @@ public class LineHandler {
   }
 
   @SuppressWarnings("unchecked")
-  private void parallelEdges(ALine<? extends ANode, ? extends ALine> parallelLine, int size,
-                             double distUnit, int no) {
+  private void parallelEdges(
+      ALine<? extends ANode, ? extends ALine> parallelLine, int size, double distUnit, int no) {
     ANode from = parallelLine.from();
     ANode to = parallelLine.to();
 
@@ -155,24 +160,20 @@ public class LineHandler {
     Line iLine = parallelLine.getLine();
     Asserts.illegalArgument(iLine == null, "error parallel edge no");
 
-    FlatPoint v2Center = Vectors.add(
-        Vectors.multiple(Vectors.sub(fromPoint, toPoint), 0.75),
-        toPoint
-    );
+    FlatPoint v2Center =
+        Vectors.add(Vectors.multiple(Vectors.sub(fromPoint, toPoint), 0.75), toPoint);
 
-    FlatPoint v3Center = Vectors.add(
-        Vectors.multiple(Vectors.sub(fromPoint, toPoint), 0.25),
-        toPoint
-    );
+    FlatPoint v3Center =
+        Vectors.add(Vectors.multiple(Vectors.sub(fromPoint, toPoint), 0.25), toPoint);
 
-    ThirdOrderBezierCurve curve = new ThirdOrderBezierCurve(
-        fromPoint,
-        newParallelControlPoint(parallelLine, size, no,
-                                hypotenuseLen, fromPoint, toPoint, v2Center),
-        newParallelControlPoint(parallelLine, size, no,
-                                hypotenuseLen, fromPoint, toPoint, v3Center),
-        toPoint
-    );
+    ThirdOrderBezierCurve curve =
+        new ThirdOrderBezierCurve(
+            fromPoint,
+            newParallelControlPoint(
+                parallelLine, size, no, hypotenuseLen, fromPoint, toPoint, v2Center),
+            newParallelControlPoint(
+                parallelLine, size, no, hypotenuseLen, fromPoint, toPoint, v3Center),
+            toPoint);
 
     LineDrawProp lineDrawProp = drawGraph.getLineDrawProp(parallelLine.getLine());
     lineDrawProp.clear();
@@ -183,14 +184,19 @@ public class LineHandler {
   }
 
   @SuppressWarnings("unchecked")
-  private FlatPoint newParallelControlPoint(ALine<? extends ANode, ? extends ALine> line, int size, int no, double hypotenuseLen,
-                                            FlatPoint f, FlatPoint t, FlatPoint v3Center) {
+  private FlatPoint newParallelControlPoint(
+      ALine<? extends ANode, ? extends ALine> line,
+      int size,
+      int no,
+      double hypotenuseLen,
+      FlatPoint f,
+      FlatPoint t,
+      FlatPoint v3Center) {
     return new FlatPoint(
-        v3Center.getX() + xDist(f.getX(), f.getY(), t.getX(),
-                                t.getY(), hypotenuseLen, no, size / 2),
-        v3Center.getY() + yDist(f.getX(), f.getY(), t.getX(), t.getY(),
-                                hypotenuseLen, no, size / 2)
-    );
+        v3Center.getX()
+            + xDist(f.getX(), f.getY(), t.getX(), t.getY(), hypotenuseLen, no, size / 2),
+        v3Center.getY()
+            + yDist(f.getX(), f.getY(), t.getX(), t.getY(), hypotenuseLen, no, size / 2));
   }
 
   private double hypotenuseLen(double unit, int segmentNum, int parallelEdgesNum) {
@@ -205,10 +211,14 @@ public class LineHandler {
     return Math.abs(unit * segmentNum - (parallelEdgesNum >> 1) * unit - unit / 2);
   }
 
-
-
-  private double xDist(double startX, double startY, double endX, double endY, double hypotenuseLen,
-                       int segmentNum, int mid) {
+  private double xDist(
+      double startX,
+      double startY,
+      double endX,
+      double endY,
+      double hypotenuseLen,
+      int segmentNum,
+      int mid) {
     if (startY == endY) {
       return 0;
     }
@@ -223,8 +233,14 @@ public class LineHandler {
     return segmentNum <= mid ? -xd : xd;
   }
 
-  private double yDist(double startX, double startY, double endX, double endY,
-                       double hypotenuseLen, int segmentNum, int mid) {
+  private double yDist(
+      double startX,
+      double startY,
+      double endX,
+      double endY,
+      double hypotenuseLen,
+      int segmentNum,
+      int mid) {
 
     if (startX == endX) {
       return 0;

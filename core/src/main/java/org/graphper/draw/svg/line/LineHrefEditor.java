@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Adds edge hyperlinks and tooltips to SVG groups. */
 public class LineHrefEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -37,9 +38,15 @@ public class LineHrefEditor implements LineEditor<SvgBrush>, SvgConstants {
       return true;
     }
 
-    String href = lineAttrs.getHref();
-    String tooltip = StringUtils.isNotEmpty(lineAttrs.getTooltip())
-        ? lineAttrs.getTooltip() : lineAttrs.getLabel();
+    String href =
+        brush.drawBoard().graphAttrs().getSecurityPolicy().sanitizeLink(lineAttrs.getHref());
+    if (href == null) {
+      return true;
+    }
+    String tooltip =
+        StringUtils.isNotEmpty(lineAttrs.getTooltip())
+            ? lineAttrs.getTooltip()
+            : lineAttrs.getLabel();
 
     Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE, A_ELE);
     brush.setWrapEle(wrapEle);

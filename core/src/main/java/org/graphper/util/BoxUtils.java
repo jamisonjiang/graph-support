@@ -35,11 +35,12 @@ public class BoxUtils {
    * Creates a new {@link Box} that represents the combined bounds of the two input boxes.
    *
    * <p>The resulting box will have borders that encompass both input boxes:
+   *
    * <ul>
-   *   <li>The left border is the minimum of the two boxes' left borders.</li>
-   *   <li>The right border is the maximum of the two boxes' right borders.</li>
-   *   <li>The upper border is the minimum of the two boxes' upper borders.</li>
-   *   <li>The lower border is the maximum of the two boxes' lower borders.</li>
+   *   <li>The left border is the minimum of the two boxes' left borders.
+   *   <li>The right border is the maximum of the two boxes' right borders.
+   *   <li>The upper border is the minimum of the two boxes' upper borders.
+   *   <li>The lower border is the maximum of the two boxes' lower borders.
    * </ul>
    *
    * @param origin the first box to combine
@@ -54,8 +55,6 @@ public class BoxUtils {
         Math.min(origin.getLeftBorder(), expand.getLeftBorder()),
         Math.max(origin.getRightBorder(), expand.getRightBorder()),
         Math.min(origin.getUpBorder(), expand.getUpBorder()),
-        Math.max(origin.getDownBorder(), expand.getDownBorder())
-    );
+        Math.max(origin.getDownBorder(), expand.getDownBorder()));
   }
 }
-

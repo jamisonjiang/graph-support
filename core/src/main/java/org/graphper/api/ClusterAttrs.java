@@ -102,6 +102,7 @@ public class ClusterAttrs implements Serializable, Cloneable {
     return shape;
   }
 
+  /** Returns the configured styles, or an empty collection when none are set. */
   public Collection<ClusterStyle> getStyles() {
     if (CollectionUtils.isEmpty(styles)) {
       return Collections.emptyList();
@@ -172,44 +173,77 @@ public class ClusterAttrs implements Serializable, Cloneable {
     }
     ClusterAttrs that = (ClusterAttrs) o;
     return Double.compare(that.fontSize, fontSize) == 0
-        && Double.compare(that.penWidth, penWidth) == 0 && Objects.equals(id, that.id)
-        && Objects.equals(label, that.label) && Objects.equals(labelTag, that.labelTag)
+        && Double.compare(that.penWidth, penWidth) == 0
+        && Objects.equals(id, that.id)
+        && Objects.equals(label, that.label)
+        && Objects.equals(labelTag, that.labelTag)
         && labelloc == that.labelloc
-        && labeljust == that.labeljust && Objects.equals(shape, that.shape)
-        && Objects.equals(styles, that.styles) && Objects.equals(bgColor, that.bgColor)
-        && Objects.equals(color, that.color) && Objects.equals(fontColor, that.fontColor)
-        && Objects.equals(fontName, that.fontName) && Objects.equals(margin, that.margin)
-        && Objects.equals(href, that.href) && Objects.equals(tooltip, that.tooltip)
-        && Objects.equals(table, that.table) && Objects.equals(assemble, that.assemble);
+        && labeljust == that.labeljust
+        && Objects.equals(shape, that.shape)
+        && Objects.equals(styles, that.styles)
+        && Objects.equals(bgColor, that.bgColor)
+        && Objects.equals(color, that.color)
+        && Objects.equals(fontColor, that.fontColor)
+        && Objects.equals(fontName, that.fontName)
+        && Objects.equals(margin, that.margin)
+        && Objects.equals(href, that.href)
+        && Objects.equals(tooltip, that.tooltip)
+        && Objects.equals(table, that.table)
+        && Objects.equals(assemble, that.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, label, labelTag, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
-                        fontName, margin, fontSize, href, tooltip, penWidth, table, assemble);
+    return Objects.hash(
+        id, label, labelTag, labelloc, labeljust, shape, styles, bgColor, color, fontColor,
+        fontName, margin, fontSize, href, tooltip, penWidth, table, assemble);
   }
 
   @Override
   public String toString() {
-    return "ClusterAttrs{" +
-        "id='" + id + '\'' +
-        ", label='" + label + '\'' +
-        ", labelTag='" + labelTag + '\'' +
-        ", labelloc=" + labelloc +
-        ", labeljust=" + labeljust +
-        ", shape=" + shape +
-        ", styles=" + styles +
-        ", bgColor=" + bgColor +
-        ", color=" + color +
-        ", fontColor=" + fontColor +
-        ", fontName='" + fontName + '\'' +
-        ", margin=" + margin +
-        ", fontSize=" + fontSize +
-        ", href='" + href + '\'' +
-        ", tooltip='" + tooltip + '\'' +
-        ", penWidth=" + penWidth +
-        ", table=" + table +
-        ", assemble=" + assemble +
-        '}';
+    return "ClusterAttrs{"
+        + "id='"
+        + id
+        + '\''
+        + ", label='"
+        + label
+        + '\''
+        + ", labelTag='"
+        + labelTag
+        + '\''
+        + ", labelloc="
+        + labelloc
+        + ", labeljust="
+        + labeljust
+        + ", shape="
+        + shape
+        + ", styles="
+        + styles
+        + ", bgColor="
+        + bgColor
+        + ", color="
+        + color
+        + ", fontColor="
+        + fontColor
+        + ", fontName='"
+        + fontName
+        + '\''
+        + ", margin="
+        + margin
+        + ", fontSize="
+        + fontSize
+        + ", href='"
+        + href
+        + '\''
+        + ", tooltip='"
+        + tooltip
+        + '\''
+        + ", penWidth="
+        + penWidth
+        + ", table="
+        + table
+        + ", assemble="
+        + assemble
+        + '}';
   }
 }

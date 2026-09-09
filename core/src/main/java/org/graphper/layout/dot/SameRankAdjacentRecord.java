@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import org.graphper.util.CollectionUtils;
@@ -41,8 +40,8 @@ class SameRankAdjacentRecord {
       outSameRankAdjacent = new HashMap<>();
     }
 
-    SameRankAdjacentInfo sameRankAdjacentInfo = outSameRankAdjacent
-        .computeIfAbsent(node, n -> new SameRankAdjacentInfo());
+    SameRankAdjacentInfo sameRankAdjacentInfo =
+        outSameRankAdjacent.computeIfAbsent(node, n -> new SameRankAdjacentInfo());
 
     if (outContains(line.other(node), node)) {
       addOutAdjacent(line.other(node), line);
@@ -66,8 +65,8 @@ class SameRankAdjacentRecord {
       inSameRankRecord = new HashMap<>();
     }
 
-    SameRankAdjacentInfo sameRankAdjacentInfo = inSameRankRecord
-        .computeIfAbsent(node, n -> new SameRankAdjacentInfo());
+    SameRankAdjacentInfo sameRankAdjacentInfo =
+        inSameRankRecord.computeIfAbsent(node, n -> new SameRankAdjacentInfo());
     if (sameRankAdjacentInfo.nodes == null) {
       sameRankAdjacentInfo.nodes = new TreeSet<>(this::sameRankNodeCompare);
     }
@@ -150,21 +149,12 @@ class SameRankAdjacentRecord {
     return CollectionUtils.isNotEmpty(outAdjacent(node));
   }
 
-  boolean haveIn(DNode node) {
-    if (inSameRankRecord == null) {
-      return false;
-    }
-
-    return Objects.equals(inSameRankRecord.get(node), Boolean.TRUE);
-  }
-
   int sameRankNodeCompare(DNode n, DNode w) {
     if (!n.isVirtual() && !w.isVirtual()) {
       return n.getNode().compareTo(w.getNode());
     }
     return n.isVirtual() ? -1 : 1;
   }
-
 
   static class SameRankAdjacentInfo {
 

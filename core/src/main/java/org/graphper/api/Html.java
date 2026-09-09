@@ -36,13 +36,14 @@ import org.graphper.util.FontUtils;
 /**
  * Provides utilities for creating HTML-based graph labels.
  *
- * <p>This class offers a fluent API to construct HTML elements such as tables, text,
- * and formatting tags. It allows users to define rich, multi-line, and styled text labels for
- * graph/cluster/node/line label.</p>
+ * <p>This class offers a fluent API to construct HTML elements such as tables, text, and formatting
+ * tags. It allows users to define rich, multi-line, and styled text labels for
+ * graph/cluster/node/line label.
  *
  * <h2>Usage Examples</h2>
  *
  * <h3>Creating a Table</h3>
+ *
  * <pre>{@code
  * Table table = table()
  *     .tr(td().text("Title"), td().text("Description"))
@@ -53,7 +54,9 @@ import org.graphper.util.FontUtils;
  * }</pre>
  *
  * <h3>Using Recursive Label Tags for Rich Formatting</h3>
+ *
  * <p>The following example shows how to create a label with multiple text styles:
+ *
  * <pre>{@code
  * LabelTag label = bold("Graph Analysis")
  *     .br()
@@ -63,7 +66,8 @@ import org.graphper.util.FontUtils;
  *     .br()
  *     .top(bold(italic("Key Takeaways:")))
  *     .br()
- *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+ *     .left(font(text("H").subscript("2").text("O").superscript("2"),
+ *         fontAttrs().color(Color.RED).pointSize(16)))
  *     .br()
  *     .right(strikeThrough("Outdated Formula"))
  *     .br()
@@ -78,8 +82,7 @@ import org.graphper.util.FontUtils;
  */
 public class Html {
 
-  private Html() {
-  }
+  private Html() {}
 
   /**
    * Create and return a new table.
@@ -102,17 +105,14 @@ public class Html {
   /**
    * Creates a new horizontal {@link RecordTag} root.
    *
-   * <p>A record tag is the structured counterpart to the legacy string-based
-   * record label syntax (e.g. {@code "{a|b|c}"}). Unlike a plain record label,
-   * each cell may carry rich-text via {@link LabelTag}, plain text, or a nested
-   * record for orientation flipping.</p>
+   * <p>A record tag is the structured counterpart to the legacy string-based record label syntax
+   * (e.g. {@code "{a|b|c}"}). Unlike a plain record label, each cell may carry rich-text via {@link
+   * LabelTag}, plain text, or a nested record for orientation flipping.
    *
-   * <p>Top-level cells laid out left-to-right (horizontal). Nesting a
-   * {@link RecordTag} inside a cell flips the orientation at each level, just
-   * like the Graphviz record syntax.</p>
+   * <p>Top-level cells laid out left-to-right (horizontal). Nesting a {@link RecordTag} inside a
+   * cell flips the orientation at each level, just like the Graphviz record syntax.
    *
-   * @param cells the cells in left-to-right order; {@code null} is treated as
-   *              an empty record.
+   * @param cells the cells in left-to-right order; {@code null} is treated as an empty record.
    * @return a new horizontal {@link RecordTag}.
    */
   public static RecordTag record(BasicRecordCell... cells) {
@@ -120,12 +120,11 @@ public class Html {
   }
 
   /**
-   * Creates a new vertical {@link RecordTag} root, i.e. the top-level cells are
-   * stacked top-to-bottom. Equivalent to wrapping the cells in a top-level
-   * {@code {…}} in the legacy string record syntax.
+   * Creates a new vertical {@link RecordTag} root, i.e. the top-level cells are stacked
+   * top-to-bottom. Equivalent to wrapping the cells in a top-level {@code {…}} in the legacy string
+   * record syntax.
    *
-   * @param cells the cells in top-to-bottom order; {@code null} is treated as
-   *              an empty record.
+   * @param cells the cells in top-to-bottom order; {@code null} is treated as an empty record.
    * @return a new vertical {@link RecordTag}.
    */
   public static RecordTag verticalRecord(BasicRecordCell... cells) {
@@ -133,9 +132,9 @@ public class Html {
   }
 
   /**
-   * Creates an empty {@link BasicRecordCell} whose body is later populated via
-   * {@link BasicRecordCell#text(String)}, {@link BasicRecordCell#text(LabelTag)}
-   * or {@link BasicRecordCell#nested(RecordTag)}.
+   * Creates an empty {@link BasicRecordCell} whose body is later populated via {@link
+   * BasicRecordCell#text(String)}, {@link BasicRecordCell#text(LabelTag)} or {@link
+   * BasicRecordCell#nested(RecordTag)}.
    *
    * @return a new empty {@link BasicRecordCell}.
    */
@@ -146,8 +145,7 @@ public class Html {
   /**
    * Creates a {@link BasicRecordCell} containing plain text.
    *
-   * @param text the cell's text content; may be {@code null} or empty for a
-   *             blank cell.
+   * @param text the cell's text content; may be {@code null} or empty for a blank cell.
    * @return a new {@link BasicRecordCell}.
    */
   public static BasicRecordCell cell(String text) {
@@ -155,9 +153,8 @@ public class Html {
   }
 
   /**
-   * Creates a {@link BasicRecordCell} containing a rich-text label. This is
-   * the entry point for rendering record cells with formatted content such as
-   * bold, italic, or coloured text.
+   * Creates a {@link BasicRecordCell} containing a rich-text label. This is the entry point for
+   * rendering record cells with formatted content such as bold, italic, or coloured text.
    *
    * @param textTag the cell's rich-text content; must be non-null.
    * @return a new {@link BasicRecordCell}.
@@ -167,8 +164,8 @@ public class Html {
   }
 
   /**
-   * Creates a {@link BasicRecordCell} whose body is a nested {@link RecordTag}.
-   * Used to flip the orientation relative to the parent level.
+   * Creates a {@link BasicRecordCell} whose body is a nested {@link RecordTag}. Used to flip the
+   * orientation relative to the parent level.
    *
    * @param nested the nested record; must be non-null.
    * @return a new {@link BasicRecordCell}.
@@ -178,9 +175,9 @@ public class Html {
   }
 
   /**
-   * Sugar for a cell that contains a vertical nested record, i.e. the children
-   * are laid out top-to-bottom regardless of the parent orientation. Intended
-   * to be used inside {@link #record(BasicRecordCell...)} (horizontal parent).
+   * Sugar for a cell that contains a vertical nested record, i.e. the children are laid out
+   * top-to-bottom regardless of the parent orientation. Intended to be used inside {@link
+   * #record(BasicRecordCell...)} (horizontal parent).
    *
    * @param cells the children of the nested record.
    * @return a new {@link BasicRecordCell} with a vertical nested record.
@@ -190,8 +187,8 @@ public class Html {
   }
 
   /**
-   * Sugar for a cell that contains a horizontal nested record. Intended to be
-   * used inside {@link #verticalRecord(BasicRecordCell...)} (vertical parent).
+   * Sugar for a cell that contains a horizontal nested record. Intended to be used inside {@link
+   * #verticalRecord(BasicRecordCell...)} (vertical parent).
    *
    * @param cells the children of the nested record.
    * @return a new {@link BasicRecordCell} with a horizontal nested record.
@@ -281,7 +278,7 @@ public class Html {
    * Creates a {@link LabelTag} applying the specified font attributes (e.g., color, size) to the
    * given text.
    *
-   * @param text      The text content to style.
+   * @param text The text content to style.
    * @param fontAttrs The font attributes to apply.
    * @return A new {@link LabelTag} with the specified font attributes.
    */
@@ -292,7 +289,7 @@ public class Html {
   /**
    * Wraps an existing {@link LabelTag} inside a font-styled tag with the specified attributes.
    *
-   * @param labelTag  The existing label to style.
+   * @param labelTag The existing label to style.
    * @param fontAttrs The font attributes to apply.
    * @return A new {@link LabelTag} with the specified font attributes.
    */
@@ -560,6 +557,7 @@ public class Html {
     return labelTag().horizontalCenter(labelTag);
   }
 
+  /** Shared attributes for table and cell elements. */
   public abstract static class Attrs<T> {
 
     private String id;
@@ -600,7 +598,7 @@ public class Html {
     }
 
     /**
-     * Sets the horizontal alignment of elements
+     * Sets the horizontal alignment of elements.
      *
      * @param align horizontal alignment
      * @return this element
@@ -611,7 +609,7 @@ public class Html {
     }
 
     /**
-     * Sets the vertical alignment of elements
+     * Sets the vertical alignment of elements.
      *
      * @param valign vertical alignment
      * @return this element
@@ -645,7 +643,7 @@ public class Html {
     }
 
     /**
-     * Sets the border color of elements/
+     * Sets the border color of elements.
      *
      * @param color border color
      * @return this element
@@ -766,6 +764,7 @@ public class Html {
       return tooltip;
     }
 
+    /** Returns the configured styles, or an empty collection when none are set. */
     public Collection<NodeStyle> getStyles() {
       if (CollectionUtils.isEmpty(styles)) {
         return Collections.emptyList();
@@ -778,9 +777,7 @@ public class Html {
     }
   }
 
-  /**
-   * Html table tag.
-   */
+  /** Html table tag. */
   public static class Table extends Attrs<Table> implements Serializable {
 
     private static final long serialVersionUID = 5520400546096949803L;
@@ -808,7 +805,7 @@ public class Html {
     }
 
     /**
-     * Set the spacing between each cell
+     * Set the spacing between each cell.
      *
      * @param spacing cell spacing
      * @return table
@@ -887,6 +884,7 @@ public class Html {
       return border;
     }
 
+    /** Returns the number of rows in this table. */
     public int rowNum() {
       if (CollectionUtils.isEmpty(trs)) {
         return 0;
@@ -900,20 +898,20 @@ public class Html {
     }
   }
 
-  /**
-   * Html tr tag.
-   */
+  /** Html tr tag. */
   public static class Tr implements Serializable {
 
     private static final long serialVersionUID = -1203994797919820914L;
     private List<Td> tds;
 
+    /** Returns an unmodifiable view of this row's cells. */
     public List<Td> getTds() {
       return CollectionUtils.isEmpty(tds)
           ? Collections.emptyList()
           : Collections.unmodifiableList(tds);
     }
 
+    /** Returns the cell at the specified zero-based column index. */
     public Td getTd(int tdIdx) {
       if (tdIdx < 0 || tdIdx > colNum() - 1) {
         throw new IndexOutOfBoundsException();
@@ -921,6 +919,7 @@ public class Html {
       return tds.get(tdIdx);
     }
 
+    /** Returns the number of cells in this row. */
     public int colNum() {
       if (CollectionUtils.isEmpty(tds)) {
         return 0;
@@ -939,9 +938,7 @@ public class Html {
     }
   }
 
-  /**
-   * Html td tag.
-   */
+  /** Html td tag. */
   public static class Td extends Attrs<Td> implements Serializable {
 
     private static final long serialVersionUID = -8637141082571738828L;
@@ -955,6 +952,8 @@ public class Html {
     private int colSpan = 1;
 
     private String text;
+
+    private String port;
 
     private LabelTag textTag;
 
@@ -1018,6 +1017,17 @@ public class Html {
       return this;
     }
 
+    /**
+     * Sets the owner-local port used to connect edges to this table cell.
+     *
+     * @param port cell port
+     * @return TD
+     */
+    public Td port(String port) {
+      this.port = port;
+      return this;
+    }
+
     public Td textTag(LabelTag textTag) {
       this.textTag = textTag;
       return this;
@@ -1060,8 +1070,8 @@ public class Html {
     }
 
     /**
-     * Set the shape of the TD, for the shapes supported by default, please check
-     * {@link NodeShapeEnum}.
+     * Set the shape of the TD, for the shapes supported by default, please check {@link
+     * NodeShapeEnum}.
      *
      * @param shape TD shape
      * @return TD
@@ -1099,6 +1109,10 @@ public class Html {
       return text;
     }
 
+    public String getPort() {
+      return port;
+    }
+
     public LabelTag getTextTag() {
       return textTag;
     }
@@ -1119,6 +1133,7 @@ public class Html {
       return shape;
     }
 
+    /** Returns the cell link, falling back to the table link. */
     public String getHref(Table table) {
       if (super.getHref() != null) {
         return super.getHref();
@@ -1126,6 +1141,7 @@ public class Html {
       return table.getHref();
     }
 
+    /** Returns the cell tooltip, falling back to the table tooltip. */
     public String getTooltip(Table table) {
       if (super.getTooltip() != null) {
         return super.getTooltip();
@@ -1133,6 +1149,7 @@ public class Html {
       return table.getTooltip();
     }
 
+    /** Resolves horizontal alignment from the cell, table, or center default. */
     public Labeljust getAlign(Table table) {
       if (super.getAlign() != null) {
         return super.getAlign();
@@ -1143,6 +1160,7 @@ public class Html {
       return Labeljust.CENTER;
     }
 
+    /** Resolves vertical alignment from the cell, table, or center default. */
     public Labelloc getValign(Table table) {
       if (super.getValign() != null) {
         return super.getValign();
@@ -1153,6 +1171,7 @@ public class Html {
       return Labelloc.CENTER;
     }
 
+    /** Resolves the border width from the cell, table, or default of one. */
     public int getBorder(Table table) {
       if (border != null) {
         return border;
@@ -1163,6 +1182,7 @@ public class Html {
       return 1;
     }
 
+    /** Resolves cell padding from the cell, table, or default of five. */
     public int getCellPadding(Table table) {
       if (super.getCellPadding() != null) {
         return super.getCellPadding();
@@ -1173,6 +1193,7 @@ public class Html {
       return 5;
     }
 
+    /** Returns cell styles, falling back to table styles or an empty collection. */
     public Collection<NodeStyle> getStyles(Table table) {
       if (CollectionUtils.isNotEmpty(super.getStyles())) {
         return super.getStyles();
@@ -1183,6 +1204,7 @@ public class Html {
       return Collections.emptyList();
     }
 
+    /** Resolves fixed sizing from the cell or table, defaulting to false. */
     public boolean isFixedSize(Table table) {
       if (super.getFixedSize() != null) {
         return super.getFixedSize();
@@ -1199,9 +1221,10 @@ public class Html {
    *
    * <p>This class provides methods to create formatted text elements, including bold, italic,
    * underline, and alignment options such as top, bottom, left, right, and center. It also supports
-   * multi-line text (via {@link #br()}) and recursive nesting of labels.</p>
+   * multi-line text (via {@link #br()}) and recursive nesting of labels.
    *
-   * <p><b>Example Usage:</b></p>
+   * <p><b>Example Usage:</b>
+   *
    * <pre>{@code
    * LabelTag label = new LabelTag()
    *     .bold("Header")
@@ -1223,8 +1246,7 @@ public class Html {
 
     private List<BasicLabelTag> tags;
 
-    private LabelTag() {
-    }
+    private LabelTag() {}
 
     /**
      * Inserts a line break.
@@ -1283,7 +1305,7 @@ public class Html {
     /**
      * Applies specific font attributes to the given text.
      *
-     * @param text      the text to style.
+     * @param text the text to style.
      * @param fontAttrs the font attributes (e.g., size, color, face).
      * @return this {@code LabelTag} with the styled text.
      */
@@ -1295,7 +1317,7 @@ public class Html {
     /**
      * Applies specific font attributes to an existing {@code LabelTag}.
      *
-     * @param labelTag  the label to style.
+     * @param labelTag the label to style.
      * @param fontAttrs the font attributes (e.g., size, color, face).
      * @return this {@code LabelTag} with the styled label.
      */
@@ -1603,10 +1625,10 @@ public class Html {
      * Appends an already-built fragment to this label.
      *
      * <p>The typed helpers ({@link #bold(String)}, {@link #italic(String)}, ...) cover authoring a
-     * label from scratch. This method exists for the case where a fragment has already been produced
-     * elsewhere and only needs regrouping — notably when the DOT parser splits a record label's rich
-     * text into per-cell labels, where re-deriving each fragment through the typed helpers would mean
-     * switching over every tag type.
+     * label from scratch. This method exists for the case where a fragment has already been
+     * produced elsewhere and only needs regrouping — notably when the DOT parser splits a record
+     * label's rich text into per-cell labels, where re-deriving each fragment through the typed
+     * helpers would mean switching over every tag type.
      *
      * @param tag the fragment to append; must be non-null
      * @return this {@code LabelTag} with the fragment appended
@@ -1628,10 +1650,11 @@ public class Html {
   /**
    * Defines font attributes such as color, size (in points), and font face.
    *
-   * <p>Instances of this class are typically used in conjunction with HTML-like
-   * label rendering, allowing customization of text appearance within labels.</p>
+   * <p>Instances of this class are typically used in conjunction with HTML-like label rendering,
+   * allowing customization of text appearance within labels.
    *
-   * <p><b>Example Usage:</b></p>
+   * <p><b>Example Usage:</b>
+   *
    * <pre>{@code
    * FontAttrs attrs = new FontAttrs()
    *     .color(Color.RED)
@@ -1647,8 +1670,7 @@ public class Html {
     private Integer pointSize;
     private String face;
 
-    private FontAttrs() {
-    }
+    private FontAttrs() {}
 
     /**
      * Sets the color of the font.
@@ -1711,6 +1733,7 @@ public class Html {
     }
   }
 
+  /** A typed label fragment containing text or a nested label. */
   public static class BasicLabelTag implements Serializable {
 
     private static final long serialVersionUID = -2021156451838455226L;
@@ -1745,6 +1768,7 @@ public class Html {
       return subLabelTag;
     }
 
+    /** Checks that a fragment without text has a nested label. */
     public void verify() {
       if (text == null) {
         Asserts.nullArgument(subLabelTag);
@@ -1752,6 +1776,7 @@ public class Html {
     }
   }
 
+  /** A label fragment with font attributes. */
   public static class FontLabelTag extends BasicLabelTag {
 
     private static final long serialVersionUID = -7175729224827523985L;
@@ -1768,6 +1793,7 @@ public class Html {
     }
   }
 
+  /** Supported text-formatting and alignment tags. */
   public enum LabelTagType {
     BR,
     TEXT,
@@ -1792,21 +1818,21 @@ public class Html {
   /**
    * Structured counterpart to a record-shape label.
    *
-   * <p>A {@code RecordTag} is the Java API equivalent of the DOT record-label
-   * string (e.g. {@code "<f0>a|{b|c}|d"}). Each child {@link BasicRecordCell}
-   * represents one cell and carries either plain text, a {@link LabelTag}
-   * (rich text), or a nested {@code RecordTag} for orientation flipping.</p>
+   * <p>A {@code RecordTag} is the Java API equivalent of the DOT record-label string (e.g. {@code
+   * "<f0>a|{b|c}|d"}). Each child {@link BasicRecordCell} represents one cell and carries either
+   * plain text, a {@link LabelTag} (rich text), or a nested {@code RecordTag} for orientation
+   * flipping.
    *
-   * <p>Construct via {@link Html#record(BasicRecordCell...)} /
-   * {@link Html#verticalRecord(BasicRecordCell...)}; append cells fluently
-   * with {@link #cell(BasicRecordCell)} / {@link #cell(String)} /
-   * {@link #cell(LabelTag)} / {@link #nested(RecordTag)}.</p>
+   * <p>Construct via {@link Html#record(BasicRecordCell...)} / {@link
+   * Html#verticalRecord(BasicRecordCell...)}; append cells fluently with {@link
+   * #cell(BasicRecordCell)} / {@link #cell(String)} / {@link #cell(LabelTag)} / {@link
+   * #nested(RecordTag)}.
    *
-   * <p>A {@code RecordTag} is only meaningful on nodes whose shape is
-   * {@link NodeShapeEnum#RECORD} or {@link NodeShapeEnum#M_RECORD}. For other
-   * shapes the value is ignored.</p>
+   * <p>A {@code RecordTag} is only meaningful on nodes whose shape is {@link NodeShapeEnum#RECORD}
+   * or {@link NodeShapeEnum#M_RECORD}. For other shapes the value is ignored.
    *
    * <h2>Example</h2>
+   *
    * <pre>{@code
    * RecordTag tag = record(
    *     cell("a").id("f0"),
@@ -1824,10 +1850,9 @@ public class Html {
     private static final long serialVersionUID = 6079183783038369923L;
 
     /**
-     * Whether the direct children of this {@code RecordTag} are laid out
-     * horizontally (left-to-right). {@code false} means vertical
-     * (top-to-bottom). Top-level records default to horizontal, matching the
-     * Graphviz record syntax.
+     * Whether the direct children of this {@code RecordTag} are laid out horizontally
+     * (left-to-right). {@code false} means vertical (top-to-bottom). Top-level records default to
+     * horizontal, matching the Graphviz record syntax.
      */
     private final boolean horizontal;
 
@@ -1871,8 +1896,8 @@ public class Html {
     }
 
     /**
-     * Appends a nested-record cell to this record. Children of the nested
-     * record are laid out perpendicular to this level.
+     * Appends a nested-record cell to this record. Children of the nested record are laid out
+     * perpendicular to this level.
      *
      * @param nested the nested record; must be non-null.
      * @return this {@code RecordTag} for chaining.
@@ -1883,16 +1908,19 @@ public class Html {
     }
 
     /**
-     * @return {@code true} when children are laid out horizontally
-     * (left-to-right), {@code false} for vertical (top-to-bottom).
+     * Reports whether the record's children are arranged horizontally.
+     *
+     * @return {@code true} when children are laid out horizontally (left-to-right), {@code false}
+     *     for vertical (top-to-bottom).
      */
     public boolean isHorizontal() {
       return horizontal;
     }
 
     /**
-     * @return the cells of this record in declaration order; never
-     * {@code null}, but may be empty.
+     * Returns the record's cells in declaration order.
+     *
+     * @return the cells of this record in declaration order; never {@code null}, but may be empty.
      */
     public List<BasicRecordCell> getCells() {
       return cells == null ? Collections.emptyList() : cells;
@@ -1912,17 +1940,19 @@ public class Html {
    * A single cell inside a {@link RecordTag}.
    *
    * <p>The cell body is mutually exclusive across three forms:
-   * <ul>
-   *   <li>{@link #text(String)} — plain text;</li>
-   *   <li>{@link #text(LabelTag)} — rich text via a {@link LabelTag};</li>
-   *   <li>{@link #nested(RecordTag)} — a nested record, flipping the layout
-   *       orientation relative to the parent.</li>
-   * </ul>
-   * Setting one clears the others. A cell with no body is a blank cell,
-   * analogous to the empty fields in {@code "|a|"}.</p>
    *
-   * <p>An optional port {@link #id(String)} can be attached so that lines may
-   * connect to this specific cell via {@code tailCell}/{@code headCell}.</p>
+   * <ul>
+   *   <li>{@link #text(String)} — plain text;
+   *   <li>{@link #text(LabelTag)} — rich text via a {@link LabelTag};
+   *   <li>{@link #nested(RecordTag)} — a nested record, flipping the layout orientation relative to
+   *       the parent.
+   * </ul>
+   *
+   * <p>Setting one clears the others. A cell with no body is a blank cell, analogous to the empty
+   * fields in {@code "|a|"}.
+   *
+   * <p>An optional port {@link #id(String)} can be attached so that lines may connect to this
+   * specific cell via {@code tailCell}/{@code headCell}.
    */
   public static class BasicRecordCell implements Serializable {
 
@@ -1936,12 +1966,11 @@ public class Html {
 
     private RecordTag nested;
 
-    BasicRecordCell() {
-    }
+    BasicRecordCell() {}
 
     /**
-     * Sets the port identifier for this cell. Mirrors the Graphviz
-     * {@code <portId>} syntax inside a record label.
+     * Sets the port identifier for this cell. Mirrors the Graphviz {@code <portId>} syntax inside a
+     * record label.
      *
      * @param id the port id; may be {@code null} or empty to clear.
      * @return this cell for chaining.
@@ -1952,8 +1981,7 @@ public class Html {
     }
 
     /**
-     * Sets the cell body to plain text, clearing any previous rich-text or
-     * nested-record body.
+     * Sets the cell body to plain text, clearing any previous rich-text or nested-record body.
      *
      * @param text the text, may be {@code null} or empty for a blank cell.
      * @return this cell for chaining.
@@ -1966,8 +1994,8 @@ public class Html {
     }
 
     /**
-     * Sets the cell body to a rich-text {@link LabelTag}, clearing any
-     * previous plain-text or nested-record body.
+     * Sets the cell body to a rich-text {@link LabelTag}, clearing any previous plain-text or
+     * nested-record body.
      *
      * @param textTag the rich-text content; must be non-null.
      * @return this cell for chaining.
@@ -1981,9 +2009,9 @@ public class Html {
     }
 
     /**
-     * Sets the cell body to a nested {@link RecordTag}, clearing any previous
-     * plain-text or rich-text body. Children of the nested record are laid
-     * out perpendicular to this cell's parent orientation.
+     * Sets the cell body to a nested {@link RecordTag}, clearing any previous plain-text or
+     * rich-text body. Children of the nested record are laid out perpendicular to this cell's
+     * parent orientation.
      *
      * @param nested the nested record; must be non-null.
      * @return this cell for chaining.
@@ -1996,40 +2024,37 @@ public class Html {
       return this;
     }
 
-    /**
-     * @return the port id, or {@code null} if none.
-     */
+    /** Returns the port id, or {@code null} if none. */
     public String getId() {
       return id;
     }
 
     /**
-     * @return the plain-text body, or {@code null} if the cell body is a
-     * rich-text or a nested record, or no body was set.
+     * Returns the cell's plain-text body, if present.
+     *
+     * @return the plain-text body, or {@code null} if the cell body is a rich-text or a nested
+     *     record, or no body was set.
      */
     public String getText() {
       return text;
     }
 
     /**
-     * @return the rich-text body, or {@code null} if the cell body is plain
-     * text, a nested record, or no body was set.
+     * Returns the cell's rich-text body, if present.
+     *
+     * @return the rich-text body, or {@code null} if the cell body is plain text, a nested record,
+     *     or no body was set.
      */
     public LabelTag getTextTag() {
       return textTag;
     }
 
-    /**
-     * @return the nested record, or {@code null} if the cell body is text or
-     * no body was set.
-     */
+    /** Returns the nested record, or {@code null} if the cell body is text or no body was set. */
     public RecordTag getNested() {
       return nested;
     }
 
-    /**
-     * @return {@code true} when this cell has no body at all (blank cell).
-     */
+    /** Returns {@code true} when this cell has no body at all (blank cell). */
     public boolean isBlank() {
       return text == null && textTag == null && nested == null;
     }
@@ -2037,10 +2062,9 @@ public class Html {
     /**
      * Validates invariants of this cell.
      *
-     * <p>The fluent setters already enforce mutual exclusion, so a
-     * user-built cell is always in a valid state. This method exists for
-     * defensive checks at assembly time (e.g. when appending to a
-     * {@link RecordTag}) and for future use by deserialization paths.</p>
+     * <p>The fluent setters already enforce mutual exclusion, so a user-built cell is always in a
+     * valid state. This method exists for defensive checks at assembly time (e.g. when appending to
+     * a {@link RecordTag}) and for future use by deserialization paths.
      */
     public void verify() {
       int bodies = 0;
@@ -2053,8 +2077,8 @@ public class Html {
       if (nested != null) {
         bodies++;
       }
-      Asserts.illegalArgument(bodies > 1,
-          "BasicRecordCell must have at most one of {text, textTag, nested}");
+      Asserts.illegalArgument(
+          bodies > 1, "BasicRecordCell must have at most one of {text, textTag, nested}");
     }
   }
 }

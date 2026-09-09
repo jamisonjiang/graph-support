@@ -51,304 +51,310 @@ import org.graphper.parser.grammar.DOTParser.PortContext;
 import org.graphper.parser.grammar.DOTParser.SubgraphContext;
 
 /**
- * A specialized listener that extends {@link DotTempAttrListener} to build a
- * {@link Graphviz} model (graph, subgraphs, clusters, nodes, and edges) from a parsed
- * DOT syntax tree.
+ * A specialized listener that extends {@link DotTempAttrListener} to build a {@link Graphviz} model
+ * (graph, subgraphs, clusters, nodes, and edges) from a parsed DOT syntax tree.
  *
  * @author johannes
  */
 public class GraphvizListener extends DotTempAttrListener {
 
-    private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();
+  private final Deque<GraphContainerBuilder> containerStack = new LinkedList<>();
 
-    private Map<SubgraphContext, GraphContainer> subGraphMap = null;
+  private Map<SubgraphContext, GraphContainer> subGraphMap = null;
 
-    private Graphviz graphviz;
+  private Graphviz graphviz;
 
-    private final NodeExtractor nodeExtractor;
+  private final NodeExtractor nodeExtractor;
 
-    private final PostGraphComponents postGraphComponents;
+  private final PostGraphComponents postGraphComponents;
 
-    public GraphvizListener(NodeExtractor nodeExtractor, PostGraphComponents postGraphComponents) {
-        Objects.requireNonNull(nodeExtractor);
-        this.nodeExtractor = nodeExtractor;
-        this.postGraphComponents = postGraphComponents;
+  /** Creates a graph listener with extracted nodes and an optional post-processing hook. */
+  public GraphvizListener(NodeExtractor nodeExtractor, PostGraphComponents postGraphComponents) {
+    Objects.requireNonNull(nodeExtractor);
+    this.nodeExtractor = nodeExtractor;
+    this.postGraphComponents = postGraphComponents;
+  }
+
+  @Override
+  protected boolean isFocusStmtType(Attr_stmtContext ctx) {
+    return ctx.EDGE() != null;
+  }
+
+  @Override
+  public void enterGraphs(GraphsContext ctx) {
+    Iterator<GraphContext> iterator = ctx.graph().iterator();
+    iterator.next();
+
+    while (iterator.hasNext()) {
+      iterator.next();
+      iterator.remove();
+    }
+  }
+
+  @Override
+  public void enterGraph(DOTParser.GraphContext ctx) {
+
+    Graphviz.GraphvizBuilder graphvizBuilder;
+
+    if (ctx.GRAPH() != null) {
+      graphvizBuilder = Graphviz.graph();
+    } else if (ctx.DIGRAPH() != null) {
+      graphvizBuilder = Graphviz.digraph();
+    } else {
+      throw new ParseException("invalid graph");
     }
 
-    @Override
-    protected boolean isFocusStmtType(Attr_stmtContext ctx) {
-        return ctx.EDGE() != null;
+    if (ctx.id_() != null) {
+      graphvizBuilder.id(ctx.id_().getText());
+    }
+    containerStack.push(graphvizBuilder);
+  }
+
+  @Override
+  public void exitGraph(DOTParser.GraphContext ctx) {
+    GraphvizBuilder graphvizBuilder = (GraphvizBuilder) containerStack.pop();
+    if (postGraphComponents != null) {
+      postGraphComponents.postGraphviz(graphvizBuilder);
+    }
+    graphviz = graphvizBuilder.build();
+  }
+
+  @Override
+  public void enterStmt(DOTParser.StmtContext ctx) {
+
+    int scount = ctx.id_().size() / 2;
+    for (int c = 0; c < scount; c++) {
+
+      DOTParser.Id_Context left = ctx.id_().get(2 * c);
+      DOTParser.Id_Context right = ctx.id_().get(2 * c + 1);
+
+      String key = left.getText();
+      String value = right.getText();
+
+      if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+        Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+
+        subgraphAttribute(key, value, sb);
+      } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
+        Cluster.ClusterBuilder cb = (Cluster.ClusterBuilder) containerStack.pop();
+
+        if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+          Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+          subgraphAttribute(key, value, sb);
+        }
+        containerStack.push(cb);
+      }
+    }
+  }
+
+  @Override
+  public void enterAttr_stmt(DOTParser.Attr_stmtContext ctx) {
+    super.enterAttr_stmt(ctx);
+
+    if (ctx.GRAPH() != null) {
+      if (containerStack.peek() instanceof GraphvizBuilder) {
+        GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
+        graphAttributes(ctx.attr_list(), gb);
+      } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+        Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+        subgraphAttributes(ctx.attr_list(), sb);
+      } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
+        Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
+        clusterAttributes(ctx.attr_list(), sb);
+      }
+    }
+  }
+
+  @Override
+  public void enterGraph_a_list(DOTParser.Graph_a_listContext ctx) {
+    if (containerStack.peek() instanceof GraphvizBuilder) {
+      GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
+      graphAttributes(ctx.a_list(), gb);
+    } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
+      Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+      subgraphAttributes(ctx.a_list(), sb);
+    } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
+      Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
+      clusterAttributes(ctx.a_list(), sb);
+    }
+  }
+
+  @Override
+  public void exitEdge_stmt(DOTParser.Edge_stmtContext ctx) {
+
+    ParseTree first = ctx.node_id() != null ? ctx.node_id() : ctx.subgraph();
+
+    int edgecount = ctx.edgeRHS().children.size() / 2;
+    for (int c = 0; c < edgecount; c++) {
+      ParseTree second = ctx.edgeRHS().children.get(2 * c + 1);
+      edge(first, second, ctx.attr_list());
+      first = second;
+    }
+  }
+
+  private void edge(ParseTree first, ParseTree second, DOTParser.Attr_listContext attr_list) {
+
+    if (first instanceof DOTParser.Node_idContext && second instanceof DOTParser.Node_idContext) {
+
+      DOTParser.Node_idContext left = (DOTParser.Node_idContext) first;
+      DOTParser.Node_idContext right = (DOTParser.Node_idContext) second;
+
+      String leftId = left.id_().getText();
+      String rightId = right.id_().getText();
+
+      Node leftNode = getNode(leftId);
+      Node rightNode = getNode(rightId);
+
+      buildLine(attr_list, leftNode, rightNode, left, right);
+
+    } else if (first instanceof DOTParser.SubgraphContext
+        && second instanceof DOTParser.Node_idContext) {
+
+      DOTParser.SubgraphContext left = (DOTParser.SubgraphContext) first;
+      DOTParser.Node_idContext right = (DOTParser.Node_idContext) second;
+
+      String rightId = right.id_().getText();
+      Node rightNode = getNode(rightId);
+
+      subgraphNodes(left).forEach(l -> buildLine(attr_list, l, rightNode, null, right));
+
+    } else if (first instanceof DOTParser.Node_idContext
+        && second instanceof DOTParser.SubgraphContext) {
+
+      DOTParser.Node_idContext left = (DOTParser.Node_idContext) first;
+      DOTParser.SubgraphContext right = (DOTParser.SubgraphContext) second;
+
+      String leftId = left.id_().getText();
+      Node leftNode = getNode(leftId);
+
+      subgraphNodes(right).forEach(r -> buildLine(attr_list, leftNode, r, left, null));
+
+    } else if (first instanceof DOTParser.SubgraphContext
+        && second instanceof DOTParser.SubgraphContext) {
+
+      DOTParser.SubgraphContext left = (DOTParser.SubgraphContext) first;
+      DOTParser.SubgraphContext right = (DOTParser.SubgraphContext) second;
+
+      subgraphNodes(left)
+          .forEach(l -> subgraphNodes(right).forEach(r -> buildLine(attr_list, l, r, null, null)));
+    }
+  }
+
+  private Iterable<Node> subgraphNodes(DOTParser.SubgraphContext sg) {
+    if (subGraphMap == null) {
+      throw new IllegalStateException(
+          "Cannot found subgraph when edge endpoints are subgraph/cluster");
     }
 
-    @Override
-    public void enterGraphs(GraphsContext ctx) {
-        Iterator<GraphContext> iterator = ctx.graph().iterator();
-        iterator.next();
+    GraphContainer container = subGraphMap.get(sg);
+    if (container == null) {
+      throw new IllegalStateException("Cannot found subgraph container");
+    }
+    return container.nodes();
+  }
 
-        while (iterator.hasNext()) {
-            iterator.next();
-            iterator.remove();
-        }
+  private void buildLine(
+      DOTParser.Attr_listContext attr_list,
+      Node leftNode,
+      Node rightNode,
+      Node_idContext leftCtx,
+      Node_idContext rightCtx) {
+    Map<String, String> lineAttrs = getAttrMap(attr_list);
+    Map<String, String> tempLineAttrs = currentTempAttrs();
+    lineAttrs = combineAttrs(tempLineAttrs, lineAttrs);
+
+    Line.LineBuilder builder = Line.builder(leftNode, rightNode);
+    lineAttributes(lineAttrs, builder);
+    setLinePort(builder, port(leftCtx, true), port(leftCtx, false), true);
+    setLinePort(builder, port(rightCtx, true), port(rightCtx, false), false);
+
+    if (postGraphComponents != null) {
+      postGraphComponents.postLine(builder);
     }
 
-    @Override
-    public void enterGraph(DOTParser.GraphContext ctx) {
+    Line line = builder.build();
+    containerStack.peek().addLine(line);
+  }
 
-        Graphviz.GraphvizBuilder graphvizBuilder;
-
-        if (ctx.GRAPH() != null) {
-            graphvizBuilder = Graphviz.graph();
-        } else if (ctx.DIGRAPH() != null) {
-            graphvizBuilder = Graphviz.digraph();
-        } else {
-            throw new ParseException("invalid graph");
-        }
-
-        if (ctx.id_() != null) {
-            graphvizBuilder.id(ctx.id_().getText());
-        }
-        containerStack.push(graphvizBuilder);
+  private String port(Node_idContext node, boolean first) {
+    if (node == null) {
+      return null;
     }
 
-    @Override
-    public void exitGraph(DOTParser.GraphContext ctx) {
-        GraphvizBuilder graphvizBuilder = (GraphvizBuilder) containerStack.pop();
-        if (postGraphComponents != null) {
-            postGraphComponents.postGraphviz(graphvizBuilder);
-        }
-        graphviz = graphvizBuilder.build();
+    PortContext port = node.port();
+    if (port == null || port.getChildCount() < 2) {
+      return null;
+    }
+    if (first) {
+      ParseTree p = port.getChild(1);
+      return p != null ? p.getText() : null;
     }
 
-    @Override
-    public void enterStmt(DOTParser.StmtContext ctx) {
+    if (port.getChildCount() < 4) {
+      return null;
+    }
+    ParseTree p = port.getChild(3);
+    return p != null ? p.getText() : null;
+  }
 
-        int scount = ctx.id_().size() / 2;
-        for (int c = 0; c < scount; c++) {
+  @Override
+  public void exitNode_stmt(Node_stmtContext ctx) {
+    String id = ctx.node_id().id_().getText();
+    containerStack.peek().addNode(getNode(id));
+  }
 
-            DOTParser.Id_Context left = ctx.id_().get(2 * c);
-            DOTParser.Id_Context right = ctx.id_().get(2 * c + 1);
+  @Override
+  public void enterSubgraph(DOTParser.SubgraphContext ctx) {
+    super.enterSubgraph(ctx);
 
-            String key = left.getText();
-            String value = right.getText();
+    String id = ctx.id_() != null ? ctx.id_().getText() : null;
 
-            if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
-                Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
+    if (id != null && id.startsWith("cluster")) {
+      Cluster.ClusterBuilder builder = Cluster.builder();
+      containerStack.push(builder);
+    } else {
+      Subgraph.SubgraphBuilder builder = Subgraph.builder();
+      containerStack.push(builder);
+    }
+  }
 
-                subgraphAttribute(key, value, sb);
-            } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
-                Cluster.ClusterBuilder cb = (Cluster.ClusterBuilder) containerStack.pop();
+  @Override
+  public void exitSubgraph(DOTParser.SubgraphContext ctx) {
 
-                if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
-                    Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-                    subgraphAttribute(key, value, sb);
-                }
-                containerStack.push(cb);
-            }
-        }
+    GraphContainer.GraphContainerBuilder child = containerStack.pop();
+    GraphContainer.GraphContainerBuilder parent = containerStack.peek();
+
+    Id_Context id = ctx.id_();
+    if (id != null) {
+      child.id(id.getText());
+    }
+    if (postGraphComponents != null && child instanceof ClusterBuilder) {
+      postGraphComponents.postCluster((ClusterBuilder) child);
     }
 
-    @Override
-    public void enterAttr_stmt(DOTParser.Attr_stmtContext ctx) {
-        super.enterAttr_stmt(ctx);
-
-        if (ctx.GRAPH() != null) {
-            if (containerStack.peek() instanceof GraphvizBuilder) {
-                GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
-                graphAttributes(ctx.attr_list(), gb);
-            } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
-                Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-                subgraphAttributes(ctx.attr_list(), sb);
-            } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
-                Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
-                clusterAttributes(ctx.attr_list(), sb);
-            }
-        }
+    GraphContainer gc = child.build();
+    if (gc.isEmpty()) {
+      return;
     }
 
-    @Override
-    public void enterGraph_a_list(DOTParser.Graph_a_listContext ctx) {
-        if (containerStack.peek() instanceof GraphvizBuilder) {
-            GraphvizBuilder gb = (GraphvizBuilder) containerStack.peek();
-            graphAttributes(ctx.a_list(), gb);
-        } else if (containerStack.peek() instanceof Subgraph.SubgraphBuilder) {
-            Subgraph.SubgraphBuilder sb = (Subgraph.SubgraphBuilder) containerStack.peek();
-            subgraphAttributes(ctx.a_list(), sb);
-        } else if (containerStack.peek() instanceof Cluster.ClusterBuilder) {
-            Cluster.ClusterBuilder sb = (Cluster.ClusterBuilder) containerStack.peek();
-            clusterAttributes(ctx.a_list(), sb);
-        }
+    if (gc.isCluster()) {
+      parent.cluster((Cluster) gc);
+    } else if (gc.isSubgraph()) {
+      parent.subgraph((Subgraph) gc);
     }
 
-    @Override
-    public void exitEdge_stmt(DOTParser.Edge_stmtContext ctx) {
-
-        ParseTree first = ctx.node_id() != null ? ctx.node_id() : ctx.subgraph();
-
-        int edgecount = ctx.edgeRHS().children.size() / 2;
-        for (int c = 0; c < edgecount; c++) {
-            ParseTree second = ctx.edgeRHS().children.get(2 * c + 1);
-            edge(first, second, ctx.attr_list());
-            first = second;
-        }
+    if (subGraphMap == null) {
+      subGraphMap = new HashMap<>();
     }
+    subGraphMap.put(ctx, gc);
+    super.exitSubgraph(ctx);
+  }
 
-    private void edge(ParseTree first, ParseTree second, DOTParser. Attr_listContext attr_list) {
+  public Graphviz getGraphviz() {
+    return graphviz;
+  }
 
-        if (first instanceof DOTParser.Node_idContext && second instanceof DOTParser.Node_idContext) {
-
-            DOTParser.Node_idContext left = (DOTParser.Node_idContext)first;
-            DOTParser.Node_idContext right = (DOTParser.Node_idContext)second;
-
-            String leftId = left.id_().getText();
-            String rightId = right.id_().getText();
-
-            Node leftNode = getNode(leftId);
-            Node rightNode = getNode(rightId);
-
-            buildLine(attr_list, leftNode, rightNode, left, right);
-
-        } else if (first instanceof DOTParser.SubgraphContext && second instanceof DOTParser.Node_idContext) {
-
-            DOTParser.SubgraphContext left = (DOTParser.SubgraphContext)first;
-            DOTParser.Node_idContext right = (DOTParser.Node_idContext)second;
-
-            String rightId = right.id_().getText();
-            Node rightNode = getNode(rightId);
-
-            subgraphNodes(left).forEach(l -> buildLine(attr_list, l, rightNode, null, right));
-
-        } else if (first instanceof DOTParser.Node_idContext && second instanceof DOTParser.SubgraphContext) {
-
-            DOTParser.Node_idContext left = (DOTParser.Node_idContext)first;
-            DOTParser.SubgraphContext right = (DOTParser.SubgraphContext)second;
-
-            String leftId = left.id_().getText();
-            Node leftNode = getNode(leftId);
-
-            subgraphNodes(right).forEach(r -> buildLine(attr_list, leftNode, r, left, null));
-
-        } else if (first instanceof DOTParser.SubgraphContext && second instanceof DOTParser.SubgraphContext) {
-
-            DOTParser.SubgraphContext left = (DOTParser.SubgraphContext)first;
-            DOTParser.SubgraphContext right = (DOTParser.SubgraphContext)second;
-
-            subgraphNodes(left).forEach(l ->
-                subgraphNodes(right).forEach(r ->
-                    buildLine(attr_list, l, r, null, null)));
-
-        }
-    }
-
-    private Iterable<Node> subgraphNodes(DOTParser.SubgraphContext sg) {
-        if (subGraphMap == null) {
-            throw new IllegalStateException("Cannot found subgraph when edge endpoints are subgraph/cluster");
-        }
-
-        GraphContainer container = subGraphMap.get(sg);
-        if (container == null) {
-            throw new IllegalStateException("Cannot found subgraph container");
-        }
-        return container.nodes();
-    }
-
-    private void buildLine(DOTParser.Attr_listContext attr_list, Node leftNode, Node rightNode,
-                           Node_idContext leftCtx, Node_idContext rightCtx) {
-        Map<String, String> lineAttrs = getAttrMap(attr_list);
-        Map<String, String> tempLineAttrs = currentTempAttrs();
-        lineAttrs = combineAttrs(tempLineAttrs, lineAttrs);
-
-        Line.LineBuilder builder = Line.builder(leftNode, rightNode);
-        lineAttributes(lineAttrs, builder);
-        setLinePort(builder, port(leftCtx, true), port(leftCtx, false), true);
-        setLinePort(builder, port(rightCtx, true), port(rightCtx, false), false);
-
-        if (postGraphComponents != null) {
-            postGraphComponents.postLine(builder);
-        }
-
-        Line line = builder.build();
-        containerStack.peek().addLine(line);
-    }
-
-    private String port(Node_idContext node, boolean first) {
-        if (node == null) {
-            return null;
-        }
-
-        PortContext port = node.port();
-        if (port == null || port.getChildCount() < 2) {
-            return null;
-        }
-        if (first) {
-            ParseTree p = port.getChild(1);
-            return p != null ? p.getText() : null;
-        }
-
-        if (port.getChildCount() < 4) {
-            return null;
-        }
-        ParseTree p = port.getChild(3);
-        return p != null ? p.getText() : null;
-    }
-
-    @Override
-    public void exitNode_stmt(Node_stmtContext ctx) {
-        String id = ctx.node_id().id_().getText();
-        containerStack.peek().addNode(getNode(id));
-    }
-
-    @Override
-    public void enterSubgraph(DOTParser.SubgraphContext ctx) {
-        super.enterSubgraph(ctx);
-
-        String id = ctx.id_() != null ? ctx.id_().getText() : null;
-
-        if (id != null && id.startsWith("cluster")) {
-            Cluster.ClusterBuilder builder = Cluster.builder();
-            containerStack.push(builder);
-        } else {
-            Subgraph.SubgraphBuilder builder = Subgraph.builder();
-            containerStack.push(builder);
-        }
-    }
-
-    @Override
-    public void exitSubgraph(DOTParser.SubgraphContext ctx) {
-
-        GraphContainer.GraphContainerBuilder child = containerStack.pop();
-        GraphContainer.GraphContainerBuilder parent = containerStack.peek();
-
-        Id_Context id = ctx.id_();
-        if (id != null) {
-            child.id(id.getText());
-        }
-        if (postGraphComponents != null && child instanceof ClusterBuilder) {
-            postGraphComponents.postCluster((ClusterBuilder) child);
-        }
-
-        GraphContainer gc = child.build();
-        if (gc.isEmpty()) {
-            return;
-        }
-
-        if (gc.isCluster()) {
-            parent.cluster((Cluster) gc);
-        } else if (gc.isSubgraph()) {
-            parent.subgraph((Subgraph) gc);
-        }
-
-        if (subGraphMap == null) {
-            subGraphMap = new HashMap<>();
-        }
-        subGraphMap.put(ctx, gc);
-        super.exitSubgraph(ctx);
-    }
-
-    public Graphviz getGraphviz() {
-        return graphviz;
-    }
-
-    private Node getNode(String nodeId) {
-        return nodeExtractor.getNode(nodeId);
-    }
+  private Node getNode(String nodeId) {
+    return nodeExtractor.getNode(nodeId);
+  }
 }

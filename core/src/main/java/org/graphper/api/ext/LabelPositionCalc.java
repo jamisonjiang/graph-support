@@ -17,17 +17,19 @@
 package org.graphper.api.ext;
 
 import java.io.Serializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/** Computes a label center coordinate for an alignment within a rectangle. */
 public abstract class LabelPositionCalc implements Serializable {
 
   private static final long serialVersionUID = -7315061356667594850L;
 
   private static final Logger log = LoggerFactory.getLogger(LabelPositionCalc.class);
 
+  /** Validates the bounds and label size, then computes the aligned center coordinate. */
   public double centerPos(FlatPoint upperLeft, FlatPoint lowerRight, FlatPoint labelSize) {
     Asserts.nullArgument(upperLeft, "upperLeft");
     Asserts.nullArgument(lowerRight, "lowerRight");
@@ -45,9 +47,10 @@ public abstract class LabelPositionCalc implements Serializable {
     return centerPos0(upperLeft, lowerRight, labelSize);
   }
 
-  protected abstract double centerPos0(FlatPoint upperLeft, FlatPoint lowerRight,
-                                       FlatPoint labelSize);
+  protected abstract double centerPos0(
+      FlatPoint upperLeft, FlatPoint lowerRight, FlatPoint labelSize);
 
+  /** Positions the label against the left border. */
   public static class LeftLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;
@@ -58,6 +61,7 @@ public abstract class LabelPositionCalc implements Serializable {
     }
   }
 
+  /** Positions the label against the right border. */
   public static class RightLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;
@@ -68,6 +72,7 @@ public abstract class LabelPositionCalc implements Serializable {
     }
   }
 
+  /** Positions the label against the top border. */
   public static class TopLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;
@@ -78,6 +83,7 @@ public abstract class LabelPositionCalc implements Serializable {
     }
   }
 
+  /** Positions the label against the bottom border. */
   public static class BottomLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;
@@ -88,6 +94,7 @@ public abstract class LabelPositionCalc implements Serializable {
     }
   }
 
+  /** Centers the label horizontally. */
   public static class HorCenterLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;
@@ -98,6 +105,7 @@ public abstract class LabelPositionCalc implements Serializable {
     }
   }
 
+  /** Centers the label vertically. */
   public static class VerCenterLabelPositionCalc extends LabelPositionCalc {
 
     private static final long serialVersionUID = -8949864737194759650L;

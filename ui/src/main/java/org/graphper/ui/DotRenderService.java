@@ -16,24 +16,112 @@
 
 package org.graphper.ui;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.antlr.v4.runtime.CharStreams;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Graphviz.GraphvizBuilder;
+import org.graphper.api.SecurityPolicy;
+import org.graphper.draw.common.BatikImgConverter;
 import org.graphper.parser.DotParser;
 import org.graphper.parser.ParseException;
+import org.graphper.parser.PostGraphComponents;
 
 /**
  * Turns DOT source into the resources the editor needs: an SVG string for the live preview and byte
  * payloads for SVG and PNG export.
  *
+ * <p>Every parse runs under a {@link SecurityPolicy}. The no-argument constructor keeps the secure
+ * default (embedded base64 raster images only) unless {@link #ALLOWED_IMAGE_HOSTS_PROPERTY} or
+ * {@link #IMAGE_BASE_DIRECTORY_PROPERTY} names an explicit opt-in; the graph-support CLI sets those
+ * from {@code ui --allow-image-host <host>} and {@code ui --image-dir <directory>}. Embedders that
+ * build the editor themselves can pass a policy to {@link #DotRenderService(SecurityPolicy)}.</p>
+ *
  * @author Jamison Jiang
  */
 public class DotRenderService {
+
+  /** Comma separated hostnames whose {@code http}/{@code https} images may be loaded. */
+  public static final String ALLOWED_IMAGE_HOSTS_PROPERTY = "graph.support.image.allowed.hosts";
+
+  /** Directory that filesystem image references must resolve inside. */
+  public static final String IMAGE_BASE_DIRECTORY_PROPERTY = "graph.support.image.base.dir";
+
+  private final SecurityPolicy securityPolicy;
+
+  private final PostGraphComponents policyComponents = new PostGraphComponents() {
+    @Override
+    public void postGraphviz(GraphvizBuilder graphvizBuilder) {
+      graphvizBuilder.securityPolicy(securityPolicy);
+    }
+  };
+
+  /**
+   * Creates a service whose policy comes from {@link #ALLOWED_IMAGE_HOSTS_PROPERTY} and
+   * {@link #IMAGE_BASE_DIRECTORY_PROPERTY}, falling back to {@link SecurityPolicy#defaultPolicy()}
+   * when neither is set.
+   */
+  public DotRenderService() {
+    this(policyFromSystemProperties());
+  }
+
+  /**
+   * Creates a service that renders under the given policy.
+   *
+   * @param securityPolicy the policy to render under, {@code null} for the secure default
+   */
+  public DotRenderService(SecurityPolicy securityPolicy) {
+    this.securityPolicy = securityPolicy == null ? SecurityPolicy.defaultPolicy() : securityPolicy;
+  }
+
+  /**
+   * Gets the policy every parse of this service runs under.
+   *
+   * @return the security policy
+   */
+  public SecurityPolicy securityPolicy() {
+    return securityPolicy;
+  }
+
+  /**
+   * Reads the image opt-ins from the system properties. Anything malformed is ignored rather than
+   * thrown, because the editor must still open; the CLI validates the same values up front and
+   * reports them there.
+   *
+   * @return the configured policy, or {@link SecurityPolicy#defaultPolicy()} when nothing is set
+   */
+  static SecurityPolicy policyFromSystemProperties() {
+    String hosts = System.getProperty(ALLOWED_IMAGE_HOSTS_PROPERTY);
+    String baseDirectory = System.getProperty(IMAGE_BASE_DIRECTORY_PROPERTY);
+    if (StringUtils.isBlank(hosts) && StringUtils.isBlank(baseDirectory)) {
+      return SecurityPolicy.defaultPolicy();
+    }
+    SecurityPolicy.Builder builder = SecurityPolicy.builder();
+    boolean changed = false;
+    if (StringUtils.isNotBlank(hosts)) {
+      for (String host : hosts.split(",")) {
+        if (StringUtils.isBlank(host)) {
+          continue;
+        }
+        try {
+          builder.allowRemoteImageHost(host.trim());
+          changed = true;
+        } catch (IllegalArgumentException ignore) {
+          // A malformed host simply stays denied.
+        }
+      }
+      builder.allowRemoteImages(changed);
+    }
+    if (StringUtils.isNotBlank(baseDirectory)) {
+      try {
+        builder.localImageBaseDirectory(baseDirectory.trim());
+        changed = true;
+      } catch (RuntimeException ignore) {
+        // An unusable directory simply stays denied.
+      }
+    }
+    return changed ? builder.build() : SecurityPolicy.defaultPolicy();
+  }
 
   /**
    * Parses and lays out the given DOT source and returns the rendered SVG.
@@ -44,7 +132,7 @@ public class DotRenderService {
    * @throws IllegalStateException    if the graph cannot be rendered
    */
   public String renderSvg(String dot) {
-    Graphviz graphviz = DotParser.parse(dot);
+    Graphviz graphviz = parse(dot);
     if (graphviz.isEmpty()) {
       throw new IllegalArgumentException("Graph is empty");
     }
@@ -68,7 +156,7 @@ public class DotRenderService {
       return null;
     }
     try {
-      DotParser.parse(dot);
+      parse(dot);
       return null;
     } catch (ParseException e) {
       return DotError.fromMessage(e.getMessage());
@@ -76,6 +164,17 @@ public class DotRenderService {
       // Non-syntax problems (for example an empty graph) are surfaced by the render status only.
       return null;
     }
+  }
+
+  /**
+   * Mirrors {@link DotParser#parse(String)} but attaches this service's security policy, which the
+   * string overload has no hook for.
+   */
+  private Graphviz parse(String dot) {
+    if (StringUtils.isEmpty(dot)) {
+      throw new IllegalArgumentException("Empty dot");
+    }
+    return DotParser.parse(CharStreams.fromString(dot, "anonymous String"), policyComponents);
   }
 
   /**
@@ -89,7 +188,8 @@ public class DotRenderService {
   }
 
   /**
-   * Transcodes an SVG document to PNG bytes.
+   * Transcodes static SVG to PNG under this service's pixel budget. External resources and active
+   * SVG content are rejected, including image references to explicitly allowed hosts or files.
    *
    * @param svg the SVG document
    * @return the encoded PNG bytes
@@ -97,11 +197,7 @@ public class DotRenderService {
    */
   public byte[] pngBytes(String svg) {
     try {
-      ByteArrayOutputStream output = new ByteArrayOutputStream();
-      PNGTranscoder transcoder = new PNGTranscoder();
-      transcoder.transcode(new TranscoderInput(new ByteArrayInputStream(svgBytes(svg))),
-                           new TranscoderOutput(output));
-      return output.toByteArray();
+      return new BatikImgConverter().pngBytes(svg, securityPolicy);
     } catch (Exception e) {
       throw new IllegalStateException("Unable to export PNG", e);
     }

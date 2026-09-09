@@ -48,14 +48,10 @@ public class Graphviz extends GraphContainer implements Serializable {
 
   private static final long serialVersionUID = 7386714074818676956L;
 
-  /**
-   * Measurement unit.
-   */
+  /** Measurement unit. */
   public static final int PIXEL = 72;
 
-  /**
-   * The maximum depth that graphs can be nested.
-   */
+  /** The maximum depth that graphs can be nested. */
   public static final int MAX_DEPTH = 1000;
 
   // Graph attribute
@@ -192,13 +188,12 @@ public class Graphviz extends GraphContainer implements Serializable {
     return new GraphvizBuilder(true);
   }
 
-  // ------------------------------------------ Graphviz Builder ---------------------------------------
+  // ------------------------------------------ Graphviz Builder
+  // ---------------------------------------
 
-  /**
-   * {@link Graphviz} builder, used to build a {@link Graphviz}.
-   */
-  public static class GraphvizBuilder extends
-      GraphContainerBuilder<Graphviz, GraphvizBuilder> implements Cloneable {
+  /** {@link Graphviz} builder, used to build a {@link Graphviz}. */
+  public static class GraphvizBuilder extends GraphContainerBuilder<Graphviz, GraphvizBuilder>
+      implements Cloneable {
 
     private GraphAttrs graphAttrs;
 
@@ -249,9 +244,10 @@ public class Graphviz extends GraphContainer implements Serializable {
      * (such as bold, italic, or multi-line text) in the graph's label.
      *
      * <p>If a plain text label was previously set via {@code label(String)}, calling this method
-     * will override that label with the provided {@link LabelTag}.</p>
+     * will override that label with the provided {@link LabelTag}.
      *
-     * <p><b>Example Usage:</b></p>
+     * <p><b>Example Usage:</b>
+     *
      * <pre>{@code
      * LabelTag tag = bold("Graph Analysis")
      *     .br()
@@ -261,7 +257,8 @@ public class Graphviz extends GraphContainer implements Serializable {
      *     .br()
      *     .top(bold(italic("Key Takeaways:")))
      *     .br()
-     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"),
+     *         fontAttrs().color(Color.RED).pointSize(16)))
      *     .br()
      *     .right(strikeThrough("Outdated Formula"))
      *     .br()
@@ -284,8 +281,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the {@link Labelloc} of the graphviz, used to control the vertical position of the
-     * {@link GraphAttrs#getLabel()} of the graphviz.
+     * Set the {@link Labelloc} of the graphviz, used to control the vertical position of the {@link
+     * GraphAttrs#getLabel()} of the graphviz.
      *
      * @param labelloc labelloc to be added to this graphviz
      * @return graphviz builder
@@ -434,8 +431,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the interval distance of the rank, only valid for {@link Layout#DOT} and
-     * {@link Layout#DOTQ}.
+     * Set the interval distance of the rank, only valid for {@link Layout#DOT} and {@link
+     * Layout#DOTQ}.
      *
      * @param rankSep interval distance of the rank
      * @return graphviz builder
@@ -468,10 +465,10 @@ public class Graphviz extends GraphContainer implements Serializable {
      * @throws IllegalArgumentException horizontal or vertical scale less than 0.1
      */
     public GraphvizBuilder scale(double horScale, double verScale) {
-      Asserts.illegalArgument(horScale < 0.1,
-                              "Horizontal scale (" + horScale + ") can not less than 0.1");
-      Asserts.illegalArgument(verScale < 0.1,
-                              "Vertical scale (" + verScale + ") can not less than 0.1");
+      Asserts.illegalArgument(
+          horScale < 0.1, "Horizontal scale (" + horScale + ") can not less than 0.1");
+      Asserts.illegalArgument(
+          verScale < 0.1, "Vertical scale (" + verScale + ") can not less than 0.1");
       graphAttrs.scale = new UnmodifyFlatPoint(horScale, verScale);
       return self();
     }
@@ -532,8 +529,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     /**
      * In the {@link Splines#ORTHO} route, an OVG (Orthogonal Visibility Graph) is used to perform
      * the A-start algorithm to find the route, and the OVG visualization is similar to a grid. Set
-     * this value to true to print the OVG of the route. So it only takes effect under
-     * {@link Splines#ORTHO}.
+     * this value to true to print the OVG of the route. So it only takes effect under {@link
+     * Splines#ORTHO}.
      *
      * @param showGrid whether to display the OVG
      * @return graphviz builder
@@ -558,7 +555,7 @@ public class Graphviz extends GraphContainer implements Serializable {
      * Sets the tooltip text for the graph.
      *
      * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
-     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.
      *
      * @param tooltip the text to be displayed as the tooltip
      * @return graphviz builder
@@ -594,8 +591,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Sets the spring constant for the
-     * fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
+     * Sets the spring constant for the fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link
+     * Layout#GFDP}) series layout.
      *
      * <p>The spring constant determines the "stiffness" of the virtual springs connecting the
      * nodes. Higher values can result in tighter node placement, while lower values allow for more
@@ -612,8 +609,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Configures whether node overlaps are allowed in the fdp
-     * ({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
+     * Configures whether node overlaps are allowed in the fdp ({@link Layout#FDP}|{@link
+     * Layout#JFDP}|{@link Layout#GFDP}) series layout.
      *
      * <p>If set to {@code true}, nodes may overlap in the final layout. If set to {@code false},
      * the algorithm will attempt to adjust the layout to prevent node overlaps.
@@ -627,8 +624,8 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
-     * Sets the initial positioning strategy for the fdp
-     * ({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout.
+     * Sets the initial positioning strategy for the fdp ({@link Layout#FDP}|{@link
+     * Layout#JFDP}|{@link Layout#GFDP}) series layout.
      *
      * <p>The initial position can influence the final layout, particularly in iterative layout
      * algorithms. Use this to specify how the layout should initialize node positions.
@@ -650,39 +647,38 @@ public class Graphviz extends GraphContainer implements Serializable {
      * where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
-     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
-     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on {@link
+     * Assemble} will be set, and the position of {@link Assemble} is where the label should
      * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
      * (by default, it does not automatically calculate the size of the cell according to the label
-     * of the cell), which requires the setter to completely accurate calculation of all
-     * parameters.
+     * of the cell), which requires the setter to completely accurate calculation of all parameters.
      *
      * <p>This is an example of setting two cells side by assemble.
+     *
      * <pre>{@code
-     *     Graphviz.digraph()
-     *         .addNode(Node.builder().label("Node").build())
-     *         .margin(0.5, 0.5)
-     *         .assemble(
-     *             Assemble.builder()
-     *                 .width(1)
-     *                 .height(0.4)
-     *                 .addCell(0, 0,
-     *                          Node.builder()
-     *                              .width(0.5)
-     *                              .height(0.4)
-     *                              .label("LEFT")
-     *                              .build())
-     *                 .addCell(0.5, 0,
-     *                          Node.builder()
-     *                              .width(0.5)
-     *                              .height(0.4)
-     *                              .label("RIGHT")
-     *                              .build())
-     *                 .build()
-     *         )
-     *         .build()
-     * }
-     * </pre>
+     * Graphviz.digraph()
+     *     .addNode(Node.builder().label("Node").build())
+     *     .margin(0.5, 0.5)
+     *     .assemble(
+     *         Assemble.builder()
+     *             .width(1)
+     *             .height(0.4)
+     *             .addCell(0, 0,
+     *                      Node.builder()
+     *                          .width(0.5)
+     *                          .height(0.4)
+     *                          .label("LEFT")
+     *                          .build())
+     *             .addCell(0.5, 0,
+     *                      Node.builder()
+     *                          .width(0.5)
+     *                          .height(0.4)
+     *                          .label("RIGHT")
+     *                          .build())
+     *             .build()
+     *     )
+     *     .build()
+     * }</pre>
      *
      * @param assemble assemble
      * @return graphviz builder
@@ -693,16 +689,29 @@ public class Graphviz extends GraphContainer implements Serializable {
     }
 
     /**
+     * Sets the policy used for links, external images, and render resource limits.
+     *
+     * @param securityPolicy rendering security policy
+     * @return graphviz builder
+     */
+    public GraphvizBuilder securityPolicy(SecurityPolicy securityPolicy) {
+      Asserts.nullArgument(securityPolicy, "securityPolicy");
+      graphAttrs.securityPolicy = securityPolicy;
+      return self();
+    }
+
+    /**
      * Returns a graphviz.
      *
      * @return {@code Graphviz}
      * @throws IllegalArgumentException This type of error will be reported in the following
-     *                                  situations:
-     *                                  <ul>
-     *                                    <li>The depth of the container exceeds {@link Graphviz#MAX_DEPTH};
-     *                                    <li>There is an empty sub-graph ({@link Subgraph}|{@link Cluster});
-     *                                    <li>A sub-graph ({@link Subgraph}|{@link Cluster}) is repeatedly added into {@code Graphviz}.
-     *                                  </ul>
+     *     situations:
+     *     <ul>
+     *       <li>The depth of the container exceeds {@link Graphviz#MAX_DEPTH};
+     *       <li>There is an empty sub-graph ({@link Subgraph}|{@link Cluster});
+     *       <li>A sub-graph ({@link Subgraph}|{@link Cluster}) is repeatedly added into {@code
+     *           Graphviz}.
+     *     </ul>
      */
     @Override
     public synchronized Graphviz build() {
@@ -712,9 +721,15 @@ public class Graphviz extends GraphContainer implements Serializable {
       Set<GraphContainer> path = new HashSet<>();
       Set<GraphContainer> accessStack = new HashSet<>();
 
-      GraphvizUtils.dfs(MAX_DEPTH, Boolean.FALSE, path, accessStack, graphviz,
-                        (s, f) -> setFather(graphviz, f, s), (c, f) -> setFather(graphviz, f, c),
-                        null);
+      GraphvizUtils.dfs(
+          MAX_DEPTH,
+          Boolean.FALSE,
+          path,
+          accessStack,
+          graphviz,
+          (s, f) -> setFather(graphviz, f, s),
+          (c, f) -> setFather(graphviz, f, c),
+          null);
 
       return graphviz;
     }
@@ -733,8 +748,9 @@ public class Graphviz extends GraphContainer implements Serializable {
         graphviz.fatherRecord = new HashMap<>();
       }
       Asserts.illegalArgument(container.absoluteEmpty(), "Graphviz have empty sub graph!");
-      Asserts.illegalArgument(graphviz.fatherRecord.get(container) != null,
-                              "Graph Container is repeatedly set in Graphviz!");
+      Asserts.illegalArgument(
+          graphviz.fatherRecord.get(container) != null,
+          "Graph Container is repeatedly set in Graphviz!");
       graphviz.fatherRecord.put(container, father);
     }
   }

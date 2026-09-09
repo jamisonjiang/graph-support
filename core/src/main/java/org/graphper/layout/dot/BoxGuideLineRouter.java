@@ -21,11 +21,14 @@ import static org.graphper.layout.LineHelper.multiBezierCurveToPoints;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.UnaryOperator;
+import org.graphper.api.Cluster;
 import org.graphper.api.Line;
 import org.graphper.api.LineAttrs;
 import org.graphper.api.attributes.NodeShapeEnum;
@@ -64,8 +67,13 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   private static final int HALF_PORT_ADAPT_LEN = PORT_ADAPT_LEN / 2;
 
+  private ClusterObstacleIndex clusterObstacleIndex;
+
   @Override
   protected Object attach() {
+    if (clusterObstacleIndex == null) {
+      clusterObstacleIndex = new ClusterObstacleIndex(rankContent, drawGraph);
+    }
     return new ArrayList<RouterBox>();
   }
 
@@ -105,10 +113,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     } else {
       // Record the double-ended node of the original edge.
       DNode[] ports = new DNode[2];
-      lineSegmentConsumer(
-          line,
-          l -> addBoxes(l, lineRouterBoxes, ports)
-      );
+      lineSegmentConsumer(line, l -> addBoxes(l, lineRouterBoxes, ports));
 
       if (ports[0] != null && ports[1] != null) {
         // Specific real line segment calculation, both ends are real nodes.
@@ -128,8 +133,10 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     DLine line = (DLine) parallelLines.get(0);
     DNode from = line.from();
     DNode to = line.to();
-    Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
-    Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+    Port fromPort =
+        PortHelper.getLineEndPointPort(from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+    Port toPort =
+        PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
 
     if ((fromPort == null && toPort == null) || parallelLines.size() > 1) {
       symmetryParallelLine(parallelLines);
@@ -148,9 +155,11 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     FlatPoint fromPoint = PortHelper.getPortPoint(from, fromPort);
     FlatPoint toPoint = PortHelper.getPortPoint(to, toPort);
 
-    double distUnit = (drawGraph.getGraphviz().graphAttrs().getNodeSep()
-        + drawGraph.getGraphviz().graphAttrs().getRankSep()
-        + FlatPoint.twoFlatPointDistance(fromPoint, toPoint)) / 20;
+    double distUnit =
+        (drawGraph.getGraphviz().graphAttrs().getNodeSep()
+                + drawGraph.getGraphviz().graphAttrs().getRankSep()
+                + FlatPoint.twoFlatPointDistance(fromPoint, toPoint))
+            / 20;
 
     List<RouterBox> routerBoxes = (List<RouterBox>) attach();
     if (line.isSameRank()) {
@@ -161,39 +170,45 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       double minY = pre != null ? pre.getEndY() : 2 * rankNode.getStartY() - rankNode.getEndY();
       double maxY = next != null ? next.getEndY() : 2 * rankNode.getEndY() - rankNode.getStartY();
 
-      DefaultShapePosition sp = new DefaultShapePosition(
-          (fromPoint.getX() + toPoint.getX()) / 2,
-          (fromPoint.getY() + toPoint.getY()) / 2,
-          Math.max(from.getHeight(), to.getHeight()),
-          Math.max(from.getWidth(), to.getWidth()),
-          NodeShapeEnum.RECT
-      );
+      DefaultShapePosition sp =
+          new DefaultShapePosition(
+              (fromPoint.getX() + toPoint.getX()) / 2,
+              (fromPoint.getY() + toPoint.getY()) / 2,
+              Math.max(from.getHeight(), to.getHeight()),
+              Math.max(from.getWidth(), to.getWidth()),
+              NodeShapeEnum.RECT);
       minY = Math.min(sp.getY() - sp.getHeight() * parallelLines.size(), minY);
       maxY = Math.max(sp.getY() + sp.getHeight() * parallelLines.size(), maxY);
 
-      sameRankParallelLineDraw(sp, true, rankNode, minY, maxY, parallelLines);
+      sameRankParallelLineDraw(sp, true, false, rankNode, minY, maxY, parallelLines);
     } else {
       RouterBox fromBox = newTwoNodeRangeBox(from);
       RouterBox toBox = newTwoNodeRangeBox(to);
 
       if (fromBox.getWidth() < distUnit * parallelLines.size()) {
-        fromBox.setLeftBorder((fromBox.getLeftBorder() + fromBox.getRightBorder()) / 2
-                                  - distUnit * parallelLines.size() / 2);
-        fromBox.setRightBorder((fromBox.getLeftBorder() + fromBox.getRightBorder()) / 2
-                                   + distUnit * parallelLines.size() / 2);
+        fromBox.setLeftBorder(
+            (fromBox.getLeftBorder() + fromBox.getRightBorder()) / 2
+                - distUnit * parallelLines.size() / 2);
+        fromBox.setRightBorder(
+            (fromBox.getLeftBorder() + fromBox.getRightBorder()) / 2
+                + distUnit * parallelLines.size() / 2);
       }
       if (toBox.getWidth() < distUnit * parallelLines.size()) {
-        toBox.setLeftBorder((toBox.getLeftBorder() + toBox.getRightBorder()) / 2
-                                - distUnit * parallelLines.size() / 2);
-        toBox.setRightBorder((toBox.getLeftBorder() + toBox.getRightBorder()) / 2
-                                 + distUnit * parallelLines.size() / 2);
+        toBox.setLeftBorder(
+            (toBox.getLeftBorder() + toBox.getRightBorder()) / 2
+                - distUnit * parallelLines.size() / 2);
+        toBox.setRightBorder(
+            (toBox.getLeftBorder() + toBox.getRightBorder()) / 2
+                + distUnit * parallelLines.size() / 2);
       }
 
       double verHeight = Math.abs(fromBox.getDownBorder() - toBox.getUpBorder());
       double startY = fromBox.getDownBorder() + verHeight / 8;
       double endY = fromBox.getDownBorder() + verHeight * 7 / 8;
-      double wall = (fromPoint.getX() + toPoint.getX()) / 2 - (parallelLines.size() / 2) * distUnit
-          - distUnit / 2;
+      double wall =
+          (fromPoint.getX() + toPoint.getX()) / 2
+              - (parallelLines.size() / 2) * distUnit
+              - distUnit / 2;
       if (fromPort == Port.WEST) {
         wall -= HALF_PORT_ADAPT_LEN;
       } else if (fromPort == Port.EAST) {
@@ -228,11 +243,17 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
   protected abstract void throughPointHandle(ThroughParam throughParam);
 
-  // ----------------------------------------------------- private method -----------------------------------------------------
+  // ----------------------------------------------------- private method
+  // -----------------------------------------------------
 
-  private void sameRankParallelLineDraw(ShapePosition shapePosition, boolean isSameRank,
-                                        RankNode rank, double minY, double maxY,
-                                        List<ALine> parallelLines) {
+  private void sameRankParallelLineDraw(
+      ShapePosition shapePosition,
+      boolean isSameRank,
+      boolean preferLessCongestedSide,
+      RankNode rank,
+      double minY,
+      double maxY,
+      List<ALine> parallelLines) {
     if (CollectionUtils.isEmpty(parallelLines)) {
       return;
     }
@@ -242,6 +263,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     Double labelY = null;
     double itemsMinY = Double.MAX_VALUE;
     double itemsMaxY = -Double.MAX_VALUE;
+    RankNode routeRank = rank;
     Map<Line, LineDrawProp> lineDrawPropMap = drawGraph.getLineDrawPropMap();
     List<FlatParallelLineParam> flatParallelLineParams = new ArrayList<>(parallelLines.size());
 
@@ -252,6 +274,11 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
       from = from.getX() > to.getX() ? to : from;
       to = line.other(from);
+      boolean preferBelow = preferLessCongestedSide && routeFlatLineBelow(from, to);
+      boolean drawUp = (j % 2 == 0) != preferBelow;
+      if (preferBelow) {
+        routeRank = rankContent.get(from.getRank());
+      }
 
       double leftMin = from.getX() - from.leftWidth();
       double leftMax = from.getX() + from.rightWidth() + from.getNodeSep() / 3;
@@ -272,17 +299,21 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       }
       FlatPoint labelSize = line.getLabelSize();
 
-      boolean alternateDraw = isSameRank;
+      boolean alternateDraw = isSameRank || preferBelow;
       Boolean upDirect = null;
       if (alternateDraw) {
-        Port fromPort = PortHelper.getLineEndPointPort(from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
-        Port toPort = PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+        Port fromPort =
+            PortHelper.getLineEndPointPort(
+                from.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
+        Port toPort =
+            PortHelper.getLineEndPointPort(to.getNodeDrawProp(), line.getLineDrawProp(), drawGraph);
         FlatPoint fromPoint = PortHelper.getPortPoint(from, fromPort);
         FlatPoint toPoint = PortHelper.getPortPoint(to, toPort);
         upDirect = fromPoint.getY() - shapePosition.getY() + toPoint.getY() - to.getY() <= 0;
-        alternateDraw = (fromPort == null || toPort == null)
-            || fromPort == Port.EAST && toPort == Port.WEST
-            || (fromPoint.getY() - from.getY() < 0) != (toPoint.getY() - to.getY() < 0);
+        alternateDraw =
+            (fromPort == null || toPort == null)
+                || fromPort == Port.EAST && toPort == Port.WEST
+                || (fromPoint.getY() - from.getY() < 0) != (toPoint.getY() - to.getY() < 0);
       }
 
       // Divided into two cases: the flat label node is between two nodes and the
@@ -290,13 +321,16 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       if (alternateDraw) {
         // The label is always placed on the upper end of the line, and it goes up and down
         // according to the middle axis of symmetry.
-        if (j % 2 == 0) {
+        if (drawUp) {
           if (upBaseLine == null) {
             upBaseLine = shapePosition.getY();
           }
-          routerBox = new RouterBox(leftMax, rightMin,
-                                    upBaseLine - (labelSize != null ? labelSize.getX() : 10),
-                                    upBaseLine);
+          routerBox =
+              new RouterBox(
+                  leftMax,
+                  rightMin,
+                  upBaseLine - (labelSize != null ? labelSize.getX() : 10),
+                  upBaseLine);
 
           upBaseLine = routerBox.getUpBorder();
           if (labelSize != null) {
@@ -304,11 +338,15 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           }
         } else {
           if (downBaseLine == null) {
-            downBaseLine = shapePosition.getY();
+            downBaseLine = preferBelow ? routeRank.getEndY() : shapePosition.getY();
           }
           downBaseLine = downBaseLine + (labelSize != null ? labelSize.getX() : 10);
-          routerBox = new RouterBox(leftMax, rightMin, downBaseLine,
-                                    downBaseLine + (labelSize != null ? labelSize.getX() : 10));
+          routerBox =
+              new RouterBox(
+                  leftMax,
+                  rightMin,
+                  downBaseLine,
+                  downBaseLine + (labelSize != null ? labelSize.getX() : 10));
 
           if (labelSize != null) {
             labelY = routerBox.getUpBorder() - labelSize.getX() / 2;
@@ -317,7 +355,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       } else {
         // The label is always placed on the upper end of the line, and it goes
         // up and down according to the middle axis of symmetry.
-        if (j % 2 == 0) {
+        if (drawUp) {
           if (upBaseLine == null) {
             if (upDirect == null) {
               upBaseLine = shapePosition.getY();
@@ -327,9 +365,12 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
               upBaseLine = from.getY() + shapePosition.getHeight() + PORT_ADAPT_LEN + 10;
             }
           }
-          routerBox = new RouterBox(leftMax, rightMin,
-                                    upBaseLine - (labelSize != null ? labelSize.getX() : 10),
-                                    upBaseLine);
+          routerBox =
+              new RouterBox(
+                  leftMax,
+                  rightMin,
+                  upBaseLine - (labelSize != null ? labelSize.getX() : 10),
+                  upBaseLine);
 
           upBaseLine = upBaseLine - (labelSize != null ? labelSize.getX() : 10);
         } else {
@@ -352,7 +393,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         }
       }
 
-      if (j % 2 == 0) {
+      if (drawUp) {
         itemsMinY = Math.min(itemsMinY, routerBox.getDownBorder());
         itemsMaxY = Math.max(itemsMaxY, routerBox.getDownBorder());
       } else {
@@ -378,8 +419,10 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     for (FlatParallelLineParam parallelLineParam : flatParallelLineParams) {
       LineAttrs lineAttrs = parallelLineParam.line.lineAttrs();
-      if (!havePort(lineAttrs) && (itemsMinY < rank.getStartY() || itemsMaxY > rank.getEndY())) {
-        double offset = rank.getStartY() - itemsMinY;
+      boolean overflowUp = itemsMinY < minY;
+      boolean overflowDown = itemsMaxY > maxY;
+      if (!havePort(lineAttrs) && overflowUp != overflowDown) {
+        double offset = overflowUp ? minY - itemsMinY : maxY - itemsMaxY;
         FlatShifterStrategy shifter = new FlatShifterStrategy(0, offset);
 
         for (RouterBox routerBox : parallelLineParam.routerBoxes) {
@@ -388,10 +431,18 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
         shifter.movePoint(parallelLineParam.line.getLabelCenter());
       }
 
-      drawGraph.updateYAxisRange(itemsMinY);
-      drawGraph.updateYAxisRange(itemsMaxY);
-      lineCompute(parallelLineParam.line, parallelLineParam.routerBoxes,
-                  parallelLineParam.from, parallelLineParam.to);
+      for (int i = 1; i + 1 < parallelLineParam.routerBoxes.size(); i++) {
+        RouterBox routerBox = parallelLineParam.routerBoxes.get(i);
+        drawGraph.updateYAxisRange(routerBox.getUpBorder());
+        drawGraph.updateYAxisRange(routerBox.getDownBorder());
+      }
+      FlatPoint labelCenter = parallelLineParam.line.getLabelCenter();
+      if (labelCenter != null) {
+        drawGraph.updateYAxisRange(labelCenter.getY());
+      }
+      lineCompute(
+          parallelLineParam.line, parallelLineParam.routerBoxes,
+          parallelLineParam.from, parallelLineParam.to);
     }
   }
 
@@ -434,8 +485,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     for (Entry<Integer, List<ALine>> entry : parallelLineRecordMap.entrySet()) {
       DNode from = flatLabelLine.from();
-      sameRankParallelLineDraw(node, node.getRank() == from.getRank(), rankNode,
-                               minY, maxY, entry.getValue());
+      sameRankParallelLineDraw(
+          node, node.getRank() == from.getRank(), true, rankNode, minY, maxY, entry.getValue());
     }
   }
 
@@ -474,17 +525,29 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     flatLineBoxes(line, lineRouterBoxes, rankNode, pre, next, no);
   }
 
-  private void flatLineBoxes(DLine line, List<RouterBox> lineRouterBoxes,
-                             RankNode rankNode, RankNode pre, RankNode next, int lineNo) {
+  private void flatLineBoxes(
+      DLine line,
+      List<RouterBox> lineRouterBoxes,
+      RankNode rankNode,
+      RankNode pre,
+      RankNode next,
+      int lineNo) {
     double minY = pre != null ? pre.getEndY() : 2 * rankNode.getStartY() - rankNode.getEndY();
     double maxY = next != null ? next.getStartY() : 2 * rankNode.getEndY() - rankNode.getStartY();
-    double maxHeight = pre != null
-        ? rankNode.getStartY() - pre.getEndY()
-        : rankNode.getRankSep();
+    double maxHeight = pre != null ? rankNode.getStartY() - pre.getEndY() : rankNode.getRankSep();
     double nodeSep = drawGraph.getGraphviz().graphAttrs().getNodeSep();
 
     DNode start = line.from().getRankIndex() < line.to().getRankIndex() ? line.from() : line.to();
     DNode end = line.other(start);
+    double gapLeft = start.getX() + start.rightWidth();
+    double gapRight = end.getX() - end.leftWidth();
+    double gap = Math.max(0, gapRight - gapLeft);
+    double inset = Math.min(nodeSep, gap / 3);
+    double channelLeft = gapLeft + inset;
+    double channelRight = gapRight - inset;
+    if (channelLeft > channelRight) {
+      channelLeft = channelRight = (gapLeft + gapRight) / 2;
+    }
 
     lineRouterBoxes.add(
         new RouterBox(
@@ -492,18 +555,16 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
             start.getX() + start.rightWidth() + nodeSep,
             minY,
             maxY,
-            start
-        )
-    );
+            start));
 
     lineRouterBoxes.add(
         new RouterBox(
-            start.getX() + start.rightWidth() + nodeSep,
-            end.getX() - end.leftWidth() - nodeSep,
+            channelLeft,
+            channelRight,
             rankNode.getStartY() - maxHeight,
-            rankNode.getStartY() - maxHeight + (maxHeight * lineNo / (line.getParallelNums() + 1))
-        )
-    );
+            rankNode.getStartY()
+                - maxHeight
+                + (maxHeight * lineNo / (line.getParallelNums() + 1))));
 
     lineRouterBoxes.add(
         new RouterBox(
@@ -511,9 +572,34 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
             end.getX() + end.rightWidth(),
             minY,
             maxY,
-            end
-        )
-    );
+            end));
+  }
+
+  private boolean routeFlatLineBelow(DNode start, DNode end) {
+    // A spanning flat edge should use the side with fewer edges entering the skipped nodes.
+    if (start.getContainer() == drawGraph.getGraphviz()
+        || start.getContainer() != end.getContainer()) {
+      return false;
+    }
+    int upperEdges = 0;
+    int lowerEdges = 0;
+    double left = Math.min(start.getX(), end.getX());
+    double right = Math.max(start.getX(), end.getX());
+    for (DNode node : rankContent.get(start.getRank())) {
+      if (node == start || node == end || node.getX() <= left || node.getX() >= right) {
+        continue;
+      }
+      for (DLine adjacent : digraphProxy.adjacent(node)) {
+        DNode other = adjacent.other(node);
+        int direction = Integer.compare(other.getRank(), node.getRank());
+        if (direction < 0) {
+          upperEdges++;
+        } else if (direction > 0) {
+          lowerEdges++;
+        }
+      }
+    }
+    return lowerEdges < upperEdges;
   }
 
   private RankNode preNotOnlyLabelRankNode(RankNode rankNode) {
@@ -527,15 +613,41 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     return pre;
   }
 
-  private void lineCompute(LineDrawProp line, List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
+  private void lineCompute(
+      LineDrawProp line, List<RouterBox> lineRouterBoxes, DNode from, DNode to) {
+    lineCompute(line, lineRouterBoxes, from, to, new HashSet<>());
+  }
+
+  private void lineCompute(
+      LineDrawProp line,
+      List<RouterBox> lineRouterBoxes,
+      DNode from,
+      DNode to,
+      Set<Cluster> ignoredClusters) {
     if (CollectionUtils.isEmpty(lineRouterBoxes) || CollectionUtils.isNotEmpty(line)) {
       return;
     }
 
-    List<RouterBox> originRouterBoxes = splitPortBox(from.getRank() != to.getRank(),
-                                                     line, lineRouterBoxes);
+    List<RouterBox> originalRouterBoxes = copyRouterBoxes(lineRouterBoxes);
+    List<RouterBox> originRouterBoxes =
+        splitPortBox(from.getRank() != to.getRank(), line, lineRouterBoxes);
+    ClusterAwareBoxGuide.ClusterRoute clusterRoute =
+        ClusterAwareBoxGuide.routeBoxes(
+            line.getLine(),
+            from,
+            to,
+            lineRouterBoxes,
+            from.getRank() == to.getRank(),
+            drawGraph,
+            clusterObstacleIndex,
+            ignoredClusters);
+    lineRouterBoxes = clusterRoute.boxes();
 
     List<ThroughPoint> throughPoints = null;
+    int[] splitBudget =
+        clusterRoute.avoidedClusters().isEmpty()
+            ? null
+            : new int[] {Math.max(32, lineRouterBoxes.size() * 8), -1};
     RouterBox pre = null;
     Integer preIdx = null;
     for (int i = 0; i < lineRouterBoxes.size(); i++) {
@@ -575,8 +687,27 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           }
         }
 
-        throughPointCompute(throughPoints, lineRouterBoxes, preIdx, i, throughPoints.size(),
-                            start, end, from.getRank() != to.getRank());
+        int split =
+            throughPointCompute(
+                throughPoints,
+                lineRouterBoxes,
+                preIdx,
+                i,
+                throughPoints.size(),
+                start,
+                end,
+                from.getRank() != to.getRank(),
+                splitBudget);
+        if (split < 0 && !clusterRoute.avoidedClusters().isEmpty()) {
+          Set<Cluster> blocking = clusterRoute.restrictionsAt(splitBudget[1]);
+          // Remove one restriction at a time, retaining independently routable obstacles.
+          Cluster failed =
+              (blocking.isEmpty() ? clusterRoute.avoidedClusters() : blocking).iterator().next();
+          ignoredClusters.add(failed);
+          line.clear();
+          lineCompute(line, originalRouterBoxes, from, to, ignoredClusters);
+          return;
+        }
       }
 
       pre = routerBox;
@@ -601,6 +732,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       ThroughParam throughParam = new ThroughParam();
       throughParam.line = line.getLine();
       throughParam.lineRouterBoxes = lineRouterBoxes;
+      throughParam.preserveWaypoints = !clusterRoute.avoidedClusters().isEmpty();
       throughParam.lineDrawProp = line;
       throughParam.from = from;
       throughParam.to = to;
@@ -626,8 +758,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
                 if (i < throughPoints.size()) {
                   rightTangent = Vectors.sub(throughPoints.get(i - 1), throughPoints.get(i));
                 }
-                MultiBezierCurve curves = Curves.fitCurves(throughPoints.subList(0, i),
-                                                           null, rightTangent, 0);
+                MultiBezierCurve curves =
+                    Curves.fitCurves(throughPoints.subList(0, i), null, rightTangent, 0);
                 throughParam.fromPortPoints = multiBezierCurveToPoints(curves);
               } else {
                 throughParam.fromPortPoints = new ArrayList<>(i);
@@ -635,7 +767,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
               }
               startIdx = i - 1;
             }
-          } else {
+          } else if (originRouterBox.getNode() == to) {
             int i = throughPoints.size() - 1;
             for (; i >= 0; i--) {
               if (!originRouterBox.in(throughPoints.get(i))) {
@@ -649,9 +781,9 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
                 if (i >= 0) {
                   leftTangent = Vectors.sub(throughPoints.get(i + 1), throughPoints.get(i));
                 }
-                MultiBezierCurve curves = Curves
-                    .fitCurves(throughPoints.subList(i + 1, throughPoints.size()),
-                               leftTangent, null, 0);
+                MultiBezierCurve curves =
+                    Curves.fitCurves(
+                        throughPoints.subList(i + 1, throughPoints.size()), leftTangent, null, 0);
                 throughParam.toPortPoints = multiBezierCurveToPoints(curves);
               } else {
                 i = Math.max(i, 0);
@@ -663,21 +795,62 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
           }
         }
 
-        if (startIdx != 0 || endIdx != throughPoints.size() - 1) {
+        if (startIdx > endIdx) {
+          // Endpoint adaptation regions overlap. Fit the original route as one curve instead of
+          // joining two independently fitted endpoint fragments across reversed indices.
+          throughParam.fromPortPoints = null;
+          throughParam.toPortPoints = null;
+          throughParam.throughPoints = throughPoints;
+        } else if (startIdx != 0 || endIdx != throughPoints.size() - 1) {
           throughParam.throughPoints = throughPoints.subList(startIdx, endIdx + 1);
         }
       }
 
       throughPointHandle(throughParam);
+      Set<Cluster> crossed = ClusterAwareBoxGuide.crossedAvoidedClusters(line, clusterRoute);
+      if (crossed.isEmpty()
+          && !clusterRoute.avoidedClusters().isEmpty()
+          && ClusterAwareBoxGuide.crossesNode(line, clusterObstacleIndex)) {
+        // Cluster avoidance is best effort; it must not override the existing node corridors.
+        crossed = Collections.singleton(clusterRoute.avoidedClusters().iterator().next());
+      }
+      if (!crossed.isEmpty()) {
+        ignoredClusters.addAll(crossed);
+        line.clear();
+        lineCompute(line, originalRouterBoxes, from, to, ignoredClusters);
+      }
     }
   }
 
-  private int throughPointCompute(List<ThroughPoint> throughPoints,
-                                  List<RouterBox> lineRouterBoxes, int boxStartIndex,
-                                  int boxEndIndex, int insertIndex, FlatPoint start,
-                                  FlatPoint end, boolean vertical) {
-    if ((vertical && start.getY() == end.getY())
-        || (!vertical && start.getX() == end.getX())) {
+  private List<RouterBox> copyRouterBoxes(List<RouterBox> boxes) {
+    List<RouterBox> copy = new ArrayList<>(boxes.size());
+    for (RouterBox box : boxes) {
+      copy.add(
+          new RouterBox(
+              box.getLeftBorder(),
+              box.getRightBorder(),
+              box.getUpBorder(),
+              box.getDownBorder(),
+              box.getNode()));
+    }
+    return copy;
+  }
+
+  private int throughPointCompute(
+      List<ThroughPoint> throughPoints,
+      List<RouterBox> lineRouterBoxes,
+      int boxStartIndex,
+      int boxEndIndex,
+      int insertIndex,
+      FlatPoint start,
+      FlatPoint end,
+      boolean vertical,
+      int[] splitBudget) {
+    if (splitBudget != null && --splitBudget[0] < 0) {
+      splitBudget[1] = boxStartIndex;
+      return -1;
+    }
+    if ((vertical && start.getY() == end.getY()) || (!vertical && start.getX() == end.getX())) {
       return 0;
     }
 
@@ -692,31 +865,39 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
       boolean p1In, p2In;
 
       if (vertical) {
-        p1 = Vectors
-            .linerFuncGetX(start.getX(), start.getY(), end.getX(), end.getY(),
-                           routerBox.getUpBorder());
-        p2 = Vectors
-            .linerFuncGetX(start.getX(), start.getY(), end.getX(), end.getY(),
-                           routerBox.getDownBorder());
+        p1 =
+            Vectors.linerFuncGetX(
+                start.getX(), start.getY(), end.getX(), end.getY(), routerBox.getUpBorder());
+        p2 =
+            Vectors.linerFuncGetX(
+                start.getX(), start.getY(), end.getX(), end.getY(), routerBox.getDownBorder());
         // There will be a certain accuracy error in the double calculation, and the error will
         // be repaired by shifting back and forth by 1.
-        p1In = routerBox.inXRange(p1 - 1) || routerBox.inXRange(p1 + 1)
-            || routerBox.getUpBorder() < start.getY();
-        p2In = routerBox.inXRange(p2 - 1) || routerBox.inXRange(p2 + 1)
-            || routerBox.getDownBorder() > end.getY();
+        p1In =
+            routerBox.inXRange(p1 - 1)
+                || routerBox.inXRange(p1 + 1)
+                || routerBox.getUpBorder() < start.getY();
+        p2In =
+            routerBox.inXRange(p2 - 1)
+                || routerBox.inXRange(p2 + 1)
+                || routerBox.getDownBorder() > end.getY();
       } else {
-        p1 = Vectors
-            .linerFuncGetY(start.getX(), start.getY(), end.getX(), end.getY(),
-                           routerBox.getLeftBorder());
-        p2 = Vectors
-            .linerFuncGetY(start.getX(), start.getY(), end.getX(), end.getY(),
-                           routerBox.getRightBorder());
+        p1 =
+            Vectors.linerFuncGetY(
+                start.getX(), start.getY(), end.getX(), end.getY(), routerBox.getLeftBorder());
+        p2 =
+            Vectors.linerFuncGetY(
+                start.getX(), start.getY(), end.getX(), end.getY(), routerBox.getRightBorder());
         // There will be a certain accuracy error in the double calculation, and the error will
         // be repaired by shifting back and forth by 1.
-        p1In = routerBox.inYRange(p1 - 1) || routerBox.inYRange(p1 + 1)
-            || routerBox.getLeftBorder() < start.getX();
-        p2In = routerBox.inYRange(p2 - 1) || routerBox.inYRange(p2 + 1)
-            || routerBox.getRightBorder() > end.getX();
+        p1In =
+            routerBox.inYRange(p1 - 1)
+                || routerBox.inYRange(p1 + 1)
+                || routerBox.getLeftBorder() < start.getX();
+        p2In =
+            routerBox.inYRange(p2 - 1)
+                || routerBox.inYRange(p2 + 1)
+                || routerBox.getRightBorder() > end.getX();
       }
 
       if (p1In && p2In) {
@@ -764,11 +945,41 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     // Recursively split the original line segment into two segments.
     ThroughPoint splitPoint = new ThroughPoint(fastX, fastY, splitIndex);
+    if (splitBudget != null
+        && (FlatPoint.twoFlatPointDistance(start, splitPoint) < 1e-6
+            || FlatPoint.twoFlatPointDistance(splitPoint, end) < 1e-6)) {
+      splitBudget[1] = splitIndex;
+      return -1;
+    }
     throughPoints.add(insertIndex, splitPoint);
-    int a = throughPointCompute(throughPoints, lineRouterBoxes, boxStartIndex,
-                                splitIndex, insertIndex, start, splitPoint, vertical);
-    int b = throughPointCompute(throughPoints, lineRouterBoxes, splitIndex + 1,
-                                boxEndIndex, insertIndex + a + 1, splitPoint, end, vertical);
+    int a =
+        throughPointCompute(
+            throughPoints,
+            lineRouterBoxes,
+            boxStartIndex,
+            splitIndex,
+            insertIndex,
+            start,
+            splitPoint,
+            vertical,
+            splitBudget);
+    if (a < 0) {
+      return -1;
+    }
+    int b =
+        throughPointCompute(
+            throughPoints,
+            lineRouterBoxes,
+            splitIndex + 1,
+            boxEndIndex,
+            insertIndex + a + 1,
+            splitPoint,
+            end,
+            vertical,
+            splitBudget);
+    if (b < 0) {
+      return -1;
+    }
     return a + b + 1;
   }
 
@@ -777,14 +988,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
    * virtual, it will skip a crossed virtual node on the left or right.
    */
   private RouterBox newTwoNodeRangeBox(DNode node) {
-    DNode pre = adjIgnoreHaveCrossVirtualNode(
-        node,
-        rankContent::rankPreNode
-    );
-    DNode next = adjIgnoreHaveCrossVirtualNode(
-        node,
-        rankContent::rankNextNode
-    );
+    DNode pre = adjIgnoreHaveCrossVirtualNode(node, rankContent::rankPreNode);
+    DNode next = adjIgnoreHaveCrossVirtualNode(node, rankContent::rankNextNode);
 
     RankNode rankNode = rankContent.get(node.getRank());
 
@@ -794,20 +999,16 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     if (node.isLabelNode()) {
       rightWall = node.getX() - node.leftWidth() + LABEL_NODE_SIDE_MIN_DISTANCE;
     } else {
-      rightWall = next != null
-          ? next.getX() - next.leftWidth() - (node.getNodeSep() / 2)
-          : leftWall + drawGraph.width();
+      rightWall =
+          next != null
+              ? next.getX() - next.leftWidth() - (node.getNodeSep() / 2)
+              : leftWall + drawGraph.width();
       rightWall = Math.max(rightWall, node.getX() + node.rightWidth());
     }
 
     leftWall = Math.min(leftWall, node.getX() - node.leftWidth());
     return new RouterBox(
-        leftWall - 2,
-        rightWall + 2,
-        rankNode.getStartY() - 2,
-        rankNode.getEndY() + 2,
-        node
-    );
+        leftWall - 2, rightWall + 2, rankNode.getStartY() - 2, rankNode.getEndY() + 2, node);
   }
 
   private void addRankBox(RankNode rankNode, List<RouterBox> routerBoxes) {
@@ -819,12 +1020,7 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     routerBoxes.add(
         new RouterBox(
-            drawGraph.getMinX(),
-            drawGraph.getMaxX(),
-            rankNode.getEndY(),
-            next.getStartY()
-        )
-    );
+            drawGraph.getMinX(), drawGraph.getMaxX(), rankNode.getEndY(), next.getStartY()));
   }
 
   // Find the left or right node of the node, and choose to skip the neighbor node
@@ -864,8 +1060,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     return next;
   }
 
-  private List<RouterBox> splitPortBox(boolean vertical, LineDrawProp lineProp,
-                                       List<RouterBox> routerBoxes) {
+  private List<RouterBox> splitPortBox(
+      boolean vertical, LineDrawProp lineProp, List<RouterBox> routerBoxes) {
     if (CollectionUtils.isEmpty(routerBoxes) || routerBoxes.size() < 2) {
       return Collections.emptyList();
     }
@@ -921,8 +1117,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     return Collections.emptyList();
   }
 
-  private List<RouterBox> splitPortBox(RouterBox routerBox, LineDrawProp lineProp,
-                                       boolean vertical, boolean lowPos) {
+  private List<RouterBox> splitPortBox(
+      RouterBox routerBox, LineDrawProp lineProp, boolean vertical, boolean lowPos) {
     DNode node = routerBox.getNode();
     if (node == null) {
       return Collections.emptyList();
@@ -954,74 +1150,123 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     if (vertical) {
       if (lowPos) {
         if (!ValueUtils.approximate(point.getY(), node.getDownBorder(), 1)) {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
-                                     routerBox.getUpBorder(), point.getY(), node);
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  routerBox.getRightBorder(),
+                  routerBox.getUpBorder(),
+                  point.getY(),
+                  node);
 
           if (point.getX() < node.getX()) {
             double left = node.getLeftBorder();
-            routerBox2 = new RouterBox(routerBox.getLeftBorder(),
-                                       left - Math
-                                           .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
-                                       point.getY(), routerBox.getDownBorder());
+            routerBox2 =
+                new RouterBox(
+                    routerBox.getLeftBorder(),
+                    left - Math.min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                    point.getY(),
+                    routerBox.getDownBorder());
 
           } else {
             double right = node.getRightBorder();
-            routerBox2 = new RouterBox(
-                right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
-                routerBox.getRightBorder(), point.getY(), routerBox.getDownBorder());
+            routerBox2 =
+                new RouterBox(
+                    right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
+                    routerBox.getRightBorder(),
+                    point.getY(),
+                    routerBox.getDownBorder());
           }
         }
       } else {
         if (!ValueUtils.approximate(point.getY(), node.getUpBorder(), 1)) {
           if (point.getX() < node.getX()) {
             double left = node.getX() - node.realLeftWidth();
-            routerBox1 = new RouterBox(routerBox.getLeftBorder(),
-                                       left - Math
-                                           .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
-                                       routerBox.getUpBorder(), point.getY());
+            routerBox1 =
+                new RouterBox(
+                    routerBox.getLeftBorder(),
+                    left - Math.min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                    routerBox.getUpBorder(),
+                    point.getY());
           } else {
             double right = node.getX() + node.realRightWidth();
-            routerBox1 = new RouterBox(
-                right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
-                routerBox.getRightBorder(), routerBox.getUpBorder(),
-                point.getY());
+            routerBox1 =
+                new RouterBox(
+                    right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
+                    routerBox.getRightBorder(),
+                    routerBox.getUpBorder(),
+                    point.getY());
           }
-          routerBox2 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
-                                     point.getY(), routerBox.getDownBorder(), node);
+          routerBox2 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  routerBox.getRightBorder(),
+                  point.getY(),
+                  routerBox.getDownBorder(),
+                  node);
         }
       }
     } else {
       if (point.getY() <= node.getY()) {
         double top = node.getUpBorder();
         if (point.getX() < node.getX()) {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     routerBox.getUpBorder(),
-                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  point.getX(),
+                  routerBox.getUpBorder(),
+                  routerBox.getDownBorder(),
+                  node);
+          routerBox2 =
+              new RouterBox(
+                  point.getX(),
+                  routerBox.getRightBorder(),
+                  routerBox.getUpBorder(),
+                  top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
         } else {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     routerBox.getUpBorder(),
-                                     top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     routerBox.getUpBorder(), routerBox.getDownBorder(), node);
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  point.getX(),
+                  routerBox.getUpBorder(),
+                  top - Math.min(PORT_ADAPT_LEN, top - routerBox.getUpBorder()));
+          routerBox2 =
+              new RouterBox(
+                  point.getX(),
+                  routerBox.getRightBorder(),
+                  routerBox.getUpBorder(),
+                  routerBox.getDownBorder(),
+                  node);
         }
       } else {
         double bottom = node.getDownBorder();
         if (point.getX() < node.getX()) {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     point.getY(), routerBox.getDownBorder(), node);
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     bottom + Math
-                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
-                                     routerBox.getDownBorder());
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  point.getX(),
+                  point.getY(),
+                  routerBox.getDownBorder(),
+                  node);
+          routerBox2 =
+              new RouterBox(
+                  point.getX(),
+                  routerBox.getRightBorder(),
+                  bottom + Math.min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
+                  routerBox.getDownBorder());
         } else {
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(), point.getX(),
-                                     bottom + Math
-                                         .min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
-                                     routerBox.getDownBorder());
-          routerBox2 = new RouterBox(point.getX(), routerBox.getRightBorder(),
-                                     point.getY(), routerBox.getDownBorder(), node);
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  point.getX(),
+                  bottom + Math.min(PORT_ADAPT_LEN, routerBox.getDownBorder() - bottom),
+                  routerBox.getDownBorder());
+          routerBox2 =
+              new RouterBox(
+                  point.getX(),
+                  routerBox.getRightBorder(),
+                  point.getY(),
+                  routerBox.getDownBorder(),
+                  node);
         }
       }
     }
@@ -1034,45 +1279,65 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     return Arrays.asList(routerBox1, routerBox2);
   }
 
-  private List<RouterBox> verticalCellBoxSplit(boolean vertical, FlatPoint point, DNode node,
-                                               Box cellBox, RouterBox routerBox) {
+  private List<RouterBox> verticalCellBoxSplit(
+      boolean vertical, FlatPoint point, DNode node, Box cellBox, RouterBox routerBox) {
     RouterBox routerBox1 = null;
     RouterBox routerBox2 = null;
     if (point.getY() < cellBox.getY()) {
       if (vertical) {
-        routerBox1 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
-                                   routerBox.getUpBorder(), point.getY(), node);
+        routerBox1 =
+            new RouterBox(
+                routerBox.getLeftBorder(),
+                routerBox.getRightBorder(),
+                routerBox.getUpBorder(),
+                point.getY(),
+                node);
 
         if (point.getX() < cellBox.getX()) {
           double left = cellBox.getLeftBorder();
-          routerBox2 = new RouterBox(routerBox.getLeftBorder(),
-                                     left - Math
-                                         .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
-                                     point.getY(), routerBox.getDownBorder());
+          routerBox2 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  left - Math.min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                  point.getY(),
+                  routerBox.getDownBorder());
 
         } else {
           double right = cellBox.getRightBorder();
-          routerBox2 = new RouterBox(
-              right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
-              routerBox.getRightBorder(), point.getY(), routerBox.getDownBorder());
+          routerBox2 =
+              new RouterBox(
+                  right + Math.min(PORT_ADAPT_LEN, routerBox.getRightBorder() - right),
+                  routerBox.getRightBorder(),
+                  point.getY(),
+                  routerBox.getDownBorder());
         }
       }
     } else {
       if (vertical) {
         if (point.getX() < cellBox.getX()) {
           double left = cellBox.getX() - node.realLeftWidth();
-          routerBox1 = new RouterBox(routerBox.getLeftBorder(),
-                                     left - Math
-                                         .min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
-                                     routerBox.getUpBorder(), point.getY());
+          routerBox1 =
+              new RouterBox(
+                  routerBox.getLeftBorder(),
+                  left - Math.min(PORT_ADAPT_LEN, left - routerBox.getLeftBorder()),
+                  routerBox.getUpBorder(),
+                  point.getY());
         } else {
           double right = cellBox.getX() + node.realRightWidth();
-          routerBox1 = new RouterBox(right + Math.min(10, routerBox.getRightBorder() - right),
-                                     routerBox.getRightBorder(), routerBox.getUpBorder(),
-                                     point.getY());
+          routerBox1 =
+              new RouterBox(
+                  right + Math.min(10, routerBox.getRightBorder() - right),
+                  routerBox.getRightBorder(),
+                  routerBox.getUpBorder(),
+                  point.getY());
         }
-        routerBox2 = new RouterBox(routerBox.getLeftBorder(), routerBox.getRightBorder(),
-                                   point.getY(), routerBox.getDownBorder(), node);
+        routerBox2 =
+            new RouterBox(
+                routerBox.getLeftBorder(),
+                routerBox.getRightBorder(),
+                point.getY(),
+                routerBox.getDownBorder(),
+                node);
       }
     }
 
@@ -1104,14 +1369,14 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     if (l1 == null
         || l2 == null
         || l1.from().getX() == l2.from().getX()
-        || l1.to().getX() == l2.to().getX()
-    ) {
+        || l1.to().getX() == l2.to().getX()) {
       return false;
     }
     return l1.from().getX() < l2.from().getX() != l1.to().getX() < l2.to().getX();
   }
 
-  // --------------------------------------------- Helper class ---------------------------------------------
+  // --------------------------------------------- Helper class
+  // ---------------------------------------------
 
   protected static class ThroughPoint extends FlatPoint {
 
@@ -1141,6 +1406,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
     public LineDrawProp lineDrawProp;
     public List<ThroughPoint> throughPoints;
     public List<RouterBox> lineRouterBoxes;
+
+    public boolean preserveWaypoints;
     public boolean isHorizontal;
     public List<FlatPoint> fromPortPoints;
     public List<FlatPoint> toPortPoints;
@@ -1156,8 +1423,8 @@ abstract class BoxGuideLineRouter extends AbstractDotLineRouter {
 
     private final List<RouterBox> routerBoxes;
 
-    public FlatParallelLineParam(DNode from, DNode to, LineDrawProp line,
-                                 List<RouterBox> routerBoxes) {
+    public FlatParallelLineParam(
+        DNode from, DNode to, LineDrawProp line, List<RouterBox> routerBoxes) {
       this.from = from;
       this.to = to;
       this.line = line;

@@ -22,11 +22,12 @@ import org.graphper.api.attributes.Rank;
 import org.graphper.util.Asserts;
 
 /**
- * Subgraph, mainly has the following usage scenarios:
+ * Groups nodes and lines in a subgraph. The main usage scenarios are:
+ *
  * <ul>
- *   <li> Specify common styles for some nodes and lines;
- *   <li> Under the {@link Layout#DOT} and {@link Layout#DOTQ} engines, combine the {@link Rank} attribute to specify
- *   the rank of nodes in the graph.
+ *   <li>Specify common styles for some nodes and lines;
+ *   <li>Under the {@link Layout#DOT} and {@link Layout#DOTQ} engines, combine the {@link Rank}
+ *       attribute to specify the rank of nodes in the graph.
  * </ul>
  *
  * @author Jamison Jiang
@@ -38,11 +39,10 @@ public class Subgraph extends GraphContainer implements Serializable {
   // Rank of subgraph
   private Rank rank;
 
-  private Subgraph() {
-  }
+  private Subgraph() {}
 
   /**
-   * Returns the rank of subgraph
+   * Returns the rank of subgraph.
    *
    * @return rank of subgraph
    */
@@ -59,16 +59,14 @@ public class Subgraph extends GraphContainer implements Serializable {
     return new SubgraphBuilder();
   }
 
-  // ------------------------------------------ Subgraph Builder ---------------------------------------
+  // ------------------------------------------ Subgraph Builder
+  // ---------------------------------------
 
-  /**
-   * {@link Subgraph} builder, used to build a {@link Subgraph}.
-   */
-  public static class SubgraphBuilder extends
-      GraphContainerBuilder<Subgraph, SubgraphBuilder> implements Cloneable {
+  /** {@link Subgraph} builder, used to build a {@link Subgraph}. */
+  public static class SubgraphBuilder extends GraphContainerBuilder<Subgraph, SubgraphBuilder>
+      implements Cloneable {
 
-    private SubgraphBuilder() {
-    }
+    private SubgraphBuilder() {}
 
     /**
      * Set the {@link Rank} type of {@code Subgraph}.
@@ -117,8 +115,9 @@ public class Subgraph extends GraphContainer implements Serializable {
    * @param <G> the container type of the parent container
    * @param <B> the builder type of the parent container
    */
-  public static class IntegrationSubgraphBuilder<G extends GraphContainer, B extends GraphContainerBuilder<G, B>> extends
-      GraphContainerBuilder<Subgraph, IntegrationSubgraphBuilder<G, B>> {
+  public static class IntegrationSubgraphBuilder<
+          G extends GraphContainer, B extends GraphContainerBuilder<G, B>>
+      extends GraphContainerBuilder<Subgraph, IntegrationSubgraphBuilder<G, B>> {
 
     private final B parentBuilder;
 

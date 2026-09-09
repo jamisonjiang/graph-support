@@ -66,15 +66,16 @@ public class Cluster extends GraphContainer implements Serializable {
     return new ClusterBuilder();
   }
 
-  // ------------------------------------------ Cluster Builder ---------------------------------------
+  // ------------------------------------------ Cluster Builder
+  // ---------------------------------------
 
   /**
    * Basic {@link Cluster} builder.
    *
    * @param <B> the type of cluster builder
    */
-  public abstract static class AbstractClusterBuilder<B extends GraphContainerBuilder<Cluster, B>> extends
-      GraphContainerBuilder<Cluster, B> implements Cloneable {
+  public abstract static class AbstractClusterBuilder<B extends GraphContainerBuilder<Cluster, B>>
+      extends GraphContainerBuilder<Cluster, B> implements Cloneable {
 
     // Attribute of cluster
     protected ClusterAttrs clusterAttrs;
@@ -99,10 +100,11 @@ public class Cluster extends GraphContainer implements Serializable {
      * Assigns an HTML-like {@link LabelTag} to this cluster, allowing for rich text formatting
      * (e.g., bold, italic, multi-line text) in the cluster’s label.
      *
-     * <p>If a plain text label was previously set via {@code label(String)}, this method
-     * will override that label with the provided {@link LabelTag}.</p>
+     * <p>If a plain text label was previously set via {@code label(String)}, this method will
+     * override that label with the provided {@link LabelTag}.
      *
-     * <p><b>Example Usage:</b></p>
+     * <p><b>Example Usage:</b>
+     *
      * <pre>{@code
      * LabelTag tag = bold("Graph Analysis")
      *     .br()
@@ -112,7 +114,8 @@ public class Cluster extends GraphContainer implements Serializable {
      *     .br()
      *     .top(bold(italic("Key Takeaways:")))
      *     .br()
-     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"),
+     *         fontAttrs().color(Color.RED).pointSize(16)))
      *     .br()
      *     .right(strikeThrough("Outdated Formula"))
      *     .br()
@@ -135,8 +138,8 @@ public class Cluster extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the {@link Labelloc} of the cluster, used to control the vertical position of the
-     * {@link ClusterAttrs#getLabel()} of the cluster.
+     * Set the {@link Labelloc} of the cluster, used to control the vertical position of the {@link
+     * ClusterAttrs#getLabel()} of the cluster.
      *
      * @param labelloc labelloc to be added to this cluster
      * @return cluster builder
@@ -163,26 +166,28 @@ public class Cluster extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the shape of the cluster, for the shapes supported by default, please check
-     * {@link ClusterShapeEnum}.
+     * Set the shape of the cluster, for the shapes supported by default, please check {@link
+     * ClusterShapeEnum}.
      *
      * <p>Unlike {@link NodeShape}, other cluster shapes except {@link ClusterShapeEnum#RECT} no
-     * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and
-     * {@link Layout#DOTQ} engines but will try best estimated the container size by
-     * {@link ClusterShape#minContainerSize(double, double)} method, but still have the following
+     * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and {@link
+     * Layout#DOTQ} engines but will try best estimated the container size by {@link
+     * ClusterShape#minContainerSize(double, double)} method, but still have the following
      * principles as much as possible surround all nodes if you want to {@code ClusterShape} works
      * well under {@link Layout#DOT} and {@link Layout#DOTQ} engines:
+     *
      * <ul>
      *   <li>The gap between internal box and external box is as small ass possible, it means output
-     *   of {@link ClusterShape#minContainerSize(double, double)} of current shape close enough than input.
-     *   e.g, {@link ClusterShapeEnum#RECT} no gap between internal and external boxes.
-     *   <li>Internal nodes are kept isolated from external nodes of cluster, it means interact edges
-     *   from internal nodes to external nodes as little as possible.
-     *   <li>Avoid cluster nesting as much as possible if cluster shapes is not {@link ClusterShapeEnum#RECT}
-     *   (or the cluster shape no gap between internal and external box like RECT shape), the error in
-     *   evaluation will be magnified in this case.
+     *       of {@link ClusterShape#minContainerSize(double, double)} of current shape close enough
+     *       than input. e.g, {@link ClusterShapeEnum#RECT} no gap between internal and external
+     *       boxes.
+     *   <li>Internal nodes are kept isolated from external nodes of cluster, it means interact
+     *       edges from internal nodes to external nodes as little as possible.
+     *   <li>Avoid cluster nesting as much as possible if cluster shapes is not {@link
+     *       ClusterShapeEnum#RECT} (or the cluster shape no gap between internal and external box
+     *       like RECT shape), the error in evaluation will be magnified in this case.
      *   <li>Manual adjust {@link #margin(double)} reserve enough internal space to avoid nodes
-     *   overflow cluster container.
+     *       overflow cluster container.
      * </ul>
      *
      * @param shape cluster shape
@@ -220,7 +225,7 @@ public class Cluster extends GraphContainer implements Serializable {
     }
 
     /**
-     * Set the border color of the cluster
+     * Set the border color of the cluster.
      *
      * @param color border color
      * @return cluster builder
@@ -275,12 +280,12 @@ public class Cluster extends GraphContainer implements Serializable {
      * @throws IllegalArgumentException margin less than 0
      */
     public B margin(double horMargin, double verMargin) {
-      Asserts.illegalArgument(horMargin < 0,
-                              "Horizontal margin (" + horMargin + ") can not less than 0");
-      Asserts.illegalArgument(verMargin < 0,
-                              "Vertical margin (" + verMargin + ") can not less than 0");
-      clusterAttrs.margin = new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL,
-                                                  horMargin * Graphviz.PIXEL);
+      Asserts.illegalArgument(
+          horMargin < 0, "Horizontal margin (" + horMargin + ") can not less than 0");
+      Asserts.illegalArgument(
+          verMargin < 0, "Vertical margin (" + verMargin + ") can not less than 0");
+      clusterAttrs.margin =
+          new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL, horMargin * Graphviz.PIXEL);
       return self();
     }
 
@@ -312,7 +317,7 @@ public class Cluster extends GraphContainer implements Serializable {
      * Sets the tooltip text for the cluster.
      *
      * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
-     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.
      *
      * @param tooltip the text to be displayed as the tooltip
      * @return cluster builder
@@ -354,41 +359,40 @@ public class Cluster extends GraphContainer implements Serializable {
      * be placed where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
-     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
-     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on {@link
+     * Assemble} will be set, and the position of {@link Assemble} is where the label should
      * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
      * (by default, it does not automatically calculate the size of the cell according to the label
-     * of the cell), which requires the setter to completely accurate calculation of all
-     * parameters.
+     * of the cell), which requires the setter to completely accurate calculation of all parameters.
      *
      * <p>This is an example of setting two cells side by assemble.
+     *
      * <pre>{@code
-     *     Graphviz.digraph()
-     *         .startClus()
-     *         .addNode(Node.builder().label("Node in cluster").build())
-     *         .margin(0.5, 0.5)
-     *         .assemble(
-     *             Assemble.builder()
-     *                 .width(1)
-     *                 .height(0.4)
-     *                 .addCell(0, 0,
-     *                          Node.builder()
-     *                              .width(0.5)
-     *                              .height(0.4)
-     *                              .label("LEFT")
-     *                              .build())
-     *                 .addCell(0.5, 0,
-     *                          Node.builder()
-     *                              .width(0.5)
-     *                              .height(0.4)
-     *                              .label("RIGHT")
-     *                              .build())
-     *                 .build()
-     *         )
-     *         .endClus()
-     *         .build();
-     * }
-     * </pre>
+     * Graphviz.digraph()
+     *     .startClus()
+     *     .addNode(Node.builder().label("Node in cluster").build())
+     *     .margin(0.5, 0.5)
+     *     .assemble(
+     *         Assemble.builder()
+     *             .width(1)
+     *             .height(0.4)
+     *             .addCell(0, 0,
+     *                      Node.builder()
+     *                          .width(0.5)
+     *                          .height(0.4)
+     *                          .label("LEFT")
+     *                          .build())
+     *             .addCell(0.5, 0,
+     *                      Node.builder()
+     *                          .width(0.5)
+     *                          .height(0.4)
+     *                          .label("RIGHT")
+     *                          .build())
+     *             .build()
+     *     )
+     *     .endClus()
+     *     .build();
+     * }</pre>
      *
      * @param assemble assemble
      * @return cluster builder
@@ -409,9 +413,7 @@ public class Cluster extends GraphContainer implements Serializable {
     }
   }
 
-  /**
-   * {@link Cluster} builder.
-   */
+  /** {@link Cluster} builder. */
   public static class ClusterBuilder extends AbstractClusterBuilder<ClusterBuilder> {
 
     private ClusterBuilder() {
@@ -439,8 +441,9 @@ public class Cluster extends GraphContainer implements Serializable {
    * @param <G> the container type of the parent container
    * @param <B> the builder type of the parent container
    */
-  public static class IntegrationClusterBuilder<G extends GraphContainer, B extends GraphContainerBuilder<G, B>> extends
-      AbstractClusterBuilder<IntegrationClusterBuilder<G, B>> {
+  public static class IntegrationClusterBuilder<
+          G extends GraphContainer, B extends GraphContainerBuilder<G, B>>
+      extends AbstractClusterBuilder<IntegrationClusterBuilder<G, B>> {
 
     private final B parentBuilder;
 

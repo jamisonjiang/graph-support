@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 
+/** Calculates container dimensions and containment for parallelograms. */
 public class ParallelogramPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = -6518952765537706926L;
@@ -38,9 +39,7 @@ public class ParallelogramPropCalc implements ShapePropCalc, Serializable {
     double leftTopX = box.getLeftBorder() + box.getWidth() / 5;
     double rightDownX = box.getRightBorder() - box.getWidth() / 5;
 
-    return Vectors.inAngle(left, down, leftTopX, up,
-                           rightDownX, down, point.getX(), point.getY())
-        && Vectors.inAngle(right, up, leftTopX, up,
-                           rightDownX, down, point.getX(), point.getY());
+    return Vectors.inAngle(left, down, leftTopX, up, rightDownX, down, point.getX(), point.getY())
+        && Vectors.inAngle(right, up, leftTopX, up, rightDownX, down, point.getX(), point.getY());
   }
 }

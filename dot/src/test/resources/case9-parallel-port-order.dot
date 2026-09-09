@@ -1,0 +1,33 @@
+digraph unix {
+splines=ortho
+
+subgraph cluster_0 {
+label="cluster"
+margin="1.5,1"
+style=dashed
+sh0006
+sh0007
+}
+
+sh0006 [shape=record,label="{{<t>|sh0006|}}"];
+t->t
+t->t
+t->t[label="hehehe"]
+t->t[label="niu bi"]
+t->t[label="iiiiii\\niii"]
+t->t
+t->t
+t->t
+t->t
+
+k->k[tailport=w,headport=se]
+k->k[tailport=ne,headport=s]
+
+sh0007 [shape=record,label="{{<t>|{|<p>sh0007}|<r>}}"];
+sh0006->sh0007[headcell="p"]
+sh0006->sh0007[headcell="p"]
+sh0006->sh0007[headcell="r",headport="e"]
+sh0006->sh0007[headcell="r",headport="se"]
+
+sh0006->k
+}

@@ -16,6 +16,7 @@
 
 package org.graphper.def;
 
+/** Indicates an attempted modification of an unmodifiable bag. */
 public class UnmodifiableBagException extends RuntimeException {
 
   private static final long serialVersionUID = 1033876844829922354L;

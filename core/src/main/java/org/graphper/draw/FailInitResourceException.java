@@ -16,6 +16,7 @@
 
 package org.graphper.draw;
 
+/** Indicates that a rendered graph resource could not be initialized. */
 public class FailInitResourceException extends Exception {
 
   private static final long serialVersionUID = 591810568877839236L;

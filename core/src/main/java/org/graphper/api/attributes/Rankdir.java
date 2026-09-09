@@ -25,26 +25,19 @@ import org.apache_gs.commons.lang3.StringUtils;
  */
 public enum Rankdir {
 
-  /**
-   * Horizontal layout, left to right
-   */
+  /** Horizontal layout, left to right. */
   LR,
 
-  /**
-   * Horizontal layout, right to left
-   */
+  /** Horizontal layout, right to left. */
   RL,
 
-  /**
-   * Vertical layout, top to bottom
-   */
+  /** Vertical layout, top to bottom. */
   TB,
 
-  /**
-   * Vertical layout, bottom to top
-   */
+  /** Vertical layout, bottom to top. */
   BT;
 
+  /** Resolves a direction name case-insensitively, defaulting to top-to-bottom. */
   public static Rankdir rankdir(String rankdir) {
     if (StringUtils.isEmpty(rankdir)) {
       return Rankdir.TB;

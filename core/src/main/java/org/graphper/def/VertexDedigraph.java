@@ -39,9 +39,10 @@ public interface VertexDedigraph<V> extends Dedigraph<V>, Digraph.VertexDigraph<
    * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
    * current vertex represents an edge.
    *
-   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor vertices 
-   * connected to the specified vertex in both directions (both incoming and outgoing neighbors). 
-   * This is different from single-direction directed graphs where adjacent returns out-neighbors only.
+   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor vertices
+   * connected to the specified vertex in both directions (both incoming and outgoing neighbors).
+   * This is different from single-direction directed graphs where adjacent returns out-neighbors
+   * only.
    *
    * @param v vertex to be queried
    * @return all adjacent vertices (both incoming and outgoing neighbors)

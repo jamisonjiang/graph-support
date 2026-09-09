@@ -22,10 +22,12 @@ import java.util.List;
 import org.graphper.api.Assemble;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.Graphviz;
+import org.graphper.api.Node;
 import org.graphper.api.attributes.Labeljust;
 import org.graphper.api.attributes.Labelloc;
 import org.graphper.api.attributes.Splines;
 import org.graphper.def.FlatPoint;
+import org.graphper.layout.HtmlConvertor.LabelIdSpace;
 import org.graphper.layout.LabelAttributes;
 import org.graphper.layout.OrthoVisGraph.Segment;
 import org.graphper.util.Asserts;
@@ -43,15 +45,59 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
 
   private List<Segment> grid;
 
+  /**
+   * Identity scope of the graph label. There is exactly one {@code GraphvizDrawProp} per {@link
+   * DrawGraph}, so a constant is already unique among the label owners of a graph, all of which
+   * carry an owner kind prefix.
+   */
+  private static final String LABEL_SCOPE = "graph";
+
+  /**
+   * Identity space shared by every html-like label of the graph. The graph draw property is the one
+   * element that exists exactly once per {@link DrawGraph} and before all others, so it is where
+   * the space lives; the graph hands it to the other elements as they join it.
+   */
+  private final LabelIdSpace labelIdSpace = new LabelIdSpace();
+
+  /** Creates graph drawing properties and reserves node IDs for label conversion. */
   public GraphvizDrawProp(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphviz = graphviz;
-    convertToAssemble(graphviz.graphAttrs().getTable(),
-                      graphviz.graphAttrs().getLabelTag());
+    /*
+     * The real nodes of the graph own their ids unconditionally: a generated label cell that took
+     * one would become that node as far as Node#equals is concerned. Reserving them up front is
+     * possible because Graphviz#nodes already walks every subgraph and cluster, and it happens
+     * before any label is converted because this runs in the DrawGraph constructor.
+     */
+    for (Node node : graphviz.nodes()) {
+      labelIdSpace.reserve(node.nodeAttrs().getId());
+    }
+    convertToAssemble(graphviz.graphAttrs().getTable(), graphviz.graphAttrs().getLabelTag());
+  }
+
+  @Override
+  protected String labelScope() {
+    return LABEL_SCOPE;
   }
 
   /**
-   * Returns the graphviz
+   * Returns the identity space shared by every html-like label of this graph.
+   *
+   * @return identity space of the graph
+   */
+  @Override
+  public LabelIdSpace labelIdSpace() {
+    return labelIdSpace;
+  }
+
+  /** The graph owns the identity space of its labels and never borrows one. */
+  @Override
+  public void setLabelIdSpace(LabelIdSpace labelIdSpace) {
+    // no-op
+  }
+
+  /**
+   * Returns the graphviz.
    *
    * @return graphviz
    */
@@ -99,8 +145,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   }
 
   /**
-   * Returns the line segment used to draw the grid in
-   * {@link Splines#ORTHO}.
+   * Returns the line segment used to draw the grid in {@link Splines#ORTHO}.
    *
    * @return the line segments of grid
    */
@@ -108,6 +153,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
     return grid;
   }
 
+  /** Adds a non-null segment to the routing grid. */
   public void addSegment(Segment segment) {
     if (segment == null) {
       return;

@@ -18,6 +18,7 @@ package org.graphper.layout;
 
 import static org.graphper.api.Graphviz.PIXEL;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,35 +63,172 @@ import org.graphper.util.LabelTagUtils;
  */
 public class HtmlConvertor {
 
-  private HtmlConvertor() {
+  /** Separator between the steps of an identity scope path. */
+  private static final String SCOPE_SEPARATOR = "::";
+
+  /**
+   * Step appended to a scope for the node that carries a table's own border and background. It is
+   * distinct from every cell step, so a table and the cell that holds it never share an identity.
+   */
+  private static final String TABLE_SCOPE_STEP = "t";
+
+  private HtmlConvertor() {}
+
+  /**
+   * The identity space that the table and cell nodes of every html-like label of one graph are
+   * drawn from.
+   *
+   * <p>The nodes generated for a label are ordinary {@link Node}s and end up in the same map as the
+   * graph's real nodes. {@link Node#equals} and {@link Node#hashCode} match on a non-null id, so
+   * two generated nodes carrying the same id are one node as far as the layout engine is concerned:
+   * the second one silently adopts the draw property of the first. An id space hands out the
+   * identity of each generated node and guarantees no two of them, and no generated node and real
+   * node, collide.
+   *
+   * <p>The author supplied id is always the preferred identity, and the overwhelmingly common case
+   * - an id that nothing else in the graph uses - gets exactly that, so {@link
+   * org.graphper.draw.DrawGraph#nodeId(Node)} keeps resolving it. A scoped path, unique to the
+   * label that owns the cell, is only used when the preferred identity is already taken or when the
+   * author supplied none.
+   *
+   * <p>Claiming is first come first served in the order the layout engine converts labels. That
+   * order only decides <em>which</em> of several labels sharing one authored id keeps it; an id
+   * used once is kept no matter when it is claimed.
+   *
+   * <p>Not thread safe; one instance belongs to one {@link org.graphper.draw.DrawGraph}, which is
+   * built by a single layout run.
+   */
+  public static final class LabelIdSpace implements Serializable {
+
+    private static final long serialVersionUID = -6295986177570331891L;
+
+    private final Set<String> claimed = new HashSet<>();
+
+    /**
+     * Reserves an identity so that no html label can be handed it. Used for the ids of the real
+     * nodes of the graph, which own their id unconditionally.
+     *
+     * @param id identity to reserve, ignored when {@code null}
+     */
+    public void reserve(String id) {
+      if (id != null) {
+        claimed.add(id);
+      }
+    }
+
+    /**
+     * Returns the identity of one generated table or cell node.
+     *
+     * @param authoredId the {@code id} the author gave the table or cell, may be {@code null}
+     * @param scopedPath fallback path identity, unique to the owning label by construction
+     * @return an identity no other generated node of this graph has been given
+     */
+    public String identity(String authoredId, String scopedPath) {
+      if (authoredId != null && claimed.add(authoredId)) {
+        return authoredId;
+      }
+      Asserts.nullArgument(scopedPath, "scopedPath");
+      if (claimed.add(scopedPath)) {
+        return scopedPath;
+      }
+
+      /*
+       * Only reachable when an author writes an id that looks exactly like a scope path. Probing
+       * keeps the guarantee absolute instead of merely overwhelmingly likely.
+       */
+      for (int i = 2; ; i++) {
+        String candidate = scopedPath + SCOPE_SEPARATOR + i;
+        if (claimed.add(candidate)) {
+          return candidate;
+        }
+      }
+    }
   }
 
   /**
    * Parses the given {@link Table} data structure, performs a table layout, and converts the result
    * into a lower-level {@link Assemble} instance for rendering.
    *
-   * <p>This method inspects the rows and cells of the provided {@code table} and
-   * calculates their sizes and positions. It then assembles the layout data into a container-like
-   * structure represented by {@link Assemble}, which can be rendered or further processed by
-   * downstream logic.</p>
+   * <p>This method inspects the rows and cells of the provided {@code table} and calculates their
+   * sizes and positions. It then assembles the layout data into a container-like structure
+   * represented by {@link Assemble}, which can be rendered or further processed by downstream
+   * logic.
    *
    * @param table the HTML-like table to convert.
    * @return an {@link Assemble} structure representing the laid-out table, or {@code null} if the
-   * provided table is {@code null}.
+   *     provided table is {@code null}.
    * @throws IllegalArgumentException if the table is empty (i.e., no rows).
    * @throws CycleDependencyException if a cycle dependency is detected in table processing
    */
   public static Assemble toAssemble(Table table) {
+    return toAssemble(table, null);
+  }
+
+  /**
+   * Same as {@link #toAssemble(Table)}, but names every generated cell node after {@code scope}
+   * instead of after the author supplied {@code id}s.
+   *
+   * <p>The generated nodes live in one global {@link Node} identity space: {@link Node#equals} and
+   * {@link Node#hashCode} treat two nodes with the same non-null id as the same node, so an id
+   * repeated in two different labels would make the second cell reuse the draw property of the
+   * first. A scope unique to the label owner turns the cell ids into {@code owner::row/column}
+   * paths and removes that coupling, at the price of the authored ids no longer being visible
+   * through {@link org.graphper.draw.DrawGraph#nodeId(Node)}. Prefer {@link #toAssemble(Table,
+   * String, LabelIdSpace)}, which pays that price only for the cells that actually conflict. The
+   * author supplied {@code id} stays the owner-local cell id that edge ports resolve against either
+   * way.
+   *
+   * <p>{@code null} leaves ids exactly as authored, which is only safe when the caller knows the
+   * label is the single html label in the graph.
+   *
+   * @param table the HTML-like table to convert
+   * @param scope identity scope of the label owner, or {@code null} to keep authored ids
+   * @return an {@link Assemble} structure representing the laid-out table, or {@code null} if the
+   *     provided table is {@code null}
+   * @throws IllegalArgumentException if the table is empty (i.e., no rows).
+   * @throws CycleDependencyException if a cycle dependency is detected in table processing
+   */
+  public static Assemble toAssemble(Table table, String scope) {
+    return toAssemble(table, scope, null);
+  }
+
+  /**
+   * Same as {@link #toAssemble(Table)}, but draws the identity of every generated table and cell
+   * node from {@code idSpace}, so that no two labels of one graph can end up sharing a node.
+   *
+   * <p>An authored {@code id} that nothing else in the graph claims is used verbatim and stays
+   * resolvable through {@link org.graphper.draw.DrawGraph#nodeId(Node)}. Only a table or cell whose
+   * authored id is already taken, or which has no authored id at all, falls back to a {@code
+   * scope::step} path that is unique to the owning label. See {@link LabelIdSpace}.
+   *
+   * @param table the HTML-like table to convert
+   * @param scope identity scope of the label owner, the fallback identity of its tables and cells
+   * @param idSpace identity space of the graph, or {@code null} to fall back to {@link
+   *     #toAssemble(Table, String)}
+   * @return an {@link Assemble} structure representing the laid-out table, or {@code null} if the
+   *     provided table is {@code null}
+   * @throws IllegalArgumentException if the table is empty (i.e., no rows), or if an id space is
+   *     given without a scope to fall back to
+   * @throws CycleDependencyException if a cycle dependency is detected in table processing
+   */
+  public static Assemble toAssemble(Table table, String scope, LabelIdSpace idSpace) {
     if (table == null) {
       return null;
     }
 
+    /*
+     * An id space without a scope could not keep its promise: it would have nothing to fall back to
+     * for a contested or absent authored id. Refusing is better than silently handing out ids that
+     * may collide.
+     */
+    Asserts.illegalArgument(
+        idSpace != null && scope == null, "An identity space needs a scope to fall back to");
     Asserts.illegalArgument(table.rowNum() == 0, "Empty tr in table");
     RootTableHelper tableHelper = new RootTableHelper(table);
     tableLayout(table, tableHelper, tableHelper);
     tableHelper.releaseMark();
 
-    return convertToAssemble(table, tableHelper);
+    return convertToAssemble(table, tableHelper, scope, idSpace);
   }
 
   /**
@@ -98,14 +236,14 @@ public class HtmlConvertor {
    * layout calculation, and converts the result into a lower-level {@link Assemble} structure for
    * rendering.
    *
-   * <p>This method measures the text defined by the {@code labelTag} using
-   * {@link org.graphper.util.LabelTagUtils#measure}, then calculates how to position lines
-   * and sub-tags within a final {@link Assemble} instance.</p>
+   * <p>This method measures the text defined by the {@code labelTag} using {@link
+   * org.graphper.util.LabelTagUtils#measure}, then calculates how to position lines and sub-tags
+   * within a final {@link Assemble} instance.
    *
-   * @param labelTag   the {@link LabelTag} (HTML-like structure) to convert
+   * @param labelTag the {@link LabelTag} (HTML-like structure) to convert
    * @param labelAttrs the default attributes (e.g., font size, color) to apply
    * @return an {@link Assemble} instance representing the laid-out label, or {@code null} if either
-   * parameter is {@code null}
+   *     parameter is {@code null}
    * @throws IllegalArgumentException if the label measurement is {@code null}
    * @throws CycleDependencyException if a cycle dependency is detected in label processing
    */
@@ -126,10 +264,11 @@ public class HtmlConvertor {
     return builder.width(size.getWidth() / PIXEL).height(size.getHeight() / PIXEL).build();
   }
 
-  // ------------------------------------------ table private methods ------------------------------------------
+  // ------------------------------------------ table private methods
+  // ------------------------------------------
 
-  private static void tableLayout(Table table, TableHelper tableHelper,
-                                  RootTableHelper rootTableHelper) {
+  private static void tableLayout(
+      Table table, TableHelper tableHelper, RootTableHelper rootTableHelper) {
     Asserts.illegalArgument(table.rowNum() == 0, "Empty tr in table");
     if (rootTableHelper.isMark(table)) {
       throw new CycleDependencyException("Cycle dependency table");
@@ -156,8 +295,8 @@ public class HtmlConvertor {
     rootTableHelper.remove(table);
   }
 
-  private static void setTdGridPosition(Table table, TableHelper tableHelper,
-                                        RootTableHelper rootTableHelper) {
+  private static void setTdGridPosition(
+      Table table, TableHelper tableHelper, RootTableHelper rootTableHelper) {
     for (int r = 0; r < table.rowNum(); r++) {
       Tr tr = table.getTr(r);
       Asserts.illegalArgument(tr.colNum() == 0, "Empty td in tr");
@@ -202,7 +341,8 @@ public class HtmlConvertor {
         }
 
         /*
-         * If the rowspan of the current td exceeds 1, add the occupancy records of the range to all the rows below.
+         * If the rowspan of the current td exceeds 1, add the occupancy records of the range to
+         * all the rows below.
          */
         int maxRow = rowSpan + r - 1;
         for (int i = r + 1; i <= maxRow; i++) {
@@ -256,8 +396,8 @@ public class HtmlConvertor {
     return groupRecord;
   }
 
-  private static void setTableHeightAndMergeVerAxis(Table table, TableHelper tableHelper,
-                                                    Map<Integer, TableAxis> groupRecord) {
+  private static void setTableHeightAndMergeVerAxis(
+      Table table, TableHelper tableHelper, Map<Integer, TableAxis> groupRecord) {
     for (int r = 0; r < table.rowNum(); r++) {
       Tr tr = table.getTr(r);
 
@@ -346,16 +486,17 @@ public class HtmlConvertor {
 
   private static void alignSize(Table table, TableHelper tableHelper) {
     /*
-     * If the table is manually set with a width and height,
-     * if the width or height is greater than the currently
-     * calculated width or height, there need to lengthen the
-     * width and height of the corresponding cell
+     * Explicit dimensions are minimums for normal tables and exact outer dimensions for fixed
+     * tables. Keep natural cell geometry when an exact outer size is too small to preserve positive
+     * axis intervals.
      */
     Asserts.illegalArgument(tableHelper.horAxisNum() <= 1, "Only have one horizontal axis");
+    boolean fixedSize = Boolean.TRUE.equals(table.getFixedSize());
+    double heightDiff = table.getHeight() - tableHelper.getHeight();
     double heightIncr =
-        Math.max(table.getHeight() - tableHelper.getHeight(), 0) / (tableHelper.horAxisNum() - 1);
+        (fixedSize ? heightDiff : Math.max(heightDiff, 0)) / (tableHelper.horAxisNum() - 1);
 
-    if (heightIncr > 0) {
+    if (heightIncr != 0 && (!fixedSize || canAlignRows(tableHelper, heightIncr))) {
       double nextRangeLen = 0;
       for (int i = 0; i < tableHelper.horAxisNum(); i++) {
         TableAxis current = tableHelper.getRowAxis(i);
@@ -366,18 +507,27 @@ public class HtmlConvertor {
         }
         if (i > 0) {
           TableAxis pre = tableHelper.getRowAxis(i - 1);
-          current.refreshPos(pre.position + tmp + heightIncr);
+          current.alignPos(pre.position + tmp + heightIncr, fixedSize);
         }
 
-        tableHelper.refreshHeight(current.position);
+        if (!fixedSize) {
+          tableHelper.refreshHeight(current.position);
+        }
       }
 
-      tableHelper.refreshHeight(tableHelper.getHeight() + table.getCellSpacing());
+      if (!fixedSize) {
+        tableHelper.refreshHeight(tableHelper.getHeight() + table.getCellSpacing());
+      }
+    }
+    if (fixedSize) {
+      tableHelper.setHeight(table.getHeight());
     }
 
+    Asserts.illegalArgument(tableHelper.verAxisNum() <= 1, "Only have one vertical axis");
+    double widthDiff = table.getWidth() - tableHelper.getWidth();
     double widthIncr =
-        Math.max(table.getWidth() - tableHelper.getWidth(), 0) / tableHelper.verAxisNum();
-    if (widthIncr > 0) {
+        (fixedSize ? widthDiff : Math.max(widthDiff, 0)) / (tableHelper.verAxisNum() - 1);
+    if (widthIncr != 0 && (!fixedSize || canAlignColumns(tableHelper, widthIncr))) {
       double nextRangeLen = 0;
       Entry<Integer, TableAxis> current = tableHelper.firstColAxis();
       while (current != null) {
@@ -388,17 +538,49 @@ public class HtmlConvertor {
         }
         Entry<Integer, TableAxis> pre = tableHelper.lowerAxis(current.getValue());
         if (pre != null) {
-          current.getValue().refreshPos(pre.getValue().position + tmp + widthIncr);
+          current.getValue().alignPos(pre.getValue().position + tmp + widthIncr, fixedSize);
         }
 
-        tableHelper.refreshWidth(current.getValue().position);
+        if (!fixedSize) {
+          tableHelper.refreshWidth(current.getValue().position);
+        }
         current = next;
       }
-      tableHelper.refreshWidth(tableHelper.getWidth() + table.getCellSpacing());
+      if (!fixedSize) {
+        tableHelper.refreshWidth(tableHelper.getWidth() + table.getCellSpacing());
+      }
+    }
+    if (fixedSize) {
+      tableHelper.setWidth(table.getWidth());
     }
 
     tableHelper.releaseVerAxes();
     tableHelper.releaseHorAxes();
+  }
+
+  private static boolean canAlignRows(TableHelper tableHelper, double increment) {
+    for (int i = 0; i < tableHelper.horAxisNum() - 1; i++) {
+      if (tableHelper.getRowAxis(i + 1).position - tableHelper.getRowAxis(i).position + increment
+          <= 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean canAlignColumns(TableHelper tableHelper, double increment) {
+    Entry<Integer, TableAxis> current = tableHelper.firstColAxis();
+    while (current != null) {
+      Entry<Integer, TableAxis> next = tableHelper.higherAxis(current.getValue());
+      if (next == null) {
+        return true;
+      }
+      if (next.getValue().position - current.getValue().position + increment <= 0) {
+        return false;
+      }
+      current = next;
+    }
+    return true;
   }
 
   private static void balanceRowChildTds(TableHelper tableHelper, TdBox tdBox, boolean refresh) {
@@ -449,24 +631,31 @@ public class HtmlConvertor {
     } while (true);
   }
 
-  private static Assemble convertToAssemble(Table table, TableHelper tableHelper) {
+  private static Assemble convertToAssemble(
+      Table table, TableHelper tableHelper, String scope, LabelIdSpace idSpace) {
     double tabCellSpacing = (double) table.getCellSpacing() / (2 * PIXEL);
     double width = tableHelper.getWidth() / PIXEL;
     double height = tableHelper.getHeight() / PIXEL;
     AssembleBuilder assembleBuilder = Assemble.builder().width(width).height(height);
-    NodeBuilder nodeBuilder = Node.builder()
-        .id(table.getId())
-        .width(width)
-        .height(height)
-        .href(table.getHref())
-        .tooltip(table.getTooltip())
-        .color(table.getColor())
-        .fillColor(table.getBgColor())
-        .penWidth(table.getBorder());
+    /*
+     * The table's own id stays the owner-local cell id so that ports keep resolving against it,
+     * independently of whatever global identity the id space hands the generated node.
+     */
+    String tableId = table.getId();
+    NodeBuilder nodeBuilder =
+        Node.builder()
+            .id(identity(tableId, scope, TABLE_SCOPE_STEP, idSpace, true))
+            .width(width)
+            .height(height)
+            .href(table.getHref())
+            .tooltip(table.getTooltip())
+            .color(table.getColor())
+            .fillColor(table.getBgColor())
+            .penWidth(table.getBorder());
     if (CollectionUtils.isNotEmpty(table.getStyles())) {
       nodeBuilder.style(table.getStyles().toArray(new NodeStyle[0]));
     }
-    assembleBuilder.addCell(0, 0, nodeBuilder.build());
+    assembleBuilder.addCell(0, 0, tableId, nodeBuilder.build());
 
     for (int r = 0; r < table.rowNum(); r++) {
       Tr tr = table.getTr(r);
@@ -486,22 +675,25 @@ public class HtmlConvertor {
           height -= (tabCellSpacing * 2);
         }
 
-        NodeBuilder cellBuilder = Node.builder()
-            .id(td.getId())
-            .width(width)
-            .height(height)
-            .href(td.getHref(table))
-            .tooltip(td.getTooltip(table))
-            .label(td.getText())
-            .shape(td.getShape())
-            .labeljust(td.getAlign(table))
-            .labelloc(td.getValign(table))
-            .penWidth(td.getBorder(table))
-            .fontName(td.getFontName())
-            .color(td.getColor())
-            .fontColor(td.getFontColor())
-            .fillColor(td.getBgColor())
-            .fontSize(td.getFontSize());
+        String cellStep = "r" + r + "c" + c;
+        String cellScope = scope == null ? null : scope + SCOPE_SEPARATOR + cellStep;
+        NodeBuilder cellBuilder =
+            Node.builder()
+                .id(identity(td.getId(), scope, cellStep, idSpace, false))
+                .width(width)
+                .height(height)
+                .href(td.getHref(table))
+                .tooltip(td.getTooltip(table))
+                .label(td.getText())
+                .shape(td.getShape())
+                .labeljust(td.getAlign(table))
+                .labelloc(td.getValign(table))
+                .penWidth(td.getBorder(table))
+                .fontName(td.getFontName())
+                .color(td.getColor())
+                .fontColor(td.getFontColor())
+                .fillColor(td.getBgColor())
+                .fontSize(td.getFontSize());
 
         if (CollectionUtils.isNotEmpty(td.getStyles(table))) {
           cellBuilder.style(td.getStyles(table).toArray(new NodeStyle[0]));
@@ -509,7 +701,7 @@ public class HtmlConvertor {
 
         Table childTable = td.getTable();
         if (childTable != null) {
-          Assemble assemble = convertToAssemble(childTable, tdBox.tableHelper);
+          Assemble assemble = convertToAssemble(childTable, tdBox.tableHelper, cellScope, idSpace);
           cellBuilder.assemble(assemble);
         }
 
@@ -523,11 +715,40 @@ public class HtmlConvertor {
           cellBuilder.assemble(assemble);
         }
 
-        assembleBuilder.addCell(horOffset, verOffset, cellBuilder.build());
+        String cellId = td.getPort() != null ? td.getPort() : td.getId();
+        assembleBuilder.addCell(horOffset, verOffset, cellId, cellBuilder.build());
       }
     }
 
     return assembleBuilder.build();
+  }
+
+  /**
+   * Returns the global {@link Node} identity of one generated table or cell node.
+   *
+   * <p>With an id space the authored id wins whenever nothing else in the graph has claimed it,
+   * which is what keeps {@link org.graphper.draw.DrawGraph#nodeId(Node)} resolving the ids the
+   * author wrote. Without one the two legacy shapes are reproduced unchanged: an unscoped
+   * conversion keeps the authored id, and a scoped conversion renames every cell after its scope
+   * but still leaves the table node named by its author.
+   *
+   * @param authoredId the {@code id} the author gave the table or cell, may be {@code null}
+   * @param scope identity scope of the owning label, {@code null} for an unscoped conversion
+   * @param step step identifying this table or cell inside the scope
+   * @param idSpace identity space of the graph, may be {@code null}
+   * @param isTable whether the node carries the table itself rather than a cell
+   * @return the identity to build the node with, possibly {@code null}
+   */
+  private static String identity(
+      String authoredId, String scope, String step, LabelIdSpace idSpace, boolean isTable) {
+    if (scope == null) {
+      return authoredId;
+    }
+    String scopedPath = scope + SCOPE_SEPARATOR + step;
+    if (idSpace == null) {
+      return isTable ? authoredId : scopedPath;
+    }
+    return idSpace.identity(authoredId, scopedPath);
   }
 
   private static void tdSize(Table table, TdBox tdBox, Td td, RootTableHelper rootTableHelper) {
@@ -563,8 +784,9 @@ public class HtmlConvertor {
     }
 
     int margin = td.getCellPadding(table) + table.getCellSpacing();
-    tdBox.size = td.getShape()
-        .minContainerSize(labelSize.getHeight() + margin, labelSize.getWidth() + margin);
+    tdBox.size =
+        td.getShape()
+            .minContainerSize(labelSize.getHeight() + margin, labelSize.getWidth() + margin);
     Asserts.nullArgument(tdBox.size, "Node shape cannot return null outer box size");
     tdBox.size.setWidth(Math.max(width, tdBox.size.getWidth()));
     tdBox.size.setHeight(Math.max(height, tdBox.size.getHeight()));
@@ -575,17 +797,17 @@ public class HtmlConvertor {
    * label's top-left corner, in pixels.
    *
    * <p>Same layout pass as {@link #toAssemble(LabelTag, LabelAttributes)}; the two differ only in
-   * what they do with the positioned runs. {@code toAssemble} turns each run into a sub-node for the
-   * generic label pipeline, while record cells need to draw the runs directly as SVG text — an
+   * what they do with the positioned runs. {@code toAssemble} turns each run into a sub-node for
+   * the generic label pipeline, while record cells need to draw the runs directly as SVG text — an
    * {@code Assemble} cannot be nested inside a record cell without losing the cell tree that edge
    * ports resolve against. Sharing the layout pass is what keeps the two from drifting.
    *
-   * @param labelTag  the rich text to lay out
+   * @param labelTag the rich text to lay out
    * @param labelAttrs the enclosing font context that inner tags refine
    * @return positioned runs in draw order, or an empty list when there is nothing to draw
    */
-  public static List<PositionedText> toPositionedTexts(LabelTag labelTag,
-                                                       LabelAttributes labelAttrs) {
+  public static List<PositionedText> toPositionedTexts(
+      LabelTag labelTag, LabelAttributes labelAttrs) {
     if (labelTag == null || labelAttrs == null) {
       return Collections.emptyList();
     }
@@ -598,31 +820,43 @@ public class HtmlConvertor {
     Asserts.nullArgument(size);
 
     List<PositionedText> texts = new ArrayList<>();
-    textAlign(size, textRows, (xOffset, yOffset, cell) -> {
-      NodeAttrs attrs = cell.cell.nodeAttrs();
-      /*
-       * NodeBuilder#width/#height scale by PIXEL on the way in, so the stored values are already in
-       * the same unit as the offsets computed above. Only toAssemble has to divide, because
-       * AssembleBuilder#addCell expects inches.
-       */
-      Double width = attrs.getWidth();
-      Double height = attrs.getHeight();
-      texts.add(new PositionedText(xOffset, yOffset,
-                                   width == null ? 0 : width,
-                                   height == null ? 0 : height,
-                                   attrs.getLabel(), attrs.getFontName(),
-                                   attrs.getFontSize() == null ? 0 : attrs.getFontSize(),
-                                   attrs.getFontColor(), attrs.getFontStyles(),
-                                   attrs.getLabelloc(), cell.scriptShift));
-    });
+    textAlign(
+        size,
+        textRows,
+        (xOffset, yOffset, cell) -> {
+          NodeAttrs attrs = cell.cell.nodeAttrs();
+          /*
+           * NodeBuilder#width/#height scale by PIXEL on the way in, so the stored values are
+           * already in the same unit as the offsets computed above. Only toAssemble has to divide,
+           * because
+           * AssembleBuilder#addCell expects inches.
+           */
+          Double width = attrs.getWidth();
+          Double height = attrs.getHeight();
+          texts.add(
+              new PositionedText(
+                  xOffset,
+                  yOffset,
+                  width == null ? 0 : width,
+                  height == null ? 0 : height,
+                  attrs.getLabel(),
+                  attrs.getFontName(),
+                  attrs.getFontSize() == null ? 0 : attrs.getFontSize(),
+                  attrs.getFontColor(),
+                  attrs.getFontStyles(),
+                  attrs.getLabelloc(),
+                  cell.scriptShift));
+        });
     return texts;
   }
 
-  // ------------------------------------------ label tag private methods ------------------------------------------
+  // ------------------------------------------ label tag private methods
+  // ------------------------------------------
   private static void textAlign(FlatPoint size, TextRows textRows, AssembleBuilder builder) {
-    textAlign(size, textRows,
-              (xOffset, yOffset, cell) ->
-                  builder.addCell(xOffset / PIXEL, yOffset / PIXEL, cell.cell));
+    textAlign(
+        size,
+        textRows,
+        (xOffset, yOffset, cell) -> builder.addCell(xOffset / PIXEL, yOffset / PIXEL, cell.cell));
   }
 
   private static void textAlign(FlatPoint size, TextRows textRows, TextCellConsumer consumer) {
@@ -673,9 +907,18 @@ public class HtmlConvertor {
 
     private final boolean scriptShift;
 
-    PositionedText(double x, double y, double width, double height, String text, String fontName,
-                   double fontSize, Color fontColor, Collection<FontStyle> fontStyles,
-                   Labelloc verAlign, boolean scriptShift) {
+    PositionedText(
+        double x,
+        double y,
+        double width,
+        double height,
+        String text,
+        String fontName,
+        double fontSize,
+        Color fontColor,
+        Collection<FontStyle> fontStyles,
+        Labelloc verAlign,
+        boolean scriptShift) {
       this.scriptShift = scriptShift;
       this.x = x;
       this.y = y;
@@ -701,9 +944,10 @@ public class HtmlConvertor {
     }
 
     /**
-     * Whether this run is a subscript or superscript. Such a run keeps the box of a full-size run but
-     * draws at half the font size, so {@link #getVerAlign()} decides where inside the box the glyphs
-     * go. For every other run the box is the text's own measured size and the glyphs simply fill it.
+     * Whether this run is a subscript or superscript. Such a run keeps the box of a full-size run
+     * but draws at half the font size, so {@link #getVerAlign()} decides where inside the box the
+     * glyphs go. For every other run the box is the text's own measured size and the glyphs simply
+     * fill it.
      *
      * @return {@code true} for subscript and superscript runs
      */
@@ -748,9 +992,12 @@ public class HtmlConvertor {
     }
   }
 
-  private static double accessLabelTag(TextRows textRows, LabelTag labelTag,
-                                       TextTagValue textTagValue, FlatPoint position,
-                                       double currentLineHeight) {
+  private static double accessLabelTag(
+      TextRows textRows,
+      LabelTag labelTag,
+      TextTagValue textTagValue,
+      FlatPoint position,
+      double currentLineHeight) {
     if (labelTag == null) {
       return currentLineHeight;
     }
@@ -770,9 +1017,12 @@ public class HtmlConvertor {
     return currentLineHeight;
   }
 
-  private static double accessLabelTag(TextRows textRows, BasicLabelTag labelTag,
-                                       TextTagValue textTagValue, FlatPoint position,
-                                       double currentLineHeight) {
+  private static double accessLabelTag(
+      TextRows textRows,
+      BasicLabelTag labelTag,
+      TextTagValue textTagValue,
+      FlatPoint position,
+      double currentLineHeight) {
     if (labelTag.getType() == LabelTagType.BR) {
       position.setX(0);
       position.setY(position.getY() + currentLineHeight);
@@ -785,8 +1035,8 @@ public class HtmlConvertor {
       return textTagToCell(textRows, labelTag, textTagValue, position, currentLineHeight);
     }
 
-    return accessLabelTag(textRows, labelTag.getSubLabelTag(),
-                          textTagValue, position, currentLineHeight);
+    return accessLabelTag(
+        textRows, labelTag.getSubLabelTag(), textTagValue, position, currentLineHeight);
   }
 
   private static void setTextValue(BasicLabelTag labelTag, TextTagValue textTagValue) {
@@ -842,9 +1092,12 @@ public class HtmlConvertor {
     textTagValue.setHorAlign(labelTag);
   }
 
-  private static double textTagToCell(TextRows textRows, BasicLabelTag labelTag,
-                                      TextTagValue textTagValue, FlatPoint position,
-                                      double currentLineHeight) {
+  private static double textTagToCell(
+      TextRows textRows,
+      BasicLabelTag labelTag,
+      TextTagValue textTagValue,
+      FlatPoint position,
+      double currentLineHeight) {
     if (StringUtils.isEmpty(labelTag.getText())) {
       return currentLineHeight;
     }
@@ -852,8 +1105,7 @@ public class HtmlConvertor {
     String fontName = textTagValue.getFontName();
     double fontSize = textTagValue.getFontSize();
     FontStyle[] fontStyles = textTagValue.toMeasureFontStyles();
-    FlatPoint size = FontUtils.measure(labelTag.getText(), fontName,
-                                       fontSize, 0, fontStyles);
+    FlatPoint size = FontUtils.measure(labelTag.getText(), fontName, fontSize, 0, fontStyles);
 
     if (textTagValue.subscript || textTagValue.superscript) {
       FlatPoint originalSize = size;
@@ -862,17 +1114,17 @@ public class HtmlConvertor {
       size.setHeight(originalSize.getHeight());
     }
 
-    NodeBuilder cellBuilder = Node
-        .builder()
-        .penWidth(0)
-        .fixedSize(true)
-        .labelloc(Labelloc.TOP)
-        .label(labelTag.getText())
-        .fontSize(fontSize)
-        .fontName(fontName)
-        .fontColor(textTagValue.getFontColor())
-        .width(size.getWidth() / PIXEL)
-        .height(size.getHeight() / PIXEL);
+    NodeBuilder cellBuilder =
+        Node.builder()
+            .penWidth(0)
+            .fixedSize(true)
+            .labelloc(Labelloc.TOP)
+            .label(labelTag.getText())
+            .fontSize(fontSize)
+            .fontName(fontName)
+            .fontColor(textTagValue.getFontColor())
+            .width(size.getWidth() / PIXEL)
+            .height(size.getHeight() / PIXEL);
 
     if (textTagValue.superscript) {
       cellBuilder.labelloc(Labelloc.TOP);
@@ -883,9 +1135,13 @@ public class HtmlConvertor {
 
     setFontStyles(textTagValue, cellBuilder);
 
-    TextCell textCell = new TextCell(position.getX(), position.getY(),
-                                     cellBuilder.build(), textTagValue.verAlign,
-                                     textTagValue.subscript || textTagValue.superscript);
+    TextCell textCell =
+        new TextCell(
+            position.getX(),
+            position.getY(),
+            cellBuilder.build(),
+            textTagValue.verAlign,
+            textTagValue.subscript || textTagValue.superscript);
 
     TextRow currentRow = textRows.getCurrentRow();
     currentRow.setRowHorAlign(textTagValue.horAlign);
@@ -983,6 +1239,14 @@ public class HtmlConvertor {
 
     private void refreshHeight(double height) {
       tableSize.setHeight(Math.max(height, tableSize.getHeight()));
+    }
+
+    private void setWidth(double width) {
+      tableSize.setWidth(width);
+    }
+
+    private void setHeight(double height) {
+      tableSize.setHeight(height);
     }
 
     private TdBox getBox(Td td) {
@@ -1139,6 +1403,15 @@ public class HtmlConvertor {
         return true;
       }
       return false;
+    }
+
+    private boolean alignPos(double pos, boolean allowShrink) {
+      if (!allowShrink) {
+        return refreshPos(pos);
+      }
+      boolean changed = position != pos;
+      position = pos;
+      return changed;
     }
 
     private double pixelPosition() {

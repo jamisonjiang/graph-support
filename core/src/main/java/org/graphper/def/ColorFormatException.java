@@ -25,11 +25,8 @@ public class ColorFormatException extends RuntimeException {
 
   private static final long serialVersionUID = 1033876844829922354L;
 
-  /**
-   * Constructs a {@code ColorFormatException} with no verbose message.
-   */
-  public ColorFormatException() {
-  }
+  /** Constructs a {@code ColorFormatException} with no verbose message. */
+  public ColorFormatException() {}
 
   /**
    * Constructs a {@code ColorFormatException} with verbose message.

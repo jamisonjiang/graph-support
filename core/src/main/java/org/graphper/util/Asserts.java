@@ -34,7 +34,7 @@ public final class Asserts {
    * met.
    *
    * @param predicate the condition to validate
-   * @param errorMsg  the error message to include in the exception if the condition is not met
+   * @param errorMsg the error message to include in the exception if the condition is not met
    * @throws IllegalArgumentException if {@code predicate} is {@code false}
    */
   public static void illegalArgument(boolean predicate, String errorMsg) {
@@ -54,10 +54,10 @@ public final class Asserts {
   }
 
   /**
-   * Validates that the specified object is not {@code null}, throwing a
-   * {@link NullPointerException} with a customized error message if the check fails.
+   * Validates that the specified object is not {@code null}, throwing a {@link
+   * NullPointerException} with a customized error message if the check fails.
    *
-   * @param obj       the object to check
+   * @param obj the object to check
    * @param paramName the name of the parameter to include in the exception message
    * @throws NullPointerException if {@code obj} is {@code null}
    */
@@ -70,9 +70,9 @@ public final class Asserts {
    * {@code null} elements.
    *
    * @param arrays the array to check
-   * @param <T>    the type of the elements in the array
+   * @param <T> the type of the elements in the array
    * @throws IllegalArgumentException if the array is {@code null}, empty, or contains {@code null}
-   *                                  elements
+   *     elements
    */
   @SafeVarargs
   public static <T> void nullOrContainsNull(T... arrays) {

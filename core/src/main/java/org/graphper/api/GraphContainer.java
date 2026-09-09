@@ -40,8 +40,8 @@ import org.graphper.util.CollectionUtils;
  * and {@link #lines()} to get all the elements inside the container.
  *
  * <p>{@code GraphContainer} is constructed using {@link GraphContainerBuilder}, which is immutable
- * after construction, and a {@code GraphContainer} can act as a sub-container among multiple
- * {@code GraphContainers} at the same time.
+ * after construction, and a {@code GraphContainer} can act as a sub-container among multiple {@code
+ * GraphContainers} at the same time.
  *
  * @author Jamison Jiang
  * @see Cluster
@@ -83,7 +83,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Graphviz}。
+   * Returns whether the container is {@link Graphviz}.
    *
    * @return <tt>true</tt> if current container is {@code Graphviz}
    */
@@ -92,7 +92,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Subgraph}。
+   * Returns whether the container is {@link Subgraph}.
    *
    * @return <tt>true</tt> if current container is {@code Subgraph}
    */
@@ -101,7 +101,7 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns whether the container is {@link Cluster}。
+   * Returns whether the container is {@link Cluster}.
    *
    * @return <tt>true</tt> if current container is {@code Cluster}
    */
@@ -144,8 +144,10 @@ public abstract class GraphContainer implements Serializable {
    * @return container is absolutely empty
    */
   public boolean absoluteEmpty() {
-    return CollectionUtils.isEmpty(subgraphs) && CollectionUtils.isEmpty(clusters)
-        && CollectionUtils.isEmpty(nodes) && CollectionUtils.isEmpty(lines);
+    return CollectionUtils.isEmpty(subgraphs)
+        && CollectionUtils.isEmpty(clusters)
+        && CollectionUtils.isEmpty(nodes)
+        && CollectionUtils.isEmpty(lines);
   }
 
   /**
@@ -171,9 +173,9 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns all nodes inside the current container, including all {@link Subgraph}s and
-   * {@link Cluster} of any depths. If a node exists in multiple subgraphs/clusters, this node will
-   * be iterated repeatedly.
+   * Returns all nodes inside the current container, including all {@link Subgraph}s and {@link
+   * Cluster} of any depths. If a node exists in multiple subgraphs/clusters, this node will be
+   * iterated repeatedly.
    *
    * @return all nodes
    */
@@ -230,9 +232,9 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns node number inside the current container, including all {@link Subgraph}s and
-   * {@link Cluster} of any depths. If a node exists in multiple subgraphs/clusters, this node will
-   * be counted repeatedly.
+   * Returns node number inside the current container, including all {@link Subgraph}s and {@link
+   * Cluster} of any depths. If a node exists in multiple subgraphs/clusters, this node will be
+   * counted repeatedly.
    *
    * @return node number
    */
@@ -248,9 +250,9 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns all lines inside the current container, including all {@link Subgraph}s and
-   * {@link Cluster} of any depths. If a line exists in multiple subgraphs/clusters, this line will
-   * be iterated repeatedly.
+   * Returns all lines inside the current container, including all {@link Subgraph}s and {@link
+   * Cluster} of any depths. If a line exists in multiple subgraphs/clusters, this line will be
+   * iterated repeatedly.
    *
    * @return all lines
    */
@@ -297,9 +299,9 @@ public abstract class GraphContainer implements Serializable {
   }
 
   /**
-   * Returns line number inside the current container, including all {@link Subgraph}s and
-   * {@link Cluster} of any depths. If a line exists in multiple subgraphs/clusters, this node will
-   * be counted repeatedly.
+   * Returns line number inside the current container, including all {@link Subgraph}s and {@link
+   * Cluster} of any depths. If a line exists in multiple subgraphs/clusters, this node will be
+   * counted repeatedly.
    *
    * @return line number
    */
@@ -449,7 +451,7 @@ public abstract class GraphContainer implements Serializable {
     return CollectionUtils.isNotEmpty(clusters);
   }
 
-
+  /** Reports whether a child subgraph or cluster contains the node. */
   public boolean subContains(Node node) {
     for (Subgraph subgraph : subgraphs()) {
       if (subgraph.containsNode(node)) {
@@ -465,7 +467,8 @@ public abstract class GraphContainer implements Serializable {
     return false;
   }
 
-  // ---------------------------------- methods provided to builders ----------------------------------
+  // ---------------------------------- methods provided to builders
+  // ----------------------------------
 
   synchronized void addSubgraph(Subgraph subgraph) {
     Asserts.nullArgument(subgraph, "subgraph");
@@ -523,7 +526,8 @@ public abstract class GraphContainer implements Serializable {
    * @see Subgraph.IntegrationSubgraphBuilder
    * @see Cluster.IntegrationClusterBuilder
    */
-  public abstract static class GraphContainerBuilder<G extends GraphContainer, B extends GraphContainerBuilder<G, B>> {
+  public abstract static class GraphContainerBuilder<
+      G extends GraphContainer, B extends GraphContainerBuilder<G, B>> {
 
     // The node template attribute value
     protected volatile Map<String, Object> nodeAttrsMap;
@@ -561,8 +565,9 @@ public abstract class GraphContainer implements Serializable {
     }
 
     /**
-     * Add a {@link Subgraph} to the current container, and the corresponding <tt>dot script</tt>
+     * Adds a {@link Subgraph} to the current container. The corresponding <tt>dot script</tt>
      * semantics are as follows:
+     *
      * <pre>{@code
      * digraph G {
      *     // Subgraph in Graphviz
@@ -583,38 +588,39 @@ public abstract class GraphContainer implements Serializable {
      *             e->f
      *         }
      *     }
-     * }}
-     * </pre>
-     * The content of the above script converts into an example of Java code:
-     * <pre>{@code
-     *     Graphviz.digraph()
-     *         // Subgraph in Graphviz
-     *         .subgraph(
-     *             Subgraph.builder()
-     *                 .rank(Rank.SAME)
-     *                 .addLine(a, b)
-     *                 // Subgraph inside Subgraph
-     *                 .subgraph(
-     *                     Subgraph.builder()
-     *                         .addLine(c, d)
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         .cluster(
-     *             Cluster.builder()
-     *                 // Subgraph in Cluster
-     *                 .subgraph(
-     *                     Subgraph.builder()
-     *                         .rank(Rank.MAX)
-     *                         .addLine(e, f)
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         .build();
      * }
-     * </pre>
+     * }</pre>
+     *
+     * <p>The content of the above script converts into an example of Java code:
+     *
+     * <pre>{@code
+     * Graphviz.digraph()
+     *     // Subgraph in Graphviz
+     *     .subgraph(
+     *         Subgraph.builder()
+     *             .rank(Rank.SAME)
+     *             .addLine(a, b)
+     *             // Subgraph inside Subgraph
+     *             .subgraph(
+     *                 Subgraph.builder()
+     *                     .addLine(c, d)
+     *                     .build()
+     *             )
+     *             .build()
+     *     )
+     *     .cluster(
+     *         Cluster.builder()
+     *             // Subgraph in Cluster
+     *             .subgraph(
+     *                 Subgraph.builder()
+     *                     .rank(Rank.MAX)
+     *                     .addLine(e, f)
+     *                     .build()
+     *             )
+     *             .build()
+     *     )
+     *     .build();
+     * }</pre>
      *
      * @param subgraph subgraph
      * @return container builder
@@ -627,8 +633,9 @@ public abstract class GraphContainer implements Serializable {
     }
 
     /**
-     * Add a {@link Cluster} to the current container, and the corresponding <tt>dot script</tt>
+     * Adds a {@link Cluster} to the current container. The corresponding <tt>dot script</tt>
      * semantics are as follows:
+     *
      * <pre>{@code
      * digraph G {
      *     {
@@ -648,37 +655,38 @@ public abstract class GraphContainer implements Serializable {
      *             e->f
      *         }
      *     }
-     * }}
-     * </pre>
-     * The content of the above script converts into an example of Java code:
-     * <pre>{@code
-     *     Graphviz.digraph()
-     *         .subgraph(
-     *             Subgraph.builder()
-     *                 .rank(Rank.SAME)
-     *                 .addLine(a, b)
-     *                 // Cluster inside Subgraph
-     *                 .cluster(
-     *                     Cluster.builder()
-     *                         .addLine(c, d)
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         // Cluster in Graphviz
-     *         .cluster(
-     *             Cluster.builder()
-     *                 // Cluster in Cluster
-     *                 .cluster(
-     *                     Cluster.builder()
-     *                         .addLine(e, f)
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         .build();
      * }
-     * </pre>
+     * }</pre>
+     *
+     * <p>The content of the above script converts into an example of Java code:
+     *
+     * <pre>{@code
+     * Graphviz.digraph()
+     *     .subgraph(
+     *         Subgraph.builder()
+     *             .rank(Rank.SAME)
+     *             .addLine(a, b)
+     *             // Cluster inside Subgraph
+     *             .cluster(
+     *                 Cluster.builder()
+     *                     .addLine(c, d)
+     *                     .build()
+     *             )
+     *             .build()
+     *     )
+     *     // Cluster in Graphviz
+     *     .cluster(
+     *         Cluster.builder()
+     *             // Cluster in Cluster
+     *             .cluster(
+     *                 Cluster.builder()
+     *                     .addLine(e, f)
+     *                     .build()
+     *             )
+     *             .build()
+     *     )
+     *     .build();
+     * }</pre>
      *
      * @param cluster cluster
      * @return container builder
@@ -691,11 +699,12 @@ public abstract class GraphContainer implements Serializable {
     }
 
     /**
-     * Mark the start of construction of a {@link Subgraph}, end with
-     * {@link IntegrationSubgraphBuilder#endSub()}.
+     * Mark the start of construction of a {@link Subgraph}, end with {@link
+     * IntegrationSubgraphBuilder#endSub()}.
      *
-     * <p>Compared with {@link #subgraph(Subgraph)}, it will not have too deep nesting.The
-     * following is a nested example of a two-level subgraph:
+     * <p>Compared with {@link #subgraph(Subgraph)}, it will not have too deep nesting.The following
+     * is a nested example of a two-level subgraph:
+     *
      * <pre>{@code
      * Graphviz.digraph()
      *         .addLine(c, d)
@@ -725,11 +734,12 @@ public abstract class GraphContainer implements Serializable {
     }
 
     /**
-     * Mark the start of construction of a {@link Cluster}, end with
-     * {@link IntegrationClusterBuilder#endClus()}.
+     * Mark the start of construction of a {@link Cluster}, end with {@link
+     * IntegrationClusterBuilder#endClus()}.
      *
      * <p>Compared with {@link #cluster(Cluster)}, it will not have too deep nesting.The following
      * is a nested example of a two-level cluster:
+     *
      * <pre>{@code
      * Graphviz.digraph()
      *         .addLine(c, d)
@@ -761,11 +771,12 @@ public abstract class GraphContainer implements Serializable {
      * Set a node template, and the style attributes of all subsequent nodes will inherit the
      * template node style when they are not manually set.
      *
-     * <p>Node attribute templates can take effect on all child nodes of all levels in the graph.
-     * If a node has multiple node attribute templates at different levels, the one closest to the
+     * <p>Node attribute templates can take effect on all child nodes of all levels in the graph. If
+     * a node has multiple node attribute templates at different levels, the one closest to the
      * current node will take effect first. If a property is not manually set and does not exist in
      * the template, the system default value will be used. A <tt>dot script</tt> and code example
      * using node templates is as follows:
+     *
      * <pre>{@code
      * digraph G {
      *     node[shape=rect]
@@ -787,7 +798,9 @@ public abstract class GraphContainer implements Serializable {
      *     }
      * }
      * }</pre>
-     * The content of the above script converts into an example of Java code:
+     *
+     * <p>The content of the above script converts into an example of Java code:
+     *
      * <pre>{@code
      * Graphviz.digraph()
      *         .tempNode(Node.builder().shape(NodeShapeEnum.RECT).build())
@@ -840,33 +853,36 @@ public abstract class GraphContainer implements Serializable {
      * building the template line, it is best to use {@link Line#tempLine()}to build the template
      * line.
      *
-     * <p>Line attribute templates can take effect on all child lines of all levels in the graph.
-     * If a line has multiple line attribute templates at different levels, the one closest to the
+     * <p>Line attribute templates can take effect on all child lines of all levels in the graph. If
+     * a line has multiple line attribute templates at different levels, the one closest to the
      * current line will take effect first. If a property is not manually set and does not exist in
      * the template, the system default value will be used. A <tt>dot script</tt> and code example
      * using line templates is as follows:
+     *
      * <pre>{@code
-     *  digraph G {
-     *      edge[arrowhead=dot]
-     *       // The dot arrow shape set in the root container takes effect
-     *      a->b
-     *      subgraph cluster_0 {
-     *          edge[arrowhead=vee]
-     *          // The vee arrow shape set in the cluster takes effect
-     *          c->d
-     *          {
-     *              edge[arrowhead=curve]
-     *               // The curve arrow shape set in the subgraph takes effect
-     *              e->f
-     *          }
-     *      }
-     *      subgraph cluster_1 {
-     *          // The dot shape set in the root container takes effect
-     *          g->h
-     *      }
-     *  }
+     * digraph G {
+     *     edge[arrowhead=dot]
+     *      // The dot arrow shape set in the root container takes effect
+     *     a->b
+     *     subgraph cluster_0 {
+     *         edge[arrowhead=vee]
+     *         // The vee arrow shape set in the cluster takes effect
+     *         c->d
+     *         {
+     *             edge[arrowhead=curve]
+     *              // The curve arrow shape set in the subgraph takes effect
+     *             e->f
+     *         }
+     *     }
+     *     subgraph cluster_1 {
+     *         // The dot shape set in the root container takes effect
+     *         g->h
+     *     }
+     * }
      * }</pre>
-     * The content of the above script converts into an example of Java code:
+     *
+     * <p>The content of the above script converts into an example of Java code:
+     *
      * <pre>{@code
      * Graphviz.digraph()
      *         .tempLine(Line.tempLine().arrowHead(ArrowShape.DOT).build())
@@ -960,8 +976,8 @@ public abstract class GraphContainer implements Serializable {
 
     /**
      * Use a series of nodes to create lines, so the node array cannot be less than 2 (the number of
-     * minimum nodes that form a line). Each adjacent node in the array forms a line. If
-     * {@link Graphviz#isDirected()} is true, all the sides of the composition have a direction. The
+     * minimum nodes that form a line). Each adjacent node in the array forms a line. If {@link
+     * Graphviz#isDirected()} is true, all the sides of the composition have a direction. The
      * direction is to point to the latter node from the first node of the two adjacent nodes.
      *
      * @param nodes a series of node array formed a line

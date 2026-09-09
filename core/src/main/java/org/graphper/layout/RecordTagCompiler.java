@@ -18,6 +18,7 @@ package org.graphper.layout;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html.BasicRecordCell;
 import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.RecordTag;
@@ -25,22 +26,24 @@ import org.graphper.def.FlatPoint;
 import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.FontUtils;
 import org.graphper.util.LabelTagUtils;
-import org.apache_gs.commons.lang3.StringUtils;
 
 /**
  * Turns a {@link RecordTag} into the {@link Cell} tree consumed by layout and rendering.
  *
  * <p>This is the single geometry backend for record labels. Two front-ends feed it:
+ *
  * <ul>
- *   <li>{@link CellLabelCompiler} parses the frozen record-label string grammar
- *       ({@code "{a|<p0>b}"}) into a {@code RecordTag};</li>
+ *   <li>{@link CellLabelCompiler} parses the frozen record-label string grammar ({@code
+ *       "{a|<p0>b}"}) into a {@code RecordTag};
  *   <li>the structured API ({@code Html.record(...)}) hands over a {@code RecordTag} directly,
- *       which is the only way to express rich-text cells.</li>
+ *       which is the only way to express rich-text cells.
  * </ul>
- * Keeping one backend means alignment, minimum-size compensation and offset propagation cannot
+ *
+ * <p>Keeping one backend means alignment, minimum-size compensation and offset propagation cannot
  * drift between the two paths.
  *
  * <h2>Orientation</h2>
+ *
  * {@link RecordTag#isHorizontal()} describes how the tag's <em>children</em> are arranged, whereas
  * {@link Cell#isHor()} describes how a cell is arranged <em>among its siblings</em>. The two are
  * therefore inverse at each level: the cell owning a tag gets {@code isHor == !tag.isHorizontal()}
@@ -68,8 +71,8 @@ public class RecordTagCompiler {
 
   private RootCell cell;
 
-  private RecordTagCompiler(String fontName, double fontSize, FlatPoint margin,
-                            FlatPoint minCellSize, boolean flip) {
+  private RecordTagCompiler(
+      String fontName, double fontSize, FlatPoint margin, FlatPoint minCellSize, boolean flip) {
     this.fontName = fontName;
     this.fontSize = fontSize;
     this.margin = margin;
@@ -90,17 +93,21 @@ public class RecordTagCompiler {
   /**
    * Compiles a record tag into a cell tree.
    *
-   * @param recordTag   record structure to compile
-   * @param fontName    label font name
-   * @param fontSize    label font size
-   * @param margin      per cell margin
+   * @param recordTag record structure to compile
+   * @param fontName label font name
+   * @param fontSize label font size
+   * @param margin per cell margin
    * @param minCellSize minimum width and height of the whole record
-   * @param flip        invert the orientation of every level, used when {@code rankdir} rotates the
-   *                    graph
+   * @param flip invert the orientation of every level, used when {@code rankdir} rotates the graph
    * @return tree-level structure of label cell
    */
-  public static RootCell compile(RecordTag recordTag, String fontName, double fontSize,
-                                 FlatPoint margin, FlatPoint minCellSize, boolean flip) {
+  public static RootCell compile(
+      RecordTag recordTag,
+      String fontName,
+      double fontSize,
+      FlatPoint margin,
+      FlatPoint minCellSize,
+      boolean flip) {
     if (recordTag == null) {
       throw new LabelFormatException("Record tag is null");
     }

@@ -24,6 +24,7 @@ import static org.graphper.api.Html.strikeThrough;
 import static org.graphper.api.Html.text;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@VisualTags({"node", "attributes"})
 public class NodeAttrTest extends GraphvizVisual {
 
   static Stream<NodeBuilder> sizeCases() {

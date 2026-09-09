@@ -2,6 +2,9 @@
 
 The **imageWidth** and **imageHeight** attributes control the **display size** of an image inside a node. These attributes are only effective when an **image is set** using the `image` attribute.
 
+Remote examples also require `SecurityPolicy.builder().allowRemoteImages(true)` plus an
+`allowRemoteImageHost(...)` entry on the graph.
+
 ## Examples:
 
 Dot
@@ -38,4 +41,3 @@ Node defaultImageNode = Node.builder()
 - **`imageWidth(double width)`** → Defines the **relative width** of the image inside the node.
 - **`imageHeight(double height)`** → Defines the **relative height** of the image inside the node.
 - **If `imageWidth` or `imageHeight` is not specified**, the image keeps its default size **relative to the node size**.
-

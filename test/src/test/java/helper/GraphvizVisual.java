@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.lang.reflect.AnnotatedElement;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -31,20 +34,47 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.FileType;
 import org.graphper.api.GraphResource;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GraphvizVisual {
 
+  private static final String CASE_PLACEHOLDER = "<!-- graph-cases -->";
+
   private static final Logger log = LoggerFactory.getLogger(GraphvizVisual.class);
 
-  private static final String IMG_CELL = "<li><div class=\"images-container\"><img src=\"%s\" alt=\"\"><img src=\"%s\" alt=\"\"></div><div class=\"sk_rush\"><a href=\"%s\" target=\"_blank\">See Svg</a><span style=\"margin-right: 10px;\"></span><a href=\"%s\" target=\"_blank\">See PDF</a></div></li>";
+  private static final String IMG_CELL = "<li class=\"case-card\" data-search=\"%5$s %8$s %6$s\" data-tags=\"%6$s\">"
+      + "<header class=\"case-header\"><span class=\"case-index\"></span>"
+      + "<span class=\"case-meta\"><span class=\"case-method\">%8$s</span>"
+      + "<span class=\"file-name\" title=\"%5$s\">%5$s</span></span>"
+      + "<span class=\"case-tags\">%7$s</span></header>"
+      + "<div class=\"comparison\">"
+      + "<article class=\"preview local\"><h2 class=\"preview-title\">Local converter</h2>"
+      + "<a class=\"image-link\" href=\"%1$s\"><img src=\"%1$s\" alt=\"Local converter output\" loading=\"lazy\"></a></article>"
+      + "<article class=\"preview batik\"><h2 class=\"preview-title\">Batik converter</h2>"
+      + "<a class=\"image-link\" href=\"%2$s\"><img src=\"%2$s\" alt=\"Batik converter output\" loading=\"lazy\"></a></article>"
+      + "</div><footer class=\"case-actions\"><a class=\"preview-file\" data-kind=\"SVG\" href=\"%3$s\">Open SVG</a>"
+      + "<a class=\"preview-file\" data-kind=\"PDF\" href=\"%4$s\">Open PDF</a></footer></li>";
 
   private static final FileType FILE_TYPE = FileType.PNG;
 
+  private String caseTags;
+
+  private String caseName;
+
   @BeforeEach
-  public void init() {
+  public void init(TestInfo testInfo) {
     System.setProperty("graph.layout", "dot");
+    Set<String> tags = new LinkedHashSet<>();
+    testInfo.getTestClass().ifPresent(type -> {
+      tags.add(normalizeTag(type.getSimpleName().replaceFirst("Test$", "")));
+      addTags(tags, type);
+    });
+    testInfo.getTestMethod().ifPresent(method -> addTags(tags, method));
+    caseTags = String.join(",", tags);
+    caseName = testInfo.getTestMethod().map(method -> method.getName())
+        .orElse(testInfo.getDisplayName());
   }
 
   protected void visual(Graphviz graphviz) {
@@ -68,11 +98,12 @@ public class GraphvizVisual {
       String s = save(graphviz, 1, svg);
       String pngByLocal = save(graphviz, 2, img);
       String pngByBatik = save(graphviz, 3, svg);
-      String pdfPath = DocumentUtils.getTestPngPath() + graphviz.hashCode() + ".pdf";
+      String pdfFile = graphviz.hashCode() + ".pdf";
       try(GraphResource resource = graphviz.toFile(FileType.PDF)) {
         resource.save(DocumentUtils.getTestPngPath(), String.valueOf(graphviz.hashCode()));
       }
-      appendToVisualHtml(pngByLocal, pngByBatik, s, pdfPath);
+      appendToVisualHtml(pngByLocal, pngByBatik, s,
+                         ".." + DocumentUtils.getRelativeTestPngPath() + pdfFile);
       img.close();
     }
   }
@@ -85,10 +116,12 @@ public class GraphvizVisual {
       }
 
       StringBuilder sb = new StringBuilder();
-      String graphCell = String.format(IMG_CELL, png, pngByBatik, svg, pdf) + "%s";
+      String graphCell = String.format(IMG_CELL, png, pngByBatik, svg, pdf,
+                                       html(new File(svg).getName()), html(caseTags), tagBadges(caseTags),
+                                       html(caseName)) + CASE_PLACEHOLDER;
       for (String line : Files.readAllLines(
           FileSystems.getDefault().getPath(html.getPath()))) {
-        line = line.replaceAll("%s", graphCell);
+        line = line.replace(CASE_PLACEHOLDER, graphCell);
         sb.append(line);
       }
 
@@ -101,6 +134,42 @@ public class GraphvizVisual {
         fos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
       }
     }
+  }
+
+  private void addTags(Set<String> tags, AnnotatedElement element) {
+    VisualTags visualTags = element.getAnnotation(VisualTags.class);
+    if (visualTags == null) {
+      return;
+    }
+    for (String tag : visualTags.value()) {
+      String normalized = normalizeTag(tag);
+      if (!normalized.isEmpty()) {
+        tags.add(normalized);
+      }
+    }
+  }
+
+  private String normalizeTag(String tag) {
+    return tag == null ? "" : tag.trim()
+        .replaceAll("([a-z0-9])([A-Z])", "$1-$2")
+        .replaceAll("[^A-Za-z0-9]+", "-")
+        .replaceAll("(^-+|-+$)", "")
+        .toLowerCase();
+  }
+
+  private String tagBadges(String tags) {
+    StringBuilder badges = new StringBuilder();
+    for (String tag : tags.split(",")) {
+      if (!tag.isEmpty()) {
+        badges.append("<span class=\"tag\">").append(html(tag)).append("</span>");
+      }
+    }
+    return badges.toString();
+  }
+
+  private String html(String text) {
+    return text == null ? "" : text.replace("&", "&amp;")
+        .replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;");
   }
 
   private String save(Graphviz graphviz, int type, GraphResource graphResource)

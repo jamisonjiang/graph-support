@@ -38,6 +38,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.api.attributes.Layout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +64,12 @@ public class CommandUnits {
       new OutputFile(),
       new GraphLayout(),
       new OutputFileType(),
-      new NativeImageRender()
+      new NativeImageRender(),
+      new AllowImageHost(),
+      new ImageBaseDirectory()
   );
 
+  /** Reads a positional DOT input file. */
   public static class DotInput implements CommandUnit {
 
     @Override
@@ -89,6 +93,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the output file path. */
   public static class OutputFile implements CommandUnit {
 
     @Override
@@ -121,6 +126,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the graph layout engine. */
   public static class GraphLayout implements CommandUnit {
 
     @Override
@@ -153,6 +159,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the output format. */
   public static class OutputFileType implements CommandUnit {
 
     @Override
@@ -181,6 +188,7 @@ public class CommandUnits {
     }
   }
 
+  /** Enables the native image renderer instead of Batik. */
   public static class NativeImageRender implements CommandUnit {
 
     @Override
@@ -199,6 +207,71 @@ public class CommandUnits {
     }
   }
 
+  /**
+   * Opt-in for remote images. Images are denied by default and this option is the only way to
+   * enable them from the CLI; each occurrence adds one exact hostname to the allow list.
+   */
+  public static class AllowImageHost implements CommandUnit {
+
+    static final String OPTION = "--allow-image-host";
+
+    @Override
+    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+      String host = optionValue(arguments, OPTION, "Error: don't have image host");
+      if (host == null) {
+        return false;
+      }
+      try {
+        // Reject a bad hostname here rather than after the graph has already been parsed.
+        SecurityPolicy.builder().allowRemoteImageHost(host);
+      } catch (RuntimeException e) {
+        throw new WrongCommandException("Error: image host " + host + " invalid, "
+                                            + e.getMessage());
+      }
+      command.addAllowedImageHost(host);
+      return true;
+    }
+
+    @Override
+    public String helpCommend() {
+      return "--allow-image-host h"
+          + "\n             - Allow images from host 'h' (repeatable; remote images are denied"
+          + " by default)";
+    }
+  }
+
+  /**
+   * Opt-in for filesystem images. Without it no local image reference resolves, because the
+   * default policy has no base directory.
+   */
+  public static class ImageBaseDirectory implements CommandUnit {
+
+    static final String OPTION = "--image-dir";
+
+    @Override
+    public boolean handle(Arguments arguments, Command command) throws WrongCommandException {
+      String value = optionValue(arguments, OPTION, "Error: don't have image directory");
+      if (value == null) {
+        return false;
+      }
+      File directory = parseFile(value);
+      if (!directory.isDirectory()) {
+        throw new WrongCommandException(
+            "Error: image directory " + directory.getPath() + " not exists");
+      }
+      command.setImageBaseDirectory(directory.toPath());
+      return true;
+    }
+
+    @Override
+    public String helpCommend() {
+      return "--image-dir d"
+          + "\n             - Allow images under directory 'd' (filesystem images are denied"
+          + " by default)";
+    }
+  }
+
+  /** Prints CLI and dependency versions, then exits. */
   public static class Version implements CommandUnit {
 
     @Override
@@ -223,6 +296,7 @@ public class CommandUnits {
     }
   }
 
+  /** Prints the available commands, then exits. */
   public static class Help implements CommandUnit {
 
     @Override
@@ -251,6 +325,7 @@ public class CommandUnits {
     }
   }
 
+  /** Enables debug logging for graph-support. */
   public static class Debug implements CommandUnit {
 
     @Override
@@ -271,6 +346,7 @@ public class CommandUnits {
     }
   }
 
+  /** Reads DOT source directly from a command-line argument. */
   public static class Script implements CommandUnit {
 
     @Override
@@ -292,6 +368,35 @@ public class CommandUnits {
     public String helpCommend() {
       return "-sScript     - Provide a DOT script string to generate a graph (instead of a file)";
     }
+  }
+
+  /**
+   * Reads the value of a long option written either as {@code --opt value} or {@code --opt=value}.
+   *
+   * @param arguments   argument cursor, advanced past the value for the separated form
+   * @param option      the option name
+   * @param missingText error text when the option is present but the value is not
+   * @return the value, or {@code null} when the current argument is not this option
+   * @throws WrongCommandException if the option is present without a value
+   */
+  private static String optionValue(Arguments arguments, String option, String missingText)
+      throws WrongCommandException {
+    String arg = arguments.current();
+    if (arg == null) {
+      return null;
+    }
+    String value;
+    if (option.equals(arg)) {
+      value = arguments.advance();
+    } else if (arg.startsWith(option + "=")) {
+      value = arg.substring(option.length() + 1);
+    } else {
+      return null;
+    }
+    if (StringUtils.isBlank(value)) {
+      throw new WrongCommandException(missingText);
+    }
+    return value.trim();
   }
 
   private static File parseFile(String filePath) {

@@ -23,28 +23,18 @@ package org.graphper.api.attributes;
  */
 public enum LineStyle {
 
-  /**
-   * Dashed line consisting of a series of line segment.
-   */
+  /** Dashed line consisting of a series of line segment. */
   DASHED,
 
-  /**
-   * Dotted line consisting of a series of points.
-   */
+  /** Dotted line consisting of a series of points. */
   DOTTED,
 
-  /**
-   * Line segments are drawn as solid lines.
-   */
+  /** Line segments are drawn as solid lines. */
   SOLID,
 
-  /**
-   * Hide line segments when rendering (but the attributes are valid during layout).
-   */
+  /** Hide line segments when rendering (but the attributes are valid during layout). */
   INVIS,
 
-  /**
-   * Draws the line segment boldly.
-   */
+  /** Draws the line segment boldly. */
   BOLD
 }

@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Splines;
 
+@VisualTags({"label", "cell", "record"})
 public class CellLabelTest extends GraphvizVisual {
 
   static Stream<Graphviz> cellLabelCases() throws CloneNotSupportedException {

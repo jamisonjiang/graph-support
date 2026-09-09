@@ -32,7 +32,6 @@ import org.graphper.layout.PortHelper;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.CollectionUtils;
 
-
 /**
  * Implementation of {@link Splines#LINE}.
  *
@@ -43,7 +42,8 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
   @Override
   public void route() {
     DNode[] to = {null};
-    // Record parallel lines cross multi ranks, these lines not be able added to DLine#addParallelEdge
+    // Record parallel lines cross multi ranks, these lines not be able added to
+    // DLine#addParallelEdge
     ParallelLineRecord parallelLineRecord = null;
 
     for (int i = rankContent.minRank(); i <= rankContent.maxRank(); i++) {
@@ -64,9 +64,8 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
             continue;
           }
 
-          if (line.isParallelMerge() && (!line.isSameRank() || (line.isSameRank()
-              && isAdj(line.from(), line.to())))
-          ) {
+          if (line.isParallelMerge()
+              && (!line.isSameRank() || (line.isSameRank() && isAdj(line.from(), line.to())))) {
             parallelLineHandle(line);
             continue;
           }
@@ -77,17 +76,20 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
           }
 
           lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), line.from(), drawGraph));
-          lineSegmentConsumer(line, l -> {
-            if (!l.to().isVirtual()) {
-              lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), l.to(), drawGraph));
-              to[0] = l.to();
-            }
-            if (l.to().isLabelNode()) {
-              lineDrawProp.add(new FlatPoint(l.to().getX(), l.to().getY()));
-              lineDrawProp.setLabelCenter(
-                  new FlatPoint(l.to().getX() + l.to().getWidth() / 2, l.to().getY()));
-            }
-          });
+          lineSegmentConsumer(
+              line,
+              l -> {
+                if (!l.to().isVirtual()) {
+                  lineDrawProp.add(
+                      PortHelper.getPortPoint(line.getLineDrawProp(), l.to(), drawGraph));
+                  to[0] = l.to();
+                }
+                if (l.to().isLabelNode()) {
+                  lineDrawProp.add(new FlatPoint(l.to().getX(), l.to().getY()));
+                  lineDrawProp.setLabelCenter(
+                      new FlatPoint(l.to().getX() + l.to().getWidth() / 2, l.to().getY()));
+                }
+              });
 
           lineDrawProp.setIsHeadStart(line.from().getNode());
           if (parallelLineRecord == null) {
@@ -124,7 +126,8 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
         DNode tail = line.from().getNode() == line.getLine().tail() ? line.from() : line.to();
         lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), tail, drawGraph));
         lineDrawProp.add(new FlatPoint(node.getX(), node.getY()));
-        lineDrawProp.add(PortHelper.getPortPoint(line.getLineDrawProp(), line.other(tail), drawGraph));
+        lineDrawProp.add(
+            PortHelper.getPortPoint(line.getLineDrawProp(), line.other(tail), drawGraph));
       }
     }
   }
@@ -187,7 +190,8 @@ class StraightLineRouter extends AbstractDotLineRouter implements LineRouter {
     }
   }
 
-  // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
+  // --------------------------------------------- RoundedHandlerFactory
+  // ---------------------------------------------
 
   static class LineRouterBuilder extends AbstractDotLineRouterFactory<StraightLineRouter> {
 

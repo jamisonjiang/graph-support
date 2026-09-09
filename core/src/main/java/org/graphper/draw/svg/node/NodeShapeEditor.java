@@ -47,14 +47,15 @@ import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
 import org.graphper.util.LabelTagUtils;
 
+/** Draws built-in and customized node shapes in SVG. */
 public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
   @Override
   public boolean edit(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
 
-    CustomizeShapeRender customizeShapeRender = CustomizeShapeRender
-        .getCustomizeShapeRender(nodeShape.getName());
+    CustomizeShapeRender customizeShapeRender =
+        CustomizeShapeRender.getCustomizeShapeRender(nodeShape.getName());
     if (customizeShapeRender != null) {
       customizeShapeRender.drawNodeSvg(brush, nodeDrawProp);
     } else if (nodeShape instanceof NodeShapeEnum) {
@@ -63,9 +64,27 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     return true;
   }
 
-  private void drawNodeShapeEnum(NodeDrawProp nodeDrawProp,
-                                 NodeShapeEnum nodeShape, SvgBrush brush) {
+  private void drawNodeShapeEnum(
+      NodeDrawProp nodeDrawProp, NodeShapeEnum nodeShape, SvgBrush brush) {
     switch (nodeShape) {
+      case NONE:
+        break;
+      case SQUARE:
+      case HOUSE:
+      case INVHOUSE:
+      case DOUBLECIRCLE:
+      case DOUBLEOCTAGON:
+      case TRIPLEOCTAGON:
+      case M_DIAMOND:
+      case M_SQUARE:
+      case M_CIRCLE:
+      case TAB:
+      case FOLDER:
+      case BOX3D:
+      case COMPONENT:
+        ExpandedNodeShapeRender.draw(nodeDrawProp, brush);
+        break;
+      case OVAL:
       case ELLIPSE:
         ellipse(nodeDrawProp, singleElement(nodeDrawProp, brush));
         break;
@@ -78,6 +97,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
         break;
       case BOX:
       case RECT:
+      case RECTANGLE:
         rect(nodeDrawProp, brush);
         break;
       case TRIANGLE:
@@ -123,13 +143,8 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     ellipse(nodeDrawProp, shapeElement, nodeDrawProp.getHeight() / 2, nodeDrawProp.getWidth() / 2);
   }
 
-  private void circle(NodeDrawProp nodeDrawProp, Element shapeElement) {
-    double radius = nodeDrawProp.getHeight() / 2;
-    ellipse(nodeDrawProp, shapeElement, radius, radius);
-  }
-
-  private void ellipse(NodeDrawProp nodeDrawProp, Element shapeElement,
-                       double height, double width) {
+  private void ellipse(
+      NodeDrawProp nodeDrawProp, Element shapeElement, double height, double width) {
     double x = nodeDrawProp.getX();
     double y = nodeDrawProp.getY();
     shapeElement.setAttribute(SvgConstants.CX, String.valueOf(x));
@@ -138,99 +153,132 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     shapeElement.setAttribute(SvgConstants.RY, String.valueOf(height));
   }
 
+  private void circle(NodeDrawProp nodeDrawProp, Element shapeElement) {
+    double radius = nodeDrawProp.getHeight() / 2;
+    ellipse(nodeDrawProp, shapeElement, radius, radius);
+  }
+
   private void underline(NodeDrawProp nodeDrawProp, Element shapeElement) {
-    String points = SvgEditor.generatePolylinePoints(nodeDrawProp.getLeftBorder(),
-                                                     nodeDrawProp.getDownBorder(),
-                                                     nodeDrawProp.getRightBorder(),
-                                                     nodeDrawProp.getDownBorder());
+    String points =
+        SvgEditor.generatePolylinePoints(
+            nodeDrawProp.getLeftBorder(),
+            nodeDrawProp.getDownBorder(),
+            nodeDrawProp.getRightBorder(),
+            nodeDrawProp.getDownBorder());
     shapeElement.setAttribute(SvgConstants.POINTS, points);
   }
 
   private void rect(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getUpBorder(), nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getUpBorder(), nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getDownBorder(), nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder(), nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getUpBorder());
+    SvgEditor.polygonShape(
+        nodeDrawProp,
+        brush,
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getUpBorder(),
+        nodeDrawProp.getRightBorder(),
+        nodeDrawProp.getUpBorder(),
+        nodeDrawProp.getRightBorder(),
+        nodeDrawProp.getDownBorder(),
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getDownBorder(),
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getUpBorder());
   }
 
   private void triangle(NodeDrawProp nodeDrawProp, SvgBrush brush, boolean positive) {
     if (positive) {
-      SvgEditor.polygonShape(nodeDrawProp, brush,
-                             nodeDrawProp.getX(),
-                             nodeDrawProp.getUpBorder(),
-                             nodeDrawProp.getLeftBorder(),
-                             nodeDrawProp.getDownBorder(),
-                             nodeDrawProp.getRightBorder(),
-                             nodeDrawProp.getDownBorder(),
-                             nodeDrawProp.getX(),
-                             nodeDrawProp.getUpBorder());
+      SvgEditor.polygonShape(
+          nodeDrawProp,
+          brush,
+          nodeDrawProp.getX(),
+          nodeDrawProp.getUpBorder(),
+          nodeDrawProp.getLeftBorder(),
+          nodeDrawProp.getDownBorder(),
+          nodeDrawProp.getRightBorder(),
+          nodeDrawProp.getDownBorder(),
+          nodeDrawProp.getX(),
+          nodeDrawProp.getUpBorder());
     } else {
-      SvgEditor.polygonShape(nodeDrawProp, brush,
-                             nodeDrawProp.getX(),
-                             nodeDrawProp.getDownBorder(),
-                             nodeDrawProp.getLeftBorder(),
-                             nodeDrawProp.getUpBorder(),
-                             nodeDrawProp.getRightBorder(),
-                             nodeDrawProp.getUpBorder(),
-                             nodeDrawProp.getX(),
-                             nodeDrawProp.getDownBorder());
+      SvgEditor.polygonShape(
+          nodeDrawProp,
+          brush,
+          nodeDrawProp.getX(),
+          nodeDrawProp.getDownBorder(),
+          nodeDrawProp.getLeftBorder(),
+          nodeDrawProp.getUpBorder(),
+          nodeDrawProp.getRightBorder(),
+          nodeDrawProp.getUpBorder(),
+          nodeDrawProp.getX(),
+          nodeDrawProp.getDownBorder());
     }
   }
 
   private void diamond(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getY(),
-                           nodeDrawProp.getX(),
-                           nodeDrawProp.getUpBorder(),
-                           nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getY(),
-                           nodeDrawProp.getX(),
-                           nodeDrawProp.getDownBorder(),
-                           nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getY());
+    SvgEditor.polygonShape(
+        nodeDrawProp,
+        brush,
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getY(),
+        nodeDrawProp.getX(),
+        nodeDrawProp.getUpBorder(),
+        nodeDrawProp.getRightBorder(),
+        nodeDrawProp.getY(),
+        nodeDrawProp.getX(),
+        nodeDrawProp.getDownBorder(),
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getY());
   }
 
   private void trapezium(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     double leftTopX = nodeDrawProp.getLeftBorder() + nodeDrawProp.getWidth() / 4;
     double rightTopX = nodeDrawProp.getRightBorder() - nodeDrawProp.getWidth() / 4;
-    SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder(),
-                           leftTopX, nodeDrawProp.getUpBorder(),
-                           rightTopX, nodeDrawProp.getUpBorder(),
-                           nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getDownBorder(),
-                           nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder());
+    SvgEditor.polygonShape(
+        nodeDrawProp,
+        brush,
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getDownBorder(),
+        leftTopX,
+        nodeDrawProp.getUpBorder(),
+        rightTopX,
+        nodeDrawProp.getUpBorder(),
+        nodeDrawProp.getRightBorder(),
+        nodeDrawProp.getDownBorder(),
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getDownBorder());
   }
 
   private void parallelogram(NodeDrawProp nodeDrawProp, SvgBrush brush) {
     double leftTopX = nodeDrawProp.getLeftBorder() + nodeDrawProp.getWidth() / 5;
     double rightDownX = nodeDrawProp.getRightBorder() - nodeDrawProp.getWidth() / 5;
-    SvgEditor.polygonShape(nodeDrawProp, brush, nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder(),
-                           leftTopX, nodeDrawProp.getUpBorder(),
-                           nodeDrawProp.getRightBorder(),
-                           nodeDrawProp.getUpBorder(),
-                           rightDownX, nodeDrawProp.getDownBorder(),
-                           nodeDrawProp.getLeftBorder(),
-                           nodeDrawProp.getDownBorder());
+    SvgEditor.polygonShape(
+        nodeDrawProp,
+        brush,
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getDownBorder(),
+        leftTopX,
+        nodeDrawProp.getUpBorder(),
+        nodeDrawProp.getRightBorder(),
+        nodeDrawProp.getUpBorder(),
+        rightDownX,
+        nodeDrawProp.getDownBorder(),
+        nodeDrawProp.getLeftBorder(),
+        nodeDrawProp.getDownBorder());
   }
 
   private void start(NodeDrawProp nodeDrawProp, SvgBrush brush) {
-    double outerRadius = nodeDrawProp.getHeight() / 2;
-    double innerRadius = outerRadius / StarPropCalc.IN_OUT_RATIO;
+    double outerRadiusX = nodeDrawProp.getWidth() / 2;
+    double outerRadiusY = nodeDrawProp.getHeight() / 2;
+    double innerRadiusX = outerRadiusX / StarPropCalc.IN_OUT_RATIO;
+    double innerRadiusY = outerRadiusY / StarPropCalc.IN_OUT_RATIO;
 
     double arc = StarPropCalc.START_ARC;
     double[] ps = new double[22];
     for (int i = 0; i < 10; i++) {
       if (i % 2 == 0) {
-        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * outerRadius;
-        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * outerRadius;
+        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * outerRadiusX;
+        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * outerRadiusY;
       } else {
-        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * innerRadius;
-        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * innerRadius;
+        ps[i * 2] = nodeDrawProp.getX() + Math.cos(arc) * innerRadiusX;
+        ps[i * 2 + 1] = nodeDrawProp.getY() - Math.sin(arc) * innerRadiusY;
       }
       ps[20] = ps[0];
       ps[21] = ps[1];
@@ -246,30 +294,31 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     String shape = NodeShapeEnum.NOTE.getName();
 
     Element firstEle = brush.getOrCreateShapeEleById(shape + "0", POLYGON_ELE);
-    String points = SvgEditor.generatePolylinePoints(nodeDrawProp.getLeftBorder(),
-                                                     nodeDrawProp.getUpBorder(),
-                                                     nodeDrawProp.getRightBorder()
-                                                         - NotePropCalc.RIGHT_UP_LEN,
-                                                     nodeDrawProp.getUpBorder(),
-                                                     nodeDrawProp.getRightBorder(),
-                                                     nodeDrawProp.getUpBorder()
-                                                         + NotePropCalc.RIGHT_UP_LEN,
-                                                     nodeDrawProp.getRightBorder(),
-                                                     nodeDrawProp.getDownBorder(),
-                                                     nodeDrawProp.getLeftBorder(),
-                                                     nodeDrawProp.getDownBorder(),
-                                                     nodeDrawProp.getLeftBorder(),
-                                                     nodeDrawProp.getUpBorder());
+    String points =
+        SvgEditor.generatePolylinePoints(
+            nodeDrawProp.getLeftBorder(),
+            nodeDrawProp.getUpBorder(),
+            nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
+            nodeDrawProp.getUpBorder(),
+            nodeDrawProp.getRightBorder(),
+            nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN,
+            nodeDrawProp.getRightBorder(),
+            nodeDrawProp.getDownBorder(),
+            nodeDrawProp.getLeftBorder(),
+            nodeDrawProp.getDownBorder(),
+            nodeDrawProp.getLeftBorder(),
+            nodeDrawProp.getUpBorder());
     firstEle.setAttribute(SvgConstants.POINTS, points);
 
     Element secondEle = brush.getOrCreateShapeEleById(shape + "1", POLYGON_ELE);
-    points = SvgEditor.generatePolylinePoints(
-        nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
-        nodeDrawProp.getUpBorder(),
-        nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
-        nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN,
-        nodeDrawProp.getRightBorder(),
-        nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN);
+    points =
+        SvgEditor.generatePolylinePoints(
+            nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
+            nodeDrawProp.getUpBorder(),
+            nodeDrawProp.getRightBorder() - NotePropCalc.RIGHT_UP_LEN,
+            nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN,
+            nodeDrawProp.getRightBorder(),
+            nodeDrawProp.getUpBorder() + NotePropCalc.RIGHT_UP_LEN);
     secondEle.setAttribute(SvgConstants.POINTS, points);
   }
 
@@ -281,26 +330,49 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     double down = nodeDrawProp.getDownBorder() - CylinderPropCalc.TOP_LEN;
     double v2x = nodeDrawProp.getLeftBorder() + nodeDrawProp.getWidth() / 4;
     double v3x = nodeDrawProp.getRightBorder() - nodeDrawProp.getWidth() / 4;
-    String points = SvgEditor.pointsToSvgPath(true, nodeDrawProp.getLeftBorder(), up,
-                                              nodeDrawProp.getLeftBorder(), up,
-                                              nodeDrawProp.getLeftBorder(), down,
-                                              nodeDrawProp.getLeftBorder(), down, v2x,
-                                              nodeDrawProp.getDownBorder(), v3x,
-                                              nodeDrawProp.getDownBorder(),
-                                              nodeDrawProp.getRightBorder(), down,
-                                              nodeDrawProp.getRightBorder(), down,
-                                              nodeDrawProp.getRightBorder(), up,
-                                              nodeDrawProp.getRightBorder(), up, v3x,
-                                              nodeDrawProp.getUpBorder(), v2x,
-                                              nodeDrawProp.getUpBorder(),
-                                              nodeDrawProp.getLeftBorder(), up);
+    String points =
+        SvgEditor.pointsToSvgPath(
+            true,
+            nodeDrawProp.getLeftBorder(),
+            up,
+            nodeDrawProp.getLeftBorder(),
+            up,
+            nodeDrawProp.getLeftBorder(),
+            down,
+            nodeDrawProp.getLeftBorder(),
+            down,
+            v2x,
+            nodeDrawProp.getDownBorder(),
+            v3x,
+            nodeDrawProp.getDownBorder(),
+            nodeDrawProp.getRightBorder(),
+            down,
+            nodeDrawProp.getRightBorder(),
+            down,
+            nodeDrawProp.getRightBorder(),
+            up,
+            nodeDrawProp.getRightBorder(),
+            up,
+            v3x,
+            nodeDrawProp.getUpBorder(),
+            v2x,
+            nodeDrawProp.getUpBorder(),
+            nodeDrawProp.getLeftBorder(),
+            up);
     Element firstEle = brush.getOrCreateShapeEleById(shape + "0", PATH_ELE);
     firstEle.setAttribute(SvgConstants.D, points);
 
-    points = SvgEditor.pointsToSvgPath(true, nodeDrawProp.getLeftBorder(), up,
-                                       v2x, up + CylinderPropCalc.TOP_LEN,
-                                       v3x, up + CylinderPropCalc.TOP_LEN,
-                                       nodeDrawProp.getRightBorder(), up);
+    points =
+        SvgEditor.pointsToSvgPath(
+            true,
+            nodeDrawProp.getLeftBorder(),
+            up,
+            v2x,
+            up + CylinderPropCalc.TOP_LEN,
+            v3x,
+            up + CylinderPropCalc.TOP_LEN,
+            nodeDrawProp.getRightBorder(),
+            up);
     Element secondEle = brush.getOrCreateShapeEleById(shape + "1", PATH_ELE);
     secondEle.setAttribute(SvgConstants.D, points);
   }
@@ -324,7 +396,7 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
 
     if (!nodeDrawProp.haveChildrenCell()) {
       // Draw cell
-      record(nodeDrawProp, cell, brush, new int[]{1});
+      record(nodeDrawProp, cell, brush, new int[] {1});
     }
   }
 
@@ -352,8 +424,8 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
           recordRichTextSet(nodeDrawProp, brush, child, cellId);
         } else if (StringUtils.isNotEmpty(child.getLabel())) {
           FlatPoint labelCenter = child.getCenter(nodeDrawProp);
-          recordTextSet(nodeDrawProp, brush, child.getLabel(), cellId, labelCenter,
-                        child.getWidth());
+          recordTextSet(
+              nodeDrawProp, brush, child.getLabel(), cellId, labelCenter, child.getWidth());
         }
       }
 
@@ -371,15 +443,16 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     return SvgEditor.roundedBox(RecordPropCalc.CORNER_LEN, nodeDrawProp);
   }
 
-  private void setRecordSplitEle(String cellId, Cell parent, Cell child, SvgBrush brush,
-                                 double upBorder, double leftBorder) {
+  private void setRecordSplitEle(
+      String cellId, Cell parent, Cell child, SvgBrush brush, double upBorder, double leftBorder) {
     double cellRightBorder = leftBorder + child.getWidth();
     Element cellEle = brush.getOrCreateShapeEleById(cellId, SvgConstants.PATH_ELE);
 
     String points;
     if (child.isHor()) {
-      points = SvgEditor.pointsToSvgPath(false, cellRightBorder, upBorder,
-                                         cellRightBorder, upBorder + parent.getHeight());
+      points =
+          SvgEditor.pointsToSvgPath(
+              false, cellRightBorder, upBorder, cellRightBorder, upBorder + parent.getHeight());
 
     } else {
       points = SvgEditor.pointsToSvgPath(false, leftBorder, upBorder, cellRightBorder, upBorder);
@@ -387,35 +460,47 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     cellEle.setAttribute(SvgConstants.D, points);
   }
 
-  private void recordTextSet(NodeDrawProp nodeDrawProp, SvgBrush brush, String label,
-                              String cellId, FlatPoint labelCenter, double labelWidth) {
+  private void recordTextSet(
+      NodeDrawProp nodeDrawProp,
+      SvgBrush brush,
+      String label,
+      String cellId,
+      FlatPoint labelCenter,
+      double labelWidth) {
     NodeAttrs nodeAttrs = nodeDrawProp.nodeAttrs();
     double fontSize = nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize();
 
-    Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = cellId + TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo();
-      Element text = brush.getOrCreateChildElementById(id, TEXT_ELE);
-      SvgEditor.setText(text, fontSize, textLineAttribute);
-      text.setTextContent(textLineAttribute.getLine());
-      SvgEditor.setFontStyle(text, nodeAttrs.getFontStyles());
-    };
+    Consumer<TextLineAttribute> lineConsumer =
+        textLineAttribute -> {
+          String id = cellId + TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo();
+          Element text = brush.getOrCreateChildElementById(id, TEXT_ELE);
+          SvgEditor.setText(text, fontSize, textLineAttribute);
+          text.setTextContent(textLineAttribute.getLine());
+          SvgEditor.setFontStyle(text, nodeAttrs.getFontStyles());
+        };
 
-    SvgEditor.text(new TextAttribute(labelCenter, fontSize, label,
-                                      nodeAttrs.getFontColor(), nodeAttrs.getFontName(),
-                                      labelWidth, lineConsumer));
+    SvgEditor.text(
+        new TextAttribute(
+            labelCenter,
+            fontSize,
+            label,
+            nodeAttrs.getFontColor(),
+            nodeAttrs.getFontName(),
+            labelWidth,
+            lineConsumer));
   }
 
   /**
    * Draws a record cell whose body is rich text, one {@code <text>} element per styled run.
    *
-   * <p>The runs and their offsets come from the same layout pass that html labels use
-   * ({@link HtmlConvertor#toPositionedTexts}), so a bold or coloured fragment lands in exactly the
-   * place the measurement stage reserved for it. Lowering the cell to an {@code Assemble} of
-   * sub-nodes — the way standalone html labels render — is not an option here: the sub-nodes would
-   * replace the cell tree that {@code tailCell}/{@code headCell} resolve ports against.
+   * <p>The runs and their offsets come from the same layout pass that html labels use ({@link
+   * HtmlConvertor#toPositionedTexts}), so a bold or coloured fragment lands in exactly the place
+   * the measurement stage reserved for it. Lowering the cell to an {@code Assemble} of sub-nodes —
+   * the way standalone html labels render — is not an option here: the sub-nodes would replace the
+   * cell tree that {@code tailCell}/{@code headCell} resolve ports against.
    */
-  private void recordRichTextSet(NodeDrawProp nodeDrawProp, SvgBrush brush, Cell cell,
-                                 String cellId) {
+  private void recordRichTextSet(
+      NodeDrawProp nodeDrawProp, SvgBrush brush, Cell cell, String cellId) {
     NodeAttrs nodeAttrs = nodeDrawProp.nodeAttrs();
     LabelAttributes attrs = new LabelAttributes();
     attrs.setFontName(nodeAttrs.getFontName());
@@ -429,8 +514,8 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
     }
 
     /*
-     * Runs are positioned relative to the top-left of the rich text block, and the block is centered
-     * inside the cell. The cell was sized from the same measurement, so the block fits by
+     * Runs are positioned relative to the top-left of the rich text block, which is centered
+     * inside the cell. The cell uses the same measurement, so the block fits by
      * construction; margin, if any, becomes the surrounding padding.
      */
     FlatPoint labelSize = LabelTagUtils.measure(cell.getLabelTag(), attrs);
@@ -451,9 +536,9 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       double glyphCenterY;
       if (!text.isScriptShift()) {
         /*
-         * The run's box is exactly its measured size, so the glyphs are centered in it. Using the font
-         * size as the glyph height instead would sit about a pixel high, since the measured height of
-         * a line exceeds the point size.
+         * The run's box matches its measured size, so the glyphs are centered in it. Using the
+         * font size as the glyph height would sit about a pixel high, since the measured line
+         * height exceeds the point size.
          */
         glyphCenterY = top + text.getY() + text.getHeight() / 2;
       } else if (text.getVerAlign() == Labelloc.BOTTOM) {
@@ -473,16 +558,17 @@ public class NodeShapeEditor extends AbstractNodeShapeEditor {
       textEle.setAttribute(SvgConstants.TEXT_ANCHOR, SvgConstants.MIDDLE);
       textEle.setAttribute(SvgConstants.FONT_SIZE, String.valueOf(fontSize));
 
-      Color fontColor = text.getFontColor() == null ? nodeAttrs.getFontColor()
-          : text.getFontColor();
+      Color fontColor =
+          text.getFontColor() == null ? nodeAttrs.getFontColor() : text.getFontColor();
       if (fontColor != null) {
         textEle.setAttribute(SvgConstants.FILL, fontColor.value());
       }
 
       String fontName = text.getFontName() == null ? nodeAttrs.getFontName() : text.getFontName();
       if (fontName != null) {
-        textEle.setAttribute(SvgConstants.FONT_FAMILY,
-                             FontUtils.fontExists(fontName) ? fontName : FontUtils.DEFAULT_FONT);
+        textEle.setAttribute(
+            SvgConstants.FONT_FAMILY,
+            FontUtils.fontExists(fontName) ? fontName : FontUtils.DEFAULT_FONT);
       }
 
       SvgEditor.setFontStyle(textEle, text.getFontStyles());

@@ -41,6 +41,7 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
     super(capacity);
   }
 
+  /** Creates a graph from the supplied edges, or an empty graph when the array is null. */
   public UndirectedEdgeGraph(E[] edges) {
     this();
     if (edges != null) {
@@ -50,6 +51,7 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
     }
   }
 
+  /** Creates a graph from the supplied edges, or an empty graph when the collection is null. */
   public UndirectedEdgeGraph(Collection<E> edges) {
     this();
     if (edges != null) {
@@ -143,13 +145,11 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
 
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
-    adj.removeFirstIf(edge -> Objects.equals(edge.either(), v)
-        || Objects.equals(edge.other(edge.either()), v));
+    adj.removeFirstIf(
+        edge -> Objects.equals(edge.either(), v) || Objects.equals(edge.other(edge.either()), v));
   }
 
-  /**
-   * Iterator for all edges in the graph.
-   */
+  /** Iterator for all edges in the graph. */
   private class EdgeIterator implements Iterator<E> {
 
     private final Iterator<AdjacencyList<V, E>> adjIterator;
@@ -200,7 +200,7 @@ public class UndirectedEdgeGraph<V, E extends Edge<V, E>> extends AbstractAdjGra
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     return super.equals(obj);
   }
 

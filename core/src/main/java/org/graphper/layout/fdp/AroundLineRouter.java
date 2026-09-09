@@ -21,9 +21,9 @@ import java.util.List;
 import org.graphper.api.GraphAttrs;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.RectangleTree;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.UnfeasibleException;
 import org.graphper.def.Vectors;
 import org.graphper.draw.DrawGraph;
@@ -35,7 +35,8 @@ import org.graphper.util.CollectionUtils;
 import org.graphper.util.ValueUtils;
 
 /**
- * Abstract base class for routing graph edges around obstacles using a recursive splitting strategy.
+ * Abstract base class for routing graph edges around obstacles using a recursive splitting
+ * strategy.
  *
  * @author Jamison Jiang
  */
@@ -68,8 +69,8 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
     FlatPoint from = new FlatPoint(line.from().getX(), line.from().getY());
     FlatPoint to = new FlatPoint(line.to().getX(), line.to().getY());
 
-    Iterable<FlatPoint> splitPoints = findSplitPoints(from, to, line.from(), line.to(), 0,
-                                                      layoutGraph.vertexNum() * 4);
+    Iterable<FlatPoint> splitPoints =
+        findSplitPoints(from, to, line.from(), line.to(), 0, layoutGraph.vertexNum() * 4);
     if (splitPoints == null) {
       drawStraightLine(line);
       return;
@@ -79,25 +80,28 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
     ANode head = layoutGraph.getNode(lineDrawProp.getLine().head());
     PortPoint tailPoint = PortHelper.getPortPoint(lineDrawProp, tail, drawGraph);
     PortPoint headPoint = PortHelper.getPortPoint(lineDrawProp, head, drawGraph);
-    splitPoints = new UnaryConcatIterable<>(Collections.singletonList(tailPoint),
-                                            splitPoints, Collections.singletonList(headPoint));
+    splitPoints =
+        new UnaryConcatIterable<>(
+            Collections.singletonList(tailPoint),
+            splitPoints,
+            Collections.singletonList(headPoint));
 
     drawLine(line, splitPoints);
   }
 
   @SuppressWarnings("unchecked")
-  private Iterable<FlatPoint> findSplitPoints(FlatPoint n, FlatPoint w, ANode from, ANode to,
-                                              int times, int maxTimes) {
+  private Iterable<FlatPoint> findSplitPoints(
+      FlatPoint n, FlatPoint w, ANode from, ANode to, int times, int maxTimes) {
     if (times > maxTimes || approximateEquals(n, w)) {
       return null;
     }
 
-    DefaultBox area = new DefaultBox(
-        Math.min(n.getX(), w.getX()),
-        Math.max(n.getX(), w.getX()),
-        Math.min(n.getY(), w.getY()),
-        Math.max(n.getY(), w.getY())
-    );
+    DefaultBox area =
+        new DefaultBox(
+            Math.min(n.getX(), w.getX()),
+            Math.max(n.getX(), w.getX()),
+            Math.min(n.getY(), w.getY()),
+            Math.max(n.getY(), w.getY()));
 
     if (!area.positive()) {
       area.setLeftBorder(area.getLeftBorder() - 5);
@@ -185,12 +189,14 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
         || linesIntersect(fromPoint, toPoint, checkBox.getLeftDown(), checkBox.getRightUp());
   }
 
-  private boolean linesIntersect(FlatPoint fromPoint, FlatPoint toPoint,
-                                 FlatPoint source, FlatPoint target) {
+  private boolean linesIntersect(
+      FlatPoint fromPoint, FlatPoint toPoint, FlatPoint source, FlatPoint target) {
     try {
       FlatPoint intersect = Vectors.lineInters(fromPoint, toPoint, source, target);
-      if (approximateEquals(intersect, fromPoint) || approximateEquals(intersect, toPoint)
-          || approximateEquals(intersect, source) || approximateEquals(intersect, target)) {
+      if (approximateEquals(intersect, fromPoint)
+          || approximateEquals(intersect, toPoint)
+          || approximateEquals(intersect, source)
+          || approximateEquals(intersect, target)) {
         return false;
       }
 
@@ -210,7 +216,6 @@ abstract class AroundLineRouter extends AbstractFdpLineRouter {
   }
 
   private boolean approximateEquals(FlatPoint p, FlatPoint q) {
-    return ValueUtils.approximate(p.getX(), q.getX())
-        && ValueUtils.approximate(p.getY(), q.getY());
+    return ValueUtils.approximate(p.getX(), q.getX()) && ValueUtils.approximate(p.getY(), q.getY());
   }
 }

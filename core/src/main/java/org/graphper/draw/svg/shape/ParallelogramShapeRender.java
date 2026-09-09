@@ -24,6 +24,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
+/** Renders parallelogram node and cluster outlines in SVG. */
 public class ParallelogramShapeRender extends CustomizeShapeRender {
 
   @Override
@@ -44,10 +45,18 @@ public class ParallelogramShapeRender extends CustomizeShapeRender {
   private void draw(ContainerDrawProp box, SvgBrush brush) {
     double leftTopX = box.getLeftBorder() + box.getWidth() / 5;
     double rightDownX = box.getRightBorder() - box.getWidth() / 5;
-    SvgEditor.polygonShape(box, brush, box.getLeftBorder(), box.getDownBorder(),
-                           leftTopX, box.getUpBorder(),
-                           box.getRightBorder(), box.getUpBorder(),
-                           rightDownX, box.getDownBorder(),
-                           box.getLeftBorder(), box.getDownBorder());
+    SvgEditor.polygonShape(
+        box,
+        brush,
+        box.getLeftBorder(),
+        box.getDownBorder(),
+        leftTopX,
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getUpBorder(),
+        rightDownX,
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getDownBorder());
   }
 }

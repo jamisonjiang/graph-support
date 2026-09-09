@@ -23,15 +23,14 @@ package org.graphper.util;
  */
 public class ValueUtils {
 
-  private ValueUtils() {
-  }
+  private ValueUtils() {}
 
   /**
    * Compares two numbers within a specified precision within which two double numbers can be
    * considered approximately equal, the largest tolerance is 0.01.
    *
-   * @param source    comparison double value
-   * @param target    comparison double value
+   * @param source comparison double value
+   * @param target comparison double value
    * @return two values are approximately equal
    */
   public static boolean approximate(double source, double target) {
@@ -42,8 +41,8 @@ public class ValueUtils {
    * Compares two numbers within a specified precision within which two double numbers can be
    * considered approximately equal.
    *
-   * @param source    comparison double value
-   * @param target    comparison double value
+   * @param source comparison double value
+   * @param target comparison double value
    * @param tolerance tolerance scope
    * @return two values are approximately equal
    */
@@ -52,14 +51,15 @@ public class ValueUtils {
   }
 
   /**
-   * Returns the trigonometric tangent of an angle.  Special cases:
-   * <ul><li>If the argument is NaN or an infinity, then the result
-   * is NaN.
-   * <li>If the argument is zero, then the result is a zero with the
-   * same sign as the argument.</ul>
+   * Returns the trigonometric tangent of an angle. Special cases:
    *
-   * <p>The computed result must be within 1 ulp of the exact result.
-   * Results must be semi-monotonic.
+   * <ul>
+   *   <li>If the argument is NaN or an infinity, then the result is NaN.
+   *   <li>If the argument is zero, then the result is a zero with the same sign as the argument.
+   * </ul>
+   *
+   * <p>The computed result must be within 1 ulp of the exact result. Results must be
+   * semi-monotonic.
    *
    * @param angle an angle, in degree.
    * @return the tangent of the argument.
@@ -70,11 +70,13 @@ public class ValueUtils {
 
   /**
    * Returns the trigonometric cosine of an angle. Special cases:
-   * <ul><li>If the argument is NaN or an infinity, then the
-   * result is NaN.</ul>
    *
-   * <p>The computed result must be within 1 ulp of the exact result.
-   * Results must be semi-monotonic.
+   * <ul>
+   *   <li>If the argument is NaN or an infinity, then the result is NaN.
+   * </ul>
+   *
+   * <p>The computed result must be within 1 ulp of the exact result. Results must be
+   * semi-monotonic.
    *
    * @param angle an angle, in degree.
    * @return the cosine of the argument.
@@ -84,14 +86,15 @@ public class ValueUtils {
   }
 
   /**
-   * Returns the trigonometric sine of an angle.  Special cases:
-   * <ul><li>If the argument is NaN or an infinity, then the
-   * result is NaN.
-   * <li>If the argument is zero, then the result is a zero with the
-   * same sign as the argument.</ul>
+   * Returns the trigonometric sine of an angle. Special cases:
    *
-   * <p>The computed result must be within 1 ulp of the exact result.
-   * Results must be semi-monotonic.
+   * <ul>
+   *   <li>If the argument is NaN or an infinity, then the result is NaN.
+   *   <li>If the argument is zero, then the result is a zero with the same sign as the argument.
+   * </ul>
+   *
+   * <p>The computed result must be within 1 ulp of the exact result. Results must be
+   * semi-monotonic.
    *
    * @param angle an angle, in degree.
    * @return the sine of the argument.

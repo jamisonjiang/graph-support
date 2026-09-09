@@ -24,6 +24,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
+/** Renders trapezium node and cluster outlines in SVG. */
 public class TrapeziumShapeRender extends CustomizeShapeRender {
 
   @Override
@@ -44,10 +45,18 @@ public class TrapeziumShapeRender extends CustomizeShapeRender {
   private void draw(ContainerDrawProp box, SvgBrush brush) {
     double leftTopX = box.getLeftBorder() + box.getWidth() / 4;
     double rightTopX = box.getRightBorder() - box.getWidth() / 4;
-    SvgEditor.polygonShape(box, brush, box.getLeftBorder(), box.getDownBorder(),
-                           leftTopX, box.getUpBorder(),
-                           rightTopX, box.getUpBorder(),
-                           box.getRightBorder(), box.getDownBorder(),
-                           box.getLeftBorder(), box.getDownBorder());
+    SvgEditor.polygonShape(
+        box,
+        brush,
+        box.getLeftBorder(),
+        box.getDownBorder(),
+        leftTopX,
+        box.getUpBorder(),
+        rightTopX,
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getDownBorder());
   }
 }

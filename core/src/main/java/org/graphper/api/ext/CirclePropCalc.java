@@ -19,6 +19,7 @@ package org.graphper.api.ext;
 import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 
+/** Calculates container dimensions and containment for circular shapes. */
 public class CirclePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 4004804900027011314L;
@@ -31,8 +32,8 @@ public class CirclePropCalc implements ShapePropCalc, Serializable {
 
   @Override
   public boolean in(Box box, FlatPoint flatPoint) {
-    double r = Math.pow(flatPoint.getX() - box.getX(), 2)
-        + Math.pow(flatPoint.getY() - box.getY(), 2);
+    double r =
+        Math.pow(flatPoint.getX() - box.getX(), 2) + Math.pow(flatPoint.getY() - box.getY(), 2);
     return Math.sqrt(r) <= box.getWidth() / 2;
   }
 

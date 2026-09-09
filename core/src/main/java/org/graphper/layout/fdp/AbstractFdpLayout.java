@@ -48,6 +48,7 @@ import org.graphper.layout.AbstractLayoutEngine;
 import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.LineHelper;
 import org.graphper.layout.LineRouter;
+import org.graphper.layout.ShapeSizeUtils;
 import org.graphper.layout.ShifterStrategy;
 import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 import org.graphper.layout.fdp.OrthogonalRouter.OrthogonalRouterFactory;
@@ -59,45 +60,47 @@ import org.graphper.util.FontUtils;
 
 /**
  * Abstract implementation of a force-directed placement (FDP) layout algorithm.
- * <p>
- * This class provides a flexible and extensible framework for laying out graphs using a combination
- * of force-directed techniques and cluster-based hierarchy handling. It handles the following
- * stages in the graph layout process:
- * </p>
+ *
+ * <p>This class provides a flexible and extensible framework for laying out graphs using a
+ * combination of force-directed techniques and cluster-based hierarchy handling. It handles the
+ * following stages in the graph layout process:
+ *
  * <ol>
- *   <li>Collapsing clusters into proxy nodes for hierarchical representation.</li>
- *   <li>Initializing node positions to provide a good starting point for the layout algorithm.</li>
- *   <li>Use specific fdp layout policy to calculate coordinate.</li>
- *   <li>Decreasing node overlap to improve clarity if required.</li>
+ *   <li>Collapsing clusters into proxy nodes for hierarchical representation.
+ *   <li>Initializing node positions to provide a good starting point for the layout algorithm.
+ *   <li>Use specific fdp layout policy to calculate coordinate.
+ *   <li>Decreasing node overlap to improve clarity if required.
  * </ol>
  *
  * @author Jamison Jiang
  */
 abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Serializable {
 
-  /**
-   * Spline router factory
-   */
+  /** Spline router factory. */
   private static final List<LineRouterFactory<?>> SPLINES_HANDLERS;
 
   static {
-    SPLINES_HANDLERS = Arrays.asList(new StraightLineRouterFactory(), new OrthogonalRouterFactory(),
-                                     new PolylineRouterFactory(), new RoundedRouterFactory(),
-                                     new SplineRouterFactory());
+    SPLINES_HANDLERS =
+        Arrays.asList(
+            new StraightLineRouterFactory(),
+            new OrthogonalRouterFactory(),
+            new PolylineRouterFactory(),
+            new RoundedRouterFactory(),
+            new SplineRouterFactory());
   }
 
   /**
    * Abstract method to be implemented by subclasses to define the force-directed layout algorithm.
    *
-   * @param graph       the graph to layout
-   * @param iterations  the maximum number of iterations for the layout process
+   * @param graph the graph to layout
+   * @param iterations the maximum number of iterations for the layout process
    * @param temperature the initial temperature for the force-directed algorithm
-   * @param k           the ideal edge length factor
-   * @param width       the width of the layout area
-   * @param height      the height of the layout area
+   * @param k the ideal edge length factor
+   * @param width the width of the layout area
+   * @param height the height of the layout area
    */
-  protected abstract void fdpLayout(AreaGraph graph, int iterations, double temperature,
-                                    double k, double width, double height);
+  protected abstract void fdpLayout(
+      AreaGraph graph, int iterations, double temperature, double k, double width, double height);
 
   @Override
   protected List<ShifterStrategy> shifterStrategies(DrawGraph drawGraph) {
@@ -107,15 +110,15 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
   @Override
   protected LayoutAttach attachment(DrawGraph drawGraph) {
     Map<Node, FNode> nodeRecord = new HashMap<>(drawGraph.getGraphviz().nodeNum());
-    FdpGraph fdpGraph = new FdpGraph(drawGraph.getGraphviz().nodeNum(),
-                                     drawGraph.getGraphviz(), nodeRecord);
+    FdpGraph fdpGraph =
+        new FdpGraph(drawGraph.getGraphviz().nodeNum(), drawGraph.getGraphviz(), nodeRecord);
 
     return new FdpAttachment(fdpGraph, drawGraph);
   }
 
   @Override
-  protected void consumerNode(Node node, LayoutAttach attachment, DrawGraph drawGraph,
-                              GraphContainer parentContainer) {
+  protected void consumerNode(
+      Node node, LayoutAttach attachment, DrawGraph drawGraph, GraphContainer parentContainer) {
     FdpAttachment fdpAttachment = (FdpAttachment) attachment;
 
     FdpGraph fdpGraph = fdpAttachment.getFdpGraph();
@@ -155,8 +158,9 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       LineAttrs lineAttrs = lineDrawProp.lineAttrs();
       if (StringUtils.isNotEmpty(lineAttrs.getLabel())) {
         Double fontSize = lineAttrs.getFontSize();
-        size = FontUtils.measure(lineAttrs.getLabel(), lineAttrs.getFontName(),
-                                 fontSize != null ? fontSize : 0, 0);
+        size =
+            FontUtils.measure(
+                lineAttrs.getLabel(), lineAttrs.getFontName(), fontSize != null ? fontSize : 0, 0);
       }
     }
     lineDrawProp.setLabelSize(size);
@@ -243,8 +247,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
     int iterations = graphAttrs.getMaxiter();
     double temperature = width / (double) vertexCount;
-    double k = Math.sqrt(
-        (width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
+    double k =
+        Math.sqrt((width * height) * graphAttrs.getK() * edgeCount / (vertexCount * vertexCount));
 
     initPos(graph, drawGraph, iterations, width, height);
     fdpLayout(graph, iterations, temperature, k, width, height);
@@ -252,8 +256,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     refreshGraph(graph);
   }
 
-  private AreaGraph layout(FdpAttachment attachment, GraphContainer container,
-                           Map<Cluster, ClusterNode> clusterNode) {
+  private AreaGraph layout(
+      FdpAttachment attachment, GraphContainer container, Map<Cluster, ClusterNode> clusterNode) {
     FdpGraph graph = attachment.getFdpGraph();
     AreaGraph proxyGraph = new AreaGraph(graph.vertexNum());
     for (FNode node : graph.nodes(container)) {
@@ -391,9 +395,12 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     applyMargin(graph, drawGraph, container);
   }
 
-  private void alignChildClusters(FdpAttachment fdpAttachment, Cluster cluster,
-                                  Map<Cluster, ClusterNode> clusterNode,
-                                  double xoffset, double yoffset) {
+  private void alignChildClusters(
+      FdpAttachment fdpAttachment,
+      Cluster cluster,
+      Map<Cluster, ClusterNode> clusterNode,
+      double xoffset,
+      double yoffset) {
     ClusterNode proxyNode = clusterNode.get(cluster);
     ClusterDrawProp clusterDrawProp = fdpAttachment.getDrawGraph().getClusterDrawProp(cluster);
     clusterDrawProp.init();
@@ -455,6 +462,10 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
 
     ShapePropCalc shapePropCalc = containerDrawProp.shapeProp();
     FlatPoint newSize = shapePropCalc.minContainerSize(areaGraph.height(), areaGraph.width());
+    if (containerDrawProp instanceof NodeDrawProp) {
+      NodeDrawProp node = (NodeDrawProp) containerDrawProp;
+      ShapeSizeUtils.applyRegular(node.nodeAttrs(), node.nodeAttrs().getShape(), newSize);
+    }
     double widthIncr = (newSize.getWidth() - areaGraph.width()) / 2;
     double heightIncr = (newSize.getHeight() - areaGraph.height()) / 2;
     leftMax = Math.max(leftMax, widthIncr);
@@ -468,8 +479,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     areaGraph.updateYAxisRange(areaGraph.getDownBorder() + bottomMax);
   }
 
-  private void initPos(AreaGraph graph, DrawGraph drawGraph,
-                       int iterations, int width, int height) {
+  private void initPos(
+      AreaGraph graph, DrawGraph drawGraph, int iterations, int width, int height) {
     GraphAttrs graphAttrs = drawGraph.getGraphviz().graphAttrs();
     switch (graphAttrs.getInitPos()) {
       case GRID:
@@ -489,8 +500,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     }
   }
 
-  public void initializePositions(DrawGraph drawGraph, AreaGraph graph,
-                                  int width, int height) {
+  public void initializePositions(DrawGraph drawGraph, AreaGraph graph, int width, int height) {
     FNode startVertex = null;
     for (FNode n : graph) {
       startVertex = n;
@@ -517,8 +527,10 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
       v.initNodeSizeExpander(drawGraph);
       double angle = currentLayerSize * angleStep;
       int radius = layer * radiusStep;
-      graph.setNodeLocation(v, (double) width / 2 + radius * Math.cos(angle),
-                            (double) height / 2 + radius * Math.sin(angle));
+      graph.setNodeLocation(
+          v,
+          (double) width / 2 + radius * Math.cos(angle),
+          (double) height / 2 + radius * Math.sin(angle));
       currentLayerSize++;
       if (currentLayerSize >= layerSize) {
         layer++;
@@ -537,8 +549,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     }
   }
 
-  private void initializePositionsGrid(DrawGraph drawGraph, AreaGraph graph,
-                                       int width, int height) {
+  private void initializePositionsGrid(
+      DrawGraph drawGraph, AreaGraph graph, int width, int height) {
     int gridSize = (int) Math.ceil(Math.sqrt(graph.vertexNum()));
     double cellWidth = width / (double) gridSize;
     double cellHeight = height / (double) gridSize;
@@ -553,8 +565,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     }
   }
 
-  private static void initializeCircularLayout(DrawGraph drawGraph, AreaGraph graph,
-                                               int width, int height) {
+  private static void initializeCircularLayout(
+      DrawGraph drawGraph, AreaGraph graph, int width, int height) {
     double angleIncrement = 2 * Math.PI / graph.vertexNum();
     int centerX = width / 2;
     int centerY = height / 2;
@@ -646,8 +658,8 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
         graph.setNodeLocation(node, node.getX() + dispX, node.getY() + dispY);
       } else {
         double len = Math.sqrt(len2);
-        graph.setNodeLocation(node, node.getX() + dispX * temp / len,
-                              node.getY() + dispY * temp / len);
+        graph.setNodeLocation(
+            node, node.getX() + dispX * temp / len, node.getY() + dispY * temp / len);
       }
     }
 
@@ -836,9 +848,7 @@ abstract class AbstractFdpLayout extends AbstractLayoutEngine implements Seriali
     }
   }
 
-  /**
-   * Cluster node represent a proxy node for all nodes in this cluster.
-   */
+  /** Cluster node represent a proxy node for all nodes in this cluster. */
   private static class ClusterNode {
 
     private final FNode node;

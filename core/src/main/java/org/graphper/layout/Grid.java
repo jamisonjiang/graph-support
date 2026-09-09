@@ -32,8 +32,7 @@ public class Grid {
   private final TreeMap<Double, GridAxis> horAxes;
   private final TreeMap<Double, GridAxis> verAxes;
 
-  private Grid(TreeMap<Double, GridAxis> horAxes,
-               TreeMap<Double, GridAxis> verAxes) {
+  private Grid(TreeMap<Double, GridAxis> horAxes, TreeMap<Double, GridAxis> verAxes) {
     this.horAxes = horAxes;
     this.verAxes = verAxes;
   }
@@ -50,6 +49,7 @@ public class Grid {
     return horAxes.get(v);
   }
 
+  /** Returns the lowest horizontal axis, or null for an empty grid. */
   public GridAxis getFirstHorAxis() {
     for (Entry<Double, GridAxis> entry : horAxes.entrySet()) {
       return entry.getValue();
@@ -57,6 +57,7 @@ public class Grid {
     return null;
   }
 
+  /** Returns the lowest vertical axis, or null for an empty grid. */
   public GridAxis getFirstVerAxis() {
     for (Entry<Double, GridAxis> entry : verAxes.entrySet()) {
       return entry.getValue();
@@ -76,6 +77,7 @@ public class Grid {
     return row * colNum() + col;
   }
 
+  /** An ordered grid axis with neighboring axes and blocked crossing coordinates. */
   public static class GridAxis {
 
     private int idx;
@@ -88,8 +90,7 @@ public class Grid {
 
     private Set<Double> blockAxes;
 
-    private GridAxis() {
-    }
+    private GridAxis() {}
 
     public int getIdx() {
       return idx;
@@ -107,6 +108,7 @@ public class Grid {
       return next;
     }
 
+    /** Marks a crossing coordinate as blocked. */
     public void addBlockAxis(double blockAxis) {
       if (blockAxes == null) {
         blockAxes = new HashSet<>();
@@ -123,6 +125,7 @@ public class Grid {
     }
   }
 
+  /** Collects unique axis coordinates and links them in sorted order. */
   public static class GridBuilder {
 
     private final TreeMap<Double, GridAxis> horAxes;
@@ -160,6 +163,7 @@ public class Grid {
       return verAxes.lastKey();
     }
 
+    /** Initializes axis indices and neighbor links and returns the grid. */
     public Grid build() {
       // Supplement the hor/ver axis info
       axisInit(horAxes);

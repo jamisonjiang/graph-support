@@ -46,7 +46,7 @@ public interface FontSelector extends EnvStrategy {
    * Checks whether the specified font supports rendering a given character.
    *
    * @param fontName the name of the font to check
-   * @param c        the character to check support for
+   * @param c the character to check support for
    * @return {@code true} if the font supports the character, {@code false} otherwise
    */
   default boolean fontSupport(String fontName, char c) {

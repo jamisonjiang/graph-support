@@ -1,0 +1,10 @@
+digraph G {
+  target [fixedsize=true, width=2.932, height=2.109];
+  branch2 -> target [minlen=0];
+  branch1 -> branch2 [minlen=0];
+  top -> branch1 [minlen=0];
+  note -> target [minlen=0];
+  lower -> target [minlen=1];
+  top -> target [minlen=1];
+  note [fixedsize=true, width=0.77, height=0.35];
+}

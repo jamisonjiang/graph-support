@@ -21,6 +21,7 @@ import static org.graphper.draw.svg.SvgConstants.LT;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Html.LabelTag;
@@ -52,11 +53,13 @@ public class HtmlParser {
    * {@link HtmlListener#getLabelTag()}, or {@link HtmlListener#getLabel()}.</p>
    *
    * @param htmlStr a string containing an HTML-like snippet enclosed in {@code '<' '>'}
-   * @return an {@link HtmlListener} containing the parsed result, or {@code null} if validation fails
+   * @return an {@link HtmlListener} containing the parsed result, or {@code null} if validation
+   *     fails
    */
   public static HtmlListener parse(String htmlStr) {
     if (StringUtils.isEmpty(htmlStr) || htmlStr.length() < 3
-        || (!htmlStr.startsWith(LT) && !htmlStr.endsWith(GT))) {
+        || htmlStr.length() > DotParser.MAX_INPUT_CHARS
+        || !htmlStr.startsWith(LT) || !htmlStr.endsWith(GT)) {
       return null;
     }
 
@@ -66,18 +69,46 @@ public class HtmlParser {
     htmlStr = htmlStr.trim();
 
     HTMLLexer lexer = new HTMLLexer(CharStreams.fromString(htmlStr));
-    HTMLParser p = new HTMLParser(new CommonTokenStream(lexer));
+    lexer.removeErrorListeners();
+    HtmlSyntaxErrorListener htmlSyntaxErrorListener = new HtmlSyntaxErrorListener();
+    lexer.addErrorListener(htmlSyntaxErrorListener);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    tokens.fill();
+    if (!validNesting(tokens)) {
+      return null;
+    }
+    tokens.seek(0);
+    HTMLParser p = new HTMLParser(tokens);
 
     p.removeErrorListeners();
-    lexer.removeErrorListeners();
-
-    HtmlSyntaxErrorListener htmlSyntaxErrorListener = new HtmlSyntaxErrorListener();
     p.addErrorListener(htmlSyntaxErrorListener);
-    lexer.addErrorListener(htmlSyntaxErrorListener);
 
     HtmlListener listener = new HtmlListener();
     new ParseTreeWalker().walk(listener, p.htmlTag());
 
     return listener;
+  }
+
+  private static boolean validNesting(CommonTokenStream tokens) {
+    int depth = 0;
+    boolean inTag = false;
+    boolean closing = false;
+    for (Token token : tokens.getTokens()) {
+      if (token.getType() == HTMLLexer.TAG_OPEN) {
+        inTag = true;
+        closing = false;
+      } else if (inTag && token.getType() == HTMLLexer.TAG_SLASH) {
+        closing = true;
+      } else if (inTag && token.getType() == HTMLLexer.TAG_CLOSE) {
+        depth += closing ? -1 : 1;
+        if (depth < 0 || depth > DotParser.MAX_NESTING_DEPTH) {
+          return false;
+        }
+        inTag = false;
+      } else if (inTag && token.getType() == HTMLLexer.TAG_SLASH_CLOSE) {
+        inTag = false;
+      }
+    }
+    return depth == 0;
   }
 }

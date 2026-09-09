@@ -2,6 +2,9 @@
 
 The **href**  (alias: **url**) attribute adds a **clickable hyperlink** to an edge, making it interactive in `SVG` outputs.
 
+Only relative links and the `http`, `https`, and `mailto` schemes are emitted. Dangerous schemes
+are omitted.
+
 ## Examples:
 
 Dot

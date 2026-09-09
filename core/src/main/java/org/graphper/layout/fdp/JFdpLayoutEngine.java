@@ -20,11 +20,12 @@ import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
 /**
  * A specialized force-directed placement (JFDP) layout engine.
+ *
  * <ul>
- *   <li>Reduced node displacement for better stability.</li>
- *   <li>Degree-based scaling of attractive forces.</li>
- *   <li>Efficient repulsive force calculation to avoid overlaps.</li>
- *   <li>Bounding node positions within the graph area.</li>
+ *   <li>Reduced node displacement for better stability.
+ *   <li>Degree-based scaling of attractive forces.
+ *   <li>Efficient repulsive force calculation to avoid overlaps.
+ *   <li>Bounding node positions within the graph area.
  * </ul>
  */
 public class JFdpLayoutEngine extends AbstractFdpLayout {
@@ -32,8 +33,8 @@ public class JFdpLayoutEngine extends AbstractFdpLayout {
   private static final long serialVersionUID = -5998157771161759195L;
 
   @Override
-  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
-                           double k, double width, double height) {
+  protected void fdpLayout(
+      AreaGraph graph, int iterations, double temperature, double k, double width, double height) {
     width = Math.max(800, graph.edgeNum() + graph.vertexNum());
     height = width;
     for (int i = 0; i < iterations; i++) {
@@ -62,7 +63,7 @@ public class JFdpLayoutEngine extends AbstractFdpLayout {
           double desiredLen = 30;
 
           len = (len == 0) ? .0001 : len;
-          double f =  (1.0 / 3.0) * (desiredLen - len) / len;
+          double f = (1.0 / 3.0) * (desiredLen - len) / len;
 
           f = f * Math.pow(0.7, (nd + graph.degree(p2) - 2));
 
@@ -111,8 +112,10 @@ public class JFdpLayoutEngine extends AbstractFdpLayout {
 
         // keeps nodes from moving any faster than 5 per time unit
         double advance = 10;
-        graph.setNodeLocation(v, v.getX() + Math.max(-advance, Math.min(advance, v.getDx())),
-                              v.getY() + Math.max(-advance, Math.min(advance, v.getDy())));
+        graph.setNodeLocation(
+            v,
+            v.getX() + Math.max(-advance, Math.min(advance, v.getDx())),
+            v.getY() + Math.max(-advance, Math.min(advance, v.getDy())));
 
         if (v.getX() < 0) {
           graph.setNodeLocation(v, 0, v.getY());

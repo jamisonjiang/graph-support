@@ -157,9 +157,7 @@ public abstract class Color implements Serializable {
 
     @Override
     public String toString() {
-      return "RgbColor{" +
-          "colorVal='" + colorVal + '\'' +
-          '}';
+      return "RgbColor{" + "colorVal='" + colorVal + '\'' + '}';
     }
   }
 

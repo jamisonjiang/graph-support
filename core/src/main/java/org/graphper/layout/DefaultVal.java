@@ -35,56 +35,53 @@ import org.graphper.api.attributes.NodeShapeEnum;
  */
 class DefaultVal {
 
-  private DefaultVal() {
-  }
+  private DefaultVal() {}
 
   /**
    * The default value of the node. This default value will be used when the node has not manually
    * set the corresponding attribute, and there is no corresponding value set by any node template.
    */
-  static final NodeAttrs DEFAULT_NODE_ATTRS = Node
-      .builder()
-      .shape(NodeShapeEnum.ELLIPSE)
-      .margin(0.1, 0.1)
-      .labelloc(Labelloc.CENTER)
-      .fontSize(14)
-      .fontColor(Color.BLACK)
-      .fontName(DEFAULT_FONT)
-      .build()
-      .nodeAttrs();
+  static final NodeAttrs DEFAULT_NODE_ATTRS =
+      Node.builder()
+          .shape(NodeShapeEnum.ELLIPSE)
+          .margin(0.1, 0.1)
+          .labelloc(Labelloc.CENTER)
+          .fontSize(14)
+          .fontColor(Color.BLACK)
+          .fontName(DEFAULT_FONT)
+          .build()
+          .nodeAttrs();
 
-  /**
-   * The default value of the node cell.
-   */
-  static final NodeAttrs DEFAULT_CELL_ATTRS = Node
-      .builder()
-      .shape(NodeShapeEnum.RECT)
-      .margin(0.1, 0.1)
-      .labelloc(Labelloc.CENTER)
-      .fontSize(12)
-      .fixedSize(true)
-      .fontColor(Color.BLACK)
-      .build()
-      .nodeAttrs();
+  /** The default value of the node cell. */
+  static final NodeAttrs DEFAULT_CELL_ATTRS =
+      Node.builder()
+          .shape(NodeShapeEnum.RECT)
+          .margin(0.1, 0.1)
+          .labelloc(Labelloc.CENTER)
+          .fontSize(12)
+          .fixedSize(true)
+          .fontColor(Color.BLACK)
+          .build()
+          .nodeAttrs();
 
   /**
    * The default value of the line. This default value will be used when the line has not manually
    * set the corresponding attribute, and there is no corresponding value set by any line template.
    */
-  static final LineAttrs DEFAULT_LINE_ATTRS = Line
-      .tempLine()
-      .controlPoints(false)
-      .showboxes(false)
-      .radian(20)
-      .arrowHead(ArrowShape.NORMAL)
-      .arrowTail(ArrowShape.NORMAL)
-      .headclip(true)
-      .tailclip(true)
-      .arrowSize(1)
-      .fontSize(14)
-      .minlen(1)
-      .weight(1)
-      .dir(Dir.FORWARD)
-      .build()
-      .lineAttrs();
+  static final LineAttrs DEFAULT_LINE_ATTRS =
+      Line.tempLine()
+          .controlPoints(false)
+          .showboxes(false)
+          .radian(20)
+          .arrowHead(ArrowShape.NORMAL)
+          .arrowTail(ArrowShape.NORMAL)
+          .headclip(true)
+          .tailclip(true)
+          .arrowSize(1)
+          .fontSize(14)
+          .minlen(1)
+          .weight(1)
+          .dir(Dir.FORWARD)
+          .build()
+          .lineAttrs();
 }

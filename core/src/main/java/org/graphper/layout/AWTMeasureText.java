@@ -45,9 +45,7 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
 
   private volatile Map<String, Font> fontCache;
 
-  /**
-   * Constructs an instance of {@code AWTMeasureText}.
-   */
+  /** Constructs an instance of {@code AWTMeasureText}. */
   public AWTMeasureText() {
     super();
   }
@@ -71,8 +69,11 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   public boolean envSupport() {
     try {
       Class.forName("java.awt.Font");
+      Class.forName("java.awt.GraphicsEnvironment");
+      Class.forName("java.awt.font.FontRenderContext");
+      Class.forName("java.awt.geom.Rectangle2D");
       return true;
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | LinkageError | SecurityException e) {
       return false;
     }
   }
@@ -80,14 +81,14 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   /**
    * Measures the width and height of the specified text based on the given font name and size.
    *
-   * <p>This method calculates the dimensions of multi-line text by splitting the input into
-   * lines and summing the heights of each line. The width is determined by the longest line.</p>
+   * <p>This method calculates the dimensions of multi-line text by splitting the input into lines
+   * and summing the heights of each line. The width is determined by the longest line.
    *
-   * <p>If the font name is invalid or not supported, a default font will be used.</p>
+   * <p>If the font name is invalid or not supported, a default font will be used.
    *
-   * @param text       the text to measure
-   * @param fontName   the name of the font to use
-   * @param fontSize   the size of the font in points
+   * @param text the text to measure
+   * @param fontName the name of the font to use
+   * @param fontSize the size of the font in points
    * @param fontStyles the font styles of text
    * @return a {@link FlatPoint} representing the height and width of the text
    */
@@ -133,10 +134,10 @@ public class AWTMeasureText extends AbstractFontSelector implements MeasureText,
   /**
    * Checks if a specific font supports rendering a given character.
    *
-   * <p>This method uses a cache to store {@link Font} objects for efficient repeated checks.</p>
+   * <p>This method uses a cache to store {@link Font} objects for efficient repeated checks.
    *
    * @param fontName the name of the font
-   * @param c        the character to check
+   * @param c the character to check
    * @return {@code true} if the font supports the character, {@code false} otherwise
    */
   @Override

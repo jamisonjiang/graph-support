@@ -28,30 +28,24 @@ import org.graphper.util.Asserts;
  * @param <E> subclass type
  * @author Jamison Jiang
  */
-public abstract class AbstractEdge<V, E extends AbstractEdge<V, E>> implements
-    BaseEdge<V, E>, Serializable {
+public abstract class AbstractEdge<V, E extends AbstractEdge<V, E>>
+    implements BaseEdge<V, E>, Serializable {
 
   private static final long serialVersionUID = -7932182426978603206L;
 
-  /**
-   * endpoint of edge
-   */
+  /** Endpoint of edge. */
   protected final V left;
 
-  /**
-   * endpoint of edge
-   */
+  /** Endpoint of edge. */
   protected final V right;
 
-  /**
-   * weight of edge
-   */
+  /** Weight of edge. */
   protected final double weight;
 
   /**
    * Initialize edges based on vertices, with weights defaulting to 0.
    *
-   * @param left  endpoint of edge
+   * @param left endpoint of edge
    * @param right endpoint of edge
    */
   protected AbstractEdge(V left, V right) {
@@ -61,8 +55,8 @@ public abstract class AbstractEdge<V, E extends AbstractEdge<V, E>> implements
   /**
    * Initialize edges from vertices and weights.
    *
-   * @param left   endpoint of edge
-   * @param right  endpoint of edge
+   * @param left endpoint of edge
+   * @param right endpoint of edge
    * @param weight weight of edge
    */
   protected AbstractEdge(V left, V right, double weight) {
@@ -132,7 +126,8 @@ public abstract class AbstractEdge<V, E extends AbstractEdge<V, E>> implements
     }
     @SuppressWarnings("unchecked")
     AbstractEdge<V, E> edge = (AbstractEdge<V, E>) obj;
-    return Objects.equals(edge.left, left) && Objects.equals(edge.right, right)
+    return Objects.equals(edge.left, left)
+        && Objects.equals(edge.right, right)
         && Objects.equals(edge.weight, weight);
   }
 
@@ -147,10 +142,6 @@ public abstract class AbstractEdge<V, E extends AbstractEdge<V, E>> implements
 
   @Override
   public String toString() {
-    return "AbstractEdge{" +
-        "left=" + left +
-        ", right=" + right +
-        ", weight=" + weight +
-        '}';
+    return "AbstractEdge{" + "left=" + left + ", right=" + right + ", weight=" + weight + '}';
   }
 }

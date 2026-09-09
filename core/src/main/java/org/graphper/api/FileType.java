@@ -22,13 +22,16 @@ package org.graphper.api;
  * @author Jamison Jiang
  */
 public enum FileType {
-  SVG("svg"), PNG("png"), JPG("jpg"), JPEG("jpeg"), GIF("gif"),
+  SVG("svg"),
+  PNG("png"),
+  JPG("jpg"),
+  JPEG("jpeg"),
+  GIF("gif"),
 
   // Need external plugin: Apache Batik
   TIFF("tiff"),
   // Need external plugin: Apache FOP
-  PDF("pdf")
-  ;
+  PDF("pdf");
 
   FileType(String type) {
     this.type = type;

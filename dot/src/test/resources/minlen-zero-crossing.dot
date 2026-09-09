@@ -1,0 +1,23 @@
+digraph unix {
+  nodesep=0.486111;
+  ranksep=0.833333;
+  remincross=true;
+  searchsize=500;
+  sh0013->sh0012[arrowtail=none,arrowhead=none,minlen=0,color="#00002E"];
+  sh0006 [shape=diamond,label="",width=0.333333,height=0.333333,color="#000006"];
+  sh0007 [shape=diamond,label="",width=0.333333,height=0.333333,color="#000007"];
+  sh0008 [shape=diamond,label="",width=0.333333,height=0.333333,color="#000008"];
+  sh0009 [shape=diamond,label="",width=0.333333,height=0.333333,color="#000009"];
+  sh0010 [shape=circle,label="",width=0.277778,height=0.277778,color="#00000A"];
+  sh0011 [shape=rect,style=rounded,label="",width=3.907850,height=0.694444,color="#00000B"];
+  sh0012 [shape=circle,label="",width=0.305556,height=0.305556,color="#00000C"];
+  sh0013 [shape=rect,style=rounded,label="",width=2.264662,height=0.694444,color="#00000D"];
+  sh0010->sh0008[arrowtail=none,arrowhead=none,minlen=1,color="#00000E",label=<<TABLE BGCOLOR="#00000F" FIXEDSIZE="TRUE" WIDTH="146" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+  sh0008->sh0011[arrowtail=none,arrowhead=none,minlen=1,color="#000012"];
+  sh0011->sh0006[arrowtail=none,arrowhead=none,minlen=1,color="#000016",label=<<TABLE BGCOLOR="#000017" FIXEDSIZE="TRUE" WIDTH="353" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+  sh0006->sh0007[arrowtail=none,arrowhead=none,minlen=1,color="#00001A",label=<<TABLE BGCOLOR="#00001B" FIXEDSIZE="TRUE" WIDTH="299" HEIGHT="32"><TR><TD></TD></TR></TABLE>>];
+  sh0007->sh0012[arrowtail=none,arrowhead=none,minlen=1,color="#00001E",label=<<TABLE BGCOLOR="#00001F" FIXEDSIZE="TRUE" WIDTH="23" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+  sh0007->sh0013[arrowtail=none,arrowhead=none,minlen=1,color="#000022",label=<<TABLE BGCOLOR="#000023" FIXEDSIZE="TRUE" WIDTH="158" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+  sh0008->sh0012[arrowtail=none,arrowhead=none,minlen=1,color="#000026",label=<<TABLE BGCOLOR="#000027" FIXEDSIZE="TRUE" WIDTH="23" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+  sh0009->sh0013[arrowtail=none,arrowhead=none,minlen=1,color="#00002A",label=<<TABLE BGCOLOR="#00002B" FIXEDSIZE="TRUE" WIDTH="23" HEIGHT="17"><TR><TD></TD></TR></TABLE>>];
+}

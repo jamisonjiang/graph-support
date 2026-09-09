@@ -1,0 +1,15 @@
+digraph G {
+  compound=true;
+  source [shape=box];
+  target [shape=box];
+  subgraph cluster_source {
+    label="source cluster";
+    source;
+  }
+  subgraph cluster_target {
+    label="target cluster";
+    target;
+  }
+  source -> target [color="#ff0000",arrowhead=none,arrowtail=none,
+                    ltail=cluster_source,lhead=cluster_target];
+}

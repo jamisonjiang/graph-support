@@ -25,6 +25,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.CollectionUtils;
 
+/** Draws edge routing boxes for visualization. */
 public class LineBoxesEditor implements LineEditor<SvgBrush> {
 
   @Override
@@ -36,20 +37,35 @@ public class LineBoxesEditor implements LineEditor<SvgBrush> {
     for (int i = 0; i < lineDrawProp.getBoxes().size(); i++) {
       RouterBox routerBox = lineDrawProp.getBoxes().get(i);
 
-      Element boxEle = brush.getOrCreateChildElementById(
-          SvgConstants.POLYGON_ELE + SvgConstants.UNDERSCORE + "routerBox"
-              + SvgConstants.UNDERSCORE + i,
-          SvgConstants.POLYGON_ELE);
+      Element boxEle =
+          brush.getOrCreateChildElementById(
+              SvgConstants.POLYGON_ELE
+                  + SvgConstants.UNDERSCORE
+                  + "routerBox"
+                  + SvgConstants.UNDERSCORE
+                  + i,
+              SvgConstants.POLYGON_ELE);
 
-      String points = routerBox.getLeftBorder() + SvgConstants.COMMA + routerBox.getUpBorder()
-          + SvgConstants.SPACE
-          + routerBox.getRightBorder() + SvgConstants.COMMA + routerBox.getUpBorder()
-          + SvgConstants.SPACE
-          + routerBox.getRightBorder() + SvgConstants.COMMA + routerBox.getDownBorder()
-          + SvgConstants.SPACE
-          + routerBox.getLeftBorder() + SvgConstants.COMMA + routerBox.getDownBorder()
-          + SvgConstants.SPACE
-          + routerBox.getLeftBorder() + SvgConstants.COMMA + routerBox.getUpBorder();
+      String points =
+          routerBox.getLeftBorder()
+              + SvgConstants.COMMA
+              + routerBox.getUpBorder()
+              + SvgConstants.SPACE
+              + routerBox.getRightBorder()
+              + SvgConstants.COMMA
+              + routerBox.getUpBorder()
+              + SvgConstants.SPACE
+              + routerBox.getRightBorder()
+              + SvgConstants.COMMA
+              + routerBox.getDownBorder()
+              + SvgConstants.SPACE
+              + routerBox.getLeftBorder()
+              + SvgConstants.COMMA
+              + routerBox.getDownBorder()
+              + SvgConstants.SPACE
+              + routerBox.getLeftBorder()
+              + SvgConstants.COMMA
+              + routerBox.getUpBorder();
 
       boxEle.setAttribute(SvgConstants.POINTS, points);
       boxEle.setAttribute(SvgConstants.FILL, SvgConstants.NONE);

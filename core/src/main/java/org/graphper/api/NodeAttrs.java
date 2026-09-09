@@ -70,6 +70,8 @@ public class NodeAttrs implements Serializable, Cloneable {
 
   Boolean fixedSize;
 
+  Boolean regular;
+
   Double fontSize;
 
   Collection<NodeStyle> styles;
@@ -91,18 +93,17 @@ public class NodeAttrs implements Serializable, Cloneable {
   Table table;
 
   /**
-   * Structured record-label content. When non-null and the node's shape is
-   * {@code record}/{@code Mrecord}, layout uses this AST instead of parsing
-   * the {@link #label} string via {@code CellLabelCompiler}.
+   * Structured record-label content. When non-null and the node's shape is {@code record}/{@code
+   * Mrecord}, layout uses this AST instead of parsing the {@link #label} string via {@code
+   * CellLabelCompiler}.
    */
   RecordTag recordTag;
 
   Assemble assemble;
 
-  public NodeAttrs() {
-  }
+  public NodeAttrs() {}
 
-  /*--------------------------------------------------- attributeVal ---------------------------------------------------*/
+  // Attribute values.
 
   public String getId() {
     return id;
@@ -144,10 +145,15 @@ public class NodeAttrs implements Serializable, Cloneable {
     return fixedSize;
   }
 
+  public Boolean getRegular() {
+    return regular;
+  }
+
   public Double getFontSize() {
     return fontSize;
   }
 
+  /** Returns the configured node styles, or an empty collection when none are set. */
   public Collection<NodeStyle> getStyles() {
     if (CollectionUtils.isEmpty(styles)) {
       return Collections.emptyList();
@@ -155,6 +161,7 @@ public class NodeAttrs implements Serializable, Cloneable {
     return styles;
   }
 
+  /** Returns the configured font styles, or an empty collection when none are set. */
   public Collection<FontStyle> getFontStyles() {
     if (CollectionUtils.isEmpty(fontStyles)) {
       return Collections.emptyList();
@@ -211,8 +218,8 @@ public class NodeAttrs implements Serializable, Cloneable {
   }
 
   /**
-   * Returns the structured record-label content, or {@code null} when the node
-   * uses a plain string label or a non-record shape.
+   * Returns the structured record-label content, or {@code null} when the node uses a plain string
+   * label or a non-record shape.
    *
    * @return the {@link RecordTag} set on this node, or {@code null}.
    */
@@ -242,63 +249,132 @@ public class NodeAttrs implements Serializable, Cloneable {
       return false;
     }
     NodeAttrs nodeAttrs = (NodeAttrs) o;
-    return Objects.equals(id, nodeAttrs.id) && Objects.equals(height, nodeAttrs.height)
-        && Objects.equals(width, nodeAttrs.width) && Objects.equals(color, nodeAttrs.color)
+    return Objects.equals(id, nodeAttrs.id)
+        && Objects.equals(height, nodeAttrs.height)
+        && Objects.equals(width, nodeAttrs.width)
+        && Objects.equals(color, nodeAttrs.color)
         && Objects.equals(fillColor, nodeAttrs.fillColor)
         && Objects.equals(fontColor, nodeAttrs.fontColor)
         && Objects.equals(fontName, nodeAttrs.fontName)
         && Objects.equals(label, nodeAttrs.label)
         && Objects.equals(labelTag, nodeAttrs.labelTag)
-        && labeljust == nodeAttrs.labeljust && labelloc == nodeAttrs.labelloc
+        && labeljust == nodeAttrs.labeljust
+        && labelloc == nodeAttrs.labelloc
         && Objects.equals(margin, nodeAttrs.margin)
-        && Objects.equals(shape, nodeAttrs.shape) && Objects.equals(fixedSize, nodeAttrs.fixedSize)
-        && Objects.equals(fontSize, nodeAttrs.fontSize) && Objects.equals(styles, nodeAttrs.styles)
+        && Objects.equals(shape, nodeAttrs.shape)
+        && Objects.equals(fixedSize, nodeAttrs.fixedSize)
+        && Objects.equals(regular, nodeAttrs.regular)
+        && Objects.equals(fontSize, nodeAttrs.fontSize)
+        && Objects.equals(styles, nodeAttrs.styles)
         && Objects.equals(fontStyles, nodeAttrs.fontStyles)
-        && Objects.equals(sides, nodeAttrs.sides) && Objects.equals(href, nodeAttrs.href)
-        && Objects.equals(tooltip, nodeAttrs.tooltip) && Objects.equals(image, nodeAttrs.image)
+        && Objects.equals(sides, nodeAttrs.sides)
+        && Objects.equals(href, nodeAttrs.href)
+        && Objects.equals(tooltip, nodeAttrs.tooltip)
+        && Objects.equals(image, nodeAttrs.image)
         && Objects.equals(imageSize, nodeAttrs.imageSize)
-        && Objects.equals(penWidth, nodeAttrs.penWidth) && Objects.equals(table, nodeAttrs.table)
+        && Objects.equals(penWidth, nodeAttrs.penWidth)
+        && Objects.equals(table, nodeAttrs.table)
         && Objects.equals(recordTag, nodeAttrs.recordTag)
         && Objects.equals(assemble, nodeAttrs.assemble);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, height, width, color, fillColor, fontColor, fontName, label, labelTag,
-                        labeljust, labelloc, margin, shape, fixedSize, fontSize, styles, fontStyles,
-                        sides, href, tooltip, image, imageSize, penWidth, table, recordTag,
-                        assemble);
+    int result =
+        Objects.hash(
+            id,
+            height,
+            width,
+            color,
+            fillColor,
+            fontColor,
+            fontName,
+            label,
+            labelTag,
+            labeljust,
+            labelloc,
+            margin,
+            shape,
+            fixedSize,
+            fontSize,
+            styles,
+            fontStyles,
+            sides,
+            href,
+            tooltip,
+            image,
+            imageSize,
+            penWidth,
+            table,
+            recordTag,
+            assemble);
+    return regular == null ? result : 31 * result + regular.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeAttrs{" +
-        "id='" + id + '\'' +
-        ", height=" + height +
-        ", width=" + width +
-        ", color=" + color +
-        ", fillColor=" + fillColor +
-        ", fontColor=" + fontColor +
-        ", fontName='" + fontName + '\'' +
-        ", label='" + label + '\'' +
-        ", labelTag='" + labelTag + '\'' +
-        ", labeljust=" + labeljust +
-        ", labelloc=" + labelloc +
-        ", margin=" + margin +
-        ", shape=" + shape +
-        ", fixedSize=" + fixedSize +
-        ", fontSize=" + fontSize +
-        ", styles=" + styles +
-        ", fontStyles=" + fontStyles +
-        ", sides=" + sides +
-        ", href='" + href + '\'' +
-        ", tooltip='" + tooltip + '\'' +
-        ", image='" + image + '\'' +
-        ", imageSize=" + imageSize +
-        ", penWidth=" + penWidth +
-        ", table=" + table +
-        ", recordTag=" + recordTag +
-        ", assemble=" + assemble +
-        '}';
+    return "NodeAttrs{"
+        + "id='"
+        + id
+        + '\''
+        + ", height="
+        + height
+        + ", width="
+        + width
+        + ", color="
+        + color
+        + ", fillColor="
+        + fillColor
+        + ", fontColor="
+        + fontColor
+        + ", fontName='"
+        + fontName
+        + '\''
+        + ", label='"
+        + label
+        + '\''
+        + ", labelTag='"
+        + labelTag
+        + '\''
+        + ", labeljust="
+        + labeljust
+        + ", labelloc="
+        + labelloc
+        + ", margin="
+        + margin
+        + ", shape="
+        + shape
+        + ", fixedSize="
+        + fixedSize
+        + ", regular="
+        + regular
+        + ", fontSize="
+        + fontSize
+        + ", styles="
+        + styles
+        + ", fontStyles="
+        + fontStyles
+        + ", sides="
+        + sides
+        + ", href='"
+        + href
+        + '\''
+        + ", tooltip='"
+        + tooltip
+        + '\''
+        + ", image='"
+        + image
+        + '\''
+        + ", imageSize="
+        + imageSize
+        + ", penWidth="
+        + penWidth
+        + ", table="
+        + table
+        + ", recordTag="
+        + recordTag
+        + ", assemble="
+        + assemble
+        + '}';
   }
 }

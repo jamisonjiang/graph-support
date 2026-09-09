@@ -26,8 +26,8 @@ import org.graphper.api.attributes.NodeShape;
 public interface ShapePosition extends Box {
 
   /**
-   * Returns a primitive describing the shape the current object should conform to. Although
-   * {@link NodeShape} is used to describe, the current element is not necessarily a node.
+   * Returns a primitive describing the shape the current object should conform to. Although {@link
+   * NodeShape} is used to describe, the current element is not necessarily a node.
    *
    * @return current shape properties describe function
    */

@@ -19,6 +19,7 @@ package org.graphper.api.ext;
 import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 
+/** Provides rectangular record geometry with optional rounded corners. */
 public class RecordPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = -8655733264629048199L;

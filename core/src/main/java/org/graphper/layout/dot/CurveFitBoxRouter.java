@@ -51,8 +51,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
     return curves;
   }
 
-
-  private SplineFitInfo splineIsFit(MultiBezierCurve curves, List<RouterBox> boxes, boolean needOffset) {
+  private SplineFitInfo splineIsFit(
+      MultiBezierCurve curves, List<RouterBox> boxes, boolean needOffset) {
     SplineFitInfo splineFitInfo = new SplineFitInfo();
     splineFitInfo.needOffset = needOffset;
 
@@ -82,12 +82,21 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
         if (minY != maxY && (minY <= upBorder && maxY >= upBorder)
             || (minY <= downBorder && maxY >= downBorder)) {
 
-          double ratio = Math.abs(
-              minY != maxY ? (Math.abs(upBorder + downBorder) / 2 - minY) / (maxY - minY) : 0.5);
+          double ratio =
+              Math.abs(
+                  minY != maxY
+                      ? (Math.abs(upBorder + downBorder) / 2 - minY) / (maxY - minY)
+                      : 0.5);
           ratio = ratio > 1 ? 1 : ratio;
 
-          if (isInBoxOrStraightenMeaningless(curve, lineRouterBox, (int) (ratio * segmentNum),
-                                              segmentNum, boxMinY, boxMaxY, splineFitInfo)) {
+          if (isInBoxOrStraightenMeaningless(
+              curve,
+              lineRouterBox,
+              (int) (ratio * segmentNum),
+              segmentNum,
+              boxMinY,
+              boxMaxY,
+              splineFitInfo)) {
             continue;
           }
 
@@ -106,47 +115,87 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
     return splineFitInfo;
   }
 
-  private boolean isInBoxOrStraightenMeaningless(ThirdOrderBezierCurve curve, RouterBox routerBox,
-                                                 int currentSegment, int segmentNum, double minY,
-                                                 double maxY, SplineFitInfo splineFitInfo) {
+  private boolean isInBoxOrStraightenMeaningless(
+      ThirdOrderBezierCurve curve,
+      RouterBox routerBox,
+      int currentSegment,
+      int segmentNum,
+      double minY,
+      double maxY,
+      SplineFitInfo splineFitInfo) {
     double unit = (double) 1 / segmentNum;
 
     ThirdOrderBezierCurve detectCurve = new ThirdOrderBezierCurve(curve);
     detectCurve.adjust(0.1, 0.1);
-    FlatPoint p1 = Curves.besselEquationCalc(unit * currentSegment,
-                                             detectCurve.getV1(), detectCurve.getV2(),
-                                             detectCurve.getV3(), detectCurve.getV4());
-    if (!inBox(detectCurve, p1, routerBox, unit, currentSegment, 1,
-               minY, maxY, c -> c < segmentNum, splineFitInfo)) {
+    FlatPoint p1 =
+        Curves.besselEquationCalc(
+            unit * currentSegment,
+            detectCurve.getV1(),
+            detectCurve.getV2(),
+            detectCurve.getV3(),
+            detectCurve.getV4());
+    if (!inBox(
+        detectCurve,
+        p1,
+        routerBox,
+        unit,
+        currentSegment,
+        1,
+        minY,
+        maxY,
+        c -> c < segmentNum,
+        splineFitInfo)) {
       // Meaningful to straighten curve because in the extreme case still not work
       return true;
     }
 
-    p1 = Curves.besselEquationCalc(unit * currentSegment,
-                                   curve.getV1(), curve.getV2(),
-                                   curve.getV3(), curve.getV4());
+    p1 =
+        Curves.besselEquationCalc(
+            unit * currentSegment, curve.getV1(), curve.getV2(), curve.getV3(), curve.getV4());
 
     // There is at least one vertex whose coordinates are within the y interval,
     // and it is accessed from two directions until it exceeds the y area.
-    if (!inBox(curve, p1, routerBox, unit, currentSegment, -1,
-               minY, maxY, c -> 0 < c, splineFitInfo)
+    if (!inBox(
+            curve, p1, routerBox, unit, currentSegment, -1, minY, maxY, c -> 0 < c, splineFitInfo)
         && !splineFitInfo.needOffset) {
       return false;
     }
 
-    return inBox(curve, p1, routerBox, unit, currentSegment, 1,
-                 minY, maxY, c -> c < segmentNum, splineFitInfo);
+    return inBox(
+        curve,
+        p1,
+        routerBox,
+        unit,
+        currentSegment,
+        1,
+        minY,
+        maxY,
+        c -> c < segmentNum,
+        splineFitInfo);
   }
 
-  private boolean inBox(ThirdOrderBezierCurve curve, FlatPoint p1, RouterBox routerBox, double unit,
-                        int currentSegment, int addNum, double minY, double maxY,
-                        IntPredicate breakCondition, SplineFitInfo splineFitInfo) {
+  private boolean inBox(
+      ThirdOrderBezierCurve curve,
+      FlatPoint p1,
+      RouterBox routerBox,
+      double unit,
+      int currentSegment,
+      int addNum,
+      double minY,
+      double maxY,
+      IntPredicate breakCondition,
+      SplineFitInfo splineFitInfo) {
     FlatPoint p2;
     boolean result = true;
     Integer count = null;
     while (breakCondition.test(currentSegment)) {
-      p2 = Curves.besselEquationCalc(unit * (currentSegment += addNum),
-                                     curve.getV1(), curve.getV2(), curve.getV3(), curve.getV4());
+      p2 =
+          Curves.besselEquationCalc(
+              unit * (currentSegment += addNum),
+              curve.getV1(),
+              curve.getV2(),
+              curve.getV3(),
+              curve.getV4());
 
       // Any point jumps out of the boundary of the box.
       if (!RouterBox.inRange(minY, maxY, p1.getY()) || !RouterBox.inRange(minY, maxY, p2.getY())) {
@@ -158,7 +207,8 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
         continue;
       }
 
-      if (!approximatelyInBoxY(routerBox, p1.getY()) && !approximatelyInBoxY(routerBox, p2.getY())) {
+      if (!approximatelyInBoxY(routerBox, p1.getY())
+          && !approximatelyInBoxY(routerBox, p2.getY())) {
         break;
       }
 
@@ -226,8 +276,7 @@ abstract class CurveFitBoxRouter extends BoxGuideLineRouter {
 
     protected boolean needOffset;
 
-    protected SplineFitInfo() {
-    }
+    protected SplineFitInfo() {}
 
     protected boolean isFit() {
       return curve == null;

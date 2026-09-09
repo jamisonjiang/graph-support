@@ -21,6 +21,7 @@ import static org.graphper.api.attributes.NodeShapeEnum.ELLIPSE;
 import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 
+/** Calculates container dimensions and containment for elliptical shapes. */
 public class EllipsePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 5285076865672929036L;
@@ -40,9 +41,8 @@ public class EllipsePropCalc implements ShapePropCalc, Serializable {
 
     if (boxNotInEllipse) {
       double scale = lwidth / lheight;
-      lwidth = Math.sqrt(
-          Math.pow(boxHalfWidth, 2) + Math.pow(boxHalfHeight, 2) * Math.pow(scale, 2)
-      );
+      lwidth =
+          Math.sqrt(Math.pow(boxHalfWidth, 2) + Math.pow(boxHalfHeight, 2) * Math.pow(scale, 2));
       lheight = lwidth / scale;
     }
 
@@ -53,12 +53,10 @@ public class EllipsePropCalc implements ShapePropCalc, Serializable {
   public boolean in(Box box, FlatPoint point) {
     double w = ELLIPSE.leftWidth(box.getWidth());
     double h = ELLIPSE.topHeight(box.getHeight());
-    return ellipseFormula(w, h, point.getX() - box.getX(),
-                          point.getY() - box.getY()) <= 1;
+    return ellipseFormula(w, h, point.getX() - box.getX(), point.getY() - box.getY()) <= 1;
   }
 
   private double ellipseFormula(double a, double b, double x, double y) {
     return Math.pow(x, 2) / Math.pow(a, 2) + Math.pow(y, 2) / Math.pow(b, 2);
   }
-
 }

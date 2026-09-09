@@ -18,9 +18,9 @@ package org.graphper.draw.common;
 
 import org.graphper.api.FileType;
 import org.graphper.api.Graphviz;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.layout.EnvStrategy;
 
@@ -64,9 +64,9 @@ public interface SvgConverter extends EnvStrategy {
   /**
    * Convert svg to specific file type and returns {@link org.graphper.api.GraphResource}.
    *
-   * @param document  svg document
+   * @param document svg document
    * @param drawGraph draw graph
-   * @param fileType  file type
+   * @param fileType file type
    * @return graph support
    * @throws FailInitResourceException if any error occurred
    */

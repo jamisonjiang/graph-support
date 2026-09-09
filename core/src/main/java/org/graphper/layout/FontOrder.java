@@ -19,11 +19,11 @@ package org.graphper.layout;
 import java.util.Comparator;
 
 /**
- * Defines the order of font preferences and provides utility methods to compare, rank,
- * and iterate through fonts in a specific order.
+ * Defines the order of font preferences and provides utility methods to compare, rank, and iterate
+ * through fonts in a specific order.
  *
- * <p>This interface extends {@link Comparator} to define a custom font comparison logic
- * and {@link Iterable} to allow iteration through the ordered list of fonts.</p>
+ * <p>This interface extends {@link Comparator} to define a custom font comparison logic and {@link
+ * Iterable} to allow iteration through the ordered list of fonts.
  *
  * @author Jamison Jiang
  */
@@ -38,13 +38,13 @@ public interface FontOrder extends Comparator<String>, Iterable<String> {
   boolean haveRank(String fontName);
 
   /**
-   * Compares two font names based on their ranking. Fonts with a higher preference
-   * should be ranked lower (e.g., return a negative value when the first font is preferred).
+   * Compares two font names based on their ranking. Fonts with a higher preference should be ranked
+   * lower (e.g., return a negative value when the first font is preferred).
    *
    * @param o1 the first font name
    * @param o2 the second font name
    * @return a negative integer, zero, or a positive integer as the first font is ranked higher,
-   *         equal to, or lower than the second font
+   *     equal to, or lower than the second font
    */
   @Override
   int compare(String o1, String o2);

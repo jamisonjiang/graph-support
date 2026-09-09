@@ -18,12 +18,14 @@ package org.graphper.draw;
 
 import org.graphper.api.ext.DefaultBox;
 
+/** Tracks an expandable rectangular drawing boundary. */
 public class Rectangle extends DefaultBox {
 
   public Rectangle() {
     init();
   }
 
+  /** Resets the borders to an empty range ready to accumulate coordinates. */
   public void init() {
     leftBorder = Double.MAX_VALUE;
     rightBorder = -Double.MAX_VALUE;
@@ -31,6 +33,7 @@ public class Rectangle extends DefaultBox {
     downBorder = -Double.MAX_VALUE;
   }
 
+  /** Swaps the horizontal and vertical border ranges. */
   public void flip() {
     double tmp = leftBorder;
     leftBorder = upBorder;

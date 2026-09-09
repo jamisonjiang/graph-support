@@ -38,15 +38,20 @@ final class DotCompletionProvider {
       "fontname", "fontsize", "rankdir", "rank", "layout", "splines", "nodesep", "ranksep",
       "minlen", "weight", "constraint", "dir", "arrowhead", "arrowtail", "arrowsize",
       "headlabel", "taillabel", "headport", "tailport", "lhead", "ltail", "width", "height",
-      "fixedsize", "margin", "penwidth", "compound", "concentrate", "overlap", "tooltip",
-      "href"
+      "samehead", "sametail", "fixedsize", "margin", "penwidth", "peripheries", "orientation",
+      "sides", "regular",
+      "compound", "concentrate", "overlap", "tooltip", "href"
   };
 
   private static final String[] VALUES = {
       "TB", "BT", "LR", "RL", "dot", "dotq", "fdp", "jfdp", "gfdp", "spline",
       "polyline", "ortho", "solid", "dashed", "dotted", "bold", "filled", "rounded", "box",
       "ellipse", "circle", "diamond", "point", "record", "cylinder", "normal", "vee", "both",
-      "forward", "back", "same", "min", "max", "source", "sink", "true", "false"
+      "forward", "back", "same", "min", "max", "source", "sink", "true", "false",
+      "rectangle", "oval", "none", "square", "polygon", "house", "invhouse",
+      "doublecircle", "doubleoctagon", "tripleoctagon", "Mdiamond", "Msquare", "Mcircle",
+      "tab", "folder", "box3d", "component", "inv", "tee", "crow", "icurve",
+      "onormal", "oinv", "obox", "odot", "odiamond", "empty", "invempty", "open"
   };
 
   private DotCompletionProvider() {

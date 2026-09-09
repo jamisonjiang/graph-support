@@ -33,17 +33,29 @@ public interface ShapePropCalc {
    * the current shape can completely cover the inscribed rectangle.
    *
    * @param innerHeight inscribed rectangle height
-   * @param innerWidth  inscribed rectangle width
+   * @param innerWidth inscribed rectangle width
    * @return smallest container size of current shape
    */
   FlatPoint minContainerSize(double innerHeight, double innerWidth);
+
+  /**
+   * Returns the smallest container that covers the inner rectangle and configured minimum
+   * dimensions. Aspect-ratio-sensitive shapes may override this method.
+   */
+  default FlatPoint minContainerSize(
+      double innerHeight, double innerWidth, double minHeight, double minWidth) {
+    FlatPoint size = minContainerSize(innerHeight, innerWidth);
+    size.setHeight(Math.max(size.getHeight(), minHeight));
+    size.setWidth(Math.max(size.getWidth(), minWidth));
+    return size;
+  }
 
   /**
    * Confirm whether a specified point is within the shape through the center coordinates of the
    * shape and the width and height of the shape. This method uses this method as the judgment
    * standard for Newton's method iteration when performing line segment cutting.
    *
-   * @param box   box information
+   * @param box box information
    * @param point coordinates of the point to be detected
    * @return true - point in shape false - point not in shape
    * @throws NullPointerException null box or point
@@ -58,15 +70,14 @@ public interface ShapePropCalc {
    *
    * @param boxSize external container size
    */
-  default void ratio(FlatPoint boxSize) {
-  }
+  default void ratio(FlatPoint boxSize) {}
 
   /**
    * According to the size of the external container and the size of the label, set which position
    * the label should be placed in which container.
    *
    * @param labelSize label size
-   * @param box       external container size
+   * @param box external container size
    * @return the label center coordinate
    */
   default FlatPoint labelCenter(FlatPoint labelSize, Box box) {

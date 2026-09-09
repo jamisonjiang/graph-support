@@ -30,7 +30,7 @@ public interface LineEditor<B extends Brush> extends Editor<LineDrawProp, B> {
    * Edit line, return <tt>false</tt> if you want to terminate the process.
    *
    * @param lineDrawProp line to be drawn
-   * @param brush        line brush
+   * @param brush line brush
    * @return <tt>true</tt> if the next editor continues editing
    */
   @Override
@@ -43,7 +43,7 @@ public interface LineEditor<B extends Brush> extends Editor<LineDrawProp, B> {
   /**
    * Edit line, return <tt>false</tt> if you want to terminate the process.
    *
-   * @param line  line to be drawn
+   * @param line line to be drawn
    * @param brush line brush
    * @return <tt>true</tt> if the next editor continues editing
    */

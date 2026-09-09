@@ -17,6 +17,7 @@
 package org.graphper.def;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -34,38 +35,51 @@ import java.util.function.Consumer;
  * ordered traversal capabilities.
  *
  * <p>This class provides a hybrid data structure that maintains both:
+ *
  * <ul>
- *   <li>A {@link LinkedHashMap} for O(1) vertex lookup and adjacency list access</li>
- *   <li>A doubly-linked list structure for efficient sequential traversal using
- *       {@link #start()}, {@link #next(Object)}, and {@link #pre(Object)} methods</li>
+ *   <li>A {@link LinkedHashMap} for O(1) vertex lookup and adjacency list access
+ *   <li>A doubly-linked list structure for efficient sequential traversal using {@link #start()},
+ *       {@link #next(Object)}, and {@link #pre(Object)} methods
  * </ul>
  *
- * <p>The dual structure allows for both fast random access to vertices and their adjacencies,
- * as well as efficient ordered iteration without the overhead of creating new iterator objects.
+ * <p>The dual structure allows for both fast random access to vertices and their adjacencies, as
+ * well as efficient ordered iteration without the overhead of creating new iterator objects.
  *
  * <h3>Data Structure Design</h3>
+ *
  * <p>Each vertex in the graph is associated with an {@link AdjacencyList} that stores adjacent
  * elements of type {@code E}. The adjacency lists are connected in a doubly-linked list structure,
  * allowing for efficient forward and backward traversal while maintaining insertion order.
  *
  * <h3>Abstract Methods</h3>
+ *
  * <p>Subclasses must implement:
+ *
  * <ul>
- *   <li>{@link #newAdjacentList(Object)} - Factory method to create adjacency lists</li>
- *   <li>{@link #adjustAdjWhenRemoveNode(Object, AdjacencyList)} - Handle adjacency updates when removing vertices</li>
+ *   <li>{@link #newAdjacentList(Object)} - Factory method to create adjacency lists
+ *   <li>{@link #adjustAdjWhenRemoveNode(Object, AdjacencyList)} - Handle adjacency updates when
+ *       removing vertices
  * </ul>
  *
  * <h3>Thread Safety</h3>
- * <p>This class is <strong>not thread-safe</strong>. External synchronization is required
- * for concurrent access from multiple threads.
+ *
+ * <p>This class is <strong>not thread-safe</strong>. External synchronization is required for
+ * concurrent access from multiple threads.
+ *
+ * <h3>Serialization Security</h3>
+ *
+ * <p>Java serialization is retained for compatibility with trusted application data only. Never
+ * pass an untrusted stream to {@link ObjectInputStream}; use a schema-based format with an explicit
+ * type allow-list at the application boundary.
  *
  * <h3>Performance Characteristics</h3>
+ *
  * <ul>
- *   <li>Vertex lookup: O(1) average case</li>
- *   <li>Add vertex: O(1) average case</li>
- *   <li>Remove vertex: O(V*E) due to adjacency updates</li>
- *   <li>Sequential traversal: O(1) per step</li>
- *   <li>Memory overhead: Additional pointers for doubly-linked list structure</li>
+ *   <li>Vertex lookup: O(1) average case
+ *   <li>Add vertex: O(1) average case
+ *   <li>Remove vertex: O(V*E) due to adjacency updates
+ *   <li>Sequential traversal: O(1) per step
+ *   <li>Memory overhead: Additional pointers for doubly-linked list structure
  * </ul>
  *
  * @param <V> the type of vertices in the graph
@@ -76,41 +90,31 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
 
   private static final long serialVersionUID = -7783803325974568478L;
 
-  /**
-   * Default initialization capacity.
-   */
+  /** Default initialization capacity. */
   private static final int DEFAULT_CAPACITY = 1 << 4;
 
-  /**
-   * Number of edges.
-   */
+  private static final int MAX_SERIALIZED_VERTICES = 1_000_000;
+
+  private static final int MAX_SERIALIZED_ADJACENCIES = 10_000_000;
+
+  /** Number of edges. */
   protected int edgeNum;
 
-  /**
-   * Map from vertex to its adjacency edge list.
-   */
+  /** Map from vertex to its adjacency edge list. */
   protected transient LinkedHashMap<V, AdjacencyList<V, E>> edgeMap;
 
-  /**
-   * Head of the doubly-linked list for efficient next/previous navigation.
-   */
+  /** Head of the doubly-linked list for efficient next/previous navigation. */
   protected transient AdjacencyList<V, E> head;
 
-  /**
-   * Tail of the doubly-linked list for efficient next/previous navigation.
-   */
+  /** Tail of the doubly-linked list for efficient next/previous navigation. */
   protected transient AdjacencyList<V, E> tail;
 
-  /**
-   * Construct graph with default capacity.
-   */
+  /** Construct graph with default capacity. */
   AbstractAdjGraph() {
     this(DEFAULT_CAPACITY);
   }
 
-  /**
-   * Construct graph with specified capacity.
-   */
+  /** Construct graph with specified capacity. */
   AbstractAdjGraph(int capacity) {
     if (capacity <= 0) {
       throw new IllegalArgumentException("Capacity must be positive");
@@ -123,9 +127,8 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
   /**
    * Factory method to create a new adjacency list for the specified vertex.
    *
-   * <p>This method allows subclasses to customize the type and behavior of adjacency lists
-   * based on their specific requirements (e.g., directed vs undirected, vertex-based vs
-   * edge-based).
+   * <p>This method allows subclasses to customize the type and behavior of adjacency lists based on
+   * their specific requirements (e.g., directed vs undirected, vertex-based vs edge-based).
    *
    * @param v the vertex for which to create an adjacency list
    * @return a new adjacency list for the vertex, or {@code null} if the vertex cannot be added
@@ -136,11 +139,11 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
   /**
    * Adjusts the adjacency list when a vertex is removed from the graph.
    *
-   * <p>This method is called for each remaining vertex in the graph when a vertex is removed.
-   * It allows subclasses to update adjacency lists to remove references to the deleted vertex and
+   * <p>This method is called for each remaining vertex in the graph when a vertex is removed. It
+   * allows subclasses to update adjacency lists to remove references to the deleted vertex and
    * maintain graph consistency.
    *
-   * @param v   the vertex that was removed from the graph
+   * @param v the vertex that was removed from the graph
    * @param adj the adjacency list to potentially adjust
    */
   protected abstract void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj);
@@ -332,8 +335,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     // Get the first vertex to determine the component type
     V firstVertex = edgeMap.keySet().iterator().next();
     @SuppressWarnings("unchecked")
-    V[] result = (V[]) Array.newInstance(
-        firstVertex.getClass(), edgeMap.size());
+    V[] result = (V[]) Array.newInstance(firstVertex.getClass(), edgeMap.size());
 
     int i = 0;
     for (V vertex : edgeMap.keySet()) {
@@ -361,9 +363,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     edgeNum = 0;
   }
 
-  /**
-   * Vertex iterator for this graph.
-   */
+  /** Vertex iterator for this graph. */
   private class VertexIterator implements Iterator<V> {
 
     private AdjacencyList<V, E> current;
@@ -415,7 +415,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
       edgeMap.remove(v);
       edgeMap.forEach((k, a) -> adjustAdjWhenRemoveNode(v, a));
       edgeNum -= adjToRemove.size();
-      
+
       current = null;
       canRemove = false;
     }
@@ -445,7 +445,6 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     }
   }
 
-
   @SuppressWarnings("unchecked")
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     in.defaultReadObject();
@@ -457,13 +456,27 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
 
     // Read vertex count
     int vertexCount = in.readInt();
+    if (vertexCount < 0
+        || vertexCount > MAX_SERIALIZED_VERTICES
+        || edgeNum < 0
+        || edgeNum > MAX_SERIALIZED_ADJACENCIES) {
+      throw new InvalidObjectException("Serialized graph size exceeds the supported limit");
+    }
 
     // Read all vertices and their adjacencies, building the linked list structure
+    long adjacencyCount = 0;
     for (int i = 0; i < vertexCount; i++) {
       V vertex = (V) in.readObject();
+      if (edgeMap.containsKey(vertex)) {
+        throw new InvalidObjectException("Serialized graph contains duplicate vertices");
+      }
 
       // Read the number of edges for this vertex
       int edgeCount = in.readInt();
+      adjacencyCount += edgeCount;
+      if (edgeCount < 0 || adjacencyCount > MAX_SERIALIZED_ADJACENCIES) {
+        throw new InvalidObjectException("Serialized adjacency size exceeds the supported limit");
+      }
 
       // Create new adjacency list
       AdjacencyList<V, E> adjacency = newAdjacentList(vertex);
@@ -498,43 +511,43 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     @SuppressWarnings("unchecked")
     AbstractAdjGraph<V, E> other = (AbstractAdjGraph<V, E>) obj;
-    
+
     // Check basic properties
     if (edgeNum != other.edgeNum || vertexNum() != other.vertexNum()) {
       return false;
     }
-    
+
     // Check if all vertices and their adjacencies are equal
     if (!Objects.equals(edgeMap.keySet(), other.edgeMap.keySet())) {
       return false;
     }
-    
+
     // Check adjacency lists for each vertex
     for (V vertex : edgeMap.keySet()) {
       AdjacencyList<V, E> thisAdj = edgeMap.get(vertex);
       AdjacencyList<V, E> otherAdj = other.edgeMap.get(vertex);
-      
+
       if (!Objects.equals(thisAdj, otherAdj)) {
         return false;
       }
     }
-    
+
     return true;
   }
 
   @Override
   public int hashCode() {
     int result = Objects.hash(edgeNum, getClass());
-    
+
     // Include vertices and their adjacencies in hash
     for (Map.Entry<V, AdjacencyList<V, E>> entry : edgeMap.entrySet()) {
       result = 31 * result + Objects.hashCode(entry.getKey());
       result = 31 * result + Objects.hashCode(entry.getValue());
     }
-    
+
     return result;
   }
 
@@ -546,19 +559,19 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
     sb.append(", edges=").append(edgeNum);
     sb.append(", maxDegree=").append(maxDegree());
     sb.append(", averageDegree=").append(String.format("%.2f", averageDegree())).append("\n");
-    
+
     if (!edgeMap.isEmpty()) {
       sb.append(", adjacency={");
       boolean firstVertex = true;
       for (Map.Entry<V, AdjacencyList<V, E>> entry : edgeMap.entrySet()) {
         V vertex = entry.getKey();
         AdjacencyList<V, E> adjacency = entry.getValue();
-        
+
         if (!firstVertex) {
           sb.append(", ");
         }
         sb.append(vertex).append(":[");
-        
+
         boolean firstNeighbor = true;
         for (E neighbor : adjacency) {
           if (!firstNeighbor) {
@@ -572,7 +585,7 @@ public abstract class AbstractAdjGraph<V, E> implements BaseGraph<V>, Serializab
       }
       sb.append("}\n");
     }
-    
+
     sb.append("}");
     return sb.toString();
   }

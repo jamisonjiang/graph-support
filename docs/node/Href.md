@@ -2,6 +2,9 @@
 
 The **href** attribute (alias: **url**) adds a **clickable hyperlink** to a node, making it interactive in `SVG` outputs.
 
+Only relative links and the `http`, `https`, and `mailto` schemes are emitted. Dangerous schemes
+such as `javascript`, `data`, `file`, and `vbscript` are omitted.
+
 ## Examples:
 
 Dot

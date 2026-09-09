@@ -76,7 +76,7 @@ class DotGraph extends UndirectedEdgeGraph<DNode, ULine> {
   @Override
   public boolean remove(Object vertex) {
     if (vertex instanceof DNode) {
-     return removeNode((DNode) vertex);
+      return removeNode((DNode) vertex);
     }
 
     return false;

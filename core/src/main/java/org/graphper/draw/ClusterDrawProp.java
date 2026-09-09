@@ -45,13 +45,25 @@ public class ClusterDrawProp extends ContainerDrawProp implements Serializable {
 
   private ClusterShape clusterShape;
 
+  /** Creates cluster drawing properties and registers its HTML-like label. */
   public ClusterDrawProp(Cluster cluster) {
     Asserts.nullArgument(cluster, "cluster");
     this.cluster = cluster;
     this.clusterShape = cluster.clusterAttrs().getShape();
     this.clusterShape = this.clusterShape.post(cluster.clusterAttrs());
-    convertToAssemble(cluster.clusterAttrs().getTable(),
-                      cluster.clusterAttrs().getLabelTag());
+    convertToAssemble(cluster.clusterAttrs().getTable(), cluster.clusterAttrs().getLabelTag());
+  }
+
+  /**
+   * Identity scope of the cluster label, used as the fallback identity of the generated cells. The
+   * cluster number is assigned by the layout engine after construction and is unique per graph,
+   * which is one of the reasons {@link ContainerDrawProp} defers the label conversion until the
+   * label is first needed; the other is that the cluster only joins its {@link
+   * org.graphper.layout.HtmlConvertor.LabelIdSpace} once it joins the {@link DrawGraph}.
+   */
+  @Override
+  protected String labelScope() {
+    return "cluster_" + clusterNo;
   }
 
   /**

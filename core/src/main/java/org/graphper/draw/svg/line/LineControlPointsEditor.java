@@ -18,13 +18,14 @@ package org.graphper.draw.svg.line;
 
 import java.util.Objects;
 import org.graphper.api.attributes.Color;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.LineEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
-import org.graphper.def.FlatPoint;
 
+/** Draws edge control points for visualization. */
 public class LineControlPointsEditor implements LineEditor<SvgBrush> {
 
   @Override
@@ -35,9 +36,9 @@ public class LineControlPointsEditor implements LineEditor<SvgBrush> {
 
     for (int i = 0; i < lineDrawProp.size(); i++) {
       FlatPoint point = lineDrawProp.get(i);
-      Element controlPointsEle = brush.getOrCreateChildElementById(
-          SvgConstants.ELLIPSE_ELE + SvgConstants.UNDERSCORE + i,
-          SvgConstants.ELLIPSE_ELE);
+      Element controlPointsEle =
+          brush.getOrCreateChildElementById(
+              SvgConstants.ELLIPSE_ELE + SvgConstants.UNDERSCORE + i, SvgConstants.ELLIPSE_ELE);
 
       controlPointsEle.setAttribute(SvgConstants.CX, String.valueOf(point.getX()));
       controlPointsEle.setAttribute(SvgConstants.CY, String.valueOf(point.getY()));

@@ -8,8 +8,8 @@ The **arrowtail** attribute defines the **shape of the arrow at the tail (source
 
 - **Defines the shape of the arrow at the edge tail (source node)**.
 - **Applies only to directed graphs (`digraph`)**.
-- **If omitted, no arrow is added at the tail**.
-- **Dir attribute should be back or both**
+- **The default `dir=forward` does not display a tail arrow**.
+- **Set `dir=back` or `dir=both` to display it; the default tail shape is `NORMAL`**.
 
 ------
 
@@ -23,8 +23,30 @@ The **arrowtail** attribute defines the **shape of the arrow at the tail (source
 | `VEE`         | Wide "V" shaped arrow | `a -> b [arrowtail=vee];`    |
 | `BOX`         | Small box arrow       | `a -> b [arrowtail=box];`    |
 | `CURVE`       | Curved arrow          | `a -> b [arrowtail=curve];`  |
+| `DIAMOND`     | Filled diamond        | `a -> b [arrowtail=diamond];` |
+| `INV`         | Inverted triangle     | `a -> b [arrowtail=inv];` |
+| `TEE`         | Transverse bar and stem | `a -> b [arrowtail=tee];` |
+| `CROW`        | Three-pronged crow's foot | `a -> b [arrowtail=crow];` |
+| `ICURVE`      | Reversed curved arrow | `a -> b [arrowtail=icurve];` |
+| `ONORMAL`     | Hollow normal triangle | `a -> b [arrowtail=onormal];` |
+| `OINV`        | Hollow inverted triangle | `a -> b [arrowtail=oinv];` |
+| `OBOX`        | Hollow box            | `a -> b [arrowtail=obox];` |
+| `ODOT`        | Hollow circle         | `a -> b [arrowtail=odot];` |
+| `ODIAMOND`    | Hollow diamond        | `a -> b [arrowtail=odiamond];` |
 
-⚠ **Note:** Only these **six arrowtail styles** are supported so far.
+All sixteen fixed styles work at either end. The DOT examples in this table require
+`edge [dir=both]` or `edge [dir=back]` to make the tail visible.
+
+Hollow variants retain the geometry and clipping size of their filled counterpart,
+with `fill="none"` so the background remains visible. `CURVE` and `ICURVE` are also
+unfilled. Both ends independently use their selected shape's fill behavior and share
+the edge color, pen width, and bold styling. Dashed/dotted styles affect the edge,
+not the arrows. A zero arrow size produces finite degenerate geometry; `NONE`
+explicitly disables an arrow.
+
+Composite arrows and `l`/`r` half-shape modifiers are not supported. Use the canonical
+names above; deprecated aliases are not part of the Java API. Existing arrow
+proportions are preserved, rather than promising pixel-identical Graphviz output.
 
 ------
 
@@ -54,6 +76,16 @@ digraph G {
 ------
 
 ## **Usage in Java**
+
+For example, combine a filled head with a hollow tail:
+
+```java
+Line mixedArrows = Line.builder(a, b)
+    .dir(Dir.BOTH)
+    .arrowHead(ArrowShape.DIAMOND)
+    .arrowTail(ArrowShape.OINV)
+    .build();
+```
 
 ```java
 Node a = Node.builder().id("a").build();
@@ -110,4 +142,3 @@ Graphviz graph = Graphviz.digraph()
     .addLine(curveArrow)
     .build();
 ```
-

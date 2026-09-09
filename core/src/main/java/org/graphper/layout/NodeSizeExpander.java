@@ -34,8 +34,8 @@ import org.graphper.util.ValueUtils;
 /**
  * A utility class designed to dynamically expand the area occupied by a graph node in response to
  * specific layout requirements. This class is particularly useful in scenarios where nodes have
- * self-loops or other visual elements that require extra clearance to avoid intersection with
- * other nodes or edges.
+ * self-loops or other visual elements that require extra clearance to avoid intersection with other
+ * nodes or edges.
  *
  * @author Jamison Jiang
  */
@@ -67,6 +67,7 @@ public class NodeSizeExpander {
     return bottomHeightOffset;
   }
 
+  /** Returns the self-loop spacing for a node, or zero for a null node. */
   public static double minSelfInterval(ANode node) {
     if (node == null) {
       return 0;
@@ -74,6 +75,7 @@ public class NodeSizeExpander {
     return minSelfInterval(node.getSelfLoopCount(), node.getNodeSep());
   }
 
+  /** Computes self-loop spacing from the loop count and configured node separation. */
   public static double minSelfInterval(int lineNum, double nodeSep) {
     if (lineNum <= 1) {
       return nodeSep;
@@ -93,28 +95,16 @@ public class NodeSizeExpander {
 
   protected void refreshVolume(double x, double y) {
     if (x < node.getLeftBorder()) {
-      leftWidthOffset = Math.max(
-          leftWidthOffset,
-          node.getLeftBorder() - x
-      );
+      leftWidthOffset = Math.max(leftWidthOffset, node.getLeftBorder() - x);
     }
     if (x > node.getRightBorder()) {
-      rightWidthOffset = Math.max(
-          rightWidthOffset,
-          x - node.getRightBorder()
-      );
+      rightWidthOffset = Math.max(rightWidthOffset, x - node.getRightBorder());
     }
     if (y < node.getUpBorder()) {
-      topHeightOffset = Math.max(
-          topHeightOffset,
-          node.getUpBorder() - y
-      );
+      topHeightOffset = Math.max(topHeightOffset, node.getUpBorder() - y);
     }
     if (y > node.getDownBorder()) {
-      bottomHeightOffset = Math.max(
-          bottomHeightOffset,
-          y - node.getDownBorder()
-      );
+      bottomHeightOffset = Math.max(bottomHeightOffset, y - node.getDownBorder());
     }
   }
 
@@ -127,8 +117,14 @@ public class NodeSizeExpander {
     for (int i = 0; i < node.getSelfLoopCount(); i++) {
       LineDrawProp line = node.selfLine(i);
       LineAttrs lineAttrs = line.lineAttrs();
-      GroupKey key = newGroupKey(lineAttrs.getTailPort(), lineAttrs.getHeadPort(), nodeDrawProp,
-                                 drawGraph, lineAttrs.getTailCell(), lineAttrs.getHeadCell());
+      GroupKey key =
+          newGroupKey(
+              lineAttrs.getTailPort(),
+              lineAttrs.getHeadPort(),
+              nodeDrawProp,
+              drawGraph,
+              lineAttrs.getTailCell(),
+              lineAttrs.getHeadCell());
       addLineToGroup(selfLineGroup, line, key);
     }
 
@@ -136,8 +132,13 @@ public class NodeSizeExpander {
   }
 
   // ------------------------------------- private method -------------------------------------
-  private GroupKey newGroupKey(Port tailPort, Port headPort, NodeDrawProp nodeDrawProp,
-                               DrawGraph drawGraph, String tailCell, String headCell) {
+  private GroupKey newGroupKey(
+      Port tailPort,
+      Port headPort,
+      NodeDrawProp nodeDrawProp,
+      DrawGraph drawGraph,
+      String tailCell,
+      String headCell) {
     if (tailPort == null && headPort == null && tailCell == null && headCell == null) {
       GroupKey groupKey = new GroupKey();
       groupKey.tailPoint = new FlatPoint(node.getX(), node.getY());
@@ -160,15 +161,17 @@ public class NodeSizeExpander {
     return groupKey;
   }
 
-  private static void addLineToGroup(Map<GroupKey, List<GroupEntry>> selfLineGroup,
-                                     LineDrawProp selfLine, GroupKey groupKey) {
-    selfLineGroup.compute(groupKey, (g, v) -> {
-      if (v == null) {
-        v = new ArrayList<>(1);
-      }
-      v.add(new GroupEntry(groupKey, selfLine));
-      return v;
-    });
+  private static void addLineToGroup(
+      Map<GroupKey, List<GroupEntry>> selfLineGroup, LineDrawProp selfLine, GroupKey groupKey) {
+    selfLineGroup.compute(
+        groupKey,
+        (g, v) -> {
+          if (v == null) {
+            v = new ArrayList<>(1);
+          }
+          v.add(new GroupEntry(groupKey, selfLine));
+          return v;
+        });
   }
 
   private Cell getCell(NodeDrawProp nodeDrawProp, String cellId) {
@@ -179,6 +182,7 @@ public class NodeSizeExpander {
     return rootCell.getCellById(cellId);
   }
 
+  /** A self-loop paired with its endpoint grouping key. */
   protected static class GroupEntry {
 
     protected final GroupKey groupKey;
@@ -197,6 +201,7 @@ public class NodeSizeExpander {
     }
   }
 
+  /** Identifies self-loops sharing endpoint ports, cells, and resolved positions. */
   protected static class GroupKey {
 
     protected Port tailPort;
@@ -288,12 +293,14 @@ public class NodeSizeExpander {
         return false;
       }
       GroupKey groupKey = (GroupKey) o;
-      return (tailPort == groupKey.tailPort && headPort == groupKey.headPort
-          && Objects.equals(tailCell, groupKey.tailCell)
-          && Objects.equals(headCell, groupKey.headCell))
-          || (tailPort == groupKey.headPort && headPort == groupKey.tailPort
-          && Objects.equals(tailCell, groupKey.headCell)
-          && Objects.equals(headCell, groupKey.tailCell));
+      return (tailPort == groupKey.tailPort
+              && headPort == groupKey.headPort
+              && Objects.equals(tailCell, groupKey.tailCell)
+              && Objects.equals(headCell, groupKey.headCell))
+          || (tailPort == groupKey.headPort
+              && headPort == groupKey.tailPort
+              && Objects.equals(tailCell, groupKey.headCell)
+              && Objects.equals(headCell, groupKey.tailCell));
     }
 
     @Override

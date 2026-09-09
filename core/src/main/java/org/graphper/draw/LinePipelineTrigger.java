@@ -18,6 +18,7 @@ package org.graphper.draw;
 
 import java.util.List;
 
+/** Applies a line editor pipeline to the graph's lines. */
 public class LinePipelineTrigger<B extends Brush, T extends LineEditor<B>>
     extends AbstractPipelineTrigger<LineDrawProp, B, T, LinePipelineTrigger<B, T>> {
 

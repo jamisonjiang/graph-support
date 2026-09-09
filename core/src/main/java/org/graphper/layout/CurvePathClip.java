@@ -33,7 +33,6 @@ import org.graphper.util.CollectionUtils;
  *
  * @author Jamison Jiang
  */
-
 public class CurvePathClip extends PathClip {
 
   public static final CurvePathClip INSTANCE = new CurvePathClip();
@@ -111,8 +110,7 @@ public class CurvePathClip extends PathClip {
     return CollectionUtils.isEmpty(path);
   }
 
-  private void subPath(LineDrawProp path, InOutPointPair inOutPair,
-                       ThirdOrderBezierCurve curve) {
+  private void subPath(LineDrawProp path, InOutPointPair inOutPair, ThirdOrderBezierCurve curve) {
     if (inOutPair.isDeleteBefore()) {
       if (inOutPair.getIdx() > -4) {
         path.subList(0, inOutPair.getIdx() + 4).clear();
@@ -138,19 +136,19 @@ public class CurvePathClip extends PathClip {
   private ThirdOrderBezierCurve getCurve(LineDrawProp path, InOutPointPair inOutPair) {
     ThirdOrderBezierCurve curve;
     if (inOutPair.isDeleteBefore()) {
-      curve = new ThirdOrderBezierCurve(
-          inOutPair.getIn(),
-          path.get(inOutPair.getIdx() + 1),
-          path.get(inOutPair.getIdx() + 2),
-          inOutPair.getOut()
-      );
+      curve =
+          new ThirdOrderBezierCurve(
+              inOutPair.getIn(),
+              path.get(inOutPair.getIdx() + 1),
+              path.get(inOutPair.getIdx() + 2),
+              inOutPair.getOut());
     } else {
-      curve = new ThirdOrderBezierCurve(
-          inOutPair.getOut(),
-          path.get(inOutPair.getIdx() - 2),
-          path.get(inOutPair.getIdx() - 1),
-          inOutPair.getIn()
-      );
+      curve =
+          new ThirdOrderBezierCurve(
+              inOutPair.getOut(),
+              path.get(inOutPair.getIdx() - 2),
+              path.get(inOutPair.getIdx() - 1),
+              inOutPair.getIn());
     }
     return curve;
   }

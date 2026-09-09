@@ -32,21 +32,23 @@ import org.graphper.draw.CustomizeShapeRender;
  * manually call {@link CustomizeShapeRender#register(CustomizeShapeRender)}.
  *
  * <p>Unlike {@link NodeShape}, other cluster shapes except {@link ClusterShapeEnum#RECT} no
- * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and {@link Layout#DOTQ} engines but will
- * try best estimated the container size by {@link #minContainerSize(double, double)} method, but
- * still have the following principles as much as possible surround all nodes if you want to
- * {@code ClusterShape} works well under {@link Layout#DOT} and {@link Layout#DOTQ} engines:
+ * guarantee that cluster container will surround all nodes under {@link Layout#DOT} and {@link
+ * Layout#DOTQ} engines but will try best estimated the container size by {@link
+ * #minContainerSize(double, double)} method, but still have the following principles as much as
+ * possible surround all nodes if you want to {@code ClusterShape} works well under {@link
+ * Layout#DOT} and {@link Layout#DOTQ} engines:
+ *
  * <ul>
- *   <li>The gap between internal box and external box is as small ass possible, it means output
- *   of {@link #minContainerSize(double, double)} of current shape close enough than input.
- *   e.g, {@link ClusterShapeEnum#RECT} no gap between internal and external boxes.
+ *   <li>The gap between internal box and external box is as small ass possible, it means output of
+ *       {@link #minContainerSize(double, double)} of current shape close enough than input. e.g,
+ *       {@link ClusterShapeEnum#RECT} no gap between internal and external boxes.
  *   <li>Internal nodes are kept isolated from external nodes of cluster, it means interact edges
- *   from internal nodes to external nodes as little as possible.
- *   <li>Avoid cluster nesting as much as possible if cluster shapes is not {@link ClusterShapeEnum#RECT}
- *   (or the cluster shape no gap between internal and external box like RECT shape), the error in
- *   evaluation will be magnified in this case.
+ *       from internal nodes to external nodes as little as possible.
+ *   <li>Avoid cluster nesting as much as possible if cluster shapes is not {@link
+ *       ClusterShapeEnum#RECT} (or the cluster shape no gap between internal and external box like
+ *       RECT shape), the error in evaluation will be magnified in this case.
  *   <li>Manual adjust {@link org.graphper.api.Cluster.ClusterBuilder#margin(double)} reserve enough
- *   internal space to avoid nodes overflow cluster container.
+ *       internal space to avoid nodes overflow cluster container.
  * </ul>
  *
  * @author Jamison Jiang

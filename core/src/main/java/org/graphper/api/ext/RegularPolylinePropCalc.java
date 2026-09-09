@@ -30,10 +30,10 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.UnfeasibleException;
 import org.graphper.def.Vectors;
 import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Calculates regular polygon vertices, container dimensions, and containment. */
 public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 8672914749052162330L;
@@ -42,10 +42,13 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   private int side = 4;
 
-  private List<FlatPoint> flatPoints;
+  /*
+   * Retained only for source and binary compatibility with the public 1.5.3 API. Geometry checks
+   * deliberately do not use this cache because the result depends on the supplied box.
+   */
+  private transient volatile List<FlatPoint> flatPoints;
 
-  public RegularPolylinePropCalc() {
-  }
+  public RegularPolylinePropCalc() {}
 
   public RegularPolylinePropCalc(int side) {
     Asserts.illegalArgument(side <= 0, "side can not be lower than 0");
@@ -66,11 +69,11 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
   public boolean in(Box box, FlatPoint point) {
     Asserts.nullArgument(box, "box");
     Asserts.nullArgument(point, "point");
-    initPoints(box);
+    List<FlatPoint> flatPoints = calcPoints(box);
 
     for (int i = 0; i < flatPoints.size(); i++) {
-      FlatPoint pre = adjPoint(i, true);
-      FlatPoint next = adjPoint(i, false);
+      FlatPoint pre = adjPoint(flatPoints, i, true);
+      FlatPoint next = adjPoint(flatPoints, i, false);
       FlatPoint current = flatPoints.get(i);
       if (!Vectors.inAngle(current, pre, next, point)) {
         return false;
@@ -80,18 +83,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     return true;
   }
 
-  public void initPoints(Box box) {
-    Asserts.nullArgument(box, "box");
-    if (flatPoints == null) {
-      flatPoints = new ArrayList<>(side);
-    }
-    if (CollectionUtils.isNotEmpty(flatPoints)) {
-      return;
-    }
-
-    flatPoints = calcPoints(box);
-  }
-
+  /** Calculates polygon vertices using the box center and half its height as the radius. */
   public List<FlatPoint> calcPoints(Box box) {
     Asserts.nullArgument(box, "box");
     List<FlatPoint> points = new ArrayList<>(side);
@@ -110,20 +102,38 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     return points;
   }
 
+  /**
+   * Calculates and stores the points for {@link #getPoints()}.
+   *
+   * @deprecated Geometry is box-dependent. Prefer {@link #calcPoints(Box)} and keep the returned
+   *     value locally.
+   */
+  @Deprecated
+  public void initPoints(Box box) {
+    flatPoints = calcPoints(box);
+  }
+
+  /**
+   * Returns the points most recently calculated by {@link #initPoints(Box)}.
+   *
+   * @deprecated Prefer {@link #calcPoints(Box)}.
+   */
+  @Deprecated
   public List<FlatPoint> getPoints() {
     return flatPoints;
   }
 
   // -------------------------- Shape proxy handler --------------------------
 
-  public static class RegularPolyShapePost implements NodeShapePost, ClusterShapePost, Serializable {
+  /** Configures polygon geometry from node or cluster attributes. */
+  public static class RegularPolyShapePost
+      implements NodeShapePost, ClusterShapePost, Serializable {
 
     private static final long serialVersionUID = -814521973404226705L;
 
     private Integer slideSize;
 
-    public RegularPolyShapePost() {
-    }
+    public RegularPolyShapePost() {}
 
     public RegularPolyShapePost(Integer slideSize) {
       this.slideSize = slideSize;
@@ -141,28 +151,33 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
       }
       size = size == null ? 4 : size;
 
-      RegularPolylinePropCalc propCalc = new RegularPolylinePropCalc(size);
-      return (NodeShape) Proxy.newProxyInstance(
-          NodeShape.class.getClassLoader(),
-          new Class[]{NodeShape.class},
-          new RegularProxyInvoker(nodeShape, propCalc));
+      boolean regular =
+          Boolean.TRUE.equals(nodeAttrs.getRegular())
+              || nodeShape == org.graphper.api.attributes.NodeShapeEnum.REGULAR_POLYLINE;
+      RegularPolylinePropCalc propCalc = new StretchablePolygonPropCalc(size, regular);
+      return (NodeShape)
+          Proxy.newProxyInstance(
+              NodeShape.class.getClassLoader(),
+              new Class[] {NodeShape.class},
+              new RegularProxyInvoker(nodeShape, propCalc));
     }
 
     @Override
     public ClusterShape post(ClusterAttrs clusterAttrs) {
       Asserts.nullArgument(clusterAttrs, "clusterAttrs");
       ClusterShape clusterShape = clusterAttrs.getShape();
-      RegularPolylinePropCalc propCalc = new RegularPolylinePropCalc(
-          slideSize == null ? 4 : slideSize);
-      return (ClusterShape) Proxy.newProxyInstance(
-          ClusterShape.class.getClassLoader(),
-          new Class[]{ClusterShape.class},
-          new RegularProxyInvoker(clusterShape, propCalc));
+      RegularPolylinePropCalc propCalc =
+          new RegularPolylinePropCalc(slideSize == null ? 4 : slideSize);
+      return (ClusterShape)
+          Proxy.newProxyInstance(
+              ClusterShape.class.getClassLoader(),
+              new Class[] {ClusterShape.class},
+              new RegularProxyInvoker(clusterShape, propCalc));
     }
   }
 
   // -------------------------- Shape proxy handler --------------------------
-  private double getStartArc(double perSideArc) {
+  protected double getStartArc(double perSideArc) {
     double arc = Math.PI / 2;
     if (side % 2 == 1) {
       return arc;
@@ -171,7 +186,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     return arc + (perSideArc / 2);
   }
 
-  private FlatPoint adjPoint(int idx, boolean isPre) {
+  private FlatPoint adjPoint(List<FlatPoint> flatPoints, int idx, boolean isPre) {
     Asserts.illegalArgument(idx < 0 || idx >= flatPoints.size(), "Wrong index");
     if (isPre) {
       if (idx == 0) {
@@ -186,6 +201,10 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     } else {
       return flatPoints.get(idx + 1);
     }
+  }
+
+  protected int getSide() {
+    return side;
   }
 
   private double expansion(double radius, double height, double width) {
@@ -230,8 +249,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
     private final RegularPolylinePropCalc propCalc;
 
-    public RegularProxyInvoker(Object originalShape,
-                               RegularPolylinePropCalc propCalc) {
+    public RegularProxyInvoker(Object originalShape, RegularPolylinePropCalc propCalc) {
       this.originalShape = originalShape;
       this.propCalc = propCalc;
     }
@@ -242,6 +260,11 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
         return propCalc.in((Box) args[0], (FlatPoint) args[1]);
       }
       if (method.getName().equals("minContainerSize")) {
+        if (args.length == 4) {
+          return propCalc.minContainerSize(
+              (double) args[0], (double) args[1],
+              (double) args[2], (double) args[3]);
+        }
         return propCalc.minContainerSize((double) args[0], (double) args[1]);
       }
       if (method.getName().equals("getShapePropCalc")) {

@@ -44,14 +44,13 @@ public class SvgEditor implements SvgConstants {
 
   private static final int MAX_ROUNDED = 30;
 
-  private SvgEditor() {
-  }
+  private SvgEditor() {}
 
   /**
    * Set each line text to svg.
    *
-   * @param text              text element
-   * @param fontSize          font size
+   * @param text text element
+   * @param fontSize font size
    * @param textLineAttribute per text line attribute
    * @throws NullPointerException null text element or null text line attribute
    */
@@ -81,7 +80,7 @@ public class SvgEditor implements SvgConstants {
    * <p>Shared by every text-drawing path. Record cells used to skip this entirely, which silently
    * dropped {@code fontStyle} on record-shaped nodes.
    *
-   * @param textEle    text element to decorate
+   * @param textEle text element to decorate
    * @param fontStyles styles to apply, may be {@code null} or empty
    */
   public static void setFontStyle(Element textEle, Collection<FontStyle> fontStyles) {
@@ -146,8 +145,13 @@ public class SvgEditor implements SvgConstants {
 
       LabelLines.Line line = lines.get(i);
       textAttribute.lineAttributeConsumer.accept(
-          new TextLineAttribute(textAttribute.lineX(line.getAlignment()), yc, i, line.getText(),
-                                line.getAlignment(), textAttribute));
+          new TextLineAttribute(
+              textAttribute.lineX(line.getAlignment()),
+              yc,
+              i,
+              line.getText(),
+              line.getAlignment(),
+              textAttribute));
     }
   }
 
@@ -156,12 +160,12 @@ public class SvgEditor implements SvgConstants {
    * {@link org.graphper.api.Cluster}.
    *
    * @param drawProp draw container needs drawing
-   * @param brush    svg brush need to generate element
-   * @param points   polygon points
+   * @param brush svg brush need to generate element
+   * @param points polygon points
    * @return polygon shape element
-   * @throws NullPointerException     null container or null brush
+   * @throws NullPointerException null container or null brush
    * @throws IllegalArgumentException wrong size radius or wrong close path points or wrong
-   *                                  container type
+   *     container type
    */
   public static Element polygonShape(ContainerDrawProp drawProp, SvgBrush brush, double... points) {
     Asserts.nullArgument(brush, "brush");
@@ -193,13 +197,13 @@ public class SvgEditor implements SvgConstants {
    * Draw polygon shape and common handle ROUNDED property.
    *
    * @param elementSupplier shape element supplier
-   * @param isRound         shape need rounded
-   * @param points          polygon points
-   * @throws NullPointerException     null element supplier or null shape element
+   * @param isRound shape need rounded
+   * @param points polygon points
+   * @throws NullPointerException null element supplier or null shape element
    * @throws IllegalArgumentException wrong size radius or wrong close path points
    */
-  public static void polygonShape(Supplier<Element> elementSupplier, boolean isRound,
-                                  double... points) {
+  public static void polygonShape(
+      Supplier<Element> elementSupplier, boolean isRound, double... points) {
     Asserts.nullArgument(elementSupplier, "Element supplier");
     Element element = elementSupplier.get();
     Asserts.nullArgument(element, "Shape element");
@@ -227,7 +231,7 @@ public class SvgEditor implements SvgConstants {
    * The point is output in a format similar to "10,10" or "10,10 ", which is mainly used for the
    * point path of svg.
    *
-   * @param point     points to convert
+   * @param point points to convert
    * @param needSpace if ture, add space as suffix
    * @return coordinate character
    * @throws NullPointerException null point
@@ -242,8 +246,8 @@ public class SvgEditor implements SvgConstants {
    * Returns the {@link #D} attributes that make up the svg {@link #PATH_ELE}, based on a list of
    * points and whether they are curves.
    *
-   * @param start   start point
-   * @param points  line points
+   * @param start start point
+   * @param points line points
    * @param isCurve if true, is a curve line
    * @return line {@link #D} attribute value of the {@link #PATH_ELE} element.
    */
@@ -253,8 +257,8 @@ public class SvgEditor implements SvgConstants {
     }
 
     start = start == null ? points.get(0) : start;
-    StringBuilder path = new StringBuilder(PATH_START_M).append(start.getX()).append(COMMA)
-        .append(start.getY());
+    StringBuilder path =
+        new StringBuilder(PATH_START_M).append(start.getX()).append(COMMA).append(start.getY());
 
     if (isCurve) {
       path.append(CURVE_PATH_MARK);
@@ -272,23 +276,26 @@ public class SvgEditor implements SvgConstants {
   /**
    * Returns the {@link #D} attributes that make up the svg {@link #PATH_ELE}.
    *
-   * @param isCurve   the path whether is curve
+   * @param isCurve the path whether is curve
    * @param positions the polyline border points
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
-   * @throws NullPointerException     positions is null
+   * @throws NullPointerException positions is null
    * @throws IllegalArgumentException positions is empty or positions size is not even
    */
   public static String pointsToSvgPath(boolean isCurve, double... positions) {
     Asserts.nullArgument(positions, "positions");
-    Asserts.illegalArgument(positions.length == 0 || positions.length % 2 != 0,
-                            "Wrong positions length, can not be empty and must be even");
+    Asserts.illegalArgument(
+        positions.length == 0 || positions.length % 2 != 0,
+        "Wrong positions length, can not be empty and must be even");
 
     StringBuilder sb = new StringBuilder(PATH_START_M);
     for (int i = 0; i < positions.length; i += 2) {
       double horPos = positions[i];
       double verPos = positions[i + 1];
       if (i == 0 && isCurve) {
-        sb.append(horPos).append(SvgConstants.COMMA).append(verPos)
+        sb.append(horPos)
+            .append(SvgConstants.COMMA)
+            .append(verPos)
             .append(SvgConstants.CURVE_PATH_MARK);
       } else {
         sb.append(horPos).append(SvgConstants.COMMA).append(verPos).append(SvgConstants.SPACE);
@@ -302,9 +309,9 @@ public class SvgEditor implements SvgConstants {
    * corner length, using the path description.
    *
    * @param maxRoundedLen maximum rounded length
-   * @param box           box
+   * @param box box
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
-   * @throws NullPointerException     null box
+   * @throws NullPointerException null box
    * @throws IllegalArgumentException wrong maximum rounded length
    */
   public static String roundedBox(int maxRoundedLen, Box box) {
@@ -317,18 +324,58 @@ public class SvgEditor implements SvgConstants {
     double downBorder = box.getDownBorder();
     int cornerLen = Math.min(maxRoundedLen, (int) box.getWidth() / 2);
     cornerLen = Math.min(cornerLen, (int) box.getHeight() / 2);
-    return pointsToSvgPath(true, leftBorder, upBorder + cornerLen, leftBorder, upBorder + cornerLen,
-                           leftBorder, downBorder - cornerLen, leftBorder, downBorder - cornerLen,
-                           leftBorder, downBorder, leftBorder, downBorder, leftBorder + cornerLen,
-                           downBorder, leftBorder + cornerLen, downBorder, rightBorder - cornerLen,
-                           downBorder, rightBorder - cornerLen, downBorder, rightBorder, downBorder,
-                           rightBorder, downBorder, rightBorder, downBorder - cornerLen,
-                           rightBorder, downBorder - cornerLen, rightBorder, upBorder + cornerLen,
-                           rightBorder, upBorder + cornerLen, rightBorder, upBorder, rightBorder,
-                           upBorder, rightBorder - cornerLen, upBorder, rightBorder - cornerLen,
-                           upBorder, leftBorder + cornerLen, upBorder, leftBorder + cornerLen,
-                           upBorder, leftBorder, upBorder, leftBorder, upBorder, leftBorder,
-                           upBorder + cornerLen);
+    return pointsToSvgPath(
+        true,
+        leftBorder,
+        upBorder + cornerLen,
+        leftBorder,
+        upBorder + cornerLen,
+        leftBorder,
+        downBorder - cornerLen,
+        leftBorder,
+        downBorder - cornerLen,
+        leftBorder,
+        downBorder,
+        leftBorder,
+        downBorder,
+        leftBorder + cornerLen,
+        downBorder,
+        leftBorder + cornerLen,
+        downBorder,
+        rightBorder - cornerLen,
+        downBorder,
+        rightBorder - cornerLen,
+        downBorder,
+        rightBorder,
+        downBorder,
+        rightBorder,
+        downBorder,
+        rightBorder,
+        downBorder - cornerLen,
+        rightBorder,
+        downBorder - cornerLen,
+        rightBorder,
+        upBorder + cornerLen,
+        rightBorder,
+        upBorder + cornerLen,
+        rightBorder,
+        upBorder,
+        rightBorder,
+        upBorder,
+        rightBorder - cornerLen,
+        upBorder,
+        rightBorder - cornerLen,
+        upBorder,
+        leftBorder + cornerLen,
+        upBorder,
+        leftBorder + cornerLen,
+        upBorder,
+        leftBorder,
+        upBorder,
+        leftBorder,
+        upBorder,
+        leftBorder,
+        upBorder + cornerLen);
   }
 
   /**
@@ -346,7 +393,7 @@ public class SvgEditor implements SvgConstants {
    * Returns a rounded shape points according to the close path points.
    *
    * @param radius rounded radius length
-   * @param path   close path points
+   * @param path close path points
    * @return path {@link #D} attribute value of the {@link #POLYGON_ELE}
    * @throws IllegalArgumentException wrong size radius or wrong close path points
    */
@@ -354,8 +401,8 @@ public class SvgEditor implements SvgConstants {
     Asserts.illegalArgument(radius < 0, "radius cannnot less than 0");
     Asserts.illegalArgument(path == null || path.length < 4, "shape points not enough");
     Asserts.illegalArgument(path.length % 2 != 0, "shape points number should be even");
-    Asserts.illegalArgument(path[0] != path[path.length - 2] || path[1] != path[path.length - 1],
-                            "shape not enclose");
+    Asserts.illegalArgument(
+        path[0] != path[path.length - 2] || path[1] != path[path.length - 1], "shape not enclose");
 
     int j = 0;
     FlatPoint current = new FlatPoint(0, 0);
@@ -369,8 +416,9 @@ public class SvgEditor implements SvgConstants {
       next.setY(path[i + 3]);
 
       FlatPoint dirVector = Vectors.sub(next, current);
-      Asserts.illegalArgument(dirVector.similarX(0, 0.001D) && dirVector.similarY(0, 0.001D),
-                              "Adjacent pair points of shape too close");
+      Asserts.illegalArgument(
+          dirVector.similarX(0, 0.001D) && dirVector.similarY(0, 0.001D),
+          "Adjacent pair points of shape too close");
       double ratio = radius / dirVector.dist();
       if (ratio > 0.5) {
         ratio = 0.5;
@@ -411,10 +459,17 @@ public class SvgEditor implements SvgConstants {
    */
   public static String generateBox(Box box) {
     Asserts.nullArgument(box, "box");
-    return generatePolylinePoints(box.getLeftBorder(), box.getUpBorder(), box.getRightBorder(),
-                                  box.getUpBorder(), box.getRightBorder(), box.getDownBorder(),
-                                  box.getLeftBorder(), box.getDownBorder(), box.getLeftBorder(),
-                                  box.getUpBorder());
+    return generatePolylinePoints(
+        box.getLeftBorder(),
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getUpBorder());
   }
 
   /**
@@ -423,13 +478,14 @@ public class SvgEditor implements SvgConstants {
    *
    * @param positions the polyline border points
    * @return polyline {@link #POINTS} attribute value of the {@link #POLYGON_ELE}
-   * @throws NullPointerException     positions is null
+   * @throws NullPointerException positions is null
    * @throws IllegalArgumentException positions is empty
    */
   public static String generatePolylinePoints(List<FlatPoint> positions) {
     Asserts.nullArgument(positions, "positions");
-    Asserts.illegalArgument(CollectionUtils.isEmpty(positions),
-                            "Wrong positions length, can not be empty and must be even");
+    Asserts.illegalArgument(
+        CollectionUtils.isEmpty(positions),
+        "Wrong positions length, can not be empty and must be even");
 
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < positions.size(); i++) {
@@ -445,13 +501,14 @@ public class SvgEditor implements SvgConstants {
    *
    * @param positions the polyline border points
    * @return polyline {@link #POINTS} attribute value of the {@link #POLYGON_ELE}
-   * @throws NullPointerException     positions is null
+   * @throws NullPointerException positions is null
    * @throws IllegalArgumentException positions is empty or positions size is not even
    */
   public static String generatePolylinePoints(double... positions) {
     Asserts.nullArgument(positions, "positions");
-    Asserts.illegalArgument(positions.length == 0 || positions.length % 2 != 0,
-                            "Wrong positions length, can not be empty and must be even");
+    Asserts.illegalArgument(
+        positions.length == 0 || positions.length % 2 != 0,
+        "Wrong positions length, can not be empty and must be even");
 
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < positions.length; i += 2) {
@@ -466,8 +523,10 @@ public class SvgEditor implements SvgConstants {
     return isBold ? Math.max(penwidth, 2) : penwidth;
   }
 
-  // -------------------------------------------- subclass --------------------------------------------
+  // -------------------------------------------- subclass
+  // --------------------------------------------
 
+  /** Holds shared font, label, and positioning attributes for SVG text. */
   public static class TextAttribute {
 
     private final FlatPoint centerPoint;
@@ -484,14 +543,25 @@ public class SvgEditor implements SvgConstants {
 
     private final double labelWidth;
 
-    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
-                         String fontName, Consumer<TextLineAttribute> lineAttributeConsumer) {
+    public TextAttribute(
+        FlatPoint centerPoint,
+        double fontsize,
+        String label,
+        Color fontColor,
+        String fontName,
+        Consumer<TextLineAttribute> lineAttributeConsumer) {
       this(centerPoint, fontsize, label, fontColor, fontName, 0, lineAttributeConsumer);
     }
 
-    public TextAttribute(FlatPoint centerPoint, double fontsize, String label, Color fontColor,
-                         String fontName, double labelWidth,
-                         Consumer<TextLineAttribute> lineAttributeConsumer) {
+    /** Creates text attributes with a label width for line alignment. */
+    public TextAttribute(
+        FlatPoint centerPoint,
+        double fontsize,
+        String label,
+        Color fontColor,
+        String fontName,
+        double labelWidth,
+        Consumer<TextLineAttribute> lineAttributeConsumer) {
       Asserts.nullArgument(centerPoint, "centerPoint");
       Asserts.illegalArgument(StringUtils.isEmpty(label), "label can not be empty");
       this.centerPoint = centerPoint;
@@ -514,6 +584,7 @@ public class SvgEditor implements SvgConstants {
     }
   }
 
+  /** Holds the position, content, and alignment of one SVG text line. */
   public static class TextLineAttribute {
 
     private final double x;
@@ -528,8 +599,14 @@ public class SvgEditor implements SvgConstants {
 
     private final TextAttribute textAttribute;
 
-    public TextLineAttribute(double x, double y, int lineNo, String line, Alignment alignment,
-                              TextAttribute textAttribute) {
+    /** Creates line attributes linked to the shared text attributes. */
+    public TextLineAttribute(
+        double x,
+        double y,
+        int lineNo,
+        String line,
+        Alignment alignment,
+        TextAttribute textAttribute) {
       this.x = x;
       this.y = y;
       this.lineNo = lineNo;
@@ -558,6 +635,7 @@ public class SvgEditor implements SvgConstants {
       return textAttribute;
     }
 
+    /** Returns the SVG text anchor corresponding to this line's alignment. */
     public String getTextAnchor() {
       if (alignment == Alignment.LEFT) {
         return START;

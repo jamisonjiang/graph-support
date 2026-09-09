@@ -17,9 +17,10 @@
 package org.graphper.api.ext;
 
 import java.io.Serializable;
-import org.graphper.def.FlatPoint;
 import org.graphper.api.attributes.NodeShapeEnum;
+import org.graphper.def.FlatPoint;
 
+/** Calculates container dimensions, containment, and label placement for cylinders. */
 public class CylinderPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 2065821057594213750L;

@@ -16,6 +16,7 @@
 
 package org.graphper.layout.dot;
 
+import java.util.List;
 import java.util.Map;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
@@ -29,13 +30,31 @@ class DotDigraph extends LayoutGraph<DNode, DLine> {
     super(capacity);
   }
 
-  public DotDigraph(int capacity, Graphviz graphviz,
-                    Map<Node, DNode> nodeMap) {
+  public DotDigraph(int capacity, Graphviz graphviz, Map<Node, DNode> nodeMap) {
     super(capacity, graphviz, nodeMap);
   }
 
   @Override
   protected EdgeDigraph<DNode, DLine> newGraph(int capacity) {
     return new DirectedEdgeGraph<>(capacity);
+  }
+
+  void suspendEdges(List<DLine> lines) {
+    for (int i = 0; i < lines.size(); i++) {
+      DLine line = lines.get(i);
+      if (graph.removeEdge(line)) {
+        continue;
+      }
+      for (int j = 0; j < i; j++) {
+        graph.addEdge(lines.get(j));
+      }
+      throw new IllegalStateException("Can not suspend non-constraint line: " + line);
+    }
+  }
+
+  void restoreEdges(List<DLine> lines) {
+    for (DLine line : lines) {
+      graph.addEdge(line);
+    }
   }
 }

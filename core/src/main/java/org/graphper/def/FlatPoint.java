@@ -96,9 +96,7 @@ public class FlatPoint implements Comparable<FlatPoint>, Cloneable, Serializable
     return Math.abs(this.y - y) <= error;
   }
 
-  /**
-   * Swap the abscissa and ordinate of the point.
-   */
+  /** Swap the abscissa and ordinate of the point. */
   public void flip() {
     double tmp = x;
     x = y;
@@ -162,8 +160,7 @@ public class FlatPoint implements Comparable<FlatPoint>, Cloneable, Serializable
       return false;
     }
     FlatPoint flatPoint = (FlatPoint) o;
-    return Double.compare(flatPoint.x, x) == 0 &&
-        Double.compare(flatPoint.y, y) == 0;
+    return Double.compare(flatPoint.x, x) == 0 && Double.compare(flatPoint.y, y) == 0;
   }
 
   @Override
@@ -182,12 +179,10 @@ public class FlatPoint implements Comparable<FlatPoint>, Cloneable, Serializable
 
   @Override
   public String toString() {
-    return "FlatPoint{" +
-        "x=" + x +
-        ", y=" + y +
-        '}';
+    return "FlatPoint{" + "x=" + x + ", y=" + y + '}';
   }
 
+  /** A point whose coordinate setters and flip operation reject modification. */
   public static class UnmodifyFlatPoint extends FlatPoint {
 
     private static final long serialVersionUID = -6758408197504503804L;

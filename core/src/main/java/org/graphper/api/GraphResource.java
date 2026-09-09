@@ -63,7 +63,7 @@ public interface GraphResource extends Closeable {
    * Save resource to file.
    *
    * @param parentPath file parent path
-   * @param fileName   file name without suffix
+   * @param fileName file name without suffix
    * @throws IOException file not exists or if an I/O error occurs
    */
   void save(String parentPath, String fileName) throws IOException;

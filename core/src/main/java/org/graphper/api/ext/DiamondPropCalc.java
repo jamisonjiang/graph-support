@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 
+/** Calculates container dimensions and containment for diamond shapes. */
 public class DiamondPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 9067547573336923429L;
@@ -36,14 +37,9 @@ public class DiamondPropCalc implements ShapePropCalc, Serializable {
     double up = box.getUpBorder();
     double down = box.getDownBorder();
 
-    return Vectors.inAngle(left, box.getY(),
-                           box.getX(), up,
-                           box.getX(), down,
-                           point.getX(), point.getY())
-        && Vectors.inAngle(right, box.getY(),
-                           box.getX(), up,
-                           box.getX(), down,
-                           point.getX(), point.getY());
-
+    return Vectors.inAngle(
+            left, box.getY(), box.getX(), up, box.getX(), down, point.getX(), point.getY())
+        && Vectors.inAngle(
+            right, box.getY(), box.getX(), up, box.getX(), down, point.getX(), point.getY());
   }
 }

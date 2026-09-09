@@ -30,13 +30,13 @@ public abstract class Mark<T> {
 
   protected Set<T> marked;
 
-  protected Mark() {
-  }
+  protected Mark() {}
 
   protected Mark(int initialCapacity) {
     this.marked = new HashSet<>(initialCapacity);
   }
 
+  /** Marks a non-null node as visited. */
   public void mark(T node) {
     Objects.requireNonNull(node);
 
@@ -46,6 +46,7 @@ public abstract class Mark<T> {
     marked.add(node);
   }
 
+  /** Reports whether the node has been visited. */
   public boolean isMark(T node) {
     if (marked == null) {
       return false;
@@ -53,6 +54,7 @@ public abstract class Mark<T> {
     return marked.contains(node);
   }
 
+  /** Removes the node's visited mark, if present. */
   public void remove(T node) {
     if (marked == null) {
       return;

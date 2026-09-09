@@ -24,8 +24,10 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.Asserts;
 
+/** Reserves space for orthogonal self-loops and constructs their routes. */
 public class OrthoNodeSizeExpander extends NodeSizeExpander {
 
+  /** Sorts the node's self-loops and calculates their required clearance. */
   public OrthoNodeSizeExpander(ANode node) {
     Asserts.nullArgument(node, "Self line node");
     Asserts.illegalArgument(!node.haveSelfLine(), "Node not have any self line");
@@ -37,18 +39,20 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
   private void init(ANode node) {
     node.sortSelfLine(this::lineComparator);
 
-    OffsetConsumer consumer = (lineNo, line, topOffset, bottomOffset, rightOffset) -> {
-      this.topHeightOffset = topOffset;
-      this.bottomHeightOffset = bottomOffset;
-      this.rightWidthOffset = rightOffset;
-    };
+    OffsetConsumer consumer =
+        (lineNo, line, topOffset, bottomOffset, rightOffset) -> {
+          this.topHeightOffset = topOffset;
+          this.bottomHeightOffset = bottomOffset;
+          this.rightWidthOffset = rightOffset;
+        };
     linePos(node, consumer);
   }
 
+  /** Calculates cumulative self-loop offsets and passes each loop to the consumer. */
   public static void linePos(ANode node, OffsetConsumer consumer) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(consumer, "consumer");
-    Asserts.illegalArgument( node.getSelfLoopCount()  < 1,"node do not have any self line");
+    Asserts.illegalArgument(node.getSelfLoopCount() < 1, "node do not have any self line");
 
     double interval = minSelfInterval(node) / 2;
     double topHeight = node.realTopHeight();
@@ -69,12 +73,14 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
       }
 
       topHeightOffset = Math.max(topHeight + topHeightOffset + interval, height / 2) - topHeight;
-      bottomHeightOffset = Math.max(bottomHeight + bottomHeightOffset + interval, height / 2) - bottomHeight;
+      bottomHeightOffset =
+          Math.max(bottomHeight + bottomHeightOffset + interval, height / 2) - bottomHeight;
       rightWidthOffset += Math.max(width, interval);
       consumer.consumeSelfLine(i, line, topHeightOffset, bottomHeightOffset, rightWidthOffset);
     }
   }
 
+  /** Populates orthogonal self-loop paths and positions their labels. */
   public void drawSelfLine(DrawGraph drawGraph) {
     Map<GroupKey, List<GroupEntry>> groupKeyListMap = groupSelfLine(drawGraph, node);
 
@@ -164,9 +170,10 @@ public class OrthoNodeSizeExpander extends NodeSizeExpander {
     return Double.compare(ls.getHeight(), rs.getHeight());
   }
 
+  /** Receives each self-loop and its cumulative top, bottom, and right clearance. */
   public interface OffsetConsumer {
 
-    void consumeSelfLine(int lineNo, LineDrawProp line, double topOffset,
-                         double bottomOffset, double rightOffset);
+    void consumeSelfLine(
+        int lineNo, LineDrawProp line, double topOffset, double bottomOffset, double rightOffset);
   }
 }

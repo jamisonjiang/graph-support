@@ -28,6 +28,7 @@ public class Version {
   private Version() {
   }
 
+  /** Returns the CLI version from Maven metadata, or {@code "Unknown"} if unavailable. */
   public static String getVersionFromPom() {
     try {
       Properties properties = new Properties();
@@ -39,6 +40,7 @@ public class Version {
     }
   }
 
+  /** Returns the ANTLR runtime version from Maven metadata, or {@code "Unknown"} if unavailable. */
   public static String getAntlrVersion() {
     try {
       Properties properties = new Properties();
@@ -50,6 +52,7 @@ public class Version {
     }
   }
 
+  /** Returns the Batik version from Maven metadata, or {@code "Unknown"} if unavailable. */
   public static String getBatikVersion() {
     try {
       Properties properties = new Properties();
@@ -61,6 +64,7 @@ public class Version {
     }
   }
 
+  /** Returns the FOP core version from Maven metadata, or {@code "Unknown"} if unavailable. */
   public static String getFopVersion() {
     try {
       Properties properties = new Properties();

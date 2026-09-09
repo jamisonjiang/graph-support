@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
+/** Renders rectangular node and cluster outlines in SVG. */
 public class RectShapeRender extends CustomizeShapeRender {
 
   @Override
@@ -43,11 +44,18 @@ public class RectShapeRender extends CustomizeShapeRender {
   }
 
   private Element draw(SvgBrush brush, ContainerDrawProp box) {
-    return SvgEditor.polygonShape(box, brush, box.getLeftBorder(), box.getUpBorder(),
-                                  box.getRightBorder(), box.getUpBorder(),
-                                  box.getRightBorder(), box.getDownBorder(),
-                                  box.getLeftBorder(), box.getDownBorder(),
-                                  box.getLeftBorder(), box.getUpBorder());
-
+    return SvgEditor.polygonShape(
+        box,
+        brush,
+        box.getLeftBorder(),
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getUpBorder(),
+        box.getRightBorder(),
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getDownBorder(),
+        box.getLeftBorder(),
+        box.getUpBorder());
   }
 }

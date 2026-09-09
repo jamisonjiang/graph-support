@@ -16,45 +16,23 @@
 
 package org.graphper.draw.common;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.ServiceLoader;
 import org.graphper.api.FileType;
-import org.graphper.draw.DrawGraph;
-import org.graphper.draw.FailInitResourceException;
 import org.graphper.api.GraphResource;
 import org.graphper.draw.DefaultGraphResource;
+import org.graphper.draw.DrawGraph;
+import org.graphper.draw.FailInitResourceException;
 import org.graphper.draw.svg.SvgDrawBoard;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.OptionalProviders;
 
+/** Converts the SVG drawing into the requested output format. */
 public class CommonDrawBoard extends SvgDrawBoard {
 
   private FileType fileType;
 
-  private static final List<SvgConverter> converters;
-
-  static {
-    ServiceLoader<SvgConverter> converterServiceLoader = ServiceLoader.load(SvgConverter.class);
-    List<SvgConverter> svgConverters = null;
-    for (SvgConverter converter : converterServiceLoader) {
-      if (!converter.envSupport()) {
-        continue;
-      }
-
-      if (svgConverters == null) {
-        svgConverters = new ArrayList<>();
-      }
-      svgConverters.add(converter);
-    }
-
-    if (CollectionUtils.isEmpty(svgConverters)) {
-      converters = Collections.emptyList();
-    } else {
-      svgConverters.sort(Comparator.comparing(SvgConverter::order));
-      converters = Collections.unmodifiableList(svgConverters);
-    }
+  private static class ConverterHolder {
+    private static final List<SvgConverter> CONVERTERS = OptionalProviders.load(SvgConverter.class);
   }
 
   public CommonDrawBoard(DrawGraph drawGraph) {
@@ -72,12 +50,33 @@ public class CommonDrawBoard extends SvgDrawBoard {
       return super.graphResource();
     }
 
+    List<SvgConverter> converters = ConverterHolder.CONVERTERS;
     if (CollectionUtils.isEmpty(converters)) {
       throwsUnsupportedImgConvert();
     }
 
+    boolean image = containsImage();
     for (SvgConverter converter : converters) {
       if (converter.support(type)) {
+        // Prefer the bounded native image loader over built-in Batik, not over custom providers.
+        if (image
+            && converter
+                .getClass()
+                .getName()
+                .equals("org.graphper.draw.common.BatikImgConverter")) {
+          for (SvgConverter nativeConverter : converters) {
+            if (nativeConverter
+                    .getClass()
+                    .getName()
+                    .equals("org.graphper.draw.common.DefaultImgConverter")
+                && nativeConverter.support(type)) {
+              DefaultGraphResource resource = nativeConverter.convert(svgDocument, drawGraph, type);
+              if (resource != null) {
+                return resource;
+              }
+            }
+          }
+        }
         DefaultGraphResource resource = converter.convert(svgDocument, drawGraph, type);
         if (resource == null) {
           continue;
@@ -90,7 +89,23 @@ public class CommonDrawBoard extends SvgDrawBoard {
     return null;
   }
 
+  private boolean containsImage() {
+    final boolean[] image = new boolean[1];
+    svgDocument.accessEles(
+        (element, children) -> {
+          if ("image".equals(element.tagName())) {
+            image[0] = true;
+          }
+        });
+    return image[0];
+  }
+
   private void throwsUnsupportedImgConvert() throws FailInitResourceException {
-    throw new FailInitResourceException("Do not have Converter");
+    throw new FailInitResourceException(
+        "No secure converter available for "
+            + fileType
+            + ". TIFF/PDF require supported modern Batik with external-resource and script security"
+            + " hints (PDF also requires compatible FOP)."
+            + " PNG/JPEG can use the native AWT converter.");
   }
 }

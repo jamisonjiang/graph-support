@@ -33,11 +33,13 @@ import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.layout.dot.SubgraphMerge.MergeNode;
 
 /**
- * This process mainly has the following steps:
+ * Collapses containers into proxy nodes for rank assignment, then expands them.
+ *
  * <ul>
  *   <li>All clusters under the container recursively continue;
  *   <li>Use a certain strategy to find the proxy nodes of subgraph and cluster;
- *   <li>Using Surrogate Nodes to Construct Auxiliary Graphs for Hierarchical Assignment of Network Simplex Method;
+ *   <li>Using Surrogate Nodes to Construct Auxiliary Graphs for Hierarchical Assignment of Network
+ *       Simplex Method;
  *   <li>Expand cluster and subgraph.
  * </ul>
  *
@@ -65,15 +67,18 @@ class ContainerCollapse {
     DotDigraph digraph;
     SubRankInfo subRankInfo = null;
 
-    if (!dotAttachment.haveClusters() && !dotAttachment.haveSubgraphs()
+    if (!dotAttachment.haveClusters()
+        && !dotAttachment.haveSubgraphs()
         && graphContainer == dotAttachment.getGraphviz()) {
       // No child container, use the original graph
       digraph = dotAttachment.getDotDigraph();
     } else {
       // Collapse cluster,return processed DotDigraph
-      digraph = new DotDigraph(graphContainer.directNodes().size()
-                                   + graphContainer.clusters().size()
-                                   + graphContainer.subgraphs().size());
+      digraph =
+          new DotDigraph(
+              graphContainer.directNodes().size()
+                  + graphContainer.clusters().size()
+                  + graphContainer.subgraphs().size());
       // Compress sub-containers, create proxy graphs
       subRankInfo = collapseSet(digraph);
     }
@@ -89,13 +94,13 @@ class ContainerCollapse {
     // Hierarchy the nodes using the network simplex method.
     FeasibleTree feasibleTree = new FeasibleTree(digraph);
     SubgraphMerge subgraphMerge = subRankInfo != null ? subRankInfo.subgraphMerge : null;
-    NetworkSimplex networkSimplex = new NetworkSimplex(
-        feasibleTree,
-        graphAttrs.getNslimit1(),
-        graphAttrs.getRankSep(),
-        // Let border node feature take effect
-        nodes -> borderNodeHandle(nodes, subgraphMerge)
-    );
+    NetworkSimplex networkSimplex =
+        new NetworkSimplex(
+            feasibleTree,
+            graphAttrs.getNslimit1(),
+            graphAttrs.getRankSep(),
+            // Let border node feature take effect
+            nodes -> borderNodeHandle(nodes, subgraphMerge));
 
     // RankContent maybe contain sub container's merge node,need restore
     return restoreRankContent(networkSimplex.getRankContent(), subRankInfo);
@@ -140,9 +145,8 @@ class ContainerCollapse {
     moveRank(nodes, sourceIdx, minIdx, maxIdx, sinkIdx);
   }
 
-  private void moveRank(DNode[] nodes, Integer sourceIdx,
-                        Integer minIdx, Integer maxIdx,
-                        Integer sinkIdx) {
+  private void moveRank(
+      DNode[] nodes, Integer sourceIdx, Integer minIdx, Integer maxIdx, Integer sinkIdx) {
     if (sourceIdx != null) {
       int minRank = nodes[0].getRank();
       insert(nodes, sourceIdx, 0);
@@ -160,8 +164,8 @@ class ContainerCollapse {
     if (sinkIdx != null) {
       int maxRank = nodes[nodes.length - 1].getRank();
       insert(nodes, sinkIdx, nodes.length - 1);
-      DNode maxNormalNode = findRankNormalNode(nodes, nodes[nodes.length - 1], nodes.length - 1,
-                                               maxRank, -1);
+      DNode maxNormalNode =
+          findRankNormalNode(nodes, nodes[nodes.length - 1], nodes.length - 1, maxRank, -1);
       if (maxNormalNode != null) {
         maxRank++;
       }
@@ -173,8 +177,8 @@ class ContainerCollapse {
     }
   }
 
-  private DNode findRankNormalNode(DNode[] nodes, DNode skipNode, int startIdx, int rank,
-                                   int delta) {
+  private DNode findRankNormalNode(
+      DNode[] nodes, DNode skipNode, int startIdx, int rank, int delta) {
     for (int i = startIdx; i < nodes.length && i >= 0; i += delta) {
       if (nodes[i] == skipNode) {
         continue;
@@ -214,8 +218,9 @@ class ContainerCollapse {
   private SubRankInfo collapseSet(DotDigraph digraph) {
     List<Cluster> clusters = new ArrayList<>(0);
     // Merge subgraphs and create proxy nodes for each group of subgraphs
-    SubgraphMerge subgraphMerge = SubgraphMerge
-        .newSubgraphMerge(graphContainer, dotAttachment, c -> clusters.addAll(c.clusters()));
+    SubgraphMerge subgraphMerge =
+        SubgraphMerge.newSubgraphMerge(
+            graphContainer, dotAttachment, c -> clusters.addAll(c.clusters()));
 
     return new SubRankInfo(
         clusters,
@@ -223,8 +228,7 @@ class ContainerCollapse {
         /*
          * Inside the sub-container, use only one node proxy the other nodes
          */
-        rankContentHandle(digraph, clusters, subgraphMerge)
-    );
+        rankContentHandle(digraph, clusters, subgraphMerge));
   }
 
   private RankContent restoreRankContent(RankContent rankContent, SubRankInfo subRankInfo) {
@@ -232,9 +236,8 @@ class ContainerCollapse {
       return rankContent;
     }
 
-    Collection<Cluster> clusters = subRankInfo.clusters != null
-        ? subRankInfo.clusters
-        : Collections.emptyList();
+    Collection<Cluster> clusters =
+        subRankInfo.clusters != null ? subRankInfo.clusters : Collections.emptyList();
 
     // Expand cluster
     for (Cluster cluster : clusters) {
@@ -271,9 +274,8 @@ class ContainerCollapse {
     return rankContent;
   }
 
-  private Map<GraphContainer, RankTemp> rankContentHandle(DotDigraph digraph,
-                                                          List<Cluster> clusters,
-                                                          SubgraphMerge subgraphMerge) {
+  private Map<GraphContainer, RankTemp> rankContentHandle(
+      DotDigraph digraph, List<Cluster> clusters, SubgraphMerge subgraphMerge) {
     Map<GraphContainer, RankTemp> clusterMerge = null;
     for (Cluster cluster : clusters) {
       if (cluster.isEmpty()) {
@@ -304,8 +306,8 @@ class ContainerCollapse {
     return clusterMerge;
   }
 
-  private void addAuxDigraphNode(DotDigraph digraph, SubgraphMerge subgraphMerge,
-                                 Map<GraphContainer, RankTemp> clusterMerge) {
+  private void addAuxDigraphNode(
+      DotDigraph digraph, SubgraphMerge subgraphMerge, Map<GraphContainer, RankTemp> clusterMerge) {
     for (DNode dNode : dotAttachment.nodes(graphContainer)) {
       GraphContainer c = findCurrentContainerDirectContain(dNode);
 
@@ -334,10 +336,14 @@ class ContainerCollapse {
     }
   }
 
-  private void addAuxDigraphLine(DotDigraph digraph, SubgraphMerge subgraphMerge,
-                                 Map<GraphContainer, RankTemp> clusterMerge) {
+  private void addAuxDigraphLine(
+      DotDigraph digraph, SubgraphMerge subgraphMerge, Map<GraphContainer, RankTemp> clusterMerge) {
     DrawGraph drawGraph = dotAttachment.getDrawGraph();
     for (Line line : dotAttachment.lines(graphContainer)) {
+      if (dotAttachment.haveNonConstraintLines()
+          && Boolean.FALSE.equals(drawGraph.lineAttrs(line).getConstraint())) {
+        continue;
+      }
       DNode from = dotAttachment.get(line.tail());
       DNode to = dotAttachment.get(line.head());
 
@@ -351,11 +357,13 @@ class ContainerCollapse {
       double weight = lineAttrs.getWeight() != null ? lineAttrs.getWeight() : 1D;
       int minlen = lineAttrs.getMinlen() != null ? lineAttrs.getMinlen() : 1;
 
-      // Find the delegate node of the Subgraph where the two endpoints of the current edge are located
+      // Find the delegate node of the Subgraph where the two endpoints of the current edge are
+      // located
       MergeNode fromSubMergeNode = subgraphMerge.getMergeNode(from);
       MergeNode toSubMergeNode = subgraphMerge.getMergeNode(to);
 
-      // If the "from" node is set to MAX or SINK, or the "to" node is set to MIN or SOURCE, the edge needs to be reversed.
+      // If the "from" node is set to MAX or SINK, or the "to" node is set to MIN or SOURCE, the
+      // edge needs to be reversed.
       if (needReverse(fromSubMergeNode, toSubMergeNode)) {
         Object tmp = from;
         from = to;
@@ -395,19 +403,19 @@ class ContainerCollapse {
     }
   }
 
-  private void addAuxClusterLine(DotDigraph digraph, DNode from, DNode to,
-                                 DNode fm, DNode tm, double weight, int minlen) {
+  private void addAuxClusterLine(
+      DotDigraph digraph, DNode from, DNode to, DNode fm, DNode tm, double weight, int minlen) {
     DNode aux = new DNode(null, 0, 0, 0);
     if (tm == null) {
       /*
        * If primitive line's from is in child cluster
        *
        * 1.The line(aux -> from)'s minlen is zero
-       * 2.The line(aux -> to)'s minlen is primitive minlen add the value that original node level minus the smallest level in the cluster
+       * 2.The line(aux -> to)'s minlen is primitive minlen add the value that original node level
+       * minus the smallest level in the cluster
        */
       digraph.addEdge(new DLine(aux, fm, null, weight * 10, 0));
-      digraph.addEdge(
-          new DLine(aux, to, null, weight, minlen + from.getRank() - fm.getRank()));
+      digraph.addEdge(new DLine(aux, to, null, weight, minlen + from.getRank() - fm.getRank()));
       return;
     }
 
@@ -421,9 +429,11 @@ class ContainerCollapse {
     }
 
     /*
-     * If primitive minlen minus the value that original node level minus the smallest level in the cluster is larger than zero
+     * If primitive minlen minus the value that original node level minus the smallest level in
+     * the cluster is larger than zero
      *
-     * 1.The line(aux -> from)'s minlen is primitive minlen add the value that original node level minus the smallest level in the cluster
+     * 1.The line(aux -> from)'s minlen is primitive minlen add the value that original node level
+     * minus the smallest level in the cluster
      * 2.The line(aux -> to)'s minlen is zero
      */
     if (r > 0) {
@@ -478,7 +488,8 @@ class ContainerCollapse {
   }
 
   private boolean needIgnore(DNode fm, DNode tm) {
-    if (fm == null || tm == null
+    if (fm == null
+        || tm == null
         || fm.getContainer() == graphContainer
         || tm.getContainer() == graphContainer) {
       return false;
@@ -502,9 +513,10 @@ class ContainerCollapse {
 
     private final Map<GraphContainer, RankTemp> clusterMerge;
 
-    public SubRankInfo(List<Cluster> clusters,
-                       SubgraphMerge subgraphMerge,
-                       Map<GraphContainer, RankTemp> clusterMerge) {
+    public SubRankInfo(
+        List<Cluster> clusters,
+        SubgraphMerge subgraphMerge,
+        Map<GraphContainer, RankTemp> clusterMerge) {
       this.clusters = clusters;
       this.subgraphMerge = subgraphMerge;
       this.clusterMerge = clusterMerge;

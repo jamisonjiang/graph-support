@@ -17,14 +17,18 @@
 package org.graphper;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.antlr.v4.runtime.CharStream;
 import org.graphper.api.FileType;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.api.attributes.Layout;
 
 /**
  * Represents a command for processing a DOT file and generating a graph image. This class contains
- * information about the input DOT file, output file, the file type for the output, and the layout
- * to be used for generating the graph.
+ * information about the input DOT file, output file, the file type for the output, the layout to
+ * be used for generating the graph, and the image security policy to render under.
  *
  * @author Jamison Jiang
  */
@@ -34,6 +38,8 @@ public class Command {
   private File output;
   private FileType fileType;
   private Layout layout;
+  private final Set<String> allowedImageHosts = new LinkedHashSet<>();
+  private Path imageBaseDirectory;
 
   /**
    * Gets the DOT file as a CharStream.
@@ -105,5 +111,68 @@ public class Command {
    */
   public void setLayout(Layout layout) {
     this.layout = layout;
+  }
+
+  /**
+   * Adds a hostname whose {@code http}/{@code https} images may be loaded. Adding at least one
+   * host is what turns remote image loading on; without it remote images stay denied.
+   *
+   * @param host DNS hostname without a port
+   */
+  public void addAllowedImageHost(String host) {
+    allowedImageHosts.add(host);
+  }
+
+  /**
+   * Gets the hostnames whose remote images are allowed.
+   *
+   * @return the allowed hostnames, in the order they were given
+   */
+  public Set<String> getAllowedImageHosts() {
+    return allowedImageHosts;
+  }
+
+  /**
+   * Sets the directory that filesystem image references must resolve inside. Without it
+   * filesystem images stay denied.
+   *
+   * @param imageBaseDirectory the local image base directory
+   */
+  public void setImageBaseDirectory(Path imageBaseDirectory) {
+    this.imageBaseDirectory = imageBaseDirectory;
+  }
+
+  /**
+   * Gets the local image base directory.
+   *
+   * @return the local image base directory, or {@code null} when none was given
+   */
+  public Path getImageBaseDirectory() {
+    return imageBaseDirectory;
+  }
+
+  /**
+   * Builds the rendering security policy for this command. When no image option was given this is
+   * exactly {@link SecurityPolicy#defaultPolicy()}, so the secure default is unchanged; the
+   * options only ever add explicitly named hosts or one explicitly named base directory.
+   *
+   * @return the security policy to render under
+   * @throws IllegalArgumentException if a hostname is not a bare DNS hostname
+   */
+  public SecurityPolicy getSecurityPolicy() {
+    if (allowedImageHosts.isEmpty() && imageBaseDirectory == null) {
+      return SecurityPolicy.defaultPolicy();
+    }
+    SecurityPolicy.Builder builder = SecurityPolicy.builder();
+    if (!allowedImageHosts.isEmpty()) {
+      builder.allowRemoteImages(true);
+      for (String host : allowedImageHosts) {
+        builder.allowRemoteImageHost(host);
+      }
+    }
+    if (imageBaseDirectory != null) {
+      builder.localImageBaseDirectory(imageBaseDirectory.toFile());
+    }
+    return builder.build();
   }
 }

@@ -17,8 +17,8 @@
 package org.graphper.layout;
 
 import org.graphper.def.FlatPoint;
-import org.graphper.layout.dot.RouterBox;
 import org.graphper.draw.ContainerDrawProp;
+import org.graphper.layout.dot.RouterBox;
 
 /**
  * A strategy for two-dimensional translation of elements, where elements move a horizontal and

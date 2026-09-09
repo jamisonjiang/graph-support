@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 
+/** Calculates container dimensions, containment, and label placement for triangles. */
 public class TrianglePropCalc implements ShapePropCalc, Serializable {
 
   private final boolean positive;
@@ -43,10 +44,10 @@ public class TrianglePropCalc implements ShapePropCalc, Serializable {
     double bottom = box.getY() + box.getHeight() / 2;
 
     if (positive) {
-      return Vectors.inAngle(left, bottom, box.getX(), top, right, bottom,
-                             point.getX(), point.getY())
-          && Vectors.inAngle(right, bottom, left, bottom, box.getX(), top,
-                             point.getX(), point.getY());
+      return Vectors.inAngle(
+              left, bottom, box.getX(), top, right, bottom, point.getX(), point.getY())
+          && Vectors.inAngle(
+              right, bottom, left, bottom, box.getX(), top, point.getX(), point.getY());
     }
 
     return Vectors.inAngle(left, top, box.getX(), bottom, right, top, point.getX(), point.getY())

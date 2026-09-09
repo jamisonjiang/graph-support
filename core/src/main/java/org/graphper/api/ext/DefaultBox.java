@@ -34,9 +34,9 @@ public class DefaultBox implements Box {
 
   protected double downBorder;
 
-  public DefaultBox() {
-  }
+  public DefaultBox() {}
 
+  /** Creates a box with ordered horizontal and vertical borders. */
   public DefaultBox(double leftBorder, double rightBorder, double upBorder, double downBorder) {
     Asserts.illegalArgument(leftBorder > rightBorder, HORIZONTAL_ERROR);
     Asserts.illegalArgument(upBorder > downBorder, VERTICAL_ERROR);
@@ -91,10 +91,10 @@ public class DefaultBox implements Box {
       return false;
     }
     DefaultBox routerBox = (DefaultBox) o;
-    return Double.compare(routerBox.leftBorder, leftBorder) == 0 &&
-        Double.compare(routerBox.rightBorder, rightBorder) == 0 &&
-        Double.compare(routerBox.upBorder, upBorder) == 0 &&
-        Double.compare(routerBox.downBorder, downBorder) == 0;
+    return Double.compare(routerBox.leftBorder, leftBorder) == 0
+        && Double.compare(routerBox.rightBorder, rightBorder) == 0
+        && Double.compare(routerBox.upBorder, upBorder) == 0
+        && Double.compare(routerBox.downBorder, downBorder) == 0;
   }
 
   @Override
@@ -104,11 +104,15 @@ public class DefaultBox implements Box {
 
   @Override
   public String toString() {
-    return "DefaultBox{" +
-        "leftBorder=" + leftBorder +
-        ", rightBorder=" + rightBorder +
-        ", upBorder=" + upBorder +
-        ", downBorder=" + downBorder +
-        '}';
+    return "DefaultBox{"
+        + "leftBorder="
+        + leftBorder
+        + ", rightBorder="
+        + rightBorder
+        + ", upBorder="
+        + upBorder
+        + ", downBorder="
+        + downBorder
+        + '}';
   }
 }

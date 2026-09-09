@@ -19,6 +19,7 @@ package org.graphper.layout.fdp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.ALine;
 
+/** An edge connecting force-directed layout nodes. */
 public class FLine extends ALine<FNode, FLine> {
 
   private static final long serialVersionUID = -2526416728355227232L;

@@ -21,10 +21,10 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import org.graphper.def.CycleDependencyException;
 import org.graphper.api.Cluster;
 import org.graphper.api.GraphContainer;
 import org.graphper.api.Subgraph;
+import org.graphper.def.CycleDependencyException;
 
 /**
  * Graphviz container tool class.
@@ -33,61 +33,87 @@ import org.graphper.api.Subgraph;
  */
 public class GraphvizUtils {
 
-  private GraphvizUtils() {
+  private GraphvizUtils() {}
+
+  /** Traverses nested containers depth-first with a depth limit and continuation predicate. */
+  public static void dfs(
+      int maxDepth,
+      boolean preConsumer,
+      GraphContainer container,
+      Consumer<Subgraph> subgraphConsumer,
+      Consumer<Cluster> clusterConsumer,
+      Predicate<GraphContainer> continueDfsPredicate) {
+    dfs(
+        maxDepth,
+        preConsumer,
+        null,
+        null,
+        container,
+        subgraphConsumer,
+        clusterConsumer,
+        continueDfsPredicate);
   }
 
-  public static void dfs(int maxDepth, boolean preConsumer,
-                         GraphContainer container,
-                         Consumer<Subgraph> subgraphConsumer,
-                         Consumer<Cluster> clusterConsumer,
-                         Predicate<GraphContainer> continueDfsPredicate) {
-    dfs(maxDepth, preConsumer, null, null, container,
-        subgraphConsumer, clusterConsumer, continueDfsPredicate);
-  }
-
-
-  public static void dfs(int maxDepth, boolean preConsumer,
-                         Set<GraphContainer> path,
-                         Set<GraphContainer> accessStack,
-                         GraphContainer container,
-                         Consumer<Subgraph> subgraphConsumer,
-                         Consumer<Cluster> clusterConsumer,
-                         Predicate<GraphContainer> continueDfsPredicate) {
+  /** Traverses nested containers using the supplied visited and active-path sets. */
+  public static void dfs(
+      int maxDepth,
+      boolean preConsumer,
+      Set<GraphContainer> path,
+      Set<GraphContainer> accessStack,
+      GraphContainer container,
+      Consumer<Subgraph> subgraphConsumer,
+      Consumer<Cluster> clusterConsumer,
+      Predicate<GraphContainer> continueDfsPredicate) {
     Asserts.nullArgument(container, "container");
 
-    dfs(preConsumer, 1, maxDepth,
-        path, accessStack, container,
+    dfs(
+        preConsumer,
+        1,
+        maxDepth,
+        path,
+        accessStack,
+        container,
         (c, f) -> subgraphConsumer.accept(c),
         (c, f) -> clusterConsumer.accept(c),
         continueDfsPredicate);
   }
 
-
-  public static void dfs(int maxDepth, boolean preConsumer,
-                         Set<GraphContainer> path,
-                         Set<GraphContainer> accessStack,
-                         GraphContainer container,
-                         BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
-                         BiConsumer<Cluster, GraphContainer> clusterConsumer,
-                         Predicate<GraphContainer> continueDfsPredicate) {
+  /** Traverses nested containers and supplies each container's parent to its consumer. */
+  public static void dfs(
+      int maxDepth,
+      boolean preConsumer,
+      Set<GraphContainer> path,
+      Set<GraphContainer> accessStack,
+      GraphContainer container,
+      BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
+      BiConsumer<Cluster, GraphContainer> clusterConsumer,
+      Predicate<GraphContainer> continueDfsPredicate) {
     Asserts.nullArgument(container, "container");
 
-    dfs(preConsumer, 1, maxDepth, path, accessStack, container,
-        subgraphConsumer, clusterConsumer, continueDfsPredicate);
+    dfs(
+        preConsumer,
+        1,
+        maxDepth,
+        path,
+        accessStack,
+        container,
+        subgraphConsumer,
+        clusterConsumer,
+        continueDfsPredicate);
   }
 
-  private static void dfs(boolean preConsumer,
-                          int depth, int maxDepth,
-                          Set<GraphContainer> path,
-                          Set<GraphContainer> accessStack,
-                          GraphContainer container,
-                          BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
-                          BiConsumer<Cluster, GraphContainer> clusterConsumer,
-                          Predicate<GraphContainer> continueDfsPredicate) {
+  private static void dfs(
+      boolean preConsumer,
+      int depth,
+      int maxDepth,
+      Set<GraphContainer> path,
+      Set<GraphContainer> accessStack,
+      GraphContainer container,
+      BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
+      BiConsumer<Cluster, GraphContainer> clusterConsumer,
+      Predicate<GraphContainer> continueDfsPredicate) {
     Asserts.illegalArgument(
-        depth > maxDepth,
-        "The depth of the subgraph exceeds the maximum depth " + maxDepth
-    );
+        depth > maxDepth, "The depth of the subgraph exceeds the maximum depth " + maxDepth);
     if (accessStack != null) {
       if (accessStack.contains(container)) {
         throw new CycleDependencyException(
@@ -106,16 +132,32 @@ public class GraphvizUtils {
 
     // Subgraphs dfs
     for (Subgraph subgraph : container.subgraphs()) {
-      consumerContainer(preConsumer, depth, maxDepth, path,
-                        accessStack, subgraphConsumer, clusterConsumer,
-                        continueDfsPredicate, subgraph, container);
+      consumerContainer(
+          preConsumer,
+          depth,
+          maxDepth,
+          path,
+          accessStack,
+          subgraphConsumer,
+          clusterConsumer,
+          continueDfsPredicate,
+          subgraph,
+          container);
     }
 
     // Clusters dfs
     for (Cluster cluster : container.clusters()) {
-      consumerContainer(preConsumer, depth, maxDepth, path,
-                        accessStack, subgraphConsumer, clusterConsumer,
-                        continueDfsPredicate, cluster, container);
+      consumerContainer(
+          preConsumer,
+          depth,
+          maxDepth,
+          path,
+          accessStack,
+          subgraphConsumer,
+          clusterConsumer,
+          continueDfsPredicate,
+          cluster,
+          container);
     }
 
     if (accessStack != null) {
@@ -123,23 +165,34 @@ public class GraphvizUtils {
     }
   }
 
-  private static void consumerContainer(boolean preConsumer,
-                                        int depth, int maxDepth,
-                                        Set<GraphContainer> path,
-                                        Set<GraphContainer> accessStack,
-                                        BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
-                                        BiConsumer<Cluster, GraphContainer> clusterConsumer,
-                                        Predicate<GraphContainer> continueDfsPredicate,
-                                        GraphContainer container, GraphContainer father) {
+  private static void consumerContainer(
+      boolean preConsumer,
+      int depth,
+      int maxDepth,
+      Set<GraphContainer> path,
+      Set<GraphContainer> accessStack,
+      BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
+      BiConsumer<Cluster, GraphContainer> clusterConsumer,
+      Predicate<GraphContainer> continueDfsPredicate,
+      GraphContainer container,
+      GraphContainer father) {
     if (preConsumer) {
       consumerContainer(father, container, subgraphConsumer, clusterConsumer);
     }
 
     // continue dfs ?
-    if (continueDfsPredicate == null ||
-        Objects.equals(Boolean.TRUE, continueDfsPredicate.test(container))) {
-      dfs(preConsumer, depth + 1, maxDepth, path, accessStack, container,
-          subgraphConsumer, clusterConsumer, continueDfsPredicate);
+    if (continueDfsPredicate == null
+        || Objects.equals(Boolean.TRUE, continueDfsPredicate.test(container))) {
+      dfs(
+          preConsumer,
+          depth + 1,
+          maxDepth,
+          path,
+          accessStack,
+          container,
+          subgraphConsumer,
+          clusterConsumer,
+          continueDfsPredicate);
     }
 
     if (!preConsumer) {
@@ -147,9 +200,11 @@ public class GraphvizUtils {
     }
   }
 
-  private static void consumerContainer(GraphContainer father, GraphContainer container,
-                                        BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
-                                        BiConsumer<Cluster, GraphContainer> clusterConsumer) {
+  private static void consumerContainer(
+      GraphContainer father,
+      GraphContainer container,
+      BiConsumer<Subgraph, GraphContainer> subgraphConsumer,
+      BiConsumer<Cluster, GraphContainer> clusterConsumer) {
     if (container.isSubgraph() && subgraphConsumer != null) {
       subgraphConsumer.accept((Subgraph) container, father);
     } else if (container.isCluster() && clusterConsumer != null) {

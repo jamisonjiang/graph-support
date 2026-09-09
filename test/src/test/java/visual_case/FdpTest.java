@@ -17,12 +17,14 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Splines;
 import org.junit.jupiter.api.Test;
 
+@VisualTags({"force-layout", "fdp"})
 public class FdpTest extends GraphvizVisual {
 
   @Test

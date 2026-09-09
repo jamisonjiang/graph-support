@@ -33,6 +33,7 @@ import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.def.FlatPoint;
 
+/** Draws text with AWT, using native rendering for right-to-left content. */
 public class AWTextRender {
 
   private final Font font;
@@ -45,6 +46,7 @@ public class AWTextRender {
 
   private final Graphics2D g2d;
 
+  /** Creates a text renderer for the supplied font, baseline position, and graphics context. */
   public AWTextRender(Font font, String text, double x, double y, Graphics2D g2d) {
     Objects.requireNonNull(font);
     Objects.requireNonNull(text);
@@ -56,6 +58,7 @@ public class AWTextRender {
     this.g2d = g2d;
   }
 
+  /** Draws the text and returns its measured height and width. */
   public FlatPoint draw() {
     if (StringUtils.containsRTL(text)) {
       return drawByNativeMethod();
@@ -122,6 +125,7 @@ public class AWTextRender {
     return new FlatPoint(height, width);
   }
 
+  /** Returns the text bounds at the configured baseline position. */
   public Rectangle2D getTextBounds() {
     // Get FontMetrics for the current font
     FontMetrics metrics = g2d.getFontMetrics(font);

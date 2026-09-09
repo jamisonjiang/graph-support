@@ -24,10 +24,9 @@ import org.graphper.layout.fdp.FdpGraph.AreaGraph;
  * Force-Directed Placement (FDP) Layout Engine.
  *
  * <p>This layout engine calculates graph layouts using a force-directed algorithm. It supports
- * various
- * edge routing strategies and provides functionalities for clustering and handling connected
- * components. The engine integrates with the Graphviz library and operates on a {@link DrawGraph}
- * to produce the final layout.</p>
+ * various edge routing strategies and provides functionalities for clustering and handling
+ * connected components. The engine integrates with the Graphviz library and operates on a {@link
+ * DrawGraph} to produce the final layout.
  *
  * @author Jamison Jiang
  */
@@ -35,8 +34,8 @@ public class FdpLayoutEngine extends AbstractFdpLayout {
 
   private static final long serialVersionUID = 4639188492816085348L;
 
-  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
-                           double k, double width, double height) {
+  protected void fdpLayout(
+      AreaGraph graph, int iterations, double temperature, double k, double width, double height) {
     double ksqaure = k * k;
     double gravityStrength = 0.1;
 
@@ -95,19 +94,21 @@ public class FdpLayoutEngine extends AbstractFdpLayout {
       for (FNode n : graph) {
         double deltaX = center.getX() - n.getX();
         double deltaY = center.getY() - n.getY();
-        n.setRepulsionLocation(n.getRepulsionX() + gravityStrength * deltaX,
-                               n.getRepulsionY() + gravityStrength * deltaY);
+        n.setRepulsionLocation(
+            n.getRepulsionX() + gravityStrength * deltaX,
+            n.getRepulsionY() + gravityStrength * deltaY);
       }
 
       // Limit the displacement and update positions
       for (FNode v : graph) {
-        double displacement = Math.sqrt(v.getRepulsionX() * v.getRepulsionX()
-                                            + v.getRepulsionY() * v.getRepulsionY());
+        double displacement =
+            Math.sqrt(
+                v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
-          double x = v.getX() + (v.getRepulsionX() / displacement)
-              * Math.min(displacement, temperature);
-          double y = v.getY() + (v.getRepulsionY() / displacement)
-              * Math.min(displacement, temperature);
+          double x =
+              v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature);
+          double y =
+              v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature);
           graph.setNodeLocation(v, x, y);
         }
       }

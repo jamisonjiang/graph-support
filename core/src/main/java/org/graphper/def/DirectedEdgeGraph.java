@@ -42,6 +42,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
     super(capacity);
   }
 
+  /** Creates a graph from the supplied edges, or an empty graph when the array is null. */
   public DirectedEdgeGraph(E[] edges) {
     this();
     if (edges != null) {
@@ -51,6 +52,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
     }
   }
 
+  /** Creates a graph from the supplied edges, or an empty graph when the collection is null. */
   public DirectedEdgeGraph(Collection<E> edges) {
     this();
     if (edges != null) {
@@ -146,7 +148,6 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
         E reversedEdge = edge.reverse();
         reversed.addEdge(reversedEdge);
       }
-
     }
 
     return reversed;
@@ -160,19 +161,18 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
   @Override
   protected void adjustAdjWhenRemoveNode(V v, AdjacencyList<V, E> adj) {
     AtomicInteger removeNum = new AtomicInteger(0);
-    adj.removeFirstIf(adjacent -> {
-      if (Objects.equals(adjacent.from(), v) || Objects.equals(adjacent.to(), v)) {
-        removeNum.incrementAndGet();
-        return true;
-      }
-      return false;
-    });
+    adj.removeFirstIf(
+        adjacent -> {
+          if (Objects.equals(adjacent.from(), v) || Objects.equals(adjacent.to(), v)) {
+            removeNum.incrementAndGet();
+            return true;
+          }
+          return false;
+        });
     edgeNum -= removeNum.get();
   }
 
-  /**
-   * Iterator for all edges in the graph.
-   */
+  /** Iterator for all edges in the graph. */
   private class EdgeIterator implements Iterator<E> {
 
     private final Iterator<AdjacencyList<V, E>> adjIterator;
@@ -223,7 +223,7 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     return super.equals(obj);
   }
 
@@ -237,4 +237,3 @@ public class DirectedEdgeGraph<V, E extends DirectedEdge<V, E>> extends Abstract
     return "DirectedEdgeGraph{" + super.toString().substring(super.toString().indexOf('{') + 1);
   }
 }
-

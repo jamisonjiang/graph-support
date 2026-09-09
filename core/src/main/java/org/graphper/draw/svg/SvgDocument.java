@@ -28,12 +28,14 @@ import java.util.function.Consumer;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 
+/** Stores SVG elements and serializes them as an XML document. */
 public final class SvgDocument implements SvgConstants, Document, Serializable {
 
   private static final long serialVersionUID = -9126509188726886245L;
 
   private static final String XML_VERSION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-  private static final String DOC_TYPE = "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">";
+  private static final String DOC_TYPE =
+      "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">";
 
   private final Map<String, SvgElement> elementMap;
 
@@ -86,8 +88,8 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
     return xml.toString();
   }
 
-  private void appendElement(StringBuilder xml, Element element,
-                             Map<Element, List<Element>> groups, int depth) {
+  private void appendElement(
+      StringBuilder xml, Element element, Map<Element, List<Element>> groups, int depth) {
     appendIndent(xml, depth);
     xml.append(LT).append(element.tagName());
     String attr = element.toAttrStr();
@@ -122,8 +124,8 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
     accessEles(consumer, null);
   }
 
-  private void accessEles(BiConsumer<Element, List<Element>> preConsumer,
-                          Consumer<Element> postConsumer) {
+  private void accessEles(
+      BiConsumer<Element, List<Element>> preConsumer, Consumer<Element> postConsumer) {
     if (preConsumer == null || elementMap.size() == 0) {
       return;
     }
@@ -142,20 +144,24 @@ public final class SvgDocument implements SvgConstants, Document, Serializable {
   private Map<Element, List<Element>> groupElements() {
     Map<Element, List<Element>> groups = new LinkedHashMap<>();
     for (SvgElement element : elementMap.values()) {
-      groups.compute(element.parent(), (k, v) -> {
-        if (v == null) {
-          v = new ArrayList<>();
-        }
-        v.add(element);
-        return v;
-      });
+      groups.compute(
+          element.parent(),
+          (k, v) -> {
+            if (v == null) {
+              v = new ArrayList<>();
+            }
+            v.add(element);
+            return v;
+          });
     }
     return groups;
   }
 
-  private void accessEle(Element element, Map<Element, List<Element>> groups,
-                         BiConsumer<Element, List<Element>> preConsumer,
-                         Consumer<Element> postConsumer) {
+  private void accessEle(
+      Element element,
+      Map<Element, List<Element>> groups,
+      BiConsumer<Element, List<Element>> preConsumer,
+      Consumer<Element> postConsumer) {
     if (element == null) {
       return;
     }

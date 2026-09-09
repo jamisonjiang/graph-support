@@ -44,7 +44,7 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
     try {
       RECT = Class.forName("android.graphics.Rect");
       TEXT_PAIN = Class.forName("android.text.TextPaint");
-    } catch (ClassNotFoundException e) {
+    } catch (ClassNotFoundException | LinkageError | SecurityException e) {
       // Ignore missing classes
     }
   }
@@ -65,7 +65,7 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
    * availability of required classes ({@code Rect} and {@code TextPaint}).
    *
    * @return {@code true} if the environment supports Android text measurement, {@code false}
-   * otherwise
+   *     otherwise
    */
   @Override
   public boolean envSupport() {
@@ -87,14 +87,14 @@ public class AndroidMeasureText implements MeasureText, FontSelector {
    *
    * <p>This method uses Android's {@code TextPaint} and {@code Rect} classes to calculate
    * dimensions. The height accounts for multiple lines by multiplying the height of a single line
-   * by the number of lines in the text.</p>
+   * by the number of lines in the text.
    *
    * <p>If an error occurs during measurement, it logs the error and returns a {@link FlatPoint}
-   * with both dimensions set to {@code 0}.</p>
+   * with both dimensions set to {@code 0}.
    *
-   * @param text       the text to be measured
-   * @param fontName   the name of the font (not used in this implementation)
-   * @param fontSize   the size of the font in points
+   * @param text the text to be measured
+   * @param fontName the name of the font (not used in this implementation)
+   * @param fontSize the size of the font in points
    * @param fontStyles the font styles of text
    * @return a {@link FlatPoint} representing the height and width of the text
    */

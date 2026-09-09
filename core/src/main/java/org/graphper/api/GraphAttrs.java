@@ -95,6 +95,8 @@ public class GraphAttrs implements Serializable, Cloneable {
 
   InitPos initPos = InitPos.SECTOR;
 
+  SecurityPolicy securityPolicy = SecurityPolicy.defaultPolicy();
+
   public Splines getSplines() {
     return splines;
   }
@@ -203,6 +205,10 @@ public class GraphAttrs implements Serializable, Cloneable {
     return initPos;
   }
 
+  public SecurityPolicy getSecurityPolicy() {
+    return securityPolicy == null ? SecurityPolicy.defaultPolicy() : securityPolicy;
+  }
+
   @Override
   public GraphAttrs clone() {
     try {
@@ -221,60 +227,133 @@ public class GraphAttrs implements Serializable, Cloneable {
       return false;
     }
     GraphAttrs that = (GraphAttrs) o;
-    return Double.compare(that.nodeSep, nodeSep) == 0 && nslimit == that.nslimit
-        && nslimit1 == that.nslimit1 && Double.compare(that.rankSep, rankSep) == 0
-        && mclimit == that.mclimit && Double.compare(that.fontSize, fontSize) == 0
-        && showGrid == that.showGrid && maxiter == that.maxiter
-        && Double.compare(that.k, k) == 0 && overlap == that.overlap
-        && Objects.equals(bgColor, that.bgColor) && splines == that.splines
-        && Objects.equals(fontColor, that.fontColor) && rankdir == that.rankdir
-        && layout == that.layout && Objects.equals(label, that.label)
+    return Double.compare(that.nodeSep, nodeSep) == 0
+        && nslimit == that.nslimit
+        && nslimit1 == that.nslimit1
+        && Double.compare(that.rankSep, rankSep) == 0
+        && mclimit == that.mclimit
+        && Double.compare(that.fontSize, fontSize) == 0
+        && showGrid == that.showGrid
+        && maxiter == that.maxiter
+        && Double.compare(that.k, k) == 0
+        && overlap == that.overlap
+        && Objects.equals(bgColor, that.bgColor)
+        && splines == that.splines
+        && Objects.equals(fontColor, that.fontColor)
+        && rankdir == that.rankdir
+        && layout == that.layout
+        && Objects.equals(label, that.label)
         && Objects.equals(labelTag, that.labelTag)
-        && Objects.equals(fontName, that.fontName) && labelloc == that.labelloc
-        && labeljust == that.labeljust && Objects.equals(scale, that.scale)
-        && Objects.equals(margin, that.margin) && Objects.equals(href, that.href)
-        && Objects.equals(tooltip, that.tooltip) && Objects.equals(table, that.table)
-        && Objects.equals(assemble, that.assemble) && initPos == that.initPos;
+        && Objects.equals(fontName, that.fontName)
+        && labelloc == that.labelloc
+        && labeljust == that.labeljust
+        && Objects.equals(scale, that.scale)
+        && Objects.equals(margin, that.margin)
+        && Objects.equals(href, that.href)
+        && Objects.equals(tooltip, that.tooltip)
+        && Objects.equals(table, that.table)
+        && Objects.equals(assemble, that.assemble)
+        && initPos == that.initPos
+        && Objects.equals(getSecurityPolicy(), that.getSecurityPolicy());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(bgColor, splines, fontColor, rankdir, layout, nodeSep, label, labelTag,
-                        fontName, labelloc, labeljust, nslimit, nslimit1, rankSep, scale, margin,
-                        mclimit, fontSize, showGrid, href, tooltip, table, assemble, maxiter, k,
-                        overlap, initPos);
+    return Objects.hash(
+        bgColor,
+        splines,
+        fontColor,
+        rankdir,
+        layout,
+        nodeSep,
+        label,
+        labelTag,
+        fontName,
+        labelloc,
+        labeljust,
+        nslimit,
+        nslimit1,
+        rankSep,
+        scale,
+        margin,
+        mclimit,
+        fontSize,
+        showGrid,
+        href,
+        tooltip,
+        table,
+        assemble,
+        maxiter,
+        k,
+        overlap,
+        initPos,
+        getSecurityPolicy());
   }
 
   @Override
   public String toString() {
-    return "GraphAttrs{" +
-        "bgColor=" + bgColor +
-        ", splines=" + splines +
-        ", fontColor=" + fontColor +
-        ", rankdir=" + rankdir +
-        ", layout=" + layout +
-        ", nodeSep=" + nodeSep +
-        ", label='" + label + '\'' +
-        ", labelTag='" + labelTag + '\'' +
-        ", fontName='" + fontName + '\'' +
-        ", labelloc=" + labelloc +
-        ", labeljust=" + labeljust +
-        ", nslimit=" + nslimit +
-        ", nslimit1=" + nslimit1 +
-        ", rankSep=" + rankSep +
-        ", scale=" + scale +
-        ", margin=" + margin +
-        ", mclimit=" + mclimit +
-        ", fontSize=" + fontSize +
-        ", showGrid=" + showGrid +
-        ", href='" + href + '\'' +
-        ", tooltips='" + tooltip + '\'' +
-        ", table=" + table +
-        ", assemble=" + assemble +
-        ", maxiter=" + maxiter +
-        ", k=" + k +
-        ", overlap=" + overlap +
-        ", initPos=" + initPos +
-        '}';
+    return "GraphAttrs{"
+        + "bgColor="
+        + bgColor
+        + ", splines="
+        + splines
+        + ", fontColor="
+        + fontColor
+        + ", rankdir="
+        + rankdir
+        + ", layout="
+        + layout
+        + ", nodeSep="
+        + nodeSep
+        + ", label='"
+        + label
+        + '\''
+        + ", labelTag='"
+        + labelTag
+        + '\''
+        + ", fontName='"
+        + fontName
+        + '\''
+        + ", labelloc="
+        + labelloc
+        + ", labeljust="
+        + labeljust
+        + ", nslimit="
+        + nslimit
+        + ", nslimit1="
+        + nslimit1
+        + ", rankSep="
+        + rankSep
+        + ", scale="
+        + scale
+        + ", margin="
+        + margin
+        + ", mclimit="
+        + mclimit
+        + ", fontSize="
+        + fontSize
+        + ", showGrid="
+        + showGrid
+        + ", href='"
+        + href
+        + '\''
+        + ", tooltips='"
+        + tooltip
+        + '\''
+        + ", table="
+        + table
+        + ", assemble="
+        + assemble
+        + ", maxiter="
+        + maxiter
+        + ", k="
+        + k
+        + ", overlap="
+        + overlap
+        + ", initPos="
+        + initPos
+        + ", securityPolicy="
+        + getSecurityPolicy()
+        + '}';
   }
 }

@@ -17,6 +17,7 @@
 package visual_case;
 
 import helper.GraphvizVisual;
+import helper.VisualTags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,6 +35,7 @@ import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.LineStyle;
 import org.graphper.api.attributes.Port;
 
+@VisualTags({"edge", "attributes"})
 public class LineAttrTest extends GraphvizVisual {
 
   private static final Node a = Node.builder().label("a").build();
@@ -149,6 +151,7 @@ public class LineAttrTest extends GraphvizVisual {
               .label("shape=" + arrowShape.name())
               .arrowTail(arrowShape)
               .arrowHead(arrowShape)
+              .dir(Dir.BOTH)
               .arrowSize(0.4 * (lines.size() + 1))
               .build()
       );
@@ -201,17 +204,20 @@ public class LineAttrTest extends GraphvizVisual {
 
   @ParameterizedTest
   @MethodSource("labelCases")
+  @VisualTags("label")
   public void testLabel(Line line) {
     visual("line_label_test", line);
   }
 
   @ParameterizedTest
   @MethodSource("floatLabelCases")
+  @VisualTags("float-label")
   public void testFloatLabel(Line line) {
     visual("float_label_line", line);
   }
 
   @Test
+  @VisualTags("control-points")
   public void testControlPoints() {
     Graphviz graphviz = Graphviz.digraph()
         .label("controlPoints_test")
@@ -281,6 +287,7 @@ public class LineAttrTest extends GraphvizVisual {
   }
 
   @Test
+  @VisualTags("minlen")
   public void testMinlen() {
     Graphviz graphviz = Graphviz.digraph()
         .label("minlen_test")
@@ -299,6 +306,7 @@ public class LineAttrTest extends GraphvizVisual {
 
   @ParameterizedTest
   @MethodSource("arrowHeadTailCases")
+  @VisualTags({"arrow", "arrowhead", "arrowtail", "filled", "hollow"})
   public void testArrowHeadTail(Line line) {
     visual("arrowHead_arrowTail_test", line);
   }

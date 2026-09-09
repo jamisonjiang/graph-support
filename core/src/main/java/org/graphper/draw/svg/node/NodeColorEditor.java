@@ -23,6 +23,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Applies node fill and stroke colors to SVG shapes. */
 public class NodeColorEditor extends AbstractNodeShapeEditor {
 
   @Override
@@ -32,6 +33,11 @@ public class NodeColorEditor extends AbstractNodeShapeEditor {
     for (Element element : brush.getEleGroup(SHAPE_GROUP_KEY)) {
       Color color = nodeAttrs.getColor();
       element.setAttribute(SvgConstants.STROKE, color.value());
+
+      if ("true".equals(element.getAttribute(ExpandedNodeShapeRender.DECORATION))) {
+        element.setAttribute(FILL, NONE);
+        continue;
+      }
 
       Color fillColor = nodeAttrs.getFillColor();
       if (fillColor == null) {

@@ -16,6 +16,5 @@
 
 package org.graphper.api.attributes;
 
-public interface Style {
-
-}
+/** Marker interface for graph element styles. */
+public interface Style {}

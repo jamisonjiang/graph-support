@@ -17,10 +17,11 @@
 package org.graphper.layout.dot;
 
 import java.io.Serializable;
+import org.graphper.api.ext.DefaultBox;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
-import org.graphper.api.ext.DefaultBox;
 
+/** A rectangular routing corridor optionally associated with a ranked node. */
 public class RouterBox extends DefaultBox implements Serializable {
 
   private static final long serialVersionUID = 578785652705131390L;
@@ -31,7 +32,8 @@ public class RouterBox extends DefaultBox implements Serializable {
     this(leftBorder, rightBorder, upBorder, downBorder, null);
   }
 
-  public RouterBox(double leftBorder, double rightBorder, double upBorder, double downBorder, DNode node) {
+  public RouterBox(
+      double leftBorder, double rightBorder, double upBorder, double downBorder, DNode node) {
     super(leftBorder, rightBorder, upBorder, downBorder);
     this.node = node;
   }
@@ -107,6 +109,7 @@ public class RouterBox extends DefaultBox implements Serializable {
     return num <= right && num >= left;
   }
 
+  /** Expands the left and top borders as needed to meet the minimum dimensions. */
   public void minGuarantee(double minWidth, double minHeight) {
     if (getWidth() < minWidth) {
       leftBorder = rightBorder - minWidth;
@@ -116,6 +119,7 @@ public class RouterBox extends DefaultBox implements Serializable {
     }
   }
 
+  /** Shrinks the selected axis to exclude overlapping borders of the target box. */
   public void reducePublicArea(RouterBox target, boolean isHor) {
     if (isHor) {
       if (inXRange(target.getLeftBorder())) {
