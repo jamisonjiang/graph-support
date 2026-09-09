@@ -20,6 +20,7 @@ import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 
+/** Calculates container dimensions and containment for trapeziums. */
 public class TrapeziumPropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 4151640946566130589L;

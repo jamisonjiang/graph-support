@@ -27,8 +27,7 @@ import org.graphper.api.attributes.Splines;
  */
 class PolyLineRouter extends BoxGuideLineRouter {
 
-  private PolyLineRouter() {
-  }
+  private PolyLineRouter() {}
 
   @Override
   protected boolean curveLine() {

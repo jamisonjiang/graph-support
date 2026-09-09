@@ -18,6 +18,7 @@ package org.graphper.api.ext;
 
 import java.io.Serializable;
 
+/** Splits each shape dimension equally about its center. */
 public class SymmetryShapeCenterCalc implements ShapeCenterCalc, Serializable {
 
   private static final long serialVersionUID = -299277822910531114L;

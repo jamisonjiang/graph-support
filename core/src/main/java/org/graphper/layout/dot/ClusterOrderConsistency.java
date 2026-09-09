@@ -36,8 +36,7 @@ import org.graphper.api.GraphContainer;
  */
 class ClusterOrderConsistency {
 
-  private ClusterOrderConsistency() {
-  }
+  private ClusterOrderConsistency() {}
 
   /**
    * Returns the sibling pairs whose left to right order flips between two shared ranks.
@@ -59,8 +58,10 @@ class ClusterOrderConsistency {
           continue;
         }
         int index = i;
-        int[] span = spans.computeIfAbsent(direct, c -> new HashMap<>())
-            .computeIfAbsent(rank, r -> new int[]{index, index});
+        int[] span =
+            spans
+                .computeIfAbsent(direct, c -> new HashMap<>())
+                .computeIfAbsent(rank, r -> new int[] {index, index});
         span[0] = Math.min(span[0], index);
         span[1] = Math.max(span[1], index);
       }
@@ -90,17 +91,18 @@ class ClusterOrderConsistency {
     return violations;
   }
 
-  private static void collectContiguityViolations(GraphContainer parent, CrossRank crossRank,
-                                                  DotAttachment attachment,
-                                                  List<String> violations) {
+  private static void collectContiguityViolations(
+      GraphContainer parent,
+      CrossRank crossRank,
+      DotAttachment attachment,
+      List<String> violations) {
     for (Cluster cluster : attachment.clusters(parent)) {
       for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
         int first = -1;
         int last = -1;
         for (int i = 0; i < crossRank.rankSize(rank); i++) {
           DNode node = crossRank.getNode(rank, i);
-          if (!DotAttachment.notContains(attachment.getGraphviz(), cluster,
-                                         node.getContainer())) {
+          if (!DotAttachment.notContains(attachment.getGraphviz(), cluster, node.getContainer())) {
             if (first < 0) {
               first = i;
             }
@@ -110,10 +112,20 @@ class ClusterOrderConsistency {
 
         for (int i = first + 1; i < last; i++) {
           DNode node = crossRank.getNode(rank, i);
-          if (DotAttachment.notContains(attachment.getGraphviz(), cluster,
-                                        node.getContainer())) {
-            violations.add(cluster.id() + " split on rank " + rank + " by " + node
-                               + " at index " + i + " inside [" + first + ".." + last + "]");
+          if (DotAttachment.notContains(attachment.getGraphviz(), cluster, node.getContainer())) {
+            violations.add(
+                cluster.id()
+                    + " split on rank "
+                    + rank
+                    + " by "
+                    + node
+                    + " at index "
+                    + i
+                    + " inside ["
+                    + first
+                    + ".."
+                    + last
+                    + "]");
             break;
           }
         }
@@ -122,8 +134,11 @@ class ClusterOrderConsistency {
     }
   }
 
-  private static String firstFlip(GraphContainer left, GraphContainer right,
-                                  Map<Integer, int[]> leftSpans, Map<Integer, int[]> rightSpans) {
+  private static String firstFlip(
+      GraphContainer left,
+      GraphContainer right,
+      Map<Integer, int[]> leftSpans,
+      Map<Integer, int[]> rightSpans) {
     int expected = 0;
     Integer expectedRank = null;
 
@@ -140,17 +155,37 @@ class ClusterOrderConsistency {
       } else if (rightSpan[1] < leftSpan[0]) {
         sign = 1;
       } else {
-        return left.id() + " and " + right.id() + " interleave on rank " + entry.getKey()
-            + ": " + left.id() + "[" + leftSpan[0] + ".." + leftSpan[1] + "] "
-            + right.id() + "[" + rightSpan[0] + ".." + rightSpan[1] + "]";
+        return left.id()
+            + " and "
+            + right.id()
+            + " interleave on rank "
+            + entry.getKey()
+            + ": "
+            + left.id()
+            + "["
+            + leftSpan[0]
+            + ".."
+            + leftSpan[1]
+            + "] "
+            + right.id()
+            + "["
+            + rightSpan[0]
+            + ".."
+            + rightSpan[1]
+            + "]";
       }
 
       if (expectedRank == null) {
         expected = sign;
         expectedRank = entry.getKey();
       } else if (sign != expected) {
-        return left.id() + " and " + right.id() + " flip order between rank " + expectedRank
-            + " and rank " + entry.getKey();
+        return left.id()
+            + " and "
+            + right.id()
+            + " flip order between rank "
+            + expectedRank
+            + " and rank "
+            + entry.getKey();
       }
     }
     return null;

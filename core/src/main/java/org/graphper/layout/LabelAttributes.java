@@ -98,8 +98,8 @@ public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
   /**
    * Converts the label's attributes into an array of font styles.
    *
-   * @return An array of {@link FontStyle} representing the applied styles,
-   *         or {@code null} if no styles are applied.
+   * @return An array of {@link FontStyle} representing the applied styles, or {@code null} if no
+   *     styles are applied.
    */
   public FontStyle[] toFontStyles() {
     List<FontStyle> fontStyles = null;
@@ -146,20 +146,21 @@ public class LabelAttributes extends Mark<LabelTag> implements Cloneable {
   /**
    * Converts the label's attributes which affect the text size into an array of font styles.
    *
-   * @return An array of {@link FontStyle} representing the applied styles,
-   *         or {@code null} if no styles are applied.
+   * @return An array of {@link FontStyle} representing the applied styles, or {@code null} if no
+   *     styles are applied.
    */
   public FontStyle[] toMeasureFontStyles() {
     if (bold && italic) {
-      return new FontStyle[]{FontStyle.BOLD, FontStyle.ITALIC};
+      return new FontStyle[] {FontStyle.BOLD, FontStyle.ITALIC};
     } else if (bold) {
-      return new FontStyle[]{FontStyle.BOLD};
+      return new FontStyle[] {FontStyle.BOLD};
     } else if (italic) {
-      return new FontStyle[]{FontStyle.ITALIC};
+      return new FontStyle[] {FontStyle.ITALIC};
     }
     return null;
   }
 
+  /** Enables the supplied font styles without clearing styles already set. */
   public void setByStyles(Collection<FontStyle> styles) {
     if (CollectionUtils.isEmpty(styles)) {
       return;

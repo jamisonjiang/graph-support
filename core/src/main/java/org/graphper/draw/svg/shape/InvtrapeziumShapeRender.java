@@ -24,6 +24,7 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 
+/** Renders inverted trapezium node and cluster outlines in SVG. */
 public class InvtrapeziumShapeRender extends CustomizeShapeRender {
 
   @Override
@@ -44,10 +45,18 @@ public class InvtrapeziumShapeRender extends CustomizeShapeRender {
   private void draw(ContainerDrawProp box, SvgBrush brush) {
     double leftBottomX = box.getLeftBorder() + box.getWidth() / 4;
     double rightBottomX = box.getRightBorder() - box.getWidth() / 4;
-    SvgEditor.polygonShape(box, brush, box.getLeftBorder(), box.getUpBorder(),
-                           leftBottomX, box.getDownBorder(),
-                           rightBottomX, box.getDownBorder(),
-                           box.getRightBorder(), box.getUpBorder(),
-                           box.getLeftBorder(), box.getUpBorder());
+    SvgEditor.polygonShape(
+        box,
+        brush,
+        box.getLeftBorder(),
+        box.getUpBorder(),
+        leftBottomX,
+        box.getDownBorder(),
+        rightBottomX,
+        box.getDownBorder(),
+        box.getRightBorder(),
+        box.getUpBorder(),
+        box.getLeftBorder(),
+        box.getUpBorder());
   }
 }

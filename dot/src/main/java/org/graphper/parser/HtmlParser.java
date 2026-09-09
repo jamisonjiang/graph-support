@@ -53,7 +53,8 @@ public class HtmlParser {
    * {@link HtmlListener#getLabelTag()}, or {@link HtmlListener#getLabel()}.</p>
    *
    * @param htmlStr a string containing an HTML-like snippet enclosed in {@code '<' '>'}
-   * @return an {@link HtmlListener} containing the parsed result, or {@code null} if validation fails
+   * @return an {@link HtmlListener} containing the parsed result, or {@code null} if validation
+   *     fails
    */
   public static HtmlListener parse(String htmlStr) {
     if (StringUtils.isEmpty(htmlStr) || htmlStr.length() < 3

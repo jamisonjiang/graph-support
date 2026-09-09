@@ -35,12 +35,12 @@ import org.graphper.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Utilities for curve control points, self-loop paths, and floating-label positions. */
 public class LineHelper {
 
   private static final Logger log = LoggerFactory.getLogger(LineHelper.class);
 
-  private LineHelper() {
-  }
+  private LineHelper() {}
 
   /**
    * A piecewise cubic Bessel converted to control points, adjacent curves share the same control
@@ -57,7 +57,9 @@ public class LineHelper {
     return splines;
   }
 
-  public static void multiBezierCurveToPoints(MultiBezierCurve curves, Consumer<FlatPoint> pointConsumer) {
+  /** Emits connected cubic control points without repeating shared endpoints. */
+  public static void multiBezierCurveToPoints(
+      MultiBezierCurve curves, Consumer<FlatPoint> pointConsumer) {
     Objects.requireNonNull(curves);
 
     for (int i = 0; i < curves.size(); i++) {
@@ -104,8 +106,9 @@ public class LineHelper {
     }
   }
 
-  public static FlatPoint curveGetFloatLabelStart(double[] labelLength, double lengthRatio,
-                                                  LineDrawProp lineDrawProp) {
+  /** Locates a floating-label anchor using the curve's control-polygon length ratio. */
+  public static FlatPoint curveGetFloatLabelStart(
+      double[] labelLength, double lengthRatio, LineDrawProp lineDrawProp) {
     if (CollectionUtils.isEmpty(lineDrawProp) || lineDrawProp.size() < 4) {
       return null;
     }
@@ -158,19 +161,21 @@ public class LineHelper {
     }
 
     if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
+      double t =
+          BigDecimal.valueOf(len)
+              .multiply(BigDecimal.valueOf(lengthRatio))
+              .subtract(BigDecimal.valueOf(beforeLen))
+              .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
+              .doubleValue();
       return Curves.besselEquationCalc(t, v1, v2, v3, v4);
     }
 
     return lengthRatio == 0 ? v1 : v4;
   }
 
-  public static FlatPoint straightGetFloatLabelStart(double[] labelLength, double lengthRatio,
-                                                     LineDrawProp lineDrawProp) {
+  /** Locates a floating-label anchor at the requested fraction of a polyline's length. */
+  public static FlatPoint straightGetFloatLabelStart(
+      double[] labelLength, double lengthRatio, LineDrawProp lineDrawProp) {
     if (CollectionUtils.isEmpty(lineDrawProp)) {
       return null;
     }
@@ -213,31 +218,37 @@ public class LineHelper {
     }
 
     if (beforeLen < start && beforeLen + floatLabelInCurveLen > end) {
-      double t = BigDecimal.valueOf(len)
-          .multiply(BigDecimal.valueOf(lengthRatio))
-          .subtract(BigDecimal.valueOf(beforeLen))
-          .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
-          .doubleValue();
+      double t =
+          BigDecimal.valueOf(len)
+              .multiply(BigDecimal.valueOf(lengthRatio))
+              .subtract(BigDecimal.valueOf(beforeLen))
+              .divide(BigDecimal.valueOf(floatLabelInCurveLen), 4, RoundingMode.HALF_UP)
+              .doubleValue();
       return Vectors.add(Vectors.multiple(Vectors.sub(v2, v1), t), v1);
     }
 
     return lengthRatio == 0 ? v1 : v2;
   }
 
-  public static void connectWithRoundedCorner(LineDrawProp line,
-                                              List<FlatPoint> startPoints,
-                                              List<FlatPoint> endPoints,
-                                              List<? extends FlatPoint> throughPoints,
-                                              UnaryOperator<MultiBezierCurve> fitFunction) {
+  public static void connectWithRoundedCorner(
+      LineDrawProp line,
+      List<FlatPoint> startPoints,
+      List<FlatPoint> endPoints,
+      List<? extends FlatPoint> throughPoints,
+      UnaryOperator<MultiBezierCurve> fitFunction) {
     connectWithRoundedCorner(line, startPoints, endPoints, throughPoints, fitFunction, false);
   }
 
-  public static void connectWithRoundedCorner(LineDrawProp line,
-                                              List<FlatPoint> startPoints,
-                                              List<FlatPoint> endPoints,
-                                              List<? extends FlatPoint> throughPoints,
-                                              UnaryOperator<MultiBezierCurve> fitFunction,
-                                              boolean preserveWaypoints) {
+  /**
+   * Connects path sections with fitted rounded corners, optionally preserving obstacle waypoints.
+   */
+  public static void connectWithRoundedCorner(
+      LineDrawProp line,
+      List<FlatPoint> startPoints,
+      List<FlatPoint> endPoints,
+      List<? extends FlatPoint> throughPoints,
+      UnaryOperator<MultiBezierCurve> fitFunction,
+      boolean preserveWaypoints) {
     if (Objects.isNull(line)) {
       return;
     }
@@ -290,9 +301,15 @@ public class LineHelper {
         FlatPoint rt = i < throughPoints.size() - 1 ? throughPoints.get(i + 1) : null;
 
         // Obstacle waypoints must survive even shallow turns or short adjacent segments.
-        double radius = preserveWaypoints
-            ? Math.min(radian, Math.min(FlatPoint.twoFlatPointDistance(p1, p2),
-                                       FlatPoint.twoFlatPointDistance(p2, p3)) / 2) : radian;
+        double radius =
+            preserveWaypoints
+                ? Math.min(
+                    radian,
+                    Math.min(
+                            FlatPoint.twoFlatPointDistance(p1, p2),
+                            FlatPoint.twoFlatPointDistance(p2, p3))
+                        / 2)
+                : radian;
         MultiBezierCurve curves = getCorner(lt, p1, p2, p3, rt, radius, fitFunction);
         if (curves.size() == 1) {
           line.add(prepre);
@@ -336,8 +353,9 @@ public class LineHelper {
     lineDrawPropConnect(line, endPoints, false);
   }
 
-  public static void lineDrawPropConnect(LineDrawProp lineDrawProp,
-                                         List<FlatPoint> target, boolean before) {
+  /** Prepends or appends points, removing the shared joining endpoint from the supplied list. */
+  public static void lineDrawPropConnect(
+      LineDrawProp lineDrawProp, List<FlatPoint> target, boolean before) {
     if (Objects.isNull(lineDrawProp) || CollectionUtils.isEmpty(target)) {
       return;
     }
@@ -357,17 +375,25 @@ public class LineHelper {
     }
   }
 
-  private static MultiBezierCurve getCorner(FlatPoint lt, FlatPoint p1, FlatPoint p2,
-                                            FlatPoint p3, FlatPoint rt, double radian,
-                                            UnaryOperator<MultiBezierCurve> fitFunction) {
+  private static MultiBezierCurve getCorner(
+      FlatPoint lt,
+      FlatPoint p1,
+      FlatPoint p2,
+      FlatPoint p3,
+      FlatPoint rt,
+      double radian,
+      UnaryOperator<MultiBezierCurve> fitFunction) {
     double d1 = FlatPoint.twoFlatPointDistance(p1, p2);
     double d2 = FlatPoint.twoFlatPointDistance(p2, p3);
 
     MultiBezierCurve curves;
     if (d1 < radian || d2 < radian) {
-      curves = Curves.fitCurves(Arrays.asList(p1, p3),
-                                lt != null ? Vectors.sub(p2, lt) : null,
-                                rt != null ? Vectors.sub(p3, rt) : null, 0);
+      curves =
+          Curves.fitCurves(
+              Arrays.asList(p1, p3),
+              lt != null ? Vectors.sub(p2, lt) : null,
+              rt != null ? Vectors.sub(p3, rt) : null,
+              0);
 
     } else {
       FlatPoint dir = Vectors.sub(p2, p1);

@@ -50,16 +50,18 @@ class LabelSupplement {
 
   private final EdgeDedigraph<DNode, DLine> digraphProxy;
 
-  public LabelSupplement(RankContent rankContent,
-                         DotAttachment dotAttachment,
-                         EdgeDedigraph<DNode, DLine> digraphProxy) {
+  public LabelSupplement(
+      RankContent rankContent,
+      DotAttachment dotAttachment,
+      EdgeDedigraph<DNode, DLine> digraphProxy) {
     this.rankContent = rankContent;
     this.dotAttachment = dotAttachment;
     this.digraphProxy = digraphProxy;
 
     boolean needInsertLabelNodeRank = CollectionUtils.isNotEmpty(dotAttachment.getLabelLines());
-    boolean needInsertFlatEdges = dotAttachment.getSameRankAdjacentRecord() != null
-        && dotAttachment.getSameRankAdjacentRecord().haveSameRank();
+    boolean needInsertFlatEdges =
+        dotAttachment.getSameRankAdjacentRecord() != null
+            && dotAttachment.getSameRankAdjacentRecord().haveSameRank();
 
     // If graph have any label line, may be need create some relay rank.
     if (needInsertLabelNodeRank) {
@@ -191,8 +193,8 @@ class LabelSupplement {
     fixIncontinuityClusters(rankNode, graphviz, containerRange);
   }
 
-  private static void fixIncontinuityClusters(RankNode rankNode, Graphviz graphviz,
-                                              Map<GraphContainer, int[]> containerRange) {
+  private static void fixIncontinuityClusters(
+      RankNode rankNode, Graphviz graphviz, Map<GraphContainer, int[]> containerRange) {
     /*
      * Cluster nodes in same rank should keep continuity but the label insert process possible broke
      * this rule, cause some case like this, following array means node container in same rank:
@@ -247,14 +249,18 @@ class LabelSupplement {
     }
   }
 
-  private void refreshClusterRange(int rankIdx, GraphContainer container, Graphviz graphviz,
-                                   Map<GraphContainer, int[]> containerRange) {
+  private void refreshClusterRange(
+      int rankIdx,
+      GraphContainer container,
+      Graphviz graphviz,
+      Map<GraphContainer, int[]> containerRange) {
     if (container == null) {
       return;
     }
 
-    int[] range = containerRange.computeIfAbsent(container,
-                                              k -> new int[]{Integer.MAX_VALUE, Integer.MIN_VALUE});
+    int[] range =
+        containerRange.computeIfAbsent(
+            container, k -> new int[] {Integer.MAX_VALUE, Integer.MIN_VALUE});
 
     range[0] = Math.min(range[0], rankIdx);
     range[1] = Math.max(range[1], rankIdx);
@@ -263,8 +269,8 @@ class LabelSupplement {
     refreshClusterRange(rankIdx, parent, graphviz, containerRange);
   }
 
-  private void recordNewRemoveLines(DLine line, RankNode rankNode,
-                                    List<DLine> addLines, List<DLine> removeLines) {
+  private void recordNewRemoveLines(
+      DLine line, RankNode rankNode, List<DLine> addLines, List<DLine> removeLines) {
     if (line.isSameRank()) {
       return;
     }
@@ -276,26 +282,23 @@ class LabelSupplement {
       DNode virtual;
       FlatPoint labelSize = edge.getLabelSize();
       if (labelSize == null) {
-        virtual = DNode.newRoutingVirtualNode(
-            20,
-            dotAttachment.commonParent(edge.from(), edge.to())
-        );
+        virtual =
+            DNode.newRoutingVirtualNode(20, dotAttachment.commonParent(edge.from(), edge.to()));
       } else {
-        virtual = new DNode(null, labelSize.getWidth(), labelSize.getHeight(),
-                            edge.from().getNodeSep(), edge.getLine());
+        virtual =
+            new DNode(
+                null,
+                labelSize.getWidth(),
+                labelSize.getHeight(),
+                edge.from().getNodeSep(),
+                edge.getLine());
         virtual.setContainer(dotAttachment.commonParent(edge.from(), edge.to()));
       }
 
       addLines.add(
-          new DLine(edge.from(), virtual,
-                    edge.getLineDrawProp(),
-                    edge.weight(), edge.limit())
-      );
+          new DLine(edge.from(), virtual, edge.getLineDrawProp(), edge.weight(), edge.limit()));
       addLines.add(
-          new DLine(virtual, edge.to(),
-                    edge.getLineDrawProp(),
-                    edge.weight(), edge.limit())
-      );
+          new DLine(virtual, edge.to(), edge.getLineDrawProp(), edge.weight(), edge.limit()));
 
       rankNode.add(virtual);
     }
@@ -428,7 +431,8 @@ class LabelSupplement {
 
     for (Map<DNode, DLine> value : parallelEdgeRecord.values()) {
       for (DLine line : value.values()) {
-        // If the merged FlatEdge contains a labelLine, the current mergeLine will become a Label Node.
+        // If the merged FlatEdge contains a labelLine, the current mergeLine will become a Label
+        // Node.
         if (!line.haveLabel()) {
           continue;
         }
@@ -437,16 +441,16 @@ class LabelSupplement {
           flatLabelNodeRecord = new HashMap<>();
         }
 
-        DNode flatLabelNode = flatLabelNodeRecord.computeIfAbsent(
-            line,
-            ml -> new DNode(
-                null, 0, 0,
-                ml.isSameRankAdj()
-                    ? ml.from().getNodeSep() / 2
-                    : ml.from().getNodeSep(),
-                ml
-            )
-        );
+        DNode flatLabelNode =
+            flatLabelNodeRecord.computeIfAbsent(
+                line,
+                ml ->
+                    new DNode(
+                        null,
+                        0,
+                        0,
+                        ml.isSameRankAdj() ? ml.from().getNodeSep() / 2 : ml.from().getNodeSep(),
+                        ml));
 
         flatLabelNode.setContainer(dotAttachment.commonParent(line.from(), line.to()));
 
@@ -472,12 +476,12 @@ class LabelSupplement {
     for (DNode flatLabelNode : flatLabelNodeRecord.values()) {
       DLine labelLine = flatLabelNode.getFlatLabelLine();
       flatLabelNode.setMedian(
-          (double) (labelLine.from().getRankIndex() + labelLine.to().getRankIndex()) / 2
-      );
+          (double) (labelLine.from().getRankIndex() + labelLine.to().getRankIndex()) / 2);
       RankNode rankNode = rankContent.get(labelLine.from().getRank());
 
       if (!labelLine.isSameRankAdj()) {
-        // The previous rank is empty, or the previous rank contains normal nodes, and a new rank needs to be inserted.
+        // The previous rank is empty, or the previous rank contains normal nodes, and a new rank
+        // needs to be inserted.
         if (rankNode.pre() == null || !rankNode.pre().noNormalNode()) {
           if (rankNode.pre() != null) {
             if (needInsertVirtualRank == null) {
@@ -500,15 +504,16 @@ class LabelSupplement {
       if (rankLabelNodeQueue == null) {
         rankLabelNodeQueue = new HashMap<>(4);
       }
-      rankLabelNodeQueue.computeIfAbsent(
-          rankNode,
-          k -> new PriorityQueue<>(Comparator.comparing(DNode::getMedian))
-      ).offer(flatLabelNode);
+      rankLabelNodeQueue
+          .computeIfAbsent(
+              rankNode, k -> new PriorityQueue<>(Comparator.comparing(DNode::getMedian)))
+          .offer(flatLabelNode);
     }
 
     rankContent.rankIndexSync();
 
-    // The previous rank of the newly inserted rank, if it exists, a new virtual node needs to be inserted.
+    // The previous rank of the newly inserted rank, if it exists, a new virtual node needs to be
+    // inserted.
     newRankAddVirtualNode(needInsertVirtualRank);
 
     RankNode rankNode = rankContent.get(rankContent.minRank());
@@ -604,21 +609,24 @@ class LabelSupplement {
   }
 
   private void cutLine(RankNode next, DLine removeLine) {
-    DNode virtual = DNode.newRoutingVirtualNode(
-        20,
-        dotAttachment.commonParent(removeLine.from(), removeLine.to())
-    );
+    DNode virtual =
+        DNode.newRoutingVirtualNode(
+            20, dotAttachment.commonParent(removeLine.from(), removeLine.to()));
     digraphProxy.removeEdge(removeLine);
     digraphProxy.addEdge(
-        new DLine(removeLine.from(), virtual,
-                  removeLine.getLineDrawProp(),
-                  removeLine.weight(), removeLine.limit())
-    );
+        new DLine(
+            removeLine.from(),
+            virtual,
+            removeLine.getLineDrawProp(),
+            removeLine.weight(),
+            removeLine.limit()));
     digraphProxy.addEdge(
-        new DLine(virtual, removeLine.to(),
-                  removeLine.getLineDrawProp(),
-                  removeLine.weight(), removeLine.limit())
-    );
+        new DLine(
+            virtual,
+            removeLine.to(),
+            removeLine.getLineDrawProp(),
+            removeLine.weight(),
+            removeLine.limit()));
     next.add(virtual);
   }
 
@@ -641,15 +649,19 @@ class LabelSupplement {
     }
 
     digraphProxy.addEdge(
-        new DLine(flatLabelNode, flatLabelLine.from(),
-                  flatLabelLine.getLineDrawProp(),
-                  flatLabelLine.weight(), flatLabelLine.limit())
-    );
+        new DLine(
+            flatLabelNode,
+            flatLabelLine.from(),
+            flatLabelLine.getLineDrawProp(),
+            flatLabelLine.weight(),
+            flatLabelLine.limit()));
     digraphProxy.addEdge(
-        new DLine(flatLabelNode, flatLabelLine.to(),
-                  flatLabelLine.getLineDrawProp(),
-                  flatLabelLine.weight(), flatLabelLine.limit())
-    );
+        new DLine(
+            flatLabelNode,
+            flatLabelLine.to(),
+            flatLabelLine.getLineDrawProp(),
+            flatLabelLine.weight(),
+            flatLabelLine.limit()));
   }
 
   private double outMedian(DNode node, boolean isLabelRank) {

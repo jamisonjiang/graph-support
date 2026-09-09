@@ -31,10 +31,7 @@ import org.graphper.util.Asserts;
  * @author Jamison Jiang
  */
 public abstract class AbstractPipelineTrigger<
-    I,
-    B extends Brush,
-    T extends Editor<I, B>,
-    S extends AbstractPipelineTrigger<I, B, T, S>> {
+    I, B extends Brush, T extends Editor<I, B>, S extends AbstractPipelineTrigger<I, B, T, S>> {
 
   protected final List<T> editors;
 
@@ -52,7 +49,7 @@ public abstract class AbstractPipelineTrigger<
    * {@link #renderItems()}.
    *
    * @param brushFactory brush factory, which produces the corresponding {@link Brush} for the
-   *                     corresponding type of element
+   *     corresponding type of element
    */
   public void trigger(Function<I, B> brushFactory) {
     Asserts.nullArgument(brushFactory, "brushFactory");

@@ -120,9 +120,7 @@ public class Node implements Comparable<Node>, Serializable {
 
   // ------------------------------------------ Node Builder ---------------------------------------
 
-  /**
-   * {@link Node} builder, used to build a {@link Node}.
-   */
+  /** {@link Node} builder, used to build a {@link Node}. */
   public static final class NodeBuilder {
 
     // Node Attribute
@@ -149,26 +147,28 @@ public class Node implements Comparable<Node>, Serializable {
      * Set the label of the node, label can be an ordinary string, or a <strong>Cell
      * Expression</strong>.
      *
-     * <p><strong>Cell Expression</strong> need specified by shape values of
-     * {@link NodeShapeEnum#RECORD} and {@link NodeShapeEnum#M_RECORD}, The structure of a
-     * record-based node is determined by its label, which has the following schema:
+     * <p><strong>Cell Expression</strong> need specified by shape values of {@link
+     * NodeShapeEnum#RECORD} and {@link NodeShapeEnum#M_RECORD}, The structure of a record-based
+     * node is determined by its label, which has the following schema:
+     *
      * <ul>
-     *   <li>rlabel	=	field ( '|' field )*
-     *   <li>where field	=	fieldId or '{' rlabel '}
-     *   <li>and fieldId	=	[ '&lt;' string '&gt;'] [ string ]
+     *   <li>rlabel = field ( '|' field )*
+     *   <li>where field = fieldId or '{' rlabel '}
+     *   <li>and fieldId = [ '&lt;' string '&gt;'] [ string ]
      * </ul>
      *
      * <p>Braces, vertical bars and angle brackets must be escaped with a backslash character if you
-     * wish them to appear as a literal character. Spaces are interpreted as separators between tokens,
-     * so they must be escaped if you want spaces in the text.
+     * wish them to appear as a literal character. Spaces are interpreted as separators between
+     * tokens, so they must be escaped if you want spaces in the text.
      *
-     * <p> Flipping between horizontal and vertical layouts is done by nesting fields in braces
-     * "{...}". The top-level orientation in a record is horizontal. Thus, a record with label
-     * "A | B | C | D" will have 4 fields oriented left to right, while "{A | B | C | D}" will
-     * have them from top to bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the
-     * left and "D" to the right of "B" and "C".
+     * <p>Flipping between horizontal and vertical layouts is done by nesting fields in braces
+     * "{...}". The top-level orientation in a record is horizontal. Thus, a record with label "A |
+     * B | C | D" will have 4 fields oriented left to right, while "{A | B | C | D}" will have them
+     * from top to bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the left and
+     * "D" to the right of "B" and "C".
      *
      * <p>As an example of Cell Expression:
+     *
      * <pre>{@code
      * digraph structs {
      *     node [shape=record];
@@ -185,8 +185,10 @@ public class Node implements Comparable<Node>, Serializable {
      * {@code
      *     Node struct1 = Node.builder().label("<f0> left|<f1> mid dle|<f2> right").build();
      *     Node struct2 = Node.builder().label("<f0> one|<f1> two").label("b").build();
-     *     Node struct3 = Node.builder().label("hello\nworld |{ b |{c|<here> d|e}| f}| g | h").build();
-     *     Node struct4 = Node.builder().label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}").build();
+     *     Node struct3 = Node.builder()
+     *         .label("hello\nworld |{ b |{c|<here> d|e}| f}| g | h").build();
+     *     Node struct4 = Node.builder()
+     *         .label("{{Name|Sex|Age}|{Michael|Men|15}|{Abigail|Female|18}}").build();
      *
      *     Graphviz.digraph()
      *         .tempNode(Node.builder().shape(NodeShapeEnum.RECORD).build())
@@ -204,8 +206,7 @@ public class Node implements Comparable<Node>, Serializable {
      *         )
      *         .addNode(struct4)
      *         .build();
-     * }
-     * </pre>
+     * }</pre>
      *
      * @param label label to be added to this node
      * @return node builder
@@ -223,13 +224,13 @@ public class Node implements Comparable<Node>, Serializable {
     /**
      * Assigns an HTML-like {@link LabelTag} structure as this node's label, allowing for advanced
      * text styling such as bold, italics, and nested formatting.
-     * <p>
-     * This method overrides any plain text label set via {@link #label(String)}. If you need a
+     *
+     * <p>This method overrides any plain text label set via {@link #label(String)}. If you need a
      * richly formatted label (e.g., multi-line text, nested tags), use {@code labelTag} rather than
      * a simple string label.
-     * </p>
      *
-     * <p><b>Example Usage:</b></p>
+     * <p><b>Example Usage:</b>
+     *
      * <pre>{@code
      * LabelTag tag = bold("Graph Analysis")
      *     .br()
@@ -239,7 +240,8 @@ public class Node implements Comparable<Node>, Serializable {
      *     .br()
      *     .top(bold(italic("Key Takeaways:")))
      *     .br()
-     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"),
+     *         fontAttrs().color(Color.RED).pointSize(16)))
      *     .br()
      *     .right(strikeThrough("Outdated Formula"))
      *     .br()
@@ -260,14 +262,15 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the height of the node, the height will take effect mainly in the following situations:
+     * Sets the node height. The height takes effect in the following situations:
+     *
      * <ul>
-     *   <li> When {@link NodeAttrs#getFixedSize()} is true, the actual height of the node is
-     *   exactly equal to the set value;
-     *   <li> When {@link NodeAttrs#getFixedSize()} is false, this height is an actual minimum
-     *   limit, indicating that the node height should at least not be less than this set value;
-     *   <li> When there is no manual setting, the height of the node will be automatically set
-     *   according to different {@link NodeShape} when rendering.
+     *   <li>When {@link NodeAttrs#getFixedSize()} is true, the actual height of the node is exactly
+     *       equal to the set value;
+     *   <li>When {@link NodeAttrs#getFixedSize()} is false, this height is an actual minimum limit,
+     *       indicating that the node height should at least not be less than this set value;
+     *   <li>When there is no manual setting, the height of the node will be automatically set
+     *       according to different {@link NodeShape} when rendering.
      * </ul>
      *
      * @param height node height
@@ -281,14 +284,15 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the width of the node, the width will take effect mainly in the following situations:
+     * Sets the node width. The width takes effect in the following situations:
+     *
      * <ul>
-     *   <li> When {@link NodeAttrs#getFixedSize()} is true, the actual width of the node is
-     *   exactly equal to the set value;
-     *   <li> When {@link NodeAttrs#getFixedSize()} is false, this width is an actual minimum
-     *   limit, indicating that the node width should at least not be less than this set value;
-     *   <li> When there is no manual setting, the width of the node will be automatically set
-     *   according to different {@link NodeShape} when rendering.
+     *   <li>When {@link NodeAttrs#getFixedSize()} is true, the actual width of the node is exactly
+     *       equal to the set value;
+     *   <li>When {@link NodeAttrs#getFixedSize()} is false, this width is an actual minimum limit,
+     *       indicating that the node width should at least not be less than this set value;
+     *   <li>When there is no manual setting, the width of the node will be automatically set
+     *       according to different {@link NodeShape} when rendering.
      * </ul>
      *
      * @param width node width
@@ -302,8 +306,8 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the shape of the node, for the shapes supported by default, please check
-     * {@link NodeShapeEnum}.
+     * Set the shape of the node, for the shapes supported by default, please check {@link
+     * NodeShapeEnum}.
      *
      * @param shape node shape
      * @return node builder
@@ -359,8 +363,8 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the {@link Labeljust} of the node, used to control the horizontal position of the
-     * {@link NodeAttrs#getLabel()} of the node.
+     * Set the {@link Labeljust} of the node, used to control the horizontal position of the {@link
+     * NodeAttrs#getLabel()} of the node.
      *
      * @param labeljust labeljust to be added to this node
      * @return node builder
@@ -371,8 +375,8 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the {@link Labelloc} of the node, used to control the vertical position of the
-     * {@link NodeAttrs#getLabel()} of the node.
+     * Set the {@link Labelloc} of the node, used to control the vertical position of the {@link
+     * NodeAttrs#getLabel()} of the node.
      *
      * @param labelloc labelloc to be added to this node
      * @return node builder
@@ -402,12 +406,12 @@ public class Node implements Comparable<Node>, Serializable {
      * @throws IllegalArgumentException margin less than 0
      */
     public NodeBuilder margin(double horMargin, double verMargin) {
-      Asserts.illegalArgument(horMargin < 0,
-                              "Horizontal margin (" + horMargin + ") can not less than 0");
-      Asserts.illegalArgument(verMargin < 0,
-                              "Vertical margin (" + verMargin + ") can not less than 0");
-      nodeAttrs.margin = new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL,
-                                               horMargin * Graphviz.PIXEL);
+      Asserts.illegalArgument(
+          horMargin < 0, "Horizontal margin (" + horMargin + ") can not less than 0");
+      Asserts.illegalArgument(
+          verMargin < 0, "Vertical margin (" + verMargin + ") can not less than 0");
+      nodeAttrs.margin =
+          new UnmodifyFlatPoint(verMargin * Graphviz.PIXEL, horMargin * Graphviz.PIXEL);
       return this;
     }
 
@@ -464,15 +468,14 @@ public class Node implements Comparable<Node>, Serializable {
 
     /**
      * Applies one or more font styles (e.g., bold, italic) to the node's label text.
-     * <p>
-     * Multiple font styles can be combined. For example, calling
-     * {@code fontStyle(FontStyle.BOLD, FontStyle.ITALIC)} will make the text both bold and italic.
-     * </p>
+     *
+     * <p>Multiple font styles can be combined. For example, calling {@code
+     * fontStyle(FontStyle.BOLD, FontStyle.ITALIC)} will make the text both bold and italic.
      *
      * @param fontStyles one or more {@link FontStyle} values to apply
      * @return this {@code NodeBuilder} for method chaining
-     * @throws IllegalArgumentException if the provided array or any element within it is
-     *                                  {@code null}
+     * @throws IllegalArgumentException if the provided array or any element within it is {@code
+     *     null}
      */
     public NodeBuilder fontStyle(FontStyle... fontStyles) {
       Asserts.nullOrContainsNull(fontStyles);
@@ -481,9 +484,9 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the number of sides of the node's polygon. When the shape of the node is
-     * {@link NodeShapeEnum#POLYGON} or {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute
-     * to control the number of sides, from 3 to 20.
+     * Set the number of sides of the node's polygon. When the shape of the node is {@link
+     * NodeShapeEnum#POLYGON} or {@link NodeShapeEnum#REGULAR_POLYLINE}, use this attribute to
+     * control the number of sides, from 3 to 20.
      *
      * @param sides the number of sides of the node's polygon
      * @return node builder
@@ -511,7 +514,7 @@ public class Node implements Comparable<Node>, Serializable {
      * Sets the tooltip text for the Node.
      *
      * <p><strong>Note:</strong> The tooltip only takes effect if the node has an {@code href} set
-     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.
      *
      * @param tooltip the text to be displayed as the tooltip (only works when {@code href} is set)
      * @return node builder
@@ -524,32 +527,38 @@ public class Node implements Comparable<Node>, Serializable {
     /**
      * Sets an image reference for the node.
      *
-     * <p><strong>Behavior:</strong></p>
+     * <p><strong>Behavior:</strong>
+     *
      * <ul>
-     *   <li>Embedded base64 raster images are allowed by default.</li>
-     *   <li>Network and filesystem images are denied by default. Enable them explicitly with
-     *       {@link Graphviz.GraphvizBuilder#securityPolicy(SecurityPolicy)}.</li>
+     *   <li>Embedded base64 raster images are allowed by default.
+     *   <li>Network and filesystem images are denied by default. Enable them explicitly with {@link
+     *       Graphviz.GraphvizBuilder#securityPolicy(SecurityPolicy)}.
      *   <li>Enabled resources are restricted by time, byte, pixel, address, and base-directory
-     *       checks.</li>
+     *       checks.
      * </ul>
      *
-     * <p><strong>Security Warning:</strong></p>
+     * <p><strong>Security Warning:</strong>
+     *
      * <ul>
-     *   <li><strong>Remote URL Risks:</strong> Loading images from untrusted URLs may expose the application to
-     *       <a href="https://owasp.org/www-community/attacks/Server_Side_Request_Forgery">Server-Side Request Forgery (SSRF)</a> attacks,
-     *       slow network requests, or malicious payloads.</li>
-     *   <li><strong>Local File Risks:</strong> If an unvalidated local file path is used, it may allow unauthorized access
-     *       to system files (Path Traversal vulnerability).</li>
-     *   <li><strong>Large Image Risks:</strong> Maliciously large images can cause high memory usage or
-     *       <a href="https://owasp.org/www-community/attacks/Denial_of_Service">Denial of Service (DoS) attacks</a>.</li>
+     *   <li><strong>Remote URL Risks:</strong> Loading images from untrusted URLs may expose the
+     *       application to <a
+     *       href="https://owasp.org/www-community/attacks/Server_Side_Request_Forgery">Server-Side
+     *       Request Forgery (SSRF)</a> attacks, slow network requests, or malicious payloads.
+     *   <li><strong>Local File Risks:</strong> If an unvalidated local file path is used, it may
+     *       allow unauthorized access to system files (Path Traversal vulnerability).
+     *   <li><strong>Large Image Risks:</strong> Maliciously large images can cause high memory
+     *       usage or <a href="https://owasp.org/www-community/attacks/Denial_of_Service">Denial of
+     *       Service (DoS) attacks</a>.
      * </ul>
      *
-     * <p><strong>Recommended Security Practices for opt-in external resources:</strong></p>
+     * <p><strong>Recommended Security Practices for opt-in external resources:</strong>
+     *
      * <ul>
-     *   <li>Use only trusted domains or pre-validated image URLs.</li>
-     *   <li>Restrict local file paths to a dedicated image directory.</li>
-     *   <li>Limit image file size to prevent excessive memory consumption.</li>
-     *   <li>Sanitize file extensions and content types to allow only valid image formats (e.g., PNG, JPG).</li>
+     *   <li>Use only trusted domains or pre-validated image URLs.
+     *   <li>Restrict local file paths to a dedicated image directory.
+     *   <li>Limit image file size to prevent excessive memory consumption.
+     *   <li>Sanitize file extensions and content types to allow only valid image formats (e.g.,
+     *       PNG, JPG).
      * </ul>
      *
      * @param image the image URL or local file path
@@ -561,12 +570,12 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set the width and height of the node image, which only takes effect when
-     * {@link #image(String)} is set. If {@link NodeAttrs#getFixedSize()} is true, the real size of
-     * the node will be enlarged by this property.
+     * Set the width and height of the node image, which only takes effect when {@link
+     * #image(String)} is set. If {@link NodeAttrs#getFixedSize()} is true, the real size of the
+     * node will be enlarged by this property.
      *
      * @param height image height
-     * @param width  image width
+     * @param width image width
      * @return node builder
      * @throws IllegalArgumentException image height or width less than 0
      */
@@ -595,7 +604,8 @@ public class Node implements Comparable<Node>, Serializable {
      * textual label set via {@link #label(String)}. This allows for a more complex arrangement of
      * row and column cells, effectively converting the node label into a small "table."
      *
-     * <p><b>Example Usage:</b></p>
+     * <p><b>Example Usage:</b>
+     *
      * <pre>{@code
      * Table table = Html.table()
      *     .tr(Html.td().text("Header 1"), Html.td().text("Header 2"))
@@ -618,18 +628,17 @@ public class Node implements Comparable<Node>, Serializable {
     }
 
     /**
-     * Set a structured record label on this node. The {@link RecordTag} is the
-     * Java-API equivalent of the DOT record-label string (e.g. {@code "{a|b|c}"})
-     * and is the only way to express record cells whose body is a rich-text
-     * {@link LabelTag} rather than plain text.
+     * Set a structured record label on this node. The {@link RecordTag} is the Java-API equivalent
+     * of the DOT record-label string (e.g. {@code "{a|b|c}"}) and is the only way to express record
+     * cells whose body is a rich-text {@link LabelTag} rather than plain text.
      *
-     * <p>This value is consumed at layout time only when the node's
-     * {@link #shape(NodeShape)} is {@link NodeShapeEnum#RECORD} or
-     * {@link NodeShapeEnum#M_RECORD}. For other shapes the value is ignored.
-     * When both {@link #label(String)} and {@code recordTag} are set, the
-     * record-tag takes precedence.</p>
+     * <p>This value is consumed at layout time only when the node's {@link #shape(NodeShape)} is
+     * {@link NodeShapeEnum#RECORD} or {@link NodeShapeEnum#M_RECORD}. For other shapes the value is
+     * ignored. When both {@link #label(String)} and {@code recordTag} are set, the record-tag takes
+     * precedence.
      *
      * <p><b>Example</b>
+     *
      * <pre>{@code
      * RecordTag tag = Html.record(
      *     Html.cell("a").id("f0"),
@@ -663,41 +672,40 @@ public class Node implements Comparable<Node>, Serializable {
      * where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
-     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
-     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on {@link
+     * Assemble} will be set, and the position of {@link Assemble} is where the label should
      * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
      * (by default, it does not automatically calculate the size of the cell according to the label
-     * of the cell), which requires the setter to completely accurate calculation of all
-     * parameters.
+     * of the cell), which requires the setter to completely accurate calculation of all parameters.
      *
      * <p>This is an example of setting two cells side by assemble.
+     *
      * <pre>{@code
-     *    Graphviz.digraph()
-     *         .addNode(
-     *             Node.builder()
-     *                 .assemble(
-     *                     Assemble.builder()
-     *                         .width(1)
-     *                         .height(0.4)
-     *                         .addCell(0, 0,
-     *                                  Node.builder()
-     *                                      .width(0.5)
-     *                                      .height(0.4)
-     *                                      .label("LEFT")
-     *                                      .build())
-     *                         .addCell(0.5, 0,
-     *                                  Node.builder()
-     *                                      .width(0.5)
-     *                                      .height(0.4)
-     *                                      .label("RIGHT")
-     *                                      .build())
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         .build();
-     * }
-     * </pre>
+     * Graphviz.digraph()
+     *      .addNode(
+     *          Node.builder()
+     *              .assemble(
+     *                  Assemble.builder()
+     *                      .width(1)
+     *                      .height(0.4)
+     *                      .addCell(0, 0,
+     *                               Node.builder()
+     *                                   .width(0.5)
+     *                                   .height(0.4)
+     *                                   .label("LEFT")
+     *                                   .build())
+     *                      .addCell(0.5, 0,
+     *                               Node.builder()
+     *                                   .width(0.5)
+     *                                   .height(0.4)
+     *                                   .label("RIGHT")
+     *                                   .build())
+     *                      .build()
+     *              )
+     *              .build()
+     *      )
+     *      .build();
+     * }</pre>
      *
      * @param assemble assemble
      * @return node builder

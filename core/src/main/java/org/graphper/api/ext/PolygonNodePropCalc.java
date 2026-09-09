@@ -1,7 +1,19 @@
 /*
  * Copyright 2022 The graph-support project
- * Licensed under the Apache License, Version 2.0.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.graphper.api.ext;
 
 import java.io.Serializable;
@@ -14,8 +26,17 @@ public class PolygonNodePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 1L;
 
+  /** Supported polygon outline variants. */
   public enum Type {
-    SQUARE, HOUSE, INVHOUSE, M_DIAMOND, M_SQUARE, TAB, FOLDER, BOX3D, COMPONENT
+    SQUARE,
+    HOUSE,
+    INVHOUSE,
+    M_DIAMOND,
+    M_SQUARE,
+    TAB,
+    FOLDER,
+    BOX3D,
+    COMPONENT
   }
 
   private final Type type;
@@ -24,39 +45,42 @@ public class PolygonNodePropCalc implements ShapePropCalc, Serializable {
     this.type = type;
   }
 
+  /** Maps the selected unit-box outline to the supplied box. */
   public List<FlatPoint> calcPoints(Box box) {
     double[] coordinates;
     switch (type) {
       case HOUSE:
       case INVHOUSE:
-        coordinates = new double[]{0, .25, .5, 0, 1, .25, 1, 1, 0, 1};
+        coordinates = new double[] {0, .25, .5, 0, 1, .25, 1, 1, 0, 1};
         break;
       case M_DIAMOND:
-        coordinates = new double[]{0, .5, .5, 0, 1, .5, .5, 1};
+        coordinates = new double[] {0, .5, .5, 0, 1, .5, .5, 1};
         break;
       case TAB:
-        coordinates = new double[]{0, 0, .35, 0, .45, .15, 1, .15, 1, 1, 0, 1};
+        coordinates = new double[] {0, 0, .35, 0, .45, .15, 1, .15, 1, 1, 0, 1};
         break;
       case FOLDER:
-        coordinates = new double[]{0, 0, .35, 0, .4, .15, 1, .15, 1, 1, 0, 1};
+        coordinates = new double[] {0, 0, .35, 0, .4, .15, 1, .15, 1, 1, 0, 1};
         break;
       case BOX3D:
-        coordinates = new double[]{0, .15, .15, 0, 1, 0, 1, .85, .85, 1, 0, 1};
+        coordinates = new double[] {0, .15, .15, 0, 1, 0, 1, .85, .85, 1, 0, 1};
         break;
       case COMPONENT:
         // Simplified UML component: inset terminals, convex outer box. Projecting tabs can
         // make a center ray leave and re-enter the silhouette, invalidating binary clipping.
-        coordinates = new double[]{0, 0, 1, 0, 1, 1, 0, 1};
+        coordinates = new double[] {0, 0, 1, 0, 1, 1, 0, 1};
         break;
       default:
-        coordinates = new double[]{0, 0, 1, 0, 1, 1, 0, 1};
+        coordinates = new double[] {0, 0, 1, 0, 1, 1, 0, 1};
         break;
     }
     List<FlatPoint> points = new ArrayList<>(coordinates.length / 2);
     for (int i = 0; i < coordinates.length; i += 2) {
       double y = type == Type.INVHOUSE ? 1 - coordinates[i + 1] : coordinates[i + 1];
-      points.add(new FlatPoint(box.getLeftBorder() + coordinates[i] * box.getWidth(),
-                               box.getUpBorder() + y * box.getHeight()));
+      points.add(
+          new FlatPoint(
+              box.getLeftBorder() + coordinates[i] * box.getWidth(),
+              box.getUpBorder() + y * box.getHeight()));
     }
     return points;
   }
@@ -110,8 +134,9 @@ public class PolygonNodePropCalc implements ShapePropCalc, Serializable {
     for (int i = 0, j = points.size() - 1; i < points.size(); j = i++) {
       FlatPoint a = points.get(j);
       FlatPoint b = points.get(i);
-      double cross = (point.getX() - a.getX()) * (b.getY() - a.getY())
-          - (point.getY() - a.getY()) * (b.getX() - a.getX());
+      double cross =
+          (point.getX() - a.getX()) * (b.getY() - a.getY())
+              - (point.getY() - a.getY()) * (b.getX() - a.getX());
       if (Math.abs(cross) <= 1e-9
           && point.getX() >= Math.min(a.getX(), b.getX()) - 1e-9
           && point.getX() <= Math.max(a.getX(), b.getX()) + 1e-9
@@ -120,8 +145,9 @@ public class PolygonNodePropCalc implements ShapePropCalc, Serializable {
         return true;
       }
       if ((a.getY() > point.getY()) != (b.getY() > point.getY())
-          && point.getX() < (b.getX() - a.getX()) * (point.getY() - a.getY())
-          / (b.getY() - a.getY()) + a.getX()) {
+          && point.getX()
+              < (b.getX() - a.getX()) * (point.getY() - a.getY()) / (b.getY() - a.getY())
+                  + a.getX()) {
         inside = !inside;
       }
     }

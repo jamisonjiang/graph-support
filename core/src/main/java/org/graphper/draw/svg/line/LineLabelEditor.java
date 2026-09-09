@@ -31,6 +31,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
+/** Draws the main edge label as SVG text. */
 public class LineLabelEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -46,17 +47,25 @@ public class LineLabelEditor implements LineEditor<SvgBrush>, SvgConstants {
 
     FlatPoint labelCenter = lineDrawProp.getLabelCenter();
 
-    Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
-      Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
-      setText(text, fontSize, textLineAttribute);
-      text.setTextContent(textLineAttribute.getLine());
-    };
+    Consumer<TextLineAttribute> lineConsumer =
+        textLineAttribute -> {
+          String id =
+              SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
+          Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
+          setText(text, fontSize, textLineAttribute);
+          text.setTextContent(textLineAttribute.getLine());
+        };
 
     LineAttrs lineAttrs = lineDrawProp.lineAttrs();
-    text(new TextAttribute(labelCenter, fontSize, label, lineAttrs.getFontColor(),
-                            lineAttrs.getFontName(), lineDrawProp.getLabelSize().getWidth(),
-                            lineConsumer));
+    text(
+        new TextAttribute(
+            labelCenter,
+            fontSize,
+            label,
+            lineAttrs.getFontColor(),
+            lineAttrs.getFontName(),
+            lineDrawProp.getLabelSize().getWidth(),
+            lineConsumer));
     return true;
   }
 }

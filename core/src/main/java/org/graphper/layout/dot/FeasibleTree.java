@@ -33,7 +33,8 @@ import org.graphper.layout.Mark;
 import org.graphper.util.CollectionUtils;
 
 /**
- * Generate the initial feasible tree of the network simplex method, the main steps are as follows:
+ * Generates the initial feasible tree of the network simplex method.
+ *
  * <ul>
  *   <li>Generate an undirected tree based on the original graph;
  *   <li>Generate (low, lim) flags for nodes according to this undirected tree;
@@ -73,7 +74,8 @@ class FeasibleTree {
     this.haveUnconnectedGraph = sources.size() > 1;
     this.nodeConnectRecord = rankInit.nodeConnectRecord;
 
-    // Vertex (low, lim), initial rank assignment, initial cut value calculation of the edges of the spanning tree.
+    // Vertex (low, lim), initial rank assignment, initial cut value calculation of the edges of the
+    // spanning tree.
     if (digraph.edgeNum() != 0) {
       PropInit propInit = new PropInit(digraph, graph, tree, sources);
 
@@ -125,7 +127,7 @@ class FeasibleTree {
   /**
    * Determine whether the node is the tail part of the two components split at the tree edge.
    *
-   * @param node     node
+   * @param node node
    * @param treeLine tree line
    * @return <tt>true</tt> Node in tail component
    */
@@ -143,7 +145,7 @@ class FeasibleTree {
    * Determine whether an edge is a straddling edge relative to a tree edge.
    *
    * @param treeLine tree line
-   * @param line     line
+   * @param line line
    * @return <tt>true</tt> if line cross the tail and head components
    */
   static boolean isCross(DLine treeLine, DLine line) {
@@ -157,7 +159,7 @@ class FeasibleTree {
    * If there is no crossing, it is 0.
    *
    * @param treeLine tree line
-   * @param line     line
+   * @param line line
    * @return the incremental weight value
    */
   static double lineCrossVal(DLine treeLine, DLine line) {
@@ -181,17 +183,14 @@ class FeasibleTree {
   /**
    * Compute cut values by iterating only components with fewer nodes, avoiding scanning all edges.
    *
-   * @param graph    undirected graph
+   * @param graph undirected graph
    * @param treeLine tree line
    * @return cut value of tree line
    */
   static double halfDfsCalcCutVal(DotGraph graph, ULine treeLine) {
-    double[] cutVal = new double[]{0D};
-    Consumer<ULine> consumer = uLine ->
-        cutVal[0] += lineCrossVal(
-            treeLine.getdLine(),
-            uLine.getdLine()
-        );
+    double[] cutVal = new double[] {0D};
+    Consumer<ULine> consumer =
+        uLine -> cutVal[0] += lineCrossVal(treeLine.getdLine(), uLine.getdLine());
 
     halfDfs(graph, treeLine, consumer);
 
@@ -203,8 +202,8 @@ class FeasibleTree {
    * perform some consumption behavior, then returns all nodes of the half of components with fewer
    * nodes.
    *
-   * @param graph         undirected graph
-   * @param treeLine      tree line
+   * @param graph undirected graph
+   * @param treeLine tree line
    * @param dLineConsumer cross line consumer
    * @return component nodes
    */
@@ -227,27 +226,31 @@ class FeasibleTree {
     Queue<DNode> halfNodeQueen = new LinkedList<>();
 
     // Iterate the side components with fewer nodes
-    DNode startNode = headNode.getLim() - headNode.getLow()
-        < tailNode.getLim() - tailNode.getLow() ? headNode : tailNode;
+    DNode startNode =
+        headNode.getLim() - headNode.getLow() < tailNode.getLim() - tailNode.getLow()
+            ? headNode
+            : tailNode;
     halfNodeQueen.offer(startNode);
     queenRecord.add(startNode);
 
     while (!halfNodeQueen.isEmpty()) {
       DNode node = halfNodeQueen.poll();
 
-      graph.forEachAdjacent(node, uLine -> {
-        if (isCross(treeDLine, uLine.getdLine())) {
-          dLineConsumer.accept(uLine);
-          return;
-        }
+      graph.forEachAdjacent(
+          node,
+          uLine -> {
+            if (isCross(treeDLine, uLine.getdLine())) {
+              dLineConsumer.accept(uLine);
+              return;
+            }
 
-        DNode other = uLine.other(node);
+            DNode other = uLine.other(node);
 
-        if (!queenRecord.contains(other)) {
-          halfNodeQueen.offer(other);
-          queenRecord.add(other);
-        }
-      });
+            if (!queenRecord.contains(other)) {
+              halfNodeQueen.offer(other);
+              queenRecord.add(other);
+            }
+          });
     }
 
     return queenRecord;
@@ -261,15 +264,15 @@ class FeasibleTree {
    * assertion isTree is provided to judge whether a certain edge in the original graph belongs to
    * the tree edge in the spanning tree. This method can calculate the cut value of the tree edge.
    *
-   * @param graph    spanning tree
-   * @param node     for a certain node of the tree edge, the tangent values of other tree edges
-   *                 connected to this node have been calculated
+   * @param graph spanning tree
+   * @param node for a certain node of the tree edge, the tangent values of other tree edges
+   *     connected to this node have been calculated
    * @param treeLine tree edges for which cut values need to be computed
-   * @param isTree   the logic for judging whether an edge is a tree edge
+   * @param isTree the logic for judging whether an edge is a tree edge
    * @return edge cut value
    */
-  static double calcCutValByAdjTreeLine(DotGraph graph, DNode node,
-                                        ULine treeLine, Predicate<ULine> isTree) {
+  static double calcCutValByAdjTreeLine(
+      DotGraph graph, DNode node, ULine treeLine, Predicate<ULine> isTree) {
     if (graph == null || node == null || treeLine == null || isTree == null) {
       throw new NullPointerException();
     }
@@ -322,14 +325,13 @@ class FeasibleTree {
     return cutVal;
   }
 
-  // Specify the tree edge and node, input another adjacent edge of this node, and judge whether the in-out degree is consistent
+  // Specify the tree edge and node, input another adjacent edge of this node, and judge whether the
+  // in-out degree is consistent
   private static boolean isSameInOut(DLine treeLine, DLine targetLine) {
     return treeLine.from() == targetLine.from() || treeLine.to() == targetLine.to();
   }
 
-  /**
-   * Initial Grade Assignment.
-   */
+  /** Initial Grade Assignment. */
   private static class RankInit extends Mark<DNode> {
 
     private final DotGraph graph;
@@ -354,7 +356,8 @@ class FeasibleTree {
 
       Queue<ULine> minLines = new PriorityQueue<>(Comparator.comparing(ULine::reduceLen));
 
-      // The initial level is generated to ensure that the level of the "from" is higher than that of the "to"
+      // The initial level is generated to ensure that the level of the "from" is higher than that
+      // of the "to"
       initRank(dotDigraph, minLines);
 
       // Generation of initial feasible tree
@@ -447,9 +450,7 @@ class FeasibleTree {
     }
 
     private void generateTree(Queue<ULine> minLines) {
-      Queue<ULine> treeAdjacentEdges = new PriorityQueue<>(
-          Comparator.comparing(ULine::reduceLen)
-      );
+      Queue<ULine> treeAdjacentEdges = new PriorityQueue<>(Comparator.comparing(ULine::reduceLen));
 
       while (tree.vertexNum() < graph.vertexNum() && CollectionUtils.isNotEmpty(minLines)) {
         treeAdjacentEdges.clear();
@@ -486,7 +487,8 @@ class FeasibleTree {
             continue;
           }
 
-          // If the added tree edge at this time is not "tight", reset the coordinates of all nodes in the tree to make it a "tight edge"
+          // If the added tree edge at this time is not "tight", reset the coordinates of all nodes
+          // in the tree to make it a "tight edge"
           int reduceLen = dLine.reduceLen();
           if (reduceLen != 0) {
             int delta = next == dLine.from() ? -reduceLen : reduceLen;
@@ -499,7 +501,8 @@ class FeasibleTree {
             treeAdjacentEdges = newMinQueue(treeAdjacentEdges);
           }
 
-          // Add the adjacent non-entering tree edges to the newly entered tree vertex into the queue
+          // Add the adjacent non-entering tree edges to the newly entered tree vertex into the
+          // queue
           addAdjEdgesQueen(treeAdjacentEdges, uLine);
 
           tree.addEdge(uLine);
@@ -531,8 +534,9 @@ class FeasibleTree {
 
     private void addAdjEdgesQueen(Queue<ULine> treeAdjacentEdges, ULine uLine, DNode node) {
       for (ULine line : graph.adjacent(node)) {
-        if (line == uLine ||
-            (tree.containNode(line.getdLine().from()) && tree.containNode(line.getdLine().to()))) {
+        if (line == uLine
+            || (tree.containNode(line.getdLine().from())
+                && tree.containNode(line.getdLine().to()))) {
           continue;
         }
 
@@ -544,19 +548,15 @@ class FeasibleTree {
       if (CollectionUtils.isEmpty(treeAdjacentEdges)) {
         return treeAdjacentEdges;
       }
-      PriorityQueue<ULine> uLines = new PriorityQueue<>(
-          treeAdjacentEdges.size(),
-          Comparator.comparing(ULine::reduceLen)
-      );
+      PriorityQueue<ULine> uLines =
+          new PriorityQueue<>(treeAdjacentEdges.size(), Comparator.comparing(ULine::reduceLen));
 
       uLines.addAll(treeAdjacentEdges);
       return uLines;
     }
   }
 
-  /**
-   * Set the low and lim and cut value properties.
-   */
+  /** Set the low and lim and cut value properties. */
   private static class PropInit extends Mark<DNode> {
 
     // Reverse stack node count
@@ -587,8 +587,8 @@ class FeasibleTree {
     // have entered the queue for calculating cut values
     private Map<DNode, CutValRecord> nodeCountValRecord;
 
-    private PropInit(DotDigraph dotDigraph, DotGraph graph, DotGraph tree,
-                     Collection<DNode> sourceNodes) {
+    private PropInit(
+        DotDigraph dotDigraph, DotGraph graph, DotGraph tree, Collection<DNode> sourceNodes) {
       super(dotDigraph.vertexNum());
       this.dotDigraph = dotDigraph;
       this.tree = tree;
@@ -607,7 +607,8 @@ class FeasibleTree {
 
     private void dfs(DNode v) {
       mark(v);
-      // Record the lim of the vertex with the smallest lim among the subsequent nodes of the current vertex
+      // Record the lim of the vertex with the smallest lim among the subsequent nodes of the
+      // current vertex
       int tmpLow = Integer.MAX_VALUE;
 
       for (ULine e : tree.adjacent(v)) {
@@ -623,7 +624,8 @@ class FeasibleTree {
         low = Integer.MAX_VALUE;
       }
 
-      // The leaf node is a boundary node, or the source node has a degree of 1 in the spanning tree,
+      // The leaf node is a boundary node, or the source node has a degree of 1 in the spanning
+      // tree,
       // and the source node is a boundary node
       if (tree.degree(v) == 1) {
         isBorder.add(v);
@@ -637,7 +639,8 @@ class FeasibleTree {
     }
 
     private void computeCutVal(DotGraph graph) {
-      // Starting from the boundary node of the tree edge, the cut value is calculated by entering the inner node layer by layer
+      // Starting from the boundary node of the tree edge, the cut value is calculated by entering
+      // the inner node layer by layer
       while (CollectionUtils.isNotEmpty(cutQueen)) {
         DNode node = cutQueen.poll();
 
@@ -661,7 +664,8 @@ class FeasibleTree {
           continue;
         }
 
-        // Prove that the tangent values of all other tree edges at the current vertex have been calculated
+        // Prove that the tangent values of all other tree edges at the current vertex have been
+        // calculated
         DNode nextNode;
         DNode other = uLine.other(node);
         if (getNodeHavedCalcLineNum(nextNode = node) == degreeThreshold
@@ -674,10 +678,9 @@ class FeasibleTree {
 
         offerCutQueen(other);
       }
-
     }
 
-    /*-------------------------------------- Cut value calculation of various scenes near the tree --------------------------------------*/
+    /* Cut value calculation of various scenes near the tree. */
 
     // Calculate the tangent value of the boundary node
     private void calcBorderCutVal(DotGraph graph, DNode border) {
@@ -720,17 +723,16 @@ class FeasibleTree {
     private void calcCutValByAdjNode(DotGraph graph, DNode node, ULine treeLine) {
       // Set the cut value and mark the tree edge as visited
       setCutValAndMarkTreeLine(
-          calcCutValByAdjTreeLine(graph, node, treeLine, tree::containEdge),
-          treeLine
-      );
+          calcCutValByAdjTreeLine(graph, node, treeLine, tree::containEdge), treeLine);
     }
 
-    // Computes the tangency of tree edges by exhaustively enumerating the edges spanning two components
+    // Computes the tangency of tree edges by exhaustively enumerating the edges spanning two
+    // components
     private void npCalcCutVal(DotGraph graph, ULine treeLine) {
       setCutValAndMarkTreeLine(halfDfsCalcCutVal(graph, treeLine), treeLine);
     }
 
-    /*-------------------------------------- other computing operations --------------------------------------*/
+    /* Other computing operations. */
 
     private int getNodeHavedCalcLineNum(DNode node) {
       CutValRecord cutValRecord = getCutValRecord(node);

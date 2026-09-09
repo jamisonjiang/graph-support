@@ -16,12 +16,12 @@
 
 package org.graphper.api.attributes;
 
-import org.graphper.def.FlatPoint;
-import org.graphper.util.Asserts;
 import org.graphper.api.ext.LabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.BottomLabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.TopLabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.VerCenterLabelPositionCalc;
+import org.graphper.def.FlatPoint;
+import org.graphper.util.Asserts;
 
 /**
  * Used to control the vertical position of label.
@@ -30,19 +30,13 @@ import org.graphper.api.ext.LabelPositionCalc.VerCenterLabelPositionCalc;
  */
 public enum Labelloc {
 
-  /**
-   * Label aligns to the top.
-   */
+  /** Label aligns to the top. */
   TOP(new TopLabelPositionCalc()),
 
-  /**
-   * Label vertical centered.
-   */
+  /** Label vertical centered. */
   CENTER(new VerCenterLabelPositionCalc()),
 
-  /**
-   * Label aligns to the bottom.
-   */
+  /** Label aligns to the bottom. */
   BOTTOM(new BottomLabelPositionCalc());
 
   private final LabelPositionCalc labelPositionCalc;
@@ -55,9 +49,9 @@ public enum Labelloc {
   /**
    * Returns the y coordinate after mobilization.
    *
-   * @param upperLeft  left upper conner point
+   * @param upperLeft left upper conner point
    * @param lowerRight right down conner point
-   * @param labelSize  label size
+   * @param labelSize label size
    * @return y coordinate after mobilization
    * @throws NullPointerException any parameter is null
    */

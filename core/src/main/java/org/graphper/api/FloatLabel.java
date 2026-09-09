@@ -28,13 +28,17 @@ import org.graphper.util.FontUtils;
 /**
  * The floating label object of the Line. Uses two parameters to describe the position of the label
  * relative to the line:
+ *
  * <ul>
  *   <li>First use the parameter {@link #getLengthRatio()} to locate a position of the current line,
- *   0 indicates the position closest to the tail node, 1 indicates the position closest to the head node;
- *   <li>Secondly, if {@link #getTend()} is set, the set {@link #getLengthRatio()} attribute will be ignored,
- *   and the program will automatically select the appropriate point according to the corresponding value.
+ *       0 indicates the position closest to the tail node, 1 indicates the position closest to the
+ *       head node;
+ *   <li>Secondly, if {@link #getTend()} is set, the set {@link #getLengthRatio()} attribute will be
+ *       ignored, and the program will automatically select the appropriate point according to the
+ *       corresponding value.
  *   <li>Finally, manually adjust an offset according to the obtained node by {@link #getOffset()}.
- *   The horizontal and vertical offset ratios corresponding to this offset are based on the size of the current label size.
+ *       The horizontal and vertical offset ratios corresponding to this offset are based on the
+ *       size of the current label size.
  * </ul>
  *
  * @author Jamison Jiang
@@ -43,9 +47,7 @@ public class FloatLabel implements Serializable {
 
   private static final long serialVersionUID = 8788129136334958892L;
 
-  /**
-   * The floating label
-   */
+  /** The floating label. */
   private final String label;
 
   private final LabelTag labelTag;
@@ -58,27 +60,28 @@ public class FloatLabel implements Serializable {
 
   private final String fontName;
 
-  /**
-   * Font size of label
-   */
+  /** Font size of label. */
   private final float fontSize;
 
-  /**
-   * The position is described based on the length of the line.
-   */
+  /** The position is described based on the length of the line. */
   private final double lengthRatio;
 
-  /**
-   * The offset position of the point from the specified line.
-   */
+  /** The offset position of the point from the specified line. */
   private final FlatPoint offset;
 
-  private FloatLabel(String label, LabelTag labelTag, String fontName, float fontSize,
-                     double lengthRatio, Tend tend, FlatPoint offset,
-                     Table table, Assemble assemble) {
-    Asserts.illegalArgument(label == null && table == null
-                                && labelTag == null && assemble == null,
-                            "Empty Float Label");
+  private FloatLabel(
+      String label,
+      LabelTag labelTag,
+      String fontName,
+      float fontSize,
+      double lengthRatio,
+      Tend tend,
+      FlatPoint offset,
+      Table table,
+      Assemble assemble) {
+    Asserts.illegalArgument(
+        label == null && table == null && labelTag == null && assemble == null,
+        "Empty Float Label");
     Asserts.illegalArgument(fontSize < 0, "Float label can not less than 0");
     this.label = label;
     this.labelTag = labelTag;
@@ -105,7 +108,7 @@ public class FloatLabel implements Serializable {
   }
 
   /**
-   * Returns the font name;
+   * Returns the font name.
    *
    * @return the font name
    */
@@ -202,15 +205,14 @@ public class FloatLabel implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(label, labelTag, tend, table, assemble,
-                        fontName, fontSize, lengthRatio, offset);
+    return Objects.hash(
+        label, labelTag, tend, table, assemble, fontName, fontSize, lengthRatio, offset);
   }
 
-  // ------------------------------------------ FloatLabel Builder ---------------------------------------
+  // ------------------------------------------ FloatLabel Builder
+  // ---------------------------------------
 
-  /**
-   * Float label builder
-   */
+  /** Float label builder. */
   public static class FloatLabelBuilder {
 
     private String label;
@@ -231,11 +233,10 @@ public class FloatLabel implements Serializable {
 
     private Assemble assemble;
 
-    private FloatLabelBuilder() {
-    }
+    private FloatLabelBuilder() {}
 
     /**
-     * Set the floating label
+     * Set the floating label.
      *
      * @param label floating label
      * @return float label builder
@@ -249,8 +250,8 @@ public class FloatLabel implements Serializable {
     }
 
     /**
-     * Assigns an HTML-like {@link LabelTag} structure as this label, allowing for
-     * advanced text styling such as bold, italics, and nested formatting.
+     * Assigns an HTML-like {@link LabelTag} structure as this label, allowing for advanced text
+     * styling such as bold, italics, and nested formatting.
      *
      * @param labelTag the {@link LabelTag} to use as this label
      * @return float label builder
@@ -313,7 +314,7 @@ public class FloatLabel implements Serializable {
      * on the size of the current label size.
      *
      * @param heightRatio height ratio
-     * @param widthRatio  width ratio
+     * @param widthRatio width ratio
      * @return float label builder
      */
     public FloatLabelBuilder offset(double heightRatio, double widthRatio) {
@@ -351,12 +352,11 @@ public class FloatLabel implements Serializable {
      * where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
-     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
-     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on {@link
+     * Assemble} will be set, and the position of {@link Assemble} is where the label should
      * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
      * (by default, it does not automatically calculate the size of the cell according to the label
-     * of the cell), which requires the setter to completely accurate calculation of all
-     * parameters.
+     * of the cell), which requires the setter to completely accurate calculation of all parameters.
      *
      * @param assemble assemble
      * @return float label builder
@@ -373,8 +373,8 @@ public class FloatLabel implements Serializable {
      * @throws NullPointerException not set the label
      */
     public FloatLabel build() {
-      return new FloatLabel(label, labelTag, fontName, fontSize,
-                            lengthRatio, tend, offset, table, assemble);
+      return new FloatLabel(
+          label, labelTag, fontName, fontSize, lengthRatio, tend, offset, table, assemble);
     }
   }
 }

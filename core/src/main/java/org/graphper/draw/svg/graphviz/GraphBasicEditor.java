@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Draws the graph background and applies graph-level SVG attributes. */
 public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -40,11 +41,26 @@ public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
     double rightBorder = graphvizDrawProp.getRightBorder();
     double topBorder = graphvizDrawProp.getUpBorder();
     double bottomBorder = graphvizDrawProp.getDownBorder();
-    String points = leftBorder + COMMA + topBorder + SPACE
-        + rightBorder + COMMA + topBorder + SPACE
-        + rightBorder + COMMA + bottomBorder + SPACE
-        + leftBorder + COMMA + bottomBorder + SPACE
-        + leftBorder + COMMA + topBorder;
+    String points =
+        leftBorder
+            + COMMA
+            + topBorder
+            + SPACE
+            + rightBorder
+            + COMMA
+            + topBorder
+            + SPACE
+            + rightBorder
+            + COMMA
+            + bottomBorder
+            + SPACE
+            + leftBorder
+            + COMMA
+            + bottomBorder
+            + SPACE
+            + leftBorder
+            + COMMA
+            + topBorder;
 
     // Set back group color
     setBgColor(graphAttrs, background);
@@ -63,8 +79,10 @@ public class GraphBasicEditor implements GraphEditor<SvgBrush>, SvgConstants {
       return;
     }
     String id = SvgConstants.GRAPH + SvgConstants.UNDERSCORE + "0";
-    String tooltip = StringUtils.isNotEmpty(graphAttrs.getTooltip())
-        ? graphAttrs.getTooltip() : graphAttrs.getLabel();
+    String tooltip =
+        StringUtils.isNotEmpty(graphAttrs.getTooltip())
+            ? graphAttrs.getTooltip()
+            : graphAttrs.getLabel();
 
     Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);

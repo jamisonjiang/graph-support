@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.graphper.parser;
 
 /**
@@ -22,20 +23,20 @@ package org.graphper.parser;
  */
 public class ParseException extends RuntimeException {
 
-    private static final long serialVersionUID = 6494880405240898272L;
+  private static final long serialVersionUID = 6494880405240898272L;
 
-    public ParseException(String message) {
+  public ParseException(String message) {
 
-        super(message);
-    }
+    super(message);
+  }
 
-    public ParseException(String message, Throwable cause) {
+  public ParseException(String message, Throwable cause) {
 
-        super(message, cause);
-    }
+    super(message, cause);
+  }
 
-    public ParseException(Throwable cause) {
+  public ParseException(Throwable cause) {
 
-        super(cause);
-    }
+    super(cause);
+  }
 }

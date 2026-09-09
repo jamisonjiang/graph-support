@@ -33,8 +33,7 @@ import org.graphper.draw.LineDrawProp;
  */
 class SplineRouter extends CurveFitBoxRouter {
 
-  private SplineRouter() {
-  }
+  private SplineRouter() {}
 
   @Override
   protected boolean curveLine() {
@@ -66,7 +65,8 @@ class SplineRouter extends CurveFitBoxRouter {
     lineDrawPropConnect(lineDrawProp, throughParam.toPortPoints, false);
   }
 
-  // --------------------------------------------- SplineRouterFactory ---------------------------------------------
+  // --------------------------------------------- SplineRouterFactory
+  // ---------------------------------------------
 
   public static class SplineRouterFactory extends AbstractDotLineRouterFactory<SplineRouter> {
 

@@ -32,5 +32,6 @@ public interface Brush {
    * @param <G> graphviz brush type
    * @return current draw board
    */
-  <N extends Brush, L extends Brush, C extends Brush, G extends Brush> DrawBoard<N, L, C, G> drawBoard();
+  <N extends Brush, L extends Brush, C extends Brush, G extends Brush>
+      DrawBoard<N, L, C, G> drawBoard();
 }

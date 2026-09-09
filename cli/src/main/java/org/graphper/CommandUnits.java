@@ -69,6 +69,7 @@ public class CommandUnits {
       new ImageBaseDirectory()
   );
 
+  /** Reads a positional DOT input file. */
   public static class DotInput implements CommandUnit {
 
     @Override
@@ -92,6 +93,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the output file path. */
   public static class OutputFile implements CommandUnit {
 
     @Override
@@ -124,6 +126,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the graph layout engine. */
   public static class GraphLayout implements CommandUnit {
 
     @Override
@@ -156,6 +159,7 @@ public class CommandUnits {
     }
   }
 
+  /** Selects the output format. */
   public static class OutputFileType implements CommandUnit {
 
     @Override
@@ -184,6 +188,7 @@ public class CommandUnits {
     }
   }
 
+  /** Enables the native image renderer instead of Batik. */
   public static class NativeImageRender implements CommandUnit {
 
     @Override
@@ -266,6 +271,7 @@ public class CommandUnits {
     }
   }
 
+  /** Prints CLI and dependency versions, then exits. */
   public static class Version implements CommandUnit {
 
     @Override
@@ -290,6 +296,7 @@ public class CommandUnits {
     }
   }
 
+  /** Prints the available commands, then exits. */
   public static class Help implements CommandUnit {
 
     @Override
@@ -318,6 +325,7 @@ public class CommandUnits {
     }
   }
 
+  /** Enables debug logging for graph-support. */
   public static class Debug implements CommandUnit {
 
     @Override
@@ -338,6 +346,7 @@ public class CommandUnits {
     }
   }
 
+  /** Reads DOT source directly from a command-line argument. */
   public static class Script implements CommandUnit {
 
     @Override

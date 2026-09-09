@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+  <!-- Checked-in ANTLR output only; handwritten parser code remains checked. -->
+  <suppress files="[/\\]dot[/\\]src[/\\]main[/\\]java[/\\]org[/\\]graphper[/\\]parser[/\\]grammar[/\\](DOTLexer|DOTParser|DOTParserBaseListener|DOTParserBaseVisitor|DOTParserListener|DOTParserVisitor|HTMLLexer|HTMLParser|HTMLParserBaseListener|HTMLParserBaseVisitor|HTMLParserListener|HTMLParserVisitor)\.java$"
+      checks=".*"/>
+
+  <!-- These adapters alone may link platform classes. Style checks still apply. -->
+  <suppress files="[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]graphper[/\\]layout[/\\]AWTMeasureText\.java$"
+      id="core-platform-dependency"/>
+  <suppress files="[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]graphper[/\\]draw[/\\]common[/\\](AWTextRender|DefaultImgConverter|AndroidImgConverter|BatikImgConverter|SecureSvg)\.java$"
+      id="core-platform-dependency"/>
+  <suppress files="[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]graphper[/\\]draw[/\\]common[/\\](TlsImageLoader|LocalImageLoader)\.java$"
+      id="core-platform-dependency"/>
+  <suppress files="[/\\]core[/\\]src[/\\]main[/\\]java[/\\]org[/\\]graphper[/\\]draw[/\\]NioGraphResourceSaver\.java$"
+      id="core-platform-dependency"/>
+</suppressions>

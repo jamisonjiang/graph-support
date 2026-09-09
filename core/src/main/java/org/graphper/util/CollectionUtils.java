@@ -25,8 +25,7 @@ import java.util.Collection;
  */
 public final class CollectionUtils {
 
-  private CollectionUtils() {
-  }
+  private CollectionUtils() {}
 
   /**
    * Determine whether the collection is a null value or an empty collection.

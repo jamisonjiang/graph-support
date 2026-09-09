@@ -40,9 +40,9 @@ public interface EdgeDedigraph<V, E extends DirectedEdge<V, E>>
   /**
    * Returns all edges adjacent to the specified vertex.
    *
-   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor edges 
-   * connected to the specified vertex in both directions (both incoming and outgoing edges). 
-   * This is different from single-direction directed graphs where adjacent returns outgoing edges only.
+   * <p>For bidirectional directed graphs, the adjacent method returns all neighbor edges connected
+   * to the specified vertex in both directions (both incoming and outgoing edges). This is
+   * different from single-direction directed graphs where adjacent returns outgoing edges only.
    *
    * @param v vertex to be queried
    * @return all adjacent edges (both incoming and outgoing)

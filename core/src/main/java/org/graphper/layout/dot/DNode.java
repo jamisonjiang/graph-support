@@ -76,8 +76,13 @@ class DNode extends ANode implements Box, ShapePosition {
     this(nodeDrawProp, width, height, nodeSep, null, labelLine);
   }
 
-  private DNode(NodeDrawProp nodeDrawProp, double width, double height, double nodeSep, Line labelLine,
-                DLine flatLabelLine) {
+  private DNode(
+      NodeDrawProp nodeDrawProp,
+      double width,
+      double height,
+      double nodeSep,
+      Line labelLine,
+      DLine flatLabelLine) {
     super(nodeDrawProp);
     this.width = width;
     this.height = height;
@@ -293,8 +298,7 @@ class DNode extends ANode implements Box, ShapePosition {
         return String.valueOf(hashCode());
       }
     } else {
-      return getNodeAttrs().getLabel() != null
-          ? getNodeAttrs().getLabel() : "none";
+      return getNodeAttrs().getLabel() != null ? getNodeAttrs().getLabel() : "none";
     }
   }
 

@@ -16,13 +16,13 @@
 
 package org.graphper.api.attributes;
 
+import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.layout.LayoutEngine;
 import org.graphper.layout.dot.DotLayoutEngine;
 import org.graphper.layout.fdp.FdpLayoutEngine;
 import org.graphper.layout.fdp.GFdpLayoutEngine;
 import org.graphper.layout.fdp.JFdpLayoutEngine;
 import org.graphper.util.Asserts;
-import org.apache_gs.commons.lang3.StringUtils;
 
 /**
  * Layout engine enumeration.
@@ -45,35 +45,33 @@ public enum Layout {
    * Optimized hierarchical or layered drawings of directed graphs. Similar to DOT but with improved
    * performance for large graphs through optimized x-position calculation.
    *
-   * <p>This algorithm provides faster layout times while maintaining good visual quality,
-   * making it suitable for large graphs where classic DOT performance is insufficient.
+   * <p>This algorithm provides faster layout times while maintaining good visual quality, making it
+   * suitable for large graphs where classic DOT performance is insufficient.
    */
   DOTQ(new DotLayoutEngine(true)),
 
-  /**
-   * A standard force-directed placement (FDP) layout engine.
-   */
+  /** A standard force-directed placement (FDP) layout engine. */
   FDP(new FdpLayoutEngine()),
 
   /**
    * A specialized force-directed placement (JFDP) layout engine.
+   *
    * <ul>
-   *   <li>Reduced node displacement for better stability.</li>
-   *   <li>Degree-based scaling of attractive forces.</li>
-   *   <li>Efficient repulsive force calculation to avoid overlaps.</li>
-   *   <li>Bounding node positions within the graph area.</li>
+   *   <li>Reduced node displacement for better stability.
+   *   <li>Degree-based scaling of attractive forces.
+   *   <li>Efficient repulsive force calculation to avoid overlaps.
+   *   <li>Bounding node positions within the graph area.
    * </ul>
    */
   JFDP(new JFdpLayoutEngine()),
 
   /**
    * A specialized force-directed placement (GFDP) layout engine.
-   * <p>
-   * This algorithm is another variant of FDP that focuses on localized node interactions,
+   *
+   * <p>This algorithm is another variant of FDP that focuses on localized node interactions,
    * considering only the forces within the cell area of a node. This optimization reduces
    * computational complexity and is particularly effective for dense graphs with limited
    * interaction ranges.
-   * </p>
    */
   GFDP(new GFdpLayoutEngine());
 
@@ -93,6 +91,7 @@ public enum Layout {
     return layoutEngine;
   }
 
+  /** Resolves a layout name case-insensitively, defaulting to DOT when unrecognized. */
   public static Layout layout(String layout) {
     if (StringUtils.isEmpty(layout)) {
       return Layout.DOT;

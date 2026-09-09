@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Adds node hyperlinks and tooltips to SVG groups. */
 public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -37,8 +38,8 @@ public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
       return true;
     }
 
-    String href = brush.drawBoard().graphAttrs().getSecurityPolicy()
-        .sanitizeLink(nodeAttrs.getHref());
+    String href =
+        brush.drawBoard().graphAttrs().getSecurityPolicy().sanitizeLink(nodeAttrs.getHref());
     if (href == null) {
       return true;
     }
@@ -46,8 +47,10 @@ public class NodeHrefEditor implements NodeEditor<SvgBrush>, SvgConstants {
     brush.setWrapEle(wrapEle);
 
     wrapEle.setAttribute(XLINK + COLON + HREF, href);
-    String tooltip = StringUtils.isNotEmpty(nodeAttrs.getTooltip())
-        ? nodeAttrs.getTooltip() : nodeAttrs.getLabel();
+    String tooltip =
+        StringUtils.isNotEmpty(nodeAttrs.getTooltip())
+            ? nodeAttrs.getTooltip()
+            : nodeAttrs.getLabel();
 
     if (StringUtils.isNotEmpty(tooltip)) {
       wrapEle.setAttribute(XLINK + COLON + TITLE_ELE, tooltip);

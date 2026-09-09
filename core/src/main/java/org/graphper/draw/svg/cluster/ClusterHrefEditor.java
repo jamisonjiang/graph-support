@@ -25,6 +25,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Adds cluster hyperlinks and tooltips to SVG groups. */
 public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -37,14 +38,16 @@ public class ClusterHrefEditor implements ClusterEditor<SvgBrush>, SvgConstants 
       return true;
     }
 
-    String href = brush.drawBoard().graphAttrs().getSecurityPolicy()
-        .sanitizeLink(clusterAttrs.getHref());
+    String href =
+        brush.drawBoard().graphAttrs().getSecurityPolicy().sanitizeLink(clusterAttrs.getHref());
     if (href == null) {
       return true;
     }
     String id = brush.drawBoard().clusterId(cluster.getCluster());
-    String tooltip = StringUtils.isNotEmpty(clusterAttrs.getTooltip())
-        ? clusterAttrs.getTooltip() : clusterAttrs.getLabel();
+    String tooltip =
+        StringUtils.isNotEmpty(clusterAttrs.getTooltip())
+            ? clusterAttrs.getTooltip()
+            : clusterAttrs.getLabel();
 
     Element wrapEle = brush.getOrCreateChildElementById(A_ELE + UNDERSCORE + id, A_ELE);
     brush.setWrapEle(wrapEle);

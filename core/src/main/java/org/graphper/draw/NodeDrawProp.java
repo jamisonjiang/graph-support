@@ -61,6 +61,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     this(node, nodeAttrs, null);
   }
 
+  /** Creates node drawing properties with an optional label cell identity scope. */
   public NodeDrawProp(Node node, NodeAttrs nodeAttrs, String cellScope) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(node, "nodeAttrs");
@@ -189,6 +190,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     return !isCellProp();
   }
 
+  /** Positions this label cell using its container's label geometry. */
   public void initCellPos() {
     if (!isCellProp()) {
       return;
@@ -204,9 +206,10 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     initCellPos(ls, lc, assemble);
   }
 
+  /** Positions this cell using the label size, center, and assembly offsets. */
   public void initCellPos(FlatPoint ls, FlatPoint lc, Assemble assemble) {
-    Asserts.illegalArgument(lc == null || ls == null || assemble == null,
-                            "Cell container properties error");
+    Asserts.illegalArgument(
+        lc == null || ls == null || assemble == null, "Cell container properties error");
 
     double width = getWidth();
     double height = getHeight();
@@ -218,6 +221,7 @@ public class NodeDrawProp extends ContainerDrawProp implements Serializable {
     setDownBorder(getUpBorder() + height);
   }
 
+  /** Transforms record cells and node dimensions for the specified rank direction. */
   public void flip(Rankdir rankdir) {
     if (getCell() != null) {
       getCell().flip(rankdir, this);

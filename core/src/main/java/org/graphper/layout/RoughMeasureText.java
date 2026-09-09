@@ -22,6 +22,7 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 
+/** Estimates text dimensions when platform font measurement is unavailable. */
 public class RoughMeasureText implements MeasureText {
 
   @Override

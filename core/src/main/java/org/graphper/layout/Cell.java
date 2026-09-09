@@ -30,6 +30,7 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.Rectangle;
 import org.graphper.util.CollectionUtils;
 
+/** A record-label cell with dimensions, an offset, and optional nested cells. */
 public class Cell {
 
   protected final boolean isHor;
@@ -39,9 +40,9 @@ public class Cell {
   protected String label;
 
   /**
-   * Rich-text body of this cell. Only ever set by {@link RecordTagCompiler} when the record cell was
-   * declared with {@code Html.cell(LabelTag)}; the frozen string grammar cannot produce it. When
-   * non-null the renderer draws styled fragments instead of {@link #label}.
+   * Rich-text body of this cell. Only ever set by {@link RecordTagCompiler} when the record cell
+   * was declared with {@code Html.cell(LabelTag)}; the frozen string grammar cannot produce it.
+   * When non-null the renderer draws styled fragments instead of {@link #label}.
    */
   protected LabelTag labelTag;
 
@@ -138,6 +139,7 @@ public class Cell {
     this.shape = shape;
   }
 
+  /** Returns the number of immediate child cells. */
   public int childrenSize() {
     if (children == null) {
       return 0;
@@ -145,6 +147,7 @@ public class Cell {
     return children.size();
   }
 
+  /** Returns the indexed child, or null when the index is outside the child list. */
   public Cell getChild(int i) {
     if (children == null) {
       return null;
@@ -155,6 +158,7 @@ public class Cell {
     return children.get(i);
   }
 
+  /** Returns an unmodifiable view of the child cells. */
   public List<Cell> getChildren() {
     if (CollectionUtils.isEmpty(children)) {
       return Collections.emptyList();
@@ -166,6 +170,7 @@ public class Cell {
     return CollectionUtils.isEmpty(children);
   }
 
+  /** Resolves the cell center relative to the supplied containing box. */
   public FlatPoint getCenter(Box box) {
     if (box == null || offset == null) {
       return new FlatPoint(width / 2, height / 2);
@@ -178,6 +183,7 @@ public class Cell {
     return new FlatPoint(leftBorder + width / 2, upBorder + height / 2);
   }
 
+  /** Returns the cell bounds relative to the supplied containing box. */
   public Rectangle getCellBox(Box box) {
     FlatPoint cellCenter = getCenter(box);
     Rectangle cellRect = new Rectangle();
@@ -188,6 +194,7 @@ public class Cell {
     return cellRect;
   }
 
+  /** Transforms this cell and its descendants to the requested rank direction. */
   public void flip(Rankdir rankdir, Box rootBox) {
     if (rankdir == null || rankdir == Rankdir.TB || rootBox == null) {
       return;
@@ -226,6 +233,7 @@ public class Cell {
     }
   }
 
+  /** The root record cell, which indexes named cells for port lookup. */
   public static class RootCell extends Cell {
 
     private Map<String, Cell> idRecord;
@@ -246,6 +254,7 @@ public class Cell {
       idRecord.put(id, cell);
     }
 
+    /** Returns the named cell, or null if its identifier is not registered. */
     public Cell getCellById(String id) {
       if (idRecord == null) {
         return null;

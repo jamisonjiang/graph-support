@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.graphper.api.ext;
 
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class StretchablePolygonPropCalc extends RegularPolylinePropCalc {
   /**
    * Creates polygon geometry with independently selected point scaling.
    *
-   * @param side          number of polygon sides
+   * @param side number of polygon sides
    * @param regularPoints whether points must remain on a circle
    */
   public StretchablePolygonPropCalc(int side, boolean regularPoints) {
@@ -58,8 +59,8 @@ public class StretchablePolygonPropCalc extends RegularPolylinePropCalc {
   }
 
   @Override
-  public FlatPoint minContainerSize(double innerHeight, double innerWidth,
-                                    double minHeight, double minWidth) {
+  public FlatPoint minContainerSize(
+      double innerHeight, double innerWidth, double minHeight, double minWidth) {
     if (innerHeight == 0 || innerWidth == 0) {
       return new FlatPoint(minHeight, minWidth);
     }
@@ -108,11 +109,11 @@ public class StretchablePolygonPropCalc extends RegularPolylinePropCalc {
   }
 
   private FlatPoint[] innerCorners(double height, double width) {
-    return new FlatPoint[]{
-        new FlatPoint(-width / 2, -height / 2),
-        new FlatPoint(width / 2, -height / 2),
-        new FlatPoint(width / 2, height / 2),
-        new FlatPoint(-width / 2, height / 2)
+    return new FlatPoint[] {
+      new FlatPoint(-width / 2, -height / 2),
+      new FlatPoint(width / 2, -height / 2),
+      new FlatPoint(width / 2, height / 2),
+      new FlatPoint(-width / 2, height / 2)
     };
   }
 
@@ -156,8 +157,8 @@ public class StretchablePolygonPropCalc extends RegularPolylinePropCalc {
     double yScale = box.getHeight() / (2 * maxY);
     List<FlatPoint> points = new ArrayList<>(getSide());
     for (FlatPoint point : unitPoints) {
-      points.add(new FlatPoint(box.getX() + point.getX() * xScale,
-                               box.getY() + point.getY() * yScale));
+      points.add(
+          new FlatPoint(box.getX() + point.getX() * xScale, box.getY() + point.getY() * yScale));
     }
     return points;
   }

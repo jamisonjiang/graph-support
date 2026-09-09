@@ -64,13 +64,17 @@ final class ClusterObstacleIndex {
     for (ClusterDrawProp drawProp : drawGraph.clusters()) {
       // Index the rectangle, not just member ranks: margins and titles can reach into a gap used
       // by a flat route on the neighbouring rank. The first/last buckets also cover exterior space.
-      obstacles.add(new ClusterObstacle(drawProp, bucket(drawProp.getUpBorder()),
-                                        bucket(drawProp.getDownBorder()),
-                                        depth(drawProp.getCluster(), graphviz)));
+      obstacles.add(
+          new ClusterObstacle(
+              drawProp,
+              bucket(drawProp.getUpBorder()),
+              bucket(drawProp.getDownBorder()),
+              depth(drawProp.getCluster(), graphviz)));
     }
-    obstacles.sort(Comparator.comparingInt(ClusterObstacle::depth)
-                       .thenComparingInt(ClusterObstacle::minRank)
-                       .thenComparingInt(obstacle -> obstacle.drawProp().getClusterNo()));
+    obstacles.sort(
+        Comparator.comparingInt(ClusterObstacle::depth)
+            .thenComparingInt(ClusterObstacle::minRank)
+            .thenComparingInt(obstacle -> obstacle.drawProp().getClusterNo()));
 
     byRank = new HashMap<>();
     for (ClusterObstacle obstacle : obstacles) {
@@ -171,5 +175,4 @@ final class ClusterObstacleIndex {
       return depth;
     }
   }
-
 }

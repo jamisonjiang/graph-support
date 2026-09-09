@@ -22,12 +22,11 @@ import org.graphper.layout.fdp.FdpGraph.AreaGraph;
 
 /**
  * A specialized force-directed placement (GFDP) layout engine.
- * <p>
- * This algorithm is another variant of FDP that focuses on localized node interactions,
+ *
+ * <p>This algorithm is another variant of FDP that focuses on localized node interactions,
  * considering only the forces within the cell area of a node. This optimization reduces
- * computational complexity and is particularly effective for dense graphs with limited
- * interaction ranges.
- * </p>
+ * computational complexity and is particularly effective for dense graphs with limited interaction
+ * ranges.
  *
  * @author Jamison Jiang
  */
@@ -36,8 +35,8 @@ public class GFdpLayoutEngine extends AbstractFdpLayout {
   private static final long serialVersionUID = 5753649446512849866L;
 
   @Override
-  protected void fdpLayout(AreaGraph graph, int iterations, double temperature,
-                           double k, double width, double height) {
+  protected void fdpLayout(
+      AreaGraph graph, int iterations, double temperature, double k, double width, double height) {
     int gridSize = graph.vertexNum() * 10;
     int gridWidth = (int) width;
     int gridHeight = (int) height;
@@ -112,13 +111,14 @@ public class GFdpLayoutEngine extends AbstractFdpLayout {
 
       // Limit the displacement and update positions
       for (FNode v : graph) {
-        double displacement = Math.sqrt(
-            v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
+        double displacement =
+            Math.sqrt(
+                v.getRepulsionX() * v.getRepulsionX() + v.getRepulsionY() * v.getRepulsionY());
         if (displacement > 0) {
-          double x = v.getX() + (v.getRepulsionX() / displacement)
-              * Math.min(displacement, temperature);
-          double y = v.getY() + (v.getRepulsionY() / displacement)
-              * Math.min(displacement, temperature);
+          double x =
+              v.getX() + (v.getRepulsionX() / displacement) * Math.min(displacement, temperature);
+          double y =
+              v.getY() + (v.getRepulsionY() / displacement) * Math.min(displacement, temperature);
           graph.setNodeLocation(v, x, y);
         }
       }

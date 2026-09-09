@@ -58,9 +58,9 @@ class CorridorSpline {
    *
    * <p>Router boxes only approximate the free area: {@code newTwoNodeRangeBox} widens a box to at
    * least its own node span, so a box can overlap the neighbour it is supposed to stop against when
-   * the rank is tight. Riding the wall would then put the curve inside that neighbour, so gates give
-   * up a little room on both sides. The inset never consumes more than a quarter of a gate, which
-   * keeps genuinely narrow gates usable.
+   * the rank is tight. Riding the wall would then put the curve inside that neighbour, so gates
+   * give up a little room on both sides. The inset never consumes more than a quarter of a gate,
+   * which keeps genuinely narrow gates usable.
    */
   private static final double GATE_CLEARANCE = 8;
 
@@ -71,9 +71,9 @@ class CorridorSpline {
    *
    * <p>A router box only records the free space of one rank; it says nothing about cluster borders.
    * An unbounded shortest corridor path is therefore free to cut diagonally through a cluster that
-   * the virtual node chain deliberately routed around. The defect this class removes is local jitter
-   * of that chain, which is small relative to the node separation, so the route is allowed to
-   * straighten only within a short distance of the layout's own decision. That keeps the routing
+   * the virtual node chain deliberately routed around. The defect this class removes is local
+   * jitter of that chain, which is small relative to the node separation, so the route is allowed
+   * to straighten only within a short distance of the layout's own decision. That keeps the routing
    * topology the layout committed to while still discarding the jitter.
    */
   private static final double MAX_DEVIATION = 16;
@@ -95,7 +95,7 @@ class CorridorSpline {
    *
    * @param param routing parameter produced by {@link BoxGuideLineRouter}
    * @return the routed curve, or null when the corridor cannot describe the route and the caller
-   *         should fall back to the generic fitter
+   *     should fall back to the generic fitter
    */
   static MultiBezierCurve route(BoxGuideLineRouter.ThroughParam param) {
     List<RouterBox> boxes = param.lineRouterBoxes;
@@ -127,25 +127,13 @@ class CorridorSpline {
     return curves;
   }
 
-  /** Verifies that every emitted segment stays inside the corridor. */
-  boolean inCorridor(MultiBezierCurve curves) {
-    for (ThirdOrderBezierCurve curve : curves) {
-      if (!inCorridor(curve)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   /** Pulls the corridor taut between the two endpoints. */
   List<FlatPoint> tautPath(int startBox, int endBox, FlatPoint start, FlatPoint end) {
     List<FlatPoint> path = pullTaut(startBox, endBox, start, end);
     return path == null ? null : dedupe(path);
   }
 
-  /**
-   * Funnel sweep across the portals shared by consecutive boxes.
-   */
+  /** Funnel sweep across the portals shared by consecutive boxes. */
   private List<FlatPoint> pullTaut(int fromBox, int toBox, FlatPoint start, FlatPoint end) {
     List<double[]> portals = portals(fromBox, toBox, start, end);
     if (portals == null) {
@@ -226,12 +214,10 @@ class CorridorSpline {
     return result;
   }
 
-  /**
-   * Builds the ordered gate list, one gate per shared boundary of consecutive boxes.
-   */
+  /** Builds the ordered gate list, one gate per shared boundary of consecutive boxes. */
   private List<double[]> portals(int fromBox, int toBox, FlatPoint start, FlatPoint end) {
     List<double[]> portals = new ArrayList<>();
-    portals.add(new double[]{u(start), w(start), w(start)});
+    portals.add(new double[] {u(start), w(start), w(start)});
 
     int step = fromBox <= toBox ? 1 : -1;
     boolean forward = u(end) >= u(start);
@@ -275,10 +261,10 @@ class CorridorSpline {
         continue;
       }
       previous = gate;
-      portals.add(new double[]{gate, lo, hi});
+      portals.add(new double[] {gate, lo, hi});
     }
 
-    portals.add(new double[]{u(end), w(end), w(end)});
+    portals.add(new double[] {u(end), w(end), w(end)});
     return portals.size() < 2 ? null : portals;
   }
 
@@ -286,7 +272,7 @@ class CorridorSpline {
   void setReference(List<? extends FlatPoint> points) {
     List<double[]> pairs = new ArrayList<>(points.size());
     for (FlatPoint point : points) {
-      pairs.add(new double[]{u(point), w(point)});
+      pairs.add(new double[] {u(point), w(point)});
     }
     pairs.sort((a, b) -> Double.compare(a[0], b[0]));
     this.reference = pairs;
@@ -334,10 +320,11 @@ class CorridorSpline {
    * Turns the taut path into a curve that bends through every vertex.
    *
    * <p>Rounding each corner in isolation leaves the rest of the route perfectly straight, so a
-   * corner in a narrow box, where the arc has to stay small, shows up as a kink between two straight
-   * runs. Label stations make that worse because they add a short segment whose corner can only hold
-   * a tiny arc. Instead each vertex gets one tangent direction shared by the segments on both sides,
-   * which makes the whole route continuous: a short or tightly boxed segment simply bends less.
+   * corner in a narrow box, where the arc has to stay small, shows up as a kink between two
+   * straight runs. Label stations make that worse because they add a short segment whose corner can
+   * only hold a tiny arc. Instead each vertex gets one tangent direction shared by the segments on
+   * both sides, which makes the whole route continuous: a short or tightly boxed segment simply
+   * bends less.
    */
   MultiBezierCurve smooth(List<FlatPoint> path) {
     int size = path.size();
@@ -374,8 +361,9 @@ class CorridorSpline {
       double after = i < size - 1 ? length[i + 1] : length[i];
       double fromHandle = Math.min(length[i], before) * HANDLE_RATIO;
       double toHandle = Math.min(length[i], after) * HANDLE_RATIO;
-      curves.add(fitSegment(path.get(i - 1), path.get(i), tangents[i - 1], tangents[i],
-                            fromHandle, toHandle));
+      curves.add(
+          fitSegment(
+              path.get(i - 1), path.get(i), tangents[i - 1], tangents[i], fromHandle, toHandle));
     }
     return curves.isEmpty() ? null : curves;
   }
@@ -384,9 +372,13 @@ class CorridorSpline {
    * Shortens the handles until the segment fits the corridor, so a tight box flattens that one
    * segment instead of breaking continuity for the whole route.
    */
-  private ThirdOrderBezierCurve fitSegment(FlatPoint from, FlatPoint to, FlatPoint fromTangent,
-                                           FlatPoint toTangent, double fromHandle,
-                                           double toHandle) {
+  private ThirdOrderBezierCurve fitSegment(
+      FlatPoint from,
+      FlatPoint to,
+      FlatPoint fromTangent,
+      FlatPoint toTangent,
+      double fromHandle,
+      double toHandle) {
     if (fromTangent == null || toTangent == null) {
       return straight(from, to);
     }
@@ -396,8 +388,8 @@ class CorridorSpline {
       if (fromHandle * scale <= EPS && toHandle * scale <= EPS) {
         break;
       }
-      ThirdOrderBezierCurve candidate = segment(from, to, fromTangent, toTangent,
-                                                fromHandle * scale, toHandle * scale);
+      ThirdOrderBezierCurve candidate =
+          segment(from, to, fromTangent, toTangent, fromHandle * scale, toHandle * scale);
       if (inCorridor(candidate)) {
         return candidate;
       }
@@ -406,14 +398,20 @@ class CorridorSpline {
     return straight(from, to);
   }
 
-  private ThirdOrderBezierCurve segment(FlatPoint from, FlatPoint to, FlatPoint fromTangent,
-                                        FlatPoint toTangent, double fromHandle, double toHandle) {
+  private ThirdOrderBezierCurve segment(
+      FlatPoint from,
+      FlatPoint to,
+      FlatPoint fromTangent,
+      FlatPoint toTangent,
+      double fromHandle,
+      double toHandle) {
     return new ThirdOrderBezierCurve(
         new FlatPoint(from.getX(), from.getY()),
-        new FlatPoint(from.getX() + fromTangent.getX() * fromHandle,
-                      from.getY() + fromTangent.getY() * fromHandle),
-        new FlatPoint(to.getX() - toTangent.getX() * toHandle,
-                      to.getY() - toTangent.getY() * toHandle),
+        new FlatPoint(
+            from.getX() + fromTangent.getX() * fromHandle,
+            from.getY() + fromTangent.getY() * fromHandle),
+        new FlatPoint(
+            to.getX() - toTangent.getX() * toHandle, to.getY() - toTangent.getY() * toHandle),
         new FlatPoint(to.getX(), to.getY()));
   }
 
@@ -424,6 +422,16 @@ class CorridorSpline {
       return true;
     }
     return in.getX() * out.getX() + in.getY() * out.getY() < -0.85;
+  }
+
+  /** Verifies that every emitted segment stays inside the corridor. */
+  boolean inCorridor(MultiBezierCurve curves) {
+    for (ThirdOrderBezierCurve curve : curves) {
+      if (!inCorridor(curve)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean inCorridor(ThirdOrderBezierCurve curve) {
@@ -455,19 +463,27 @@ class CorridorSpline {
     double c = 3 * n * t * t;
     double d = t * t * t;
     return new FlatPoint(
-        a * curve.getV1().getX() + b * curve.getV2().getX()
-            + c * curve.getV3().getX() + d * curve.getV4().getX(),
-        a * curve.getV1().getY() + b * curve.getV2().getY()
-            + c * curve.getV3().getY() + d * curve.getV4().getY());
+        a * curve.getV1().getX()
+            + b * curve.getV2().getX()
+            + c * curve.getV3().getX()
+            + d * curve.getV4().getX(),
+        a * curve.getV1().getY()
+            + b * curve.getV2().getY()
+            + c * curve.getV3().getY()
+            + d * curve.getV4().getY());
   }
 
   private static ThirdOrderBezierCurve straight(FlatPoint from, FlatPoint to) {
-    FlatPoint v2 = new FlatPoint(from.getX() + (to.getX() - from.getX()) / 3,
-                                 from.getY() + (to.getY() - from.getY()) / 3);
-    FlatPoint v3 = new FlatPoint(from.getX() + (to.getX() - from.getX()) * 2 / 3,
-                                 from.getY() + (to.getY() - from.getY()) * 2 / 3);
-    return new ThirdOrderBezierCurve(new FlatPoint(from.getX(), from.getY()), v2, v3,
-                                     new FlatPoint(to.getX(), to.getY()));
+    FlatPoint v2 =
+        new FlatPoint(
+            from.getX() + (to.getX() - from.getX()) / 3,
+            from.getY() + (to.getY() - from.getY()) / 3);
+    FlatPoint v3 =
+        new FlatPoint(
+            from.getX() + (to.getX() - from.getX()) * 2 / 3,
+            from.getY() + (to.getY() - from.getY()) * 2 / 3);
+    return new ThirdOrderBezierCurve(
+        new FlatPoint(from.getX(), from.getY()), v2, v3, new FlatPoint(to.getX(), to.getY()));
   }
 
   private static FlatPoint direction(FlatPoint from, FlatPoint to) {
@@ -504,8 +520,8 @@ class CorridorSpline {
 
   private double[] point(double[] funnelPoint) {
     return vertical
-        ? new double[]{funnelPoint[0], funnelPoint[1]}
-        : new double[]{funnelPoint[1], funnelPoint[0]};
+        ? new double[] {funnelPoint[0], funnelPoint[1]}
+        : new double[] {funnelPoint[1], funnelPoint[0]};
   }
 
   private double u(FlatPoint point) {

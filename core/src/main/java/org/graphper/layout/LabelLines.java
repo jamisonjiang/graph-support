@@ -22,9 +22,9 @@ import java.util.List;
 import org.apache_gs.commons.lang3.StringUtils;
 
 /**
- * Parses Graphviz line terminators in plain labels. Besides a normal centered line break,
- * Graphviz supports {@code \l} and {@code \r}, which terminate a line and align it to the left or
- * right side of its label box.
+ * Parses Graphviz line terminators in plain labels. Besides a normal centered line break, Graphviz
+ * supports {@code \l} and {@code \r}, which terminate a line and align it to the left or right side
+ * of its label box.
  *
  * @author Jamison Jiang
  */
@@ -36,8 +36,7 @@ public final class LabelLines {
   /** Internal marker emitted by the DOT lexer for a right-aligned line break. */
   public static final char RIGHT_BREAK = '\uE001';
 
-  private LabelLines() {
-  }
+  private LabelLines() {}
 
   /**
    * Returns the internal left-break marker. Use this method across module boundaries to avoid Java

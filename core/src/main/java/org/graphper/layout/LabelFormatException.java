@@ -16,6 +16,7 @@
 
 package org.graphper.layout;
 
+/** Indicates that a record label does not conform to the supported label grammar. */
 public class LabelFormatException extends RuntimeException {
 
   private static final long serialVersionUID = 27577065681271306L;

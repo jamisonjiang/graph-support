@@ -19,22 +19,6 @@ package org.graphper.draw.svg;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.graphper.draw.svg.cluster.ClusterShapeEditor;
-import org.graphper.draw.svg.cluster.ClusterColorEditor;
-import org.graphper.draw.svg.cluster.ClusterHrefEditor;
-import org.graphper.draw.svg.cluster.ClusterLabelEditor;
-import org.graphper.draw.svg.cluster.ClusterStyleEditor;
-import org.graphper.draw.svg.graphviz.GraphBasicEditor;
-import org.graphper.draw.svg.graphviz.GraphGridEditor;
-import org.graphper.draw.svg.graphviz.GraphLabelEditor;
-import org.graphper.draw.svg.line.LineFloatLabelsEditor;
-import org.graphper.draw.svg.node.NodeColorEditor;
-import org.graphper.draw.svg.node.NodeHrefEditor;
-import org.graphper.draw.svg.node.NodeImageEditor;
-import org.graphper.draw.svg.node.NodeLabelEditor;
-import org.graphper.draw.svg.node.NodeStyleEditor;
-import org.graphper.layout.FlatShifterStrategy;
-import org.graphper.layout.ShifterStrategy;
 import org.graphper.draw.ClusterEditor;
 import org.graphper.draw.DefaultPipelineFactory;
 import org.graphper.draw.DrawBoard;
@@ -44,22 +28,37 @@ import org.graphper.draw.LineEditor;
 import org.graphper.draw.NodeEditor;
 import org.graphper.draw.PipelineFactory;
 import org.graphper.draw.PipelineRenderEngine;
+import org.graphper.draw.svg.cluster.ClusterColorEditor;
+import org.graphper.draw.svg.cluster.ClusterHrefEditor;
+import org.graphper.draw.svg.cluster.ClusterLabelEditor;
+import org.graphper.draw.svg.cluster.ClusterShapeEditor;
+import org.graphper.draw.svg.cluster.ClusterStyleEditor;
+import org.graphper.draw.svg.graphviz.GraphBasicEditor;
+import org.graphper.draw.svg.graphviz.GraphGridEditor;
+import org.graphper.draw.svg.graphviz.GraphLabelEditor;
 import org.graphper.draw.svg.line.LineArrowEditor;
 import org.graphper.draw.svg.line.LineBoxesEditor;
 import org.graphper.draw.svg.line.LineControlPointsEditor;
+import org.graphper.draw.svg.line.LineFloatLabelsEditor;
 import org.graphper.draw.svg.line.LineHrefEditor;
 import org.graphper.draw.svg.line.LineLabelEditor;
 import org.graphper.draw.svg.line.LinePathEditor;
 import org.graphper.draw.svg.line.LineStyleEditor;
+import org.graphper.draw.svg.node.NodeColorEditor;
+import org.graphper.draw.svg.node.NodeHrefEditor;
+import org.graphper.draw.svg.node.NodeImageEditor;
+import org.graphper.draw.svg.node.NodeLabelEditor;
 import org.graphper.draw.svg.node.NodeShapeEditor;
+import org.graphper.draw.svg.node.NodeStyleEditor;
+import org.graphper.layout.FlatShifterStrategy;
+import org.graphper.layout.ShifterStrategy;
 
 /**
  * Svg rendering engine.
  *
  * @author Jamison Jiang
  */
-public class SvgRenderEngine extends
-    PipelineRenderEngine<SvgBrush, SvgBrush, SvgBrush, SvgBrush> {
+public class SvgRenderEngine extends PipelineRenderEngine<SvgBrush, SvgBrush, SvgBrush, SvgBrush> {
 
   private static final SvgRenderEngine svgRenderEngine;
 
@@ -83,8 +82,7 @@ public class SvgRenderEngine extends
         new NodeLabelEditor(),
         new NodeStyleEditor(),
         new NodeColorEditor(),
-        new NodeImageEditor()
-    );
+        new NodeImageEditor());
   }
 
   @Override
@@ -97,8 +95,7 @@ public class SvgRenderEngine extends
         new LineLabelEditor(),
         new LineBoxesEditor(),
         new LineFloatLabelsEditor(),
-        new LineControlPointsEditor()
-    );
+        new LineControlPointsEditor());
   }
 
   @Override
@@ -108,17 +105,12 @@ public class SvgRenderEngine extends
         new ClusterShapeEditor(),
         new ClusterLabelEditor(),
         new ClusterColorEditor(),
-        new ClusterStyleEditor()
-    );
+        new ClusterStyleEditor());
   }
 
   @Override
   protected List<GraphEditor<SvgBrush>> initGraphEditors() {
-    return Arrays.asList(
-        new GraphBasicEditor(),
-        new GraphLabelEditor(),
-        new GraphGridEditor()
-    );
+    return Arrays.asList(new GraphBasicEditor(), new GraphLabelEditor(), new GraphGridEditor());
   }
 
   @Override
@@ -132,8 +124,7 @@ public class SvgRenderEngine extends
       drawGraph.tightenGraphBorder(2);
     }
     return Collections.singletonList(
-        new FlatShifterStrategy(-drawGraph.getMinX(), -drawGraph.getMinY())
-    );
+        new FlatShifterStrategy(-drawGraph.getMinX(), -drawGraph.getMinY()));
   }
 
   private boolean zeroMargin(DrawGraph drawGraph) {

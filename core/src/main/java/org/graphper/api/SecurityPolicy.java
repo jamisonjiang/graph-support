@@ -16,15 +16,15 @@
 
 package org.graphper.api;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.net.IDN;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -36,25 +36,24 @@ import org.graphper.util.Asserts;
  * Controls URI and image-resource access during rendering.
  *
  * <p>The default policy allows ordinary web/mail links and bounded embedded data images. Network
- * and filesystem image access are disabled unless explicitly enabled.</p>
+ * and filesystem image access are disabled unless explicitly enabled.
  *
  * <p><b>Scope of the remote image guarantees.</b> This class decides whether a reference may be
  * used at all. The address level restrictions apply to the shared image loader used by the native
  * raster renderer and by SVG preparation for Batik/FOP conversion: it resolves the allow-listed
- * hostname, refuses the reference unless
- * every resolved address is public, and then connects to one of exactly those addresses while
- * keeping the hostname for the {@code Host} header, for TLS SNI and for TLS hostname verification.
- * It does not follow redirects and accepts only an HTTP {@code 200} response with a decodable
- * raster content type.</p>
+ * hostname, refuses the reference unless every resolved address is public, and then connects to one
+ * of exactly those addresses while keeping the hostname for the {@code Host} header, for TLS SNI
+ * and for TLS hostname verification. It does not follow redirects and accepts only an HTTP {@code
+ * 200} response with a decodable raster content type.
  *
- * <p>SVG output itself is deliberately <em>not</em> covered: it embeds the approved reference as
- * an {@code xlink:href}, so whatever renders that SVG performs its own fetch under its own rules.
+ * <p>SVG output itself is deliberately <em>not</em> covered: it embeds the approved reference as an
+ * {@code xlink:href}, so whatever renders that SVG performs its own fetch under its own rules.
  * Before Batik/FOP conversion, approved images are loaded under this policy, raster-validated and
  * embedded as canonical data URIs. Batik never receives an external image reference. Conversion
  * also requires support for disabling external resources and scripts (Batik 1.13+ security hints)
  * and fails closed if either protection is unavailable. SVG conversion has additional fixed
  * structural and aggregate image budgets; these are not a general complexity or memory guarantee
- * for arbitrary untrusted SVG.</p>
+ * for arbitrary untrusted SVG.
  */
 public final class SecurityPolicy implements Serializable {
 
@@ -73,8 +72,8 @@ public final class SecurityPolicy implements Serializable {
 
   private SecurityPolicy(Builder builder) {
     allowRemoteImages = builder.allowRemoteImages;
-    allowedRemoteImageHosts = Collections.unmodifiableSet(
-        new LinkedHashSet<>(builder.allowedRemoteImageHosts));
+    allowedRemoteImageHosts =
+        Collections.unmodifiableSet(new LinkedHashSet<>(builder.allowedRemoteImageHosts));
     localImageBaseDirectory = builder.localImageBaseDirectory;
     connectTimeoutMillis = builder.connectTimeoutMillis;
     readTimeoutMillis = builder.readTimeoutMillis;
@@ -86,10 +85,14 @@ public final class SecurityPolicy implements Serializable {
   private void readObject(ObjectInputStream input) throws IOException, ClassNotFoundException {
     input.defaultReadObject();
     try {
-      Builder validated = builder().allowRemoteImages(allowRemoteImages)
-          .connectTimeoutMillis(connectTimeoutMillis).readTimeoutMillis(readTimeoutMillis)
-          .maxImageBytes(maxImageBytes).maxImagePixels(maxImagePixels)
-          .maxOutputPixels(maxOutputPixels);
+      Builder validated =
+          builder()
+              .allowRemoteImages(allowRemoteImages)
+              .connectTimeoutMillis(connectTimeoutMillis)
+              .readTimeoutMillis(readTimeoutMillis)
+              .maxImageBytes(maxImageBytes)
+              .maxImagePixels(maxImagePixels)
+              .maxOutputPixels(maxOutputPixels);
       for (String host : allowedRemoteImageHosts) {
         validated.allowRemoteImageHost(host);
       }
@@ -97,14 +100,14 @@ public final class SecurityPolicy implements Serializable {
         throw new IllegalArgumentException("remote image hosts must be normalized");
       }
       if (localImageBaseDirectory != null) {
-        validated.localImageBaseDirectory(Paths.get(localImageBaseDirectory));
+        validated.localImageBaseDirectory(localImageBaseDirectory);
         if (!localImageBaseDirectory.equals(validated.localImageBaseDirectory)) {
           throw new IllegalArgumentException("local image base must be absolute and normalized");
         }
       }
       // Do not retain a mutable collection aliased elsewhere in the serialized object graph.
-      allowedRemoteImageHosts = Collections.unmodifiableSet(
-          new LinkedHashSet<>(validated.allowedRemoteImageHosts));
+      allowedRemoteImageHosts =
+          Collections.unmodifiableSet(new LinkedHashSet<>(validated.allowedRemoteImageHosts));
     } catch (RuntimeException e) {
       InvalidObjectException invalid = new InvalidObjectException("Invalid image security policy");
       invalid.initCause(e);
@@ -125,8 +128,8 @@ public final class SecurityPolicy implements Serializable {
   }
 
   /**
-   * Budget for both the hostname resolution and the TCP connect of a remote image fetch, each
-   * taken separately.
+   * Budget for both the hostname resolution and the TCP connect of a remote image fetch, each taken
+   * separately.
    *
    * @return connect budget in milliseconds
    */
@@ -161,8 +164,13 @@ public final class SecurityPolicy implements Serializable {
     return maxOutputPixels;
   }
 
-  public Path getLocalImageBaseDirectory() {
-    return localImageBaseDirectory == null ? null : Paths.get(localImageBaseDirectory);
+  public File getLocalImageBaseDirectory() {
+    return getLocalImageBaseDirectoryFile();
+  }
+
+  /** Returns the configured directory without requiring newer filesystem APIs. */
+  public File getLocalImageBaseDirectoryFile() {
+    return localImageBaseDirectory == null ? null : new File(localImageBaseDirectory);
   }
 
   /** Returns a safe link or {@code null} when the value uses a dangerous or malformed scheme. */
@@ -182,7 +190,8 @@ public final class SecurityPolicy implements Serializable {
         return uriValue;
       }
       return ("http".equals(scheme) || "https".equals(scheme)) && uri.getUserInfo() == null
-          ? uriValue : null;
+          ? uriValue
+          : null;
     } catch (URISyntaxException e) {
       return null;
     }
@@ -193,9 +202,9 @@ public final class SecurityPolicy implements Serializable {
    *
    * <p>Approval here is purely about the reference: an {@code http}/{@code https} reference needs
    * {@link #isAllowRemoteImages()} plus exact membership in {@link #getAllowedRemoteImageHosts()},
-   * carries no user info, and a filesystem reference must resolve inside
-   * {@link #getLocalImageBaseDirectory()}. Where the hostname actually points is checked later, by
-   * the loader that performs the fetch.</p>
+   * carries no user info, and a filesystem reference must resolve inside {@link
+   * #getLocalImageBaseDirectory()}. Where the hostname actually points is checked later, by the
+   * loader that performs the fetch.
    */
   public String sanitizeImage(String value) {
     String uriValue = clean(value);
@@ -216,21 +225,35 @@ public final class SecurityPolicy implements Serializable {
     try {
       URI uri = new URI(uriValue);
       String scheme = uri.getScheme();
-      if (scheme != null && ("http".equalsIgnoreCase(scheme)
-          || "https".equalsIgnoreCase(scheme))) {
+      if (scheme != null && ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))) {
         String host = uri.getHost();
-        return allowRemoteImages && host != null && uri.getUserInfo() == null
-            && allowedRemoteImageHosts.contains(host.toLowerCase(Locale.ROOT))
-            ? uriValue : null;
+        return allowRemoteImages
+                && host != null
+                && uri.getUserInfo() == null
+                && allowedRemoteImageHosts.contains(host.toLowerCase(Locale.ROOT))
+            ? uriValue
+            : null;
       }
-      Path base = getLocalImageBaseDirectory();
+      File base = getLocalImageBaseDirectoryFile();
       if (base == null || (scheme != null && !"file".equalsIgnoreCase(scheme))) {
         return null;
       }
-      Path requested = scheme == null ? base.resolve(uriValue) : Paths.get(uri);
-      Path realBase = base.toRealPath();
-      Path realRequested = requested.toRealPath();
-      return realRequested.startsWith(realBase) ? realRequested.toUri().toString() : null;
+      File requested = scheme == null ? new File(uriValue) : new File(uri);
+      if (!requested.isAbsolute()) {
+        requested = new File(base, uriValue);
+      }
+      File realBase = base.getCanonicalFile();
+      File realRequested = requested.getCanonicalFile();
+      if (!realBase.isDirectory() || !realRequested.exists()) {
+        return null;
+      }
+      // Reference validation only: the loader must independently secure the actual file open.
+      for (File parent = realRequested; parent != null; parent = parent.getParentFile()) {
+        if (parent.equals(realBase)) {
+          return new URI("file", "", realRequested.toURI().getPath(), null).toASCIIString();
+        }
+      }
+      return null;
     } catch (IOException | RuntimeException | URISyntaxException e) {
       return null;
     }
@@ -273,25 +296,41 @@ public final class SecurityPolicy implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(allowRemoteImages, allowedRemoteImageHosts, localImageBaseDirectory,
-                        connectTimeoutMillis,
-                        readTimeoutMillis, maxImageBytes, maxImagePixels, maxOutputPixels);
+    return Objects.hash(
+        allowRemoteImages,
+        allowedRemoteImageHosts,
+        localImageBaseDirectory,
+        connectTimeoutMillis,
+        readTimeoutMillis,
+        maxImageBytes,
+        maxImagePixels,
+        maxOutputPixels);
   }
 
   @Override
   public String toString() {
-    return "SecurityPolicy{" +
-        "allowRemoteImages=" + allowRemoteImages +
-        ", allowedRemoteImageHosts=" + allowedRemoteImageHosts +
-        ", localImageBaseDirectory='" + localImageBaseDirectory + '\'' +
-        ", connectTimeoutMillis=" + connectTimeoutMillis +
-        ", readTimeoutMillis=" + readTimeoutMillis +
-        ", maxImageBytes=" + maxImageBytes +
-        ", maxImagePixels=" + maxImagePixels +
-        ", maxOutputPixels=" + maxOutputPixels +
-        '}';
+    return "SecurityPolicy{"
+        + "allowRemoteImages="
+        + allowRemoteImages
+        + ", allowedRemoteImageHosts="
+        + allowedRemoteImageHosts
+        + ", localImageBaseDirectory='"
+        + localImageBaseDirectory
+        + '\''
+        + ", connectTimeoutMillis="
+        + connectTimeoutMillis
+        + ", readTimeoutMillis="
+        + readTimeoutMillis
+        + ", maxImageBytes="
+        + maxImageBytes
+        + ", maxImagePixels="
+        + maxImagePixels
+        + ", maxOutputPixels="
+        + maxOutputPixels
+        + '}';
   }
 
+  /** Builds image-access restrictions and rendering resource limits. */
   public static final class Builder {
 
     private boolean allowRemoteImages;
@@ -303,8 +342,7 @@ public final class SecurityPolicy implements Serializable {
     private long maxImagePixels = 25_000_000;
     private long maxOutputPixels = 120_000_000;
 
-    private Builder() {
-    }
+    private Builder() {}
 
     public Builder allowRemoteImages(boolean allow) {
       allowRemoteImages = allow;
@@ -318,19 +356,59 @@ public final class SecurityPolicy implements Serializable {
     public Builder allowRemoteImageHost(String host) {
       Asserts.nullArgument(host, "host");
       String normalized = IDN.toASCII(host.trim()).toLowerCase(Locale.ROOT);
-      Asserts.illegalArgument(normalized.isEmpty() || normalized.length() > 253
-                                  || !normalized.matches("[a-z0-9.-]+")
-                                  || normalized.startsWith(".") || normalized.endsWith(".")
-                                  || normalized.contains(".."),
-                              "remote image host must be a DNS hostname without a port");
+      Asserts.illegalArgument(
+          normalized.isEmpty()
+              || normalized.length() > 253
+              || !normalized.matches("[a-z0-9.-]+")
+              || normalized.startsWith(".")
+              || normalized.endsWith(".")
+              || normalized.contains(".."),
+          "remote image host must be a DNS hostname without a port");
       allowedRemoteImageHosts.add(normalized);
       return this;
     }
 
-    public Builder localImageBaseDirectory(Path directory) {
+    /** Sets the local image base directory as an absolute, normalized path. */
+    public Builder localImageBaseDirectory(File directory) {
       Asserts.nullArgument(directory, "directory");
-      localImageBaseDirectory = directory.toAbsolutePath().normalize().toString();
+      Asserts.illegalArgument(
+          directory.getPath().indexOf('\0') >= 0, "local image base must not contain NUL");
+      localImageBaseDirectory = new File(directory.getAbsoluteFile().toURI().normalize()).getPath();
       return this;
+    }
+
+    public Builder localImageBaseDirectory(String directory) {
+      Asserts.nullArgument(directory, "directory");
+      return localImageBaseDirectory(new File(directory));
+    }
+
+    /**
+     * Accepts desktop filesystem paths without linking this API to their runtime types. Prefer the
+     * {@link #localImageBaseDirectory(File)} overload on older Android runtimes.
+     */
+    public Builder localImageBaseDirectory(Object directory) {
+      Asserts.nullArgument(directory, "directory");
+      if (directory instanceof File) {
+        return localImageBaseDirectory((File) directory);
+      }
+      if (directory instanceof String) {
+        return localImageBaseDirectory((String) directory);
+      }
+      try {
+        Class<?> pathType = Class.forName("java.nio.file.Path");
+        if (pathType.isInstance(directory)) {
+          return localImageBaseDirectory((File) pathType.getMethod("toFile").invoke(directory));
+        }
+      } catch (ClassNotFoundException
+          | NoSuchMethodException
+          | IllegalAccessException
+          | InvocationTargetException
+          | LinkageError
+          | SecurityException e) {
+        throw new IllegalArgumentException("Cannot convert local image base to a File", e);
+      }
+      throw new IllegalArgumentException(
+          "local image base must be a File, String or filesystem path");
     }
 
     /** Sets the per-step budget for resolving and for connecting to a remote image host. */
@@ -347,18 +425,21 @@ public final class SecurityPolicy implements Serializable {
       return this;
     }
 
+    /** Sets the positive byte limit for an image. */
     public Builder maxImageBytes(int bytes) {
       Asserts.illegalArgument(bytes <= 0, "maximum image bytes must be positive");
       maxImageBytes = bytes;
       return this;
     }
 
+    /** Sets the positive pixel limit for a decoded image. */
     public Builder maxImagePixels(long pixels) {
       Asserts.illegalArgument(pixels <= 0, "maximum image pixels must be positive");
       maxImagePixels = pixels;
       return this;
     }
 
+    /** Sets the positive pixel limit for rendered output. */
     public Builder maxOutputPixels(long pixels) {
       Asserts.illegalArgument(pixels <= 0, "maximum output pixels must be positive");
       maxOutputPixels = pixels;

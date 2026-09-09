@@ -130,6 +130,7 @@ public class DotEditorPanel extends JPanel {
   private File currentFile;
   private File previewFile;
 
+  /** Creates a DOT editor and preview using the supplied rendering service. */
   public DotEditorPanel(DotRenderService renderService) {
     super(new BorderLayout());
     Asserts.nullArgument(renderService, "renderService");
@@ -307,7 +308,8 @@ public class DotEditorPanel extends JPanel {
   }
 
   private void installPair(char opening, char closing, String name) {
-    bindKey(String.valueOf(opening), "dot-open-" + name, event -> surroundSelection(opening, closing));
+    bindKey(String.valueOf(opening), "dot-open-" + name,
+        event -> surroundSelection(opening, closing));
     bindKey(String.valueOf(closing), "dot-close-" + name, event -> typeClosing(closing));
   }
 
@@ -390,6 +392,8 @@ public class DotEditorPanel extends JPanel {
   }
 
   /**
+   * Finds the preceding non-space character on the caret's line.
+   *
    * @return the last non-space character before {@code caret} on its line, or {@code '\0'} when the
    *     text up to the caret is blank
    */
@@ -410,6 +414,8 @@ public class DotEditorPanel extends JPanel {
   }
 
   /**
+   * Finds the next non-space character on the caret's line.
+   *
    * @return the first non-space character after {@code caret} on its line, or {@code '\0'} when the
    *     rest of the line is blank
    */
@@ -455,11 +461,9 @@ public class DotEditorPanel extends JPanel {
   }
 
   /**
-   * @return the platform menu accelerator modifier, or {@link #fallbackMenuShortcutMask()} when the
-   *     AWT toolkit cannot answer. {@code Toolkit} refuses this query without a display, and a
-   *     missing accelerator modifier is not a reason to fail the whole editor: every other binding,
-   *     the document model and the render pipeline stay usable, so the panel degrades to a
-   *     best-guess modifier instead of throwing out of its constructor.
+   * Returns the platform menu modifier, falling back when the AWT toolkit is unavailable.
+   *
+   * @return the toolkit's modifier, or {@link #fallbackMenuShortcutMask()} without a display
    */
   @SuppressWarnings("deprecation")
   private static int menuShortcutMask() {
@@ -471,7 +475,7 @@ public class DotEditorPanel extends JPanel {
   }
 
   /**
-   * @return the modifier the platform would normally report - Command on macOS, Control elsewhere
+   * Returns the usual menu modifier: Command on macOS, Control elsewhere.
    */
   @SuppressWarnings("deprecation")
   private static int fallbackMenuShortcutMask() {

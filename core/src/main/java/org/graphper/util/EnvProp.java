@@ -16,16 +16,16 @@
 
 package org.graphper.util;
 
-import org.graphper.api.attributes.Rankdir;
 import org.graphper.api.attributes.Layout;
+import org.graphper.api.attributes.Rankdir;
 
+/** Reads system properties that configure layout and rendering behavior. */
 public final class EnvProp {
 
   // distance deviation tolerance
   public static final double CLIP_DIST_ERROR = 0.1;
 
-  private EnvProp() {
-  }
+  private EnvProp() {}
 
   public static boolean qualityCheck() {
     return System.getProperty("graph.quality.check") != null;
@@ -47,8 +47,10 @@ public final class EnvProp {
     return Boolean.TRUE.toString().equalsIgnoreCase(System.getProperty("dot.coordinate.v1"));
   }
 
+  /** Returns whether parallel-line case distinction is enabled. */
   public static boolean parallelLineDistinction() {
-    return Boolean.TRUE.toString()
+    return Boolean.TRUE
+        .toString()
         .equalsIgnoreCase(System.getProperty("parallel.lines.case.distinction"));
   }
 

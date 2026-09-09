@@ -171,7 +171,7 @@ public class Command {
       }
     }
     if (imageBaseDirectory != null) {
-      builder.localImageBaseDirectory(imageBaseDirectory);
+      builder.localImageBaseDirectory(imageBaseDirectory.toFile());
     }
     return builder.build();
   }

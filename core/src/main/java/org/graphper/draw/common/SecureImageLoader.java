@@ -21,17 +21,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,10 +45,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.net.ssl.SNIHostName;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import org.graphper.api.SecurityPolicy;
 
 /**
@@ -61,12 +54,12 @@ import org.graphper.api.SecurityPolicy;
  * connected to an already validated IP address, so the destination that is inspected is the
  * destination that is reached. The original hostname is still used for the {@code Host} header, for
  * the TLS SNI extension and for TLS hostname verification, so pinning the address does not weaken
- * transport security.</p>
+ * transport security.
  *
  * <p>This is why {@link java.net.HttpURLConnection} is not used: it resolves the hostname again
  * itself and offers no way to bind the connection to the address that was checked. The trade-off is
  * that the JVM HTTP proxy settings are not honoured, which is unavoidable - a proxy resolves the
- * name on its own behalf, so the destination could not be enforced through it.</p>
+ * name on its own behalf, so the destination could not be enforced through it.
  */
 final class SecureImageLoader {
 
@@ -78,24 +71,27 @@ final class SecureImageLoader {
   private static final int READ_BUFFER_BYTES = 8 * 1024;
 
   // Native DNS can ignore interruption. Never replace a stuck worker with a new thread.
-  private static final ThreadPoolExecutor DNS_EXECUTOR = new ThreadPoolExecutor(
-      0, 4, 30, TimeUnit.SECONDS, new SynchronousQueue<>(), task -> {
-        Thread thread = new Thread(task, "graph-support-image-dns");
-        thread.setDaemon(true);
-        return thread;
-      });
+  private static final ThreadPoolExecutor DNS_EXECUTOR =
+      new ThreadPoolExecutor(
+          0,
+          4,
+          30,
+          TimeUnit.SECONDS,
+          new SynchronousQueue<>(),
+          task -> {
+            Thread thread = new Thread(task, "graph-support-image-dns");
+            thread.setDaemon(true);
+            return thread;
+          });
   private static final Semaphore FETCH_SLOTS = new Semaphore(128);
-  private static final ScheduledThreadPoolExecutor WATCHDOG = new ScheduledThreadPoolExecutor(
-      1, task -> {
-        Thread thread = new Thread(task, "graph-support-image-deadline");
-        thread.setDaemon(true);
-        return thread;
-      });
-
-  static {
-    // FETCH_SLOTS bounds scheduled tasks; cancellation must not retain sockets until their deadline.
-    WATCHDOG.setRemoveOnCancelPolicy(true);
-  }
+  private static final ScheduledThreadPoolExecutor WATCHDOG =
+      new ScheduledThreadPoolExecutor(
+          1,
+          task -> {
+            Thread thread = new Thread(task, "graph-support-image-deadline");
+            thread.setDaemon(true);
+            return thread;
+          });
 
   /**
    * Response media types that the raster converters can actually decode. This is a defence in depth
@@ -103,14 +99,25 @@ final class SecureImageLoader {
    * and it has no effect on request forgery, which is handled by the host allow-list and by the
    * address validation.
    */
-  private static final Set<String> ALLOWED_CONTENT_TYPES = Collections.unmodifiableSet(
-      new HashSet<>(Arrays.asList("image/png", "image/jpeg", "image/jpg", "image/gif",
-                                 "image/webp", "image/bmp", "image/x-bmp", "image/x-ms-bmp",
-                                 "image/tiff", "image/x-tiff", "image/vnd.wap.wbmp",
-                                 "image/x-icon", "image/vnd.microsoft.icon")));
+  private static final Set<String> ALLOWED_CONTENT_TYPES =
+      Collections.unmodifiableSet(
+          new HashSet<>(
+              Arrays.asList(
+                  "image/png",
+                  "image/jpeg",
+                  "image/jpg",
+                  "image/gif",
+                  "image/webp",
+                  "image/bmp",
+                  "image/x-bmp",
+                  "image/x-ms-bmp",
+                  "image/tiff",
+                  "image/x-tiff",
+                  "image/vnd.wap.wbmp",
+                  "image/x-icon",
+                  "image/vnd.microsoft.icon")));
 
-  private SecureImageLoader() {
-  }
+  private SecureImageLoader() {}
 
   static byte[] load(String reference, SecurityPolicy policy) throws IOException {
     String safeReference = policy.sanitizeImage(reference);
@@ -119,26 +126,20 @@ final class SecureImageLoader {
     }
     if (safeReference.regionMatches(true, 0, "data:", 0, 5)) {
       int comma = safeReference.indexOf(',');
-      try {
-        byte[] data = Base64.getDecoder().decode(safeReference.substring(comma + 1));
-        if (data.length > policy.getMaxImageBytes()) {
-          throw new IOException("Image exceeds the configured byte limit");
-        }
-        return data;
-      } catch (IllegalArgumentException e) {
-        throw new IOException("Invalid base64 image", e);
-      }
+      return decodeBase64(safeReference.substring(comma + 1), policy.getMaxImageBytes());
     }
 
     URI uri = URI.create(safeReference);
     String scheme = uri.getScheme();
     if ("file".equalsIgnoreCase(scheme)) {
-      Path file = Paths.get(uri);
-      long size = Files.size(file);
-      if (size > policy.getMaxImageBytes()) {
-        throw new IOException("Image exceeds the configured byte limit");
-      }
-      try (InputStream input = Files.newInputStream(file)) {
+      try (InputStream input =
+          (InputStream)
+              invokeOptional(
+                  "LocalImageLoader",
+                  "open",
+                  new Class<?>[] {URI.class, int.class},
+                  uri,
+                  policy.getMaxImageBytes())) {
         return readBounded(input, policy.getMaxImageBytes(), Deadline.unbounded());
       }
     }
@@ -147,6 +148,71 @@ final class SecureImageLoader {
       throw new IOException("Unsupported image scheme");
     }
     return loadRemote(uri, policy);
+  }
+
+  /** Basic RFC 4648 alphabet only; like the JDK decoder, final padding may be omitted. */
+  private static byte[] decodeBase64(String encoded, int maximum) throws IOException {
+    int length = encoded.length();
+    int end = length;
+    while (end > 0 && encoded.charAt(end - 1) == '=') {
+      end--;
+    }
+    int padding = length - end;
+    int remainder = end % 4;
+    if (remainder == 1
+        || padding > 2
+        || (padding != 0 && (length % 4 != 0 || padding != 4 - remainder))) {
+      throw new IOException("Invalid base64 image");
+    }
+    long size = (long) end * 6 / 8;
+    if (size > maximum) {
+      throw new IOException("Image exceeds the configured byte limit");
+    }
+    byte[] decoded = new byte[(int) size];
+    int bits = 0;
+    int buffer = 0;
+    int index = 0;
+    for (int i = 0; i < end; i++) {
+      char c = encoded.charAt(i);
+      int value;
+      if (c >= 'A' && c <= 'Z') {
+        value = c - 'A';
+      } else if (c >= 'a' && c <= 'z') {
+        value = c - 'a' + 26;
+      } else if (c >= '0' && c <= '9') {
+        value = c - '0' + 52;
+      } else if (c == '+' || c == '/') {
+        value = c == '+' ? 62 : 63;
+      } else {
+        throw new IOException("Invalid base64 image");
+      }
+      buffer = (buffer << 6) | value;
+      bits += 6;
+      if (bits >= 8) {
+        bits -= 8;
+        decoded[index++] = (byte) (buffer >> bits);
+      }
+    }
+    return decoded;
+  }
+
+  // Optional platform APIs must not enter this class's signatures or initialization dependencies.
+  private static Object invokeOptional(
+      String helper, String method, Class<?>[] types, Object... arguments) throws IOException {
+    try {
+      return Class.forName(
+              "org.graphper.draw.common." + helper, true, SecureImageLoader.class.getClassLoader())
+          .getDeclaredMethod(method, types)
+          .invoke(null, arguments);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      }
+      throw new IOException("Image platform support failed: " + helper, cause);
+    } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
+      throw new IOException("Image platform support is unavailable: " + helper, e);
+    }
   }
 
   /**
@@ -167,7 +233,8 @@ final class SecureImageLoader {
         connectFailure = e;
       }
     }
-    throw connectFailure != null ? connectFailure
+    throw connectFailure != null
+        ? connectFailure
         : new IOException("Remote image host does not resolve to any address");
   }
 
@@ -175,7 +242,7 @@ final class SecureImageLoader {
    * Performs the whole exchange against {@code pinned}. Package-private so that tests can drive it
    * against a loopback server without going through the public-address filter.
    *
-   * @param uri    already policy-approved {@code http}/{@code https} reference
+   * @param uri already policy-approved {@code http}/{@code https} reference
    * @param pinned the exact address the socket must be connected to
    * @param policy limits applied to the exchange
    * @return the response body
@@ -208,11 +275,23 @@ final class SecureImageLoader {
       Deadline deadline = Deadline.after(policy.getReadTimeoutMillis());
       // SO_TIMEOUT cannot bound writes or a TLS handshake that keeps receiving partial records.
       // Close the underlying socket, not SSLSocket (whose close_notify can itself block).
-      watchdog = WATCHDOG.schedule(() -> closeQuietly(plain),
-                                   deadline.endNanos - System.nanoTime(), TimeUnit.NANOSECONDS);
+      watchdog =
+          WATCHDOG.schedule(
+              () -> closeQuietly(plain),
+              deadline.endNanos - System.nanoTime(),
+              TimeUnit.NANOSECONDS);
       try {
         if (https) {
-          active = startTls(plain, host, port, deadline);
+          active =
+              (Socket)
+                  invokeOptional(
+                      "TlsImageLoader",
+                      "start",
+                      new Class<?>[] {Socket.class, String.class, int.class, int.class},
+                      plain,
+                      host,
+                      port,
+                      deadline.remainingMillis());
         }
 
         OutputStream output = active.getOutputStream();
@@ -249,52 +328,22 @@ final class SecureImageLoader {
       }
       if (watchdog != null) {
         watchdog.cancel(false);
+        // Remove before releasing the slot: even old Android runtimes retain at most 128 tasks.
+        WATCHDOG.getQueue().remove(watchdog);
       }
       FETCH_SLOTS.release();
-    }
-  }
-
-  private static Socket startTls(Socket plain, String host, int port, Deadline deadline)
-      throws IOException {
-    SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-    // Handing the hostname (never the pinned literal address) to the factory is what keeps SNI and
-    // certificate identity checks bound to the name the caller allow-listed.
-    SSLSocket ssl = (SSLSocket) factory.createSocket(plain, host, port, true);
-    bindTlsIdentity(ssl, host);
-    ssl.setSoTimeout(deadline.remainingMillis());
-    ssl.startHandshake();
-    return ssl;
-  }
-
-  /**
-   * Binds the TLS identity checks of {@code ssl} to {@code host} rather than to the pinned literal
-   * address. Package-private so tests can assert the resulting parameters.
-   *
-   * @throws IOException when hostname verification cannot be enabled at all, in which case the
-   *                     fetch is abandoned instead of continuing unverified
-   */
-  static void bindTlsIdentity(SSLSocket ssl, String host) throws IOException {
-    SSLParameters parameters = ssl.getSSLParameters();
-    parameters.setEndpointIdentificationAlgorithm("HTTPS");
-    // RFC 6066 forbids literal addresses in SNI, and a DNS name can never be all digits and dots.
-    if (!host.matches("[0-9.]+")) {
-      try {
-        parameters.setServerNames(Collections.singletonList(new SNIHostName(host)));
-      } catch (RuntimeException e) {
-        // The peer name handed to createSocket already covers default SNI behaviour.
-      }
-    }
-    ssl.setSSLParameters(parameters);
-    if (!"HTTPS".equals(ssl.getSSLParameters().getEndpointIdentificationAlgorithm())) {
-      throw new IOException("TLS hostname verification is unavailable for remote images");
     }
   }
 
   private static String request(String host, int port, boolean https, String target) {
     int defaultPort = https ? HTTPS_DEFAULT_PORT : HTTP_DEFAULT_PORT;
     String hostHeader = port == defaultPort ? host : host + ":" + port;
-    return "GET " + target + " HTTP/1.1\r\n"
-        + "Host: " + hostHeader + "\r\n"
+    return "GET "
+        + target
+        + " HTTP/1.1\r\n"
+        + "Host: "
+        + hostHeader
+        + "\r\n"
         + "Accept: image/*\r\n"
         + "Accept-Encoding: identity\r\n"
         + "User-Agent: graph-support\r\n"
@@ -306,7 +355,7 @@ final class SecureImageLoader {
    * Resolves {@code host} within {@code timeoutMillis} and requires every answer to be public.
    *
    * <p>Rejecting the whole answer set, rather than filtering it, means the addresses returned here
-   * are the only addresses the exchange may use.</p>
+   * are the only addresses the exchange may use.
    */
   private static InetAddress[] resolvePublicAddresses(String host, int timeoutMillis)
       throws IOException {
@@ -359,30 +408,41 @@ final class SecureImageLoader {
     }
     byte[] bytes = address.getAddress();
     boolean uniqueLocalV6 = bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc;
-    boolean carrierGradeNat = bytes.length == 4 && (bytes[0] & 0xff) == 100
-        && ((bytes[1] & 0xff) >= 64 && (bytes[1] & 0xff) <= 127);
+    boolean carrierGradeNat =
+        bytes.length == 4
+            && (bytes[0] & 0xff) == 100
+            && ((bytes[1] & 0xff) >= 64 && (bytes[1] & 0xff) <= 127);
     boolean specialV4 = false;
     boolean specialV6 = false;
     if (bytes.length == 4) {
       int first = bytes[0] & 0xff;
       int second = bytes[1] & 0xff;
       int third = bytes[2] & 0xff;
-      specialV4 = first == 0 || first >= 240
-          || (first == 192 && (second == 0 && (third == 0 || third == 2)
-                              || second == 88 && third == 99))
-          || (first == 198 && (second == 18 || second == 19 || second == 51 && third == 100))
-          || (first == 203 && second == 0 && third == 113);
+      specialV4 =
+          first == 0
+              || first >= 240
+              || (first == 192
+                  && (second == 0 && (third == 0 || third == 2) || second == 88 && third == 99))
+              || (first == 198 && (second == 18 || second == 19 || second == 51 && third == 100))
+              || (first == 203 && second == 0 && third == 113);
     } else if (bytes.length == 16) {
       // Reject special-use space outside global unicast, except the classified embedded forms.
-      specialV6 = ((bytes[0] & 0xe0) != 0x20 && embeddedIpv4(bytes) == null)
-          || (bytes[0] == 0x20 && bytes[1] == 0x01
-              && ((bytes[2] & 0xfe) == 0 || bytes[2] == 0x0d && (bytes[3] & 0xff) == 0xb8))
-          || (bytes[0] == 0x3f && (bytes[1] & 0xff) == 0xff && (bytes[2] & 0xf0) == 0);
+      specialV6 =
+          ((bytes[0] & 0xe0) != 0x20 && embeddedIpv4(bytes) == null)
+              || (bytes[0] == 0x20
+                  && bytes[1] == 0x01
+                  && ((bytes[2] & 0xfe) == 0 || bytes[2] == 0x0d && (bytes[3] & 0xff) == 0xb8))
+              || (bytes[0] == 0x3f && (bytes[1] & 0xff) == 0xff && (bytes[2] & 0xf0) == 0);
     }
-    if (address.isAnyLocalAddress() || address.isLoopbackAddress()
-        || address.isLinkLocalAddress() || address.isSiteLocalAddress()
-        || address.isMulticastAddress() || uniqueLocalV6 || carrierGradeNat
-        || specialV4 || specialV6) {
+    if (address.isAnyLocalAddress()
+        || address.isLoopbackAddress()
+        || address.isLinkLocalAddress()
+        || address.isSiteLocalAddress()
+        || address.isMulticastAddress()
+        || uniqueLocalV6
+        || carrierGradeNat
+        || specialV4
+        || specialV6) {
       return false;
     }
     // An IPv6 answer can carry an IPv4 destination that the IPv6 predicates above know nothing
@@ -399,20 +459,23 @@ final class SecureImageLoader {
   }
 
   /**
-   * Returns the IPv4 address carried by an IPv4-compatible ({@code ::a.b.c.d}), 6to4
-   * ({@code 2002::/16}) or NAT64 ({@code 64:ff9b::/96}) IPv6 address, or {@code null} when there is
-   * none. IPv4-mapped answers need no handling here because {@link InetAddress} already folds them
-   * into an {@link java.net.Inet4Address}.
+   * Returns the IPv4 address carried by an IPv4-compatible ({@code ::a.b.c.d}), 6to4 ({@code
+   * 2002::/16}) or NAT64 ({@code 64:ff9b::/96}) IPv6 address, or {@code null} when there is none.
+   * IPv4-mapped answers need no handling here because {@link InetAddress} already folds them into
+   * an {@link java.net.Inet4Address}.
    */
   private static byte[] embeddedIpv4(byte[] bytes) {
     if (bytes.length != 16) {
       return null;
     }
     if ((bytes[0] & 0xff) == 0x20 && (bytes[1] & 0xff) == 0x02) {
-      return new byte[]{bytes[2], bytes[3], bytes[4], bytes[5]};
+      return new byte[] {bytes[2], bytes[3], bytes[4], bytes[5]};
     }
-    boolean nat64 = (bytes[0] & 0xff) == 0x00 && (bytes[1] & 0xff) == 0x64
-        && (bytes[2] & 0xff) == 0xff && (bytes[3] & 0xff) == 0x9b;
+    boolean nat64 =
+        (bytes[0] & 0xff) == 0x00
+            && (bytes[1] & 0xff) == 0x64
+            && (bytes[2] & 0xff) == 0xff
+            && (bytes[3] & 0xff) == 0x9b;
     boolean zeroPrefix = true;
     for (int i = nat64 ? 4 : 0; i < 12; i++) {
       if (bytes[i] != 0) {
@@ -420,7 +483,7 @@ final class SecureImageLoader {
         break;
       }
     }
-    return zeroPrefix ? new byte[]{bytes[12], bytes[13], bytes[14], bytes[15]} : null;
+    return zeroPrefix ? new byte[] {bytes[12], bytes[13], bytes[14], bytes[15]} : null;
   }
 
   private static String validHost(String host) throws IOException {
@@ -432,8 +495,12 @@ final class SecureImageLoader {
     }
     for (int i = 0; i < host.length(); i++) {
       char c = host.charAt(i);
-      boolean allowed = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
-          || c == '.' || c == '-';
+      boolean allowed =
+          (c >= 'a' && c <= 'z')
+              || (c >= 'A' && c <= 'Z')
+              || (c >= '0' && c <= '9')
+              || c == '.'
+              || c == '-';
       if (!allowed) {
         throw new IOException("Remote image URL host is not a plain DNS name");
       }
@@ -509,23 +576,28 @@ final class SecureImageLoader {
       throw new IOException("Remote image response has no content type");
     }
     int semicolon = contentType.indexOf(';');
-    String mediaType = (semicolon < 0 ? contentType : contentType.substring(0, semicolon))
-        .trim().toLowerCase(Locale.ROOT);
+    String mediaType =
+        (semicolon < 0 ? contentType : contentType.substring(0, semicolon))
+            .trim()
+            .toLowerCase(Locale.ROOT);
     if (!ALLOWED_CONTENT_TYPES.contains(mediaType)) {
       throw new IOException("Remote image response content type is not a supported raster image");
     }
   }
 
-  private static byte[] readBody(InputStream input, Map<String, String> headers, int maximum,
-                                 Deadline deadline) throws IOException {
+  private static byte[] readBody(
+      InputStream input, Map<String, String> headers, int maximum, Deadline deadline)
+      throws IOException {
     String contentEncoding = headers.get("content-encoding");
-    if (contentEncoding != null && !contentEncoding.trim().isEmpty()
+    if (contentEncoding != null
+        && !contentEncoding.trim().isEmpty()
         && !"identity".equalsIgnoreCase(contentEncoding.trim())) {
       throw new IOException("Remote image response uses an unsupported content encoding");
     }
 
     String transferEncoding = headers.get("transfer-encoding");
-    if (transferEncoding != null && !transferEncoding.trim().isEmpty()
+    if (transferEncoding != null
+        && !transferEncoding.trim().isEmpty()
         && !"identity".equalsIgnoreCase(transferEncoding.trim())) {
       if (!"chunked".equalsIgnoreCase(transferEncoding.trim())) {
         throw new IOException("Remote image response uses an unsupported transfer encoding");
@@ -556,8 +628,8 @@ final class SecureImageLoader {
   }
 
   /**
-   * Reads exactly {@code length} bytes. Stopping on the declared length instead of on end of
-   * stream keeps a server that ignores {@code Connection: close} from holding the whole budget.
+   * Reads exactly {@code length} bytes. Stopping on the declared length instead of on end of stream
+   * keeps a server that ignores {@code Connection: close} from holding the whole budget.
    */
   private static byte[] readExactly(InputStream input, int length, Deadline deadline)
       throws IOException {

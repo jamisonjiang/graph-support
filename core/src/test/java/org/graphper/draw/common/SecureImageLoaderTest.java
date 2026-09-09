@@ -440,7 +440,8 @@ public class SecureImageLoaderTest {
       SecureImageLoader.fetchPinned(server.uri("/logo.png"), server.address(),
                                     policy(4096, 60_000));
     }
-    Assertions.assertTrue(watchdog.getRemoveOnCancelPolicy());
+    // Explicit queue removal must work without the API-21 remove-on-cancel policy.
+    Assertions.assertFalse(watchdog.getRemoveOnCancelPolicy());
     Assertions.assertEquals(queued, watchdog.getQueue().size());
     Assertions.assertEquals(1, watchdog.getCorePoolSize());
   }
@@ -542,7 +543,7 @@ public class SecureImageLoaderTest {
   public void tlsIdentityStaysBoundToTheHostnameNotThePinnedAddress() throws Exception {
     SSLSocket ssl = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
     try {
-      SecureImageLoader.bindTlsIdentity(ssl, HOST);
+      TlsImageLoader.bindTlsIdentity(ssl, HOST);
       SSLParameters parameters = ssl.getSSLParameters();
       Assertions.assertEquals("HTTPS", parameters.getEndpointIdentificationAlgorithm());
       List<SNIServerName> names = parameters.getServerNames();
@@ -558,7 +559,7 @@ public class SecureImageLoaderTest {
   public void literalAddressHostKeepsVerificationAndSendsNoSni() throws Exception {
     SSLSocket ssl = (SSLSocket) SSLSocketFactory.getDefault().createSocket();
     try {
-      SecureImageLoader.bindTlsIdentity(ssl, "203.0.113.7");
+      TlsImageLoader.bindTlsIdentity(ssl, "203.0.113.7");
       SSLParameters parameters = ssl.getSSLParameters();
       Assertions.assertEquals("HTTPS", parameters.getEndpointIdentificationAlgorithm());
       Assertions.assertTrue(parameters.getServerNames() == null
@@ -645,6 +646,167 @@ public class SecureImageLoaderTest {
     SecurityPolicy policy = SecurityPolicy.builder().maxImageBytes(4).build();
     String dataUri = "data:image/png;base64," + Base64.getEncoder().encodeToString(new byte[64]);
     Assertions.assertThrows(IOException.class, () -> SecureImageLoader.load(dataUri, policy));
+  }
+
+  @Test
+  public void basicDecoderPreservesPaddedAndUnpaddedJdkResults() throws Exception {
+    byte[] payload = new byte[256];
+    for (int i = 0; i < payload.length; i++) {
+      payload[i] = (byte) i;
+    }
+    for (int length = 0; length <= payload.length; length++) {
+      byte[] expected = Arrays.copyOf(payload, length);
+      for (Base64.Encoder encoder : new Base64.Encoder[]{Base64.getEncoder(),
+          Base64.getEncoder().withoutPadding()}) {
+        Assertions.assertArrayEquals(expected, SecureImageLoader.load(
+            "data:image/png;base64," + encoder.encodeToString(expected), policy(4096, 5000)));
+      }
+    }
+    Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4}, SecureImageLoader.load(
+        "data:image/png;base64,AQIDBA", SecurityPolicy.builder().maxImageBytes(4).build()));
+  }
+
+  @Test
+  public void basicDecoderRejectsNonAlphabetCharactersAndInvalidPadding() {
+    for (String invalid : new String[]{"A", "AAAAA", "=", "====", "AA=", "AA===", "AAA==",
+        "AAAA=", "A=AA", "AA==AA==", "AA AA", "AA\nAA", "AA-AA", "AA_AA", "AA!A",
+        "AA\u0100A"}) {
+      Assertions.assertThrows(IOException.class, () -> SecureImageLoader.load(
+          "data:image/png;base64," + invalid, policy(4096, 5000)), invalid);
+    }
+  }
+
+  @Test
+  public void dataAndHttpLoadWithoutSslNioFilesOrJdkBase64() throws Exception {
+    PlatformDenyingLoader platform = new PlatformDenyingLoader();
+    Class<?> loader = platform.loadClass(SecureImageLoader.class.getName());
+    // Enumerating signatures catches eager verifier dependencies, not just executed branches.
+    loader.getDeclaredMethods();
+    loader.getDeclaredFields();
+    Method load = loader.getDeclaredMethod("load", String.class, SecurityPolicy.class);
+    load.setAccessible(true);
+    Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4}, (byte[]) load.invoke(null,
+        "data:image/png;base64,AQIDBA==", SecurityPolicy.defaultPolicy()));
+    try (StubServer server = new StubServer(out -> {
+      writeHead(out, "200 OK", "Content-Type: image/png", "Content-Length: " + PNG_HEADER.length);
+      out.write(PNG_HEADER);
+      out.flush();
+    })) {
+      Method fetch = loader.getDeclaredMethod("fetchPinned", URI.class, InetAddress.class,
+                                              SecurityPolicy.class);
+      fetch.setAccessible(true);
+      Assertions.assertArrayEquals(PNG_HEADER, (byte[]) fetch.invoke(null, server.uri("/logo.png"),
+          server.address(), policy(4096, 5000)));
+      Assertions.assertTrue(server.observedClientDisconnect());
+    }
+    Assertions.assertEquals(0, platform.optionalLoads);
+    Assertions.assertEquals(0, platform.deniedLoads);
+  }
+
+  @Test
+  public void missingSslFailsClosedAndReleasesSocketAndWatchdog() throws Exception {
+    PlatformDenyingLoader platform = new PlatformDenyingLoader();
+    Class<?> loader = platform.loadClass(SecureImageLoader.class.getName());
+    Method fetch = loader.getDeclaredMethod("fetchPinned", URI.class, InetAddress.class,
+                                            SecurityPolicy.class);
+    fetch.setAccessible(true);
+    // Retry also covers a helper whose class resolution has already failed once.
+    for (int attempt = 0; attempt < 2; attempt++) {
+      AtomicInteger firstByte = new AtomicInteger(-2);
+      CountDownLatch disconnected = new CountDownLatch(1);
+      try (RawServer server = new RawServer(socket -> {
+        firstByte.set(socket.getInputStream().read());
+        disconnected.countDown();
+      })) {
+        long start = System.nanoTime();
+        InvocationTargetException failure = Assertions.assertThrows(InvocationTargetException.class,
+            () -> fetch.invoke(null, server.uri("https", "/logo.png"), server.address(),
+                               policy(4096, 700)));
+        Assertions.assertTrue(failure.getCause() instanceof IOException, failure.toString());
+        Assertions.assertTrue((System.nanoTime() - start) / 1_000_000L < 3000);
+        Assertions.assertTrue(disconnected.await(3, TimeUnit.SECONDS));
+        Assertions.assertEquals(-1, firstByte.get(), "must not fall back to a plaintext request");
+      }
+    }
+    Field watchdogField = loader.getDeclaredField("WATCHDOG");
+    watchdogField.setAccessible(true);
+    Assertions.assertTrue(((ScheduledThreadPoolExecutor) watchdogField.get(null)).getQueue()
+                              .isEmpty());
+    Field slotsField = loader.getDeclaredField("FETCH_SLOTS");
+    slotsField.setAccessible(true);
+    Assertions.assertEquals(128, ((Semaphore) slotsField.get(null)).availablePermits());
+    Assertions.assertTrue(platform.deniedLoads > 0);
+  }
+
+  @Test
+  public void missingNioFileSupportFailsAsIOException() throws Exception {
+    Path image = Files.write(temporaryDirectory.resolve("isolated.png"), PNG_HEADER);
+    SecurityPolicy policy = SecurityPolicy.builder()
+        .localImageBaseDirectory(temporaryDirectory).build();
+    PlatformDenyingLoader platform = new PlatformDenyingLoader();
+    Method load = platform.loadClass(SecureImageLoader.class.getName())
+        .getDeclaredMethod("load", String.class, SecurityPolicy.class);
+    load.setAccessible(true);
+    InvocationTargetException failure = Assertions.assertThrows(InvocationTargetException.class,
+        () -> load.invoke(null, image.toString(), policy));
+    Assertions.assertTrue(failure.getCause() instanceof IOException, failure.toString());
+    Assertions.assertTrue(platform.deniedLoads > 0);
+    Assertions.assertArrayEquals(new byte[]{1, 2, 3, 4}, (byte[]) load.invoke(null,
+        "data:image/png;base64,AQIDBA==", SecurityPolicy.defaultPolicy()));
+  }
+
+  /** Isolates the owned loader boundary; SecurityPolicy is tested by its own platform suite. */
+  private static final class PlatformDenyingLoader extends ClassLoader {
+
+    private int optionalLoads;
+    private int deniedLoads;
+
+    PlatformDenyingLoader() {
+      super(SecureImageLoaderTest.class.getClassLoader());
+    }
+
+    @Override
+    protected synchronized Class<?> loadClass(String name, boolean resolve)
+        throws ClassNotFoundException {
+      if (name.startsWith("javax.net.ssl.") || name.startsWith("java.nio.file.")
+          || name.equals("java.util.Base64") || name.startsWith("java.util.Base64$")) {
+        deniedLoads++;
+        throw new ClassNotFoundException("Platform API deliberately unavailable: " + name);
+      }
+      String prefix = "org.graphper.draw.common.";
+      if (!name.equals(prefix + "SecureImageLoader")
+          && !name.startsWith(prefix + "SecureImageLoader$")
+          && !name.equals(prefix + "TlsImageLoader")
+          && !name.equals(prefix + "LocalImageLoader")) {
+        return super.loadClass(name, resolve);
+      }
+      Class<?> loaded = findLoadedClass(name);
+      if (loaded == null) {
+        if (name.equals(prefix + "TlsImageLoader") || name.equals(prefix + "LocalImageLoader")) {
+          optionalLoads++;
+        }
+        String resource = name.replace('.', '/') + ".class";
+        try (InputStream input = getParent().getResourceAsStream(resource)) {
+          if (input == null) {
+            throw new ClassNotFoundException(name);
+          }
+          ByteArrayOutputStream output = new ByteArrayOutputStream();
+          byte[] buffer = new byte[4096];
+          int count;
+          while ((count = input.read(buffer)) != -1) {
+            output.write(buffer, 0, count);
+          }
+          byte[] bytes = output.toByteArray();
+          loaded = defineClass(name, bytes, 0, bytes.length);
+        } catch (IOException e) {
+          throw new ClassNotFoundException(name, e);
+        }
+      }
+      if (resolve) {
+        resolveClass(loaded);
+      }
+      return loaded;
+    }
   }
 
   private static SecurityPolicy policy(int maxBytes, int readTimeout) {

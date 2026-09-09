@@ -25,8 +25,7 @@ public class CycleDependencyException extends RuntimeException {
 
   private static final long serialVersionUID = -3107358271649259443L;
 
-  public CycleDependencyException() {
-  }
+  public CycleDependencyException() {}
 
   public CycleDependencyException(String message) {
     super(message);

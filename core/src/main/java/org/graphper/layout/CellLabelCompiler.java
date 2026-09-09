@@ -35,29 +35,31 @@ import org.graphper.util.CollectionUtils;
  * Parser of <strong>Cell Expression</strong>, the record-label string grammar.
  *
  * <h2>This grammar is frozen</h2>
- * It exists to keep {@code label("{a|<p0>b}")} working and accepts no new features. Anything richer —
- * notably per-cell rich text — is expressed with {@link org.graphper.api.Html#record} and reaches
- * layout as a {@link RecordTag}. Both routes converge on {@link RecordTagCompiler}, which owns all
- * record geometry, so this class only ever turns text into structure.
  *
- * <p><strong>Cell Expression</strong> need specified by shape values of
- * {@link NodeShapeEnum#RECORD} and {@link NodeShapeEnum#M_RECORD}, The structure of a record-based
- * node is determined by its label, which has the following schema:
+ * <p>It exists to keep {@code label("{a|<p0>b}")} working and accepts no new features. Anything
+ * richer — notably per-cell rich text — is expressed with {@link org.graphper.api.Html#record} and
+ * reaches layout as a {@link RecordTag}. Both routes converge on {@link RecordTagCompiler}, which
+ * owns all record geometry, so this class only ever turns text into structure.
+ *
+ * <p><strong>Cell Expression</strong> need specified by shape values of {@link
+ * NodeShapeEnum#RECORD} and {@link NodeShapeEnum#M_RECORD}, The structure of a record-based node is
+ * determined by its label, which has the following schema:
+ *
  * <ul>
- *   <li>rlabel	=	field ( '|' field )*
- *   <li>where field	=	fieldId or '{' rlabel '}
- *   <li>and fieldId	=	[ '&lt;' string '&gt;'] [ string ]
+ *   <li>rlabel = field ( '|' field )*
+ *   <li>where field = fieldId or '{' rlabel '}
+ *   <li>and fieldId = [ '&lt;' string '&gt;'] [ string ]
  * </ul>
  *
  * <p>Braces, vertical bars and angle brackets must be escaped with a backslash character if you
  * wish them to appear as a literal character. Spaces are interpreted as separators between tokens,
  * so they must be escaped if you want spaces in the text.
  *
- * <p> Flipping between horizontal and vertical layouts is done by nesting fields in braces
- * "{...}". The top-level orientation in a record is horizontal. Thus, a record with label
- * "A | B | C | D" will have 4 fields oriented left to right, while "{A | B | C | D}" will
- * have them from top to bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the
- * left and "D" to the right of "B" and "C".
+ * <p>Flipping between horizontal and vertical layouts is done by nesting fields in braces "{...}".
+ * The top-level orientation in a record is horizontal. Thus, a record with label "A | B | C | D"
+ * will have 4 fields oriented left to right, while "{A | B | C | D}" will have them from top to
+ * bottom and "A | { B | C } | D" will have "B" over "C", with "A" to the left and "D" to the right
+ * of "B" and "C".
  *
  * @author Jamison Jiang
  */
@@ -105,7 +107,7 @@ public class CellLabelCompiler {
    * nodes in the tree split the same cell, and each nesting of nodes means the conversion of the
    * split direction.
    *
-   * @param label      label to be compiled
+   * @param label label to be compiled
    * @param defaultVer default vertical split
    * @return tree-level structure of label cell
    * @throws LabelFormatException The format of the label is wrong
@@ -120,20 +122,25 @@ public class CellLabelCompiler {
    * nodes in the tree split the same cell, and each nesting of nodes means the conversion of the
    * split direction.
    *
-   * @param label       label to be compiled
-   * @param fontName    label font name
-   * @param fontSize    label font size
-   * @param margin      per cell margin
+   * @param label label to be compiled
+   * @param fontName label font name
+   * @param fontSize label font size
+   * @param margin per cell margin
    * @param minCellSize label cell minimum width and height
-   * @param defaultVer  default vertical split
+   * @param defaultVer default vertical split
    * @return tree-level structure of label cell
    * @throws LabelFormatException The format of the label is wrong
    */
-  public static RootCell compile(String label, String fontName, double fontSize,
-                                 FlatPoint margin, FlatPoint minCellSize, boolean defaultVer)
+  public static RootCell compile(
+      String label,
+      String fontName,
+      double fontSize,
+      FlatPoint margin,
+      FlatPoint minCellSize,
+      boolean defaultVer)
       throws LabelFormatException {
-    return RecordTagCompiler.compile(parse(label), fontName, fontSize,
-                                     margin, minCellSize, defaultVer);
+    return RecordTagCompiler.compile(
+        parse(label), fontName, fontSize, margin, minCellSize, defaultVer);
   }
 
   /**
@@ -174,9 +181,9 @@ public class CellLabelCompiler {
    * Lowers the grammar-shaped parse tree into the structure-shaped {@link RecordTag}.
    *
    * <p>The parse tree carries {@code SPLIT} and {@code ID} nodes because the grammar validation
-   * needs to inspect neighbours; the record structure does not — sibling order replaces
-   * {@code SPLIT}, and a port id becomes a field on the cell it belongs to. Dropping those nodes
-   * here is what keeps the loose {@link LabelAstNode} representation from leaking past the parser.
+   * needs to inspect neighbours; the record structure does not — sibling order replaces {@code
+   * SPLIT}, and a port id becomes a field on the cell it belongs to. Dropping those nodes here is
+   * what keeps the loose {@link LabelAstNode} representation from leaking past the parser.
    */
   private RecordTag toRecordTag(LabelAstNode express, boolean horizontal) {
     RecordTag tag = horizontal ? Html.record() : Html.verticalRecord();
@@ -258,7 +265,8 @@ public class CellLabelCompiler {
         tokens = new ArrayList<>(2);
       }
 
-      // Consume the previous escape character and directly add the current symbol to the current label token
+      // Consume the previous escape character and directly add the current symbol to the current
+      // label token
       if (preIsEscapeChar) {
         preIsEscapeChar = false;
         append(labelAppend, c);
@@ -530,7 +538,8 @@ public class CellLabelCompiler {
       return;
     }
 
-    if (node.emptyParams() || !nextIsNullOrSplit(params, idx)
+    if (node.emptyParams()
+        || !nextIsNullOrSplit(params, idx)
         || (!preIsNullOrSplit(params, idx) && !preIsIdExpress(params, idx))) {
       throw newFormatError();
     }
@@ -563,7 +572,6 @@ public class CellLabelCompiler {
     node.params.add(null);
     return node;
   }
-
 
   private boolean nextIsLabel(List<Object> params, int idx) {
     Object next = nextParam(params, idx);
@@ -691,7 +699,8 @@ public class CellLabelCompiler {
     return sb.charAt(lastIdx(sb)) == CharUtils.SPACE;
   }
 
-  // ------------------------------------------------- private static class -------------------------------------------------
+  // ------------------------------------------------- private static class
+  // -------------------------------------------------
   private static class LabelToken {
 
     final int type;
@@ -784,5 +793,4 @@ public class CellLabelCompiler {
       return CollectionUtils.isEmpty(params);
     }
   }
-
 }

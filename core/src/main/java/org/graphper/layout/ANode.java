@@ -34,6 +34,7 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.CollectionUtils;
 
+/** A layout node with shape bounds, container membership, and self-loop clearance. */
 public class ANode implements Box, ShapePosition, Serializable {
 
   private static final long serialVersionUID = 4047797184917587337L;
@@ -88,9 +89,13 @@ public class ANode implements Box, ShapePosition, Serializable {
     this.width = width;
   }
 
+  public void setWidth(double width) {
+    this.width = width;
+  }
+
   @Override
   public double getLeftBorder() {
-     return getX() - shapeProp().leftWidth(width);
+    return getX() - shapeProp().leftWidth(width);
   }
 
   @Override
@@ -117,6 +122,10 @@ public class ANode implements Box, ShapePosition, Serializable {
     this.height = height;
   }
 
+  public void setHeight(double height) {
+    this.height = height;
+  }
+
   @Override
   public double getX() {
     return x;
@@ -135,6 +144,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     this.y = y;
   }
 
+  /** Returns the left extent including additional routing clearance. */
   public double leftWidth() {
     double lw = shapeProp().leftWidth(width);
     if (nodeSizeExpander != null) {
@@ -143,6 +153,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return lw;
   }
 
+  /** Returns the right extent including additional routing clearance. */
   public double rightWidth() {
     double rw = shapeProp().rightWidth(width);
     if (nodeSizeExpander != null) {
@@ -151,6 +162,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return rw;
   }
 
+  /** Returns the top extent including additional routing clearance. */
   public double topHeight() {
     double th = shapeProp().topHeight(height);
     if (nodeSizeExpander != null) {
@@ -159,6 +171,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return th;
   }
 
+  /** Returns the bottom extent including additional routing clearance. */
   public double bottomHeight() {
     double bh = shapeProp().bottomHeight(height);
     if (nodeSizeExpander != null) {
@@ -176,6 +189,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return nodeDrawProp.nodeAttrs().getShape();
   }
 
+  /** Returns the occupied width, including clearance when self-loops are present. */
   public double getAreaWidth() {
     if (CollectionUtils.isEmpty(selfLines)) {
       return getWidth();
@@ -183,19 +197,12 @@ public class ANode implements Box, ShapePosition, Serializable {
     return leftWidth() + rightWidth();
   }
 
+  /** Returns the occupied height, including clearance when self-loops are present. */
   public double getAreaHeight() {
     if (CollectionUtils.isEmpty(selfLines)) {
       return getHeight();
     }
     return topHeight() + bottomHeight();
-  }
-
-  public void setWidth(double width) {
-    this.width = width;
-  }
-
-  public void setHeight(double height) {
-    this.height = height;
   }
 
   public double realLeftWidth() {
@@ -218,11 +225,11 @@ public class ANode implements Box, ShapePosition, Serializable {
     return nodeDrawProp != null ? nodeDrawProp.nodeAttrs() : null;
   }
 
-//  public void setNodeAttrs(NodeAttrs nodeAttrs) {
-//    if (nodeDrawProp != null) {
-//      nodeDrawProp.setNodeAttrs(nodeAttrs);
-//    }
-//  }
+  //  public void setNodeAttrs(NodeAttrs nodeAttrs) {
+  //    if (nodeDrawProp != null) {
+  //      nodeDrawProp.setNodeAttrs(nodeAttrs);
+  //    }
+  //  }
 
   public double getNodeSep() {
     return nodeSep;
@@ -236,6 +243,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return selfLines == null ? 0 : selfLines.size();
   }
 
+  /** Adds a self-loop, ignoring a null line. */
   public void addSelfLine(LineDrawProp line) {
     if (line == null) {
       return;
@@ -247,6 +255,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     selfLines.add(line);
   }
 
+  /** Sorts the self-loops when a comparator and nonempty line list are available. */
   public void sortSelfLine(Comparator<LineDrawProp> lineComparator) {
     if (lineComparator == null || CollectionUtils.isEmpty(selfLines)) {
       return;
@@ -267,6 +276,7 @@ public class ANode implements Box, ShapePosition, Serializable {
     return selfLines == null ? Collections.emptyList() : selfLines;
   }
 
+  /** Initializes self-loop clearance using the graph's routing style, if needed. */
   public void initNodeSizeExpander(DrawGraph drawGraph) {
     if (isVirtual() || !haveSelfLine() || nodeSizeExpander != null) {
       return;

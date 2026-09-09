@@ -33,7 +33,7 @@ public abstract class AbstractUndirectedEdge<V, E extends AbstractUndirectedEdge
   /**
    * Initialize edges based on vertices, with weights defaulting to 0.
    *
-   * @param left  endpoint of edge
+   * @param left endpoint of edge
    * @param right endpoint of edge
    */
   protected AbstractUndirectedEdge(V left, V right) {
@@ -43,8 +43,8 @@ public abstract class AbstractUndirectedEdge<V, E extends AbstractUndirectedEdge
   /**
    * Initialize edges from vertices and weights.
    *
-   * @param left   endpoint of edge
-   * @param right  endpoint of edge
+   * @param left endpoint of edge
+   * @param right endpoint of edge
    * @param weight weight of edge
    */
   protected AbstractUndirectedEdge(V left, V right, double weight) {
@@ -63,10 +63,13 @@ public abstract class AbstractUndirectedEdge<V, E extends AbstractUndirectedEdge
 
   @Override
   public String toString() {
-    return "AbstractUndirectedEdge{" +
-        "left=" + left +
-        ", right=" + right +
-        ", weight=" + weight +
-        '}';
+    return "AbstractUndirectedEdge{"
+        + "left="
+        + left
+        + ", right="
+        + right
+        + ", weight="
+        + weight
+        + '}';
   }
 }

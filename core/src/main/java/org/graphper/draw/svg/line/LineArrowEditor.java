@@ -28,17 +28,18 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Draws head and tail arrow shapes for SVG edges. */
 public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {
     if (lineDrawProp.getArrowHead() != null) {
-      drawArrow(brush, lineDrawProp.getArrowHead(), "head",
-                lineDrawProp.lineAttrs().getArrowHead());
+      drawArrow(
+          brush, lineDrawProp.getArrowHead(), "head", lineDrawProp.lineAttrs().getArrowHead());
     }
     if (lineDrawProp.getArrowTail() != null) {
-      drawArrow(brush, lineDrawProp.getArrowTail(), "tail",
-                lineDrawProp.lineAttrs().getArrowTail());
+      drawArrow(
+          brush, lineDrawProp.getArrowTail(), "tail", lineDrawProp.lineAttrs().getArrowTail());
     }
     return true;
   }
@@ -67,12 +68,10 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
         break;
       case VEE:
         // Preserve the existing vee's wings extending behind the clipped shaft endpoint.
-        polygon(brush, arrow, id, shape, -1, 2d / 3, 0, 0, -1, -2d / 3, 1, 0,
-                -1, 2d / 3);
+        polygon(brush, arrow, id, shape, -1, 2d / 3, 0, 0, -1, -2d / 3, 1, 0, -1, 2d / 3);
         break;
       case CROW:
-        polygon(brush, arrow, id, shape, 0, 0, 1, 0.45, 0.5, 0, 1, 0,
-                0.5, 0, 1, -0.45, 0, 0);
+        polygon(brush, arrow, id, shape, 0, 0, 1, 0.45, 0.5, 0, 1, 0, 0.5, 0, 1, -0.45, 0, 0);
         break;
       case TEE:
         polygon(brush, arrow, id, shape, 0.4, 1, 0.8, 1, 0.8, -1, 0.4, -1);
@@ -87,8 +86,8 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
     }
   }
 
-  private void polygon(SvgBrush brush, ArrowDrawProp arrow, String id, ArrowShape shape,
-                       double... coordinates) {
+  private void polygon(
+      SvgBrush brush, ArrowDrawProp arrow, String id, ArrowShape shape, double... coordinates) {
     Element element = brush.getOrCreateChildElementById(POLYGON_ELE + id, POLYGON_ELE);
     setBasicProp(element, shape.isNeedFill());
     StringBuilder points = new StringBuilder();
@@ -103,8 +102,11 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
     Element element = brush.getOrCreateChildElementById(ELLIPSE_ELE + id, ELLIPSE_ELE);
     setBasicProp(element, shape.isNeedFill());
     FlatPoint center = point(arrow, 0.5, 0);
-    double radius = Math.hypot(arrow.getAxisEnd().getX() - arrow.getAxisBegin().getX(),
-                               arrow.getAxisEnd().getY() - arrow.getAxisBegin().getY()) / 2;
+    double radius =
+        Math.hypot(
+                arrow.getAxisEnd().getX() - arrow.getAxisBegin().getX(),
+                arrow.getAxisEnd().getY() - arrow.getAxisBegin().getY())
+            / 2;
     element.setAttribute(CX, String.valueOf(center.getX()));
     element.setAttribute(CY, String.valueOf(center.getY()));
     element.setAttribute(RX, String.valueOf(radius));
@@ -120,9 +122,14 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
       setBasicProp(element, false);
       double side = i == 0 ? 0.5 : -0.5;
       FlatPoint start = point(arrow, from, side);
-      element.setAttribute(D, PATH_START_M + getPathPointStr(start, false) + CURVE_PATH_MARK
-          + getPathPointStr(start) + getPathPointStr(point(arrow, to, side))
-          + getPathPointStr(point(arrow, to, 0), false));
+      element.setAttribute(
+          D,
+          PATH_START_M
+              + getPathPointStr(start, false)
+              + CURVE_PATH_MARK
+              + getPathPointStr(start)
+              + getPathPointStr(point(arrow, to, side))
+              + getPathPointStr(point(arrow, to, 0), false));
       brush.addGroup(arrowGroup(arrow), element);
     }
     axis(brush, arrow, id);
@@ -131,8 +138,11 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
   private void axis(SvgBrush brush, ArrowDrawProp arrow, String id) {
     Element element = brush.getOrCreateChildElementById(PATH_ELE + id + "2", PATH_ELE);
     setBasicProp(element, false);
-    element.setAttribute(D, PATH_START_M + getPathPointStr(arrow.getAxisBegin())
-        + getPathPointStr(arrow.getAxisEnd(), false));
+    element.setAttribute(
+        D,
+        PATH_START_M
+            + getPathPointStr(arrow.getAxisBegin())
+            + getPathPointStr(arrow.getAxisEnd(), false));
     brush.addGroup(arrowGroup(arrow), element);
   }
 
@@ -141,8 +151,8 @@ public class LineArrowEditor implements LineEditor<SvgBrush>, SvgConstants {
     double dx = arrow.getAxisEnd().getX() - begin.getX();
     double dy = arrow.getAxisEnd().getY() - begin.getY();
     // The unnormalized perpendicular scales with the axis and stays finite for a zero axis.
-    return new FlatPoint(begin.getX() + along * dx - side * dy,
-                         begin.getY() + along * dy + side * dx);
+    return new FlatPoint(
+        begin.getX() + along * dx - side * dy, begin.getY() + along * dy + side * dx);
   }
 
   private void setBasicProp(Element element, boolean needFill) {

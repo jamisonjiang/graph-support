@@ -24,6 +24,7 @@ import java.util.Objects;
 import org.apache_gs.commons.text.StringEscapeUtils;
 import org.graphper.util.Asserts;
 
+/** Represents an SVG element with attributes, text, and a parent document. */
 public final class SvgElement implements SvgConstants, Element, Serializable {
 
   private static final long serialVersionUID = -4656435281889555382L;
@@ -118,9 +119,13 @@ public final class SvgElement implements SvgConstants, Element, Serializable {
     }
     StringBuilder attrVal = new StringBuilder();
     for (Entry<String, String> entry : attr.entrySet()) {
-      attrVal.append(SPACE).append(entry.getKey())
-          .append(EQUAL_SIGN).append(QUOTATION_MARK)
-          .append(entry.getValue()).append(QUOTATION_MARK);
+      attrVal
+          .append(SPACE)
+          .append(entry.getKey())
+          .append(EQUAL_SIGN)
+          .append(QUOTATION_MARK)
+          .append(entry.getValue())
+          .append(QUOTATION_MARK);
     }
     return attrVal.toString();
   }

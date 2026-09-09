@@ -49,8 +49,31 @@ public class RasterOutputTest {
         .addNode(Node.builder().label("plain raster output").build())
         .build();
 
+    if (fileType == FileType.TIFF && !ImageIO.getImageWritersByFormatName("TIFF").hasNext()) {
+      ExecuteException failure = Assertions.assertThrows(ExecuteException.class,
+          () -> graphviz.toFile(fileType));
+      Throwable cause = failure;
+      while (cause.getCause() != null) {
+        cause = cause.getCause();
+      }
+      Assertions.assertTrue(cause.getMessage().contains("TIFF export requires an ImageIO TIFF writer"));
+      return;
+    }
+
     try (GraphResource resource = graphviz.toFile(fileType)) {
-      assertSignature(fileType, resource.bytes());
+      byte[] bytes = resource.bytes();
+      assertSignature(fileType, bytes);
+      if (fileType == FileType.TIFF) {
+        // Decode independently of the ImageIO writer, including on Java 8.
+        try (SeekableStream input = SeekableStream.wrapInputStream(
+            new ByteArrayInputStream(bytes), true)) {
+          RenderedImage rendered = new TIFFImageDecoder(input, new TIFFDecodeParam())
+              .decodeAsRenderedImage(0);
+          Assertions.assertTrue(rendered.getWidth() > 0);
+          Assertions.assertTrue(rendered.getHeight() > 0);
+          Assertions.assertNotNull(rendered.getData());
+        }
+      }
     }
   }
 
@@ -77,6 +100,10 @@ public class RasterOutputTest {
           .build();
       Assertions.assertTrue(graph.toSvgStr().contains("<image"),
           "The graph must retain the approved image before conversion");
+      if (fileType == FileType.TIFF && !ImageIO.getImageWritersByFormatName("TIFF").hasNext()) {
+        Assertions.assertThrows(ExecuteException.class, () -> graph.toFile(fileType));
+        continue;
+      }
       // TIFF/PDF have no native graph fallback: exercise the real Batik/FOP conversion path.
       try (GraphResource resource = graph.toFile(fileType)) {
         byte[] bytes = resource.bytes();

@@ -23,9 +23,8 @@ import org.graphper.layout.LineRouter;
 /**
  * Abstract factory for creating instances of {@link LineRouter}.
  *
- * <p>This factory defines methods for determining whether a specific type of line routing
- * logic is applicable and for creating instances of the appropriate {@link LineRouter}
- * implementation.</p>
+ * <p>This factory defines methods for determining whether a specific type of line routing logic is
+ * applicable and for creating instances of the appropriate {@link LineRouter} implementation.
  *
  * @param <T> the type of {@link LineRouter} produced by this factory
  * @author Jamison Jiang
@@ -33,19 +32,21 @@ import org.graphper.layout.LineRouter;
 public abstract class LineRouterFactory<T extends LineRouter> {
 
   /**
-   * Determines whether this factory's routing logic is applicable to the given {@link Graphviz} instance.
+   * Determines whether this factory's routing logic is applicable to the given {@link Graphviz}
+   * instance.
    *
    * @param graphviz the {@link Graphviz} instance to evaluate
-   * @return {@code true} if this factory should handle routing for the given {@link Graphviz} instance,
-   *         {@code false} otherwise
+   * @return {@code true} if this factory should handle routing for the given {@link Graphviz}
+   *     instance, {@code false} otherwise
    */
   protected abstract boolean needDeal(Graphviz graphviz);
 
   /**
    * Creates a new instance of the {@link LineRouter} for the specified graph structures.
    *
-   * @param drawGraph the {@link DrawGraph} instance containing graphical representations of the graph
-   * @param fdpGraph  the {@link FdpGraph} instance representing the layout graph
+   * @param drawGraph the {@link DrawGraph} instance containing graphical representations of the
+   *     graph
+   * @param fdpGraph the {@link FdpGraph} instance representing the layout graph
    * @return a new instance of the {@link LineRouter}
    */
   protected abstract T newInstance(DrawGraph drawGraph, FdpGraph fdpGraph);

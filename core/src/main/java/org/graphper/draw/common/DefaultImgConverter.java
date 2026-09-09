@@ -105,14 +105,14 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
    */
   @Override
   public FileType[] supportFileTypes() {
-    return new FileType[]{FileType.PNG, FileType.JPG, FileType.JPEG, FileType.GIF};
+    return new FileType[] {FileType.PNG, FileType.JPG, FileType.JPEG, FileType.GIF};
   }
 
   /**
    * Converts the given SVG document into an image of the specified type. Processes each element of
    * the SVG and renders it using {@link Graphics2D}.
    *
-   * @param document  the SVG document to convert
+   * @param document the SVG document to convert
    * @param drawGraph the drawing context with graph-related attributes
    * @param imageType the target image type for conversion
    * @return a {@link DefaultGraphResource} representing the converted image
@@ -127,41 +127,42 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
     ImgContext imgContext = new ImgContext();
     SecurityPolicy securityPolicy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
-    document.accessEles(((ele, children) -> {
-      if (Objects.equals(ele.tagName(), SVG_ELE)) {
-        initImage(drawGraph, imageType, imgContext, ele);
-        return;
-      }
-      Graphics2D g2d = imgContext.g2d;
-      if (g2d == null) {
-        return;
-      }
+    document.accessEles(
+        ((ele, children) -> {
+          if (Objects.equals(ele.tagName(), SVG_ELE)) {
+            initImage(drawGraph, imageType, imgContext, ele);
+            return;
+          }
+          Graphics2D g2d = imgContext.g2d;
+          if (g2d == null) {
+            return;
+          }
 
-      if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
-        drawEllipse(ele, g2d);
-        return;
-      }
+          if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
+            drawEllipse(ele, g2d);
+            return;
+          }
 
-      if (Objects.equals(ele.tagName(), TEXT_ELE)) {
-        drawString(ele, g2d);
-        return;
-      }
+          if (Objects.equals(ele.tagName(), TEXT_ELE)) {
+            drawString(ele, g2d);
+            return;
+          }
 
-      if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
-        drawPolygon(ele, g2d);
-        return;
-      }
+          if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
+            drawPolygon(ele, g2d);
+            return;
+          }
 
-      if (Objects.equals(ele.tagName(), PATH_ELE)) {
-        drawPath(ele, g2d);
-        return;
-      }
+          if (Objects.equals(ele.tagName(), PATH_ELE)) {
+            drawPath(ele, g2d);
+            return;
+          }
 
-      // ADD THIS NEW BRANCH:
-      if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
-        drawImage(ele, g2d, securityPolicy);
-      }
-    }));
+          // ADD THIS NEW BRANCH:
+          if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
+            drawImage(ele, g2d, securityPolicy);
+          }
+        }));
 
     if (imgContext.img == null) {
       return null;
@@ -181,13 +182,13 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
   /**
    * Initializes an image based on the provided dimensions and scale.
    *
-   * @param drawGraph  the drawing context
-   * @param imageType  the target image type
+   * @param drawGraph the drawing context
+   * @param imageType the target image type
    * @param imgContext the image context to be initialized
-   * @param ele        the SVG element containing the attributes
+   * @param ele the SVG element containing the attributes
    */
-  private void initImage(DrawGraph drawGraph, FileType imageType,
-                         ImgContext imgContext, Element ele) {
+  private void initImage(
+      DrawGraph drawGraph, FileType imageType, ImgContext imgContext, Element ele) {
     int h = toInt(ele.getAttribute(HEIGHT));
     int w = toInt(ele.getAttribute(WIDTH));
     FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
@@ -200,9 +201,13 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     h = (int) (h * 1.3333);
     SecurityPolicy policy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
     if (w <= 0 || h <= 0 || (long) w * h > policy.getMaxOutputPixels()) {
-      throw new IllegalArgumentException("Rendered image " + w + "x" + h
-                                             + " exceeds the security policy pixel limit "
-                                             + policy.getMaxOutputPixels());
+      throw new IllegalArgumentException(
+          "Rendered image "
+              + w
+              + "x"
+              + h
+              + " exceeds the security policy pixel limit "
+              + policy.getMaxOutputPixels());
     }
     if (imageType == FileType.PNG) {
       imgContext.setImg(new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB));
@@ -358,8 +363,8 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
         Point2D.Double p2 = path[i - 2];
         Point2D.Double p3 = path[i - 1];
         Point2D.Double p4 = path[i];
-        CubicCurve2D.Double curve = new CubicCurve2D.Double(p1.x, p1.y, p2.x, p2.y,
-                                                            p3.x, p3.y, p4.x, p4.y);
+        CubicCurve2D.Double curve =
+            new CubicCurve2D.Double(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y);
         path2D.append(curve, true);
       }
 
@@ -367,8 +372,10 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
       for (int i = 1; i < path.length; i++) {
         Point2D.Double start = path[i - 1];
         Point2D.Double end = path[i];
-        Line2D.Double line = new Line2D.Double(start.getX(), start.getY(),
-                                               end.getX(), end.getY());
+        Line2D.Double line =
+            new Line2D.Double(
+                start.getX(), start.getY(),
+                end.getX(), end.getY());
         path2D.append(line, true);
       }
     }
@@ -403,7 +410,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     // You could decide to just draw at natural size in that case, or do nothing.
     if (boxW <= 0 || boxH <= 0) {
       // Draw at natural size, or skip
-      g2d.drawImage(image, (int)x, (int)y, null);
+      g2d.drawImage(image, (int) x, (int) y, null);
       return;
     }
 
@@ -439,7 +446,8 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
   private BufferedImage loadImage(String href, SecurityPolicy policy) {
     try {
       byte[] bytes = SecureImageLoader.load(href, policy);
-      try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+      try (ImageInputStream input =
+          ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
         Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
         if (!readers.hasNext()) {
           return null;
@@ -449,8 +457,7 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
           reader.setInput(input, true, true);
           int width = reader.getWidth(0);
           int height = reader.getHeight(0);
-          if (width <= 0 || height <= 0
-              || (long) width * height > policy.getMaxImagePixels()) {
+          if (width <= 0 || height <= 0 || (long) width * height > policy.getMaxImagePixels()) {
             log.warn("Image dimensions exceed the security policy");
             return null;
           }
@@ -468,8 +475,8 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
   /**
    * Sets the common attributes of a shape such as fill color, stroke color, and stroke width.
    *
-   * @param ele   the SVG element with attributes to be set
-   * @param g2d   the graphics context used to apply these attributes
+   * @param ele the SVG element with attributes to be set
+   * @param g2d the graphics context used to apply these attributes
    * @param shape the shape to which the attributes are applied
    */
   private void setShapeCommonAttr(Element ele, Graphics2D g2d, Shape shape) {
@@ -493,8 +500,14 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     float[] dashPattern = toFloatPair(ele.getAttribute(STROKE_DASHARRAY));
     BasicStroke stroke;
     if (dashPattern != null) {
-      stroke = new BasicStroke((float) strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
-                               5.0f, dashPattern, 0);
+      stroke =
+          new BasicStroke(
+              (float) strokeWidth,
+              BasicStroke.CAP_BUTT,
+              BasicStroke.JOIN_ROUND,
+              5.0f,
+              dashPattern,
+              0);
     } else {
       stroke = new BasicStroke((float) strokeWidth);
     }
@@ -573,11 +586,11 @@ public class DefaultImgConverter implements SvgConverter, SvgConstants {
     boolean bold = isFontBold(textEle);
     boolean italic = isFontItalic(textEle);
     if (bold && italic) {
-      return new FontStyle[]{FontStyle.BOLD, FontStyle.ITALIC};
+      return new FontStyle[] {FontStyle.BOLD, FontStyle.ITALIC};
     } else if (bold) {
-      return new FontStyle[]{FontStyle.BOLD};
+      return new FontStyle[] {FontStyle.BOLD};
     } else if (italic) {
-      return new FontStyle[]{FontStyle.ITALIC};
+      return new FontStyle[] {FontStyle.ITALIC};
     }
     return null;
   }

@@ -45,9 +45,9 @@ public interface Graph<V> extends BaseGraph<V> {
      * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
      * current vertex represents an edge.
      *
-     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for
-     * two adjacent vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in
-     * {@code adjacent(v)}, and <tt>v</tt> must be found in {@code adjacent(w)}.
+     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for two adjacent
+     * vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in {@code adjacent(v)}, and
+     * <tt>v</tt> must be found in {@code adjacent(w)}.
      *
      * <p>For undirected graphs, the adjacent method returns all neighbor vertices connected to the
      * specified vertex, regardless of direction (since undirected graphs have no concept of
@@ -71,9 +71,9 @@ public interface Graph<V> extends BaseGraph<V> {
     /**
      * Returns all edges adjacent to the specified vertex.
      *
-     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for
-     * two adjacent vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in
-     * {@code adjacent(v)}, and <tt>v</tt> must be found in {@code adjacent(w)}.
+     * <p>For undirected graphs, adjacent elements are symmetrical. This means that for two adjacent
+     * vertices <tt>v</tt> and <tt>w</tt>, <tt>w</tt> must be found in {@code adjacent(v)}, and
+     * <tt>v</tt> must be found in {@code adjacent(w)}.
      *
      * <p>For undirected graphs, the adjacent method returns all neighbor edges connected to the
      * specified vertex, regardless of direction (since undirected graphs have no concept of

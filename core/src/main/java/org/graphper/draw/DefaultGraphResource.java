@@ -18,18 +18,15 @@ package org.graphper.draw;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.lang.reflect.InvocationTargetException;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.GraphResource;
 import org.graphper.util.Asserts;
 
+/** Stores rendered graph bytes with a resource name and file suffix. */
 public class DefaultGraphResource implements GraphResource {
 
   private final String name;
@@ -38,6 +35,7 @@ public class DefaultGraphResource implements GraphResource {
 
   private final ByteArrayOutputStream os;
 
+  /** Creates a graph resource backed by the supplied output stream. */
   public DefaultGraphResource(String name, String suffix, ByteArrayOutputStream os) {
     Asserts.nullArgument(os, "Output stream");
     this.name = name;
@@ -65,30 +63,53 @@ public class DefaultGraphResource implements GraphResource {
     return "." + suffix;
   }
 
+  /**
+   * Saves with no-follow protection for the destination file. If the runtime cannot provide that
+   * protection, this operation fails closed; {@link #bytes()} and {@link #inputStream()} remain
+   * usable.
+   */
   @Override
   public void save(String parentPath, String fileName) throws IOException {
-    fileName = StringUtils.isNotEmpty(fileName) ? fileName
-        : (StringUtils.isNotEmpty(name()) ? name() : "graphviz");
-    Path suppliedName = Paths.get(fileName);
-    if (suppliedName.isAbsolute() || suppliedName.getNameCount() != 1
-        || fileName.indexOf('/') >= 0 || fileName.indexOf('\\') >= 0
-        || fileName.indexOf(':') >= 0 || ".".equals(fileName) || "..".equals(fileName)) {
+    fileName =
+        StringUtils.isNotEmpty(fileName)
+            ? fileName
+            : (StringUtils.isNotEmpty(name()) ? name() : "graphviz");
+    if (new File(fileName).isAbsolute()
+        || fileName.indexOf('/') >= 0
+        || fileName.indexOf('\\') >= 0
+        || fileName.indexOf(':') >= 0
+        || fileName.indexOf('\0') >= 0
+        || ".".equals(fileName)
+        || "..".equals(fileName)) {
       throw new IOException("fileName must be a single, relative file name");
     }
 
     String outputName = fileName.endsWith(suffix()) ? fileName : fileName + suffix();
-    Path base = Paths.get(parentPath).toRealPath();
-    Path target = base.resolve(outputName).normalize();
-    if (!target.getParent().equals(base)
-        || (Files.exists(target, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(target))) {
-      throw new IOException("Output path escapes the target directory or is a symbolic link");
+    if (outputName.indexOf('/') >= 0
+        || outputName.indexOf('\\') >= 0
+        || outputName.indexOf(':') >= 0
+        || outputName.indexOf('\0') >= 0) {
+      throw new IOException("Output name must be a single, relative file name");
     }
-    try (OutputStream fos = Files.newOutputStream(target, StandardOpenOption.CREATE,
-                                                  StandardOpenOption.TRUNCATE_EXISTING,
-                                                  StandardOpenOption.WRITE,
-                                                  LinkOption.NOFOLLOW_LINKS)) {
-      fos.write(bytes());
-      fos.flush();
+    try {
+      // Do not link basic resource construction/streaming to optional filesystem APIs.
+      Class<?> saver = Class.forName("org.graphper.draw.NioGraphResourceSaver");
+      saver
+          .getMethod("save", File.class, String.class, byte[].class)
+          .invoke(null, new File(parentPath), outputName, bytes());
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
+      }
+      throw new IOException("Secure file saving is unavailable", cause);
+    } catch (ClassNotFoundException
+        | NoSuchMethodException
+        | IllegalAccessException
+        | LinkageError
+        | SecurityException e) {
+      // A canonical-path check followed by FileOutputStream would permit symlink replacement.
+      throw new IOException("Secure file saving requires no-follow filesystem support", e);
     }
   }
 

@@ -23,28 +23,18 @@ package org.graphper.api.attributes;
  */
 public enum ClusterStyle implements Style {
 
-  /**
-   * Dashed cluster consisting of a series of line segment.
-   */
+  /** Dashed cluster consisting of a series of line segment. */
   DASHED,
 
-  /**
-   * Dotted cluster consisting of a series of points.
-   */
+  /** Dotted cluster consisting of a series of points. */
   DOTTED,
 
-  /**
-   * Hide cluster when rendering (but the attributes are valid during layout).
-   */
+  /** Hide cluster when rendering (but the attributes are valid during layout). */
   INVIS,
 
-  /**
-   * Draws the line segment boldly.
-   */
+  /** Draws the line segment boldly. */
   BOLD,
 
-  /**
-   * Use rounded angles for clusters.
-   */
+  /** Use rounded angles for clusters. */
   ROUNDED;
 }

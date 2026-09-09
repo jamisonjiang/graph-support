@@ -30,14 +30,15 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.api.Subgraph;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.ConcatIterable;
 import org.graphper.def.Digraph.EdgeDigraph;
 import org.graphper.def.EdgeOpGraph;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.util.CollectionUtils;
 
-public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implements
-    EdgeOpGraph<N, E> {
+/** A layout graph that tracks source nodes and container-specific node and edge groups. */
+public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>>
+    implements EdgeOpGraph<N, E> {
 
   protected final Graphviz graphviz;
 
@@ -51,6 +52,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     this(capacity, null, null);
   }
 
+  /** Creates the backing graph and associates the source graph and optional node index. */
   public LayoutGraph(int capacity, Graphviz graphviz, Map<Node, N> nodeMap) {
     this.graphviz = graphviz;
     this.nodeMap = nodeMap;
@@ -63,6 +65,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return graph;
   }
 
+  /** Adds a node to its effective container and records repeated container membership. */
   public GraphContainer add(N node, GraphContainer container) {
     GraphContainer originalContainer = container;
     if (container.isSubgraph()) {
@@ -157,6 +160,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return nodeMap != null ? nodeMap.get(node) : null;
   }
 
+  /** Returns layout nodes belonging to the requested container. */
   public Iterable<N> nodes(GraphContainer graphContainer) {
     if (graphviz == null) {
       return Collections.emptyList();
@@ -169,6 +173,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return graphGroup == null ? Collections.emptySet() : graphGroup.nodes();
   }
 
+  /** Returns source lines belonging to the requested container. */
   public Iterable<Line> lines(GraphContainer graphContainer) {
     if (graphviz == null) {
       return Collections.emptyList();
@@ -273,6 +278,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return graphGroup == null || graphGroup.isEmpty();
   }
 
+  /** Returns nonempty clusters, including those nested in transparent subgraphs. */
   @SuppressWarnings("unchecked")
   public Iterable<Cluster> clusters(GraphContainer container) {
     List<Iterable<Cluster>> iterables = null;
@@ -300,10 +306,9 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return new UnaryConcatIterable<>(this::isNotEmptyGraphContainer, iterables);
   }
 
+  /** Reports whether the first container is the second container or one of its ancestors. */
   public static <N extends ANode, E extends ALine<N, E>> boolean containsContainer(
-      Graphviz graphviz,
-      GraphContainer father,
-      GraphContainer container) {
+      Graphviz graphviz, GraphContainer father, GraphContainer container) {
     if (father == null || container == null) {
       return false;
     }
@@ -320,10 +325,10 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
    * container.
    *
    * @param graphviz root container
-   * @param n        node
-   * @param w        node
-   * @param <N>      node type
-   * @param <E>      edge type
+   * @param n node
+   * @param w node
+   * @param <N> node type
+   * @param <E> edge type
    * @return The first common parent container of both nodes
    */
   public static <N extends ANode, E extends ALine<N, E>> GraphContainer commonParent(
@@ -339,16 +344,14 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
    * container.
    *
    * @param graphviz root container
-   * @param c1       container one
-   * @param c2       container two
-   * @param <N>      node type
-   * @param <E>      edge type
+   * @param c1 container one
+   * @param c2 container two
+   * @param <N> node type
+   * @param <E> edge type
    * @return The first common parent container of both nodes
    */
   public static <N extends ANode, E extends ALine<N, E>> GraphContainer commonParent(
-      Graphviz graphviz,
-      GraphContainer c1,
-      GraphContainer c2) {
+      Graphviz graphviz, GraphContainer c1, GraphContainer c2) {
     if (c1 == c2) {
       return c1;
     }
@@ -416,7 +419,7 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     return containerMap;
   }
 
-  //------------------------------ GraphGroup ------------------------------
+  // ------------------------------ GraphGroup ------------------------------
 
   private class GraphGroup {
 
@@ -433,8 +436,9 @@ public abstract class LayoutGraph<N extends ANode, E extends ALine<N, E>> implem
     @SuppressWarnings("unchecked")
     private GraphGroup(GraphContainer container) {
       this.container = container;
-      this.containerNodes = new UnaryConcatIterable<>(
-          node -> repeatNodes == null || !repeatNodes.contains(node), container.nodes());
+      this.containerNodes =
+          new UnaryConcatIterable<>(
+              node -> repeatNodes == null || !repeatNodes.contains(node), container.nodes());
     }
 
     private boolean isEmpty() {

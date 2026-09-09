@@ -61,21 +61,21 @@ final class DotError {
   }
 
   /**
-   * @return the one-based line the error was reported on
+   * Returns the one-based line the error was reported on.
    */
   int line() {
     return line;
   }
 
   /**
-   * @return the zero-based column the error was reported on
+   * Returns the zero-based column the error was reported on.
    */
   int column() {
     return column;
   }
 
   /**
-   * @return the human readable error message
+   * Returns the human-readable error message.
    */
   String message() {
     return message;

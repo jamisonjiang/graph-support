@@ -27,7 +27,7 @@ public interface GraphEditor<B extends Brush> extends Editor<GraphvizDrawProp, B
    * Edit graphviz, return <tt>false</tt> if you want to terminate the process.
    *
    * @param graphviz graphviz to be drawn
-   * @param brush    graphviz brush
+   * @param brush graphviz brush
    * @return <tt>true</tt> if the next editor continues editing
    */
   @Override

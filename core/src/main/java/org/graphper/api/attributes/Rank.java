@@ -21,11 +21,13 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.Subgraph;
 
 /**
- * Rank constraints on the nodes in {@link Subgraph}, only valid for {@link Layout#DOT} and {@link Layout#DOTQ}.
+ * Rank constraints on the nodes in {@link Subgraph}, only valid for {@link Layout#DOT} and {@link
+ * Layout#DOTQ}.
  *
- * <p> The effective range of this attribute is the <strong>closest effective container</strong> of
+ * <p>The effective range of this attribute is the <strong>closest effective container</strong> of
  * the node. Here is an example of what is the <strong>closest effective container</strong> for a
  * node:
+ *
  * <pre>{@code
  * digraph G {
  *   A
@@ -43,10 +45,12 @@ import org.graphper.api.Subgraph;
  *   }
  * }
  * }</pre>
- * For the above dot script, the containers contained in it are the root container <tt>G</tt>
+ *
+ * <p>For the above dot script, the containers contained in it are the root container <tt>G</tt>
  * ({@link Graphviz}), a {@link Subgraph} and two {@link Cluster}s (one nested inside the other).
  * The following table shows the <strong>closest effective container</strong> in which all nodes are
  * located:
+ *
  * <pre>
  *  +----------------+-----------------------------+
  *  |      Nodes     | Closest Effective Container |
@@ -63,9 +67,7 @@ import org.graphper.api.Subgraph;
  */
 public enum Rank {
 
-  /**
-   * Indicates that all nodes under the subgraph must be at the same level.
-   */
+  /** Indicates that all nodes under the subgraph must be at the same level. */
   SAME,
 
   /**

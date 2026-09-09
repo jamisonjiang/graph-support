@@ -30,6 +30,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.layout.OrthoVisGraph.Segment;
 import org.graphper.util.CollectionUtils;
 
+/** Draws routing grid segments in the SVG graph. */
 public class GraphGridEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   private static final String GRID_SEGMENT = "grid_segment";
@@ -46,8 +47,8 @@ public class GraphGridEditor implements GraphEditor<SvgBrush>, SvgConstants {
       List<FlatPoint> points = Arrays.asList(segment.getStart(), segment.getEnd());
       String path = pointsToSvgLine(null, points, false);
 
-      Element pathElement = brush.getOrCreateChildElementById(GRID_SEGMENT + UNDERSCORE + i,
-                                                              PATH_ELE);
+      Element pathElement =
+          brush.getOrCreateChildElementById(GRID_SEGMENT + UNDERSCORE + i, PATH_ELE);
 
       pathElement.setAttribute(D, path);
       pathElement.setAttribute(FILL, NONE);

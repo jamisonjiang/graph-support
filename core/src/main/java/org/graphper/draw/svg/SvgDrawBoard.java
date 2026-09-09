@@ -24,18 +24,18 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Cluster;
 import org.graphper.api.FileType;
 import org.graphper.api.GraphAttrs;
+import org.graphper.api.GraphResource;
 import org.graphper.api.Line;
 import org.graphper.api.Node;
 import org.graphper.def.FlatPoint;
 import org.graphper.draw.ClusterDrawProp;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawBoard;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.api.GraphResource;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.util.Asserts;
 
 /**
@@ -61,6 +61,7 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
 
   protected final DrawGraph drawGraph;
 
+  /** Creates an SVG document and root graph group for the drawing. */
   public SvgDrawBoard(DrawGraph drawGraph) {
     Asserts.nullArgument(drawGraph, "DrawGraph");
     this.drawGraph = drawGraph;
@@ -106,6 +107,10 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     element.setAttribute(SvgConstants.CLASS, SvgConstants.GRAPH);
 
     return new SvgBrush(GRAPH_ID, element, svgDocument, this);
+  }
+
+  public DrawGraph drawGraph() {
+    return drawGraph;
   }
 
   @Override
@@ -162,23 +167,9 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     return drawGraph.getGraphviz().graphAttrs();
   }
 
-  public DrawGraph drawGraph() {
-    return drawGraph;
-  }
-
   public String clusterId(ClusterDrawProp clusterDrawProp) {
     Objects.requireNonNull(clusterDrawProp);
     return clusterId(clusterDrawProp.getCluster());
-  }
-
-  public String nodeId(NodeDrawProp nodeDrawProp) {
-    Objects.requireNonNull(nodeDrawProp);
-    return nodeId(nodeDrawProp.getNode());
-  }
-
-  public String lineId(LineDrawProp lineDrawProp) {
-    Objects.requireNonNull(lineDrawProp);
-    return lineId(lineDrawProp.getLine());
   }
 
   public String clusterId(Cluster cluster) {
@@ -186,9 +177,19 @@ public class SvgDrawBoard implements DrawBoard<SvgBrush, SvgBrush, SvgBrush, Svg
     return drawGraph.clusterId(cluster);
   }
 
+  public String nodeId(NodeDrawProp nodeDrawProp) {
+    Objects.requireNonNull(nodeDrawProp);
+    return nodeId(nodeDrawProp.getNode());
+  }
+
   public String nodeId(Node node) {
     Objects.requireNonNull(node);
     return drawGraph.nodeId(node);
+  }
+
+  public String lineId(LineDrawProp lineDrawProp) {
+    Objects.requireNonNull(lineDrawProp);
+    return lineId(lineDrawProp.getLine());
   }
 
   public String lineId(Line line) {

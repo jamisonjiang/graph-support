@@ -52,8 +52,9 @@ final class SecureSvg {
   private static final String SVG_NS = "http://www.w3.org/2000/svg";
   private static final String XLINK_NS = "http://www.w3.org/1999/xlink";
   // Exact declaration emitted by SvgDocument. No other DTD, including an internal subset, is read.
-  private static final String PROJECT_DOCTYPE = "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "
-      + "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">";
+  private static final String PROJECT_DOCTYPE =
+      "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "
+          + "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">";
   static final int MAX_INPUT_CHARS = 16 * 1024 * 1024;
   static final int MAX_DEPTH = 128;
   static final int MAX_ELEMENTS = 200_000;
@@ -63,28 +64,98 @@ final class SecureSvg {
   static final long MAX_IMAGE_BYTES = 32L * 1024 * 1024;
   static final long MAX_ENCODED_IMAGE_BYTES = 48L * 1024 * 1024;
   static final long MAX_RASTER_IMAGE_BYTES = 128L * 1024 * 1024;
-  private static final Set<String> ELEMENTS = new HashSet<>(Arrays.asList(
-      "svg", "g", "a", "defs", "title", "desc", "path", "rect", "circle", "ellipse",
-      "line", "polyline", "polygon", "text", "tspan", "image",
-      "linearGradient", "radialGradient", "stop", "clipPath"));
-  private static final Set<String> ATTRIBUTES = new HashSet<>(Arrays.asList(
-      "id", "class", "data-node-decoration", "width", "height", "viewBox",
-      "preserveAspectRatio", "version",
-      "x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry", "dx", "dy",
-      "d", "points", "transform", "fill", "fill-opacity", "fill-rule", "opacity",
-      "stroke", "stroke-width", "stroke-opacity", "stroke-dasharray", "stroke-dashoffset",
-      "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "font-family", "font-size",
-      "font-style", "font-weight", "text-anchor", "text-decoration", "dominant-baseline",
-      "alignment-baseline", "baseline-shift", "textLength", "lengthAdjust", "rotate",
-      "offset", "stop-color", "stop-opacity", "gradientUnits", "gradientTransform",
-      "spreadMethod", "fx", "fy", "clip-path", "clip-rule", "clipPathUnits"));
+  private static final Set<String> ELEMENTS =
+      new HashSet<>(
+          Arrays.asList(
+              "svg",
+              "g",
+              "a",
+              "defs",
+              "title",
+              "desc",
+              "path",
+              "rect",
+              "circle",
+              "ellipse",
+              "line",
+              "polyline",
+              "polygon",
+              "text",
+              "tspan",
+              "image",
+              "linearGradient",
+              "radialGradient",
+              "stop",
+              "clipPath"));
+  private static final Set<String> ATTRIBUTES =
+      new HashSet<>(
+          Arrays.asList(
+              "id",
+              "class",
+              "data-node-decoration",
+              "width",
+              "height",
+              "viewBox",
+              "preserveAspectRatio",
+              "version",
+              "x",
+              "y",
+              "x1",
+              "y1",
+              "x2",
+              "y2",
+              "cx",
+              "cy",
+              "r",
+              "rx",
+              "ry",
+              "dx",
+              "dy",
+              "d",
+              "points",
+              "transform",
+              "fill",
+              "fill-opacity",
+              "fill-rule",
+              "opacity",
+              "stroke",
+              "stroke-width",
+              "stroke-opacity",
+              "stroke-dasharray",
+              "stroke-dashoffset",
+              "stroke-linecap",
+              "stroke-linejoin",
+              "stroke-miterlimit",
+              "font-family",
+              "font-size",
+              "font-style",
+              "font-weight",
+              "text-anchor",
+              "text-decoration",
+              "dominant-baseline",
+              "alignment-baseline",
+              "baseline-shift",
+              "textLength",
+              "lengthAdjust",
+              "rotate",
+              "offset",
+              "stop-color",
+              "stop-opacity",
+              "gradientUnits",
+              "gradientTransform",
+              "spreadMethod",
+              "fx",
+              "fy",
+              "clip-path",
+              "clip-rule",
+              "clipPathUnits"));
 
-  private SecureSvg() {
-  }
+  private SecureSvg() {}
 
   static String prepare(String svg, SecurityPolicy policy, boolean raster) throws Exception {
     if (svg == null || svg.length() > MAX_INPUT_CHARS) {
-      throw new IllegalArgumentException("SVG exceeds the input character limit " + MAX_INPUT_CHARS);
+      throw new IllegalArgumentException(
+          "SVG exceeds the input character limit " + MAX_INPUT_CHARS);
     }
     // Strip only a literal declaration in the prolog, never search/replace inside XML content.
     int prolog = 0;
@@ -116,9 +187,10 @@ final class SecureSvg {
     factory.setXIncludeAware(false);
     factory.setExpandEntityReferences(false);
     javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
-    builder.setEntityResolver((publicId, systemId) -> {
-      throw new IllegalArgumentException("External SVG entities are forbidden");
-    });
+    builder.setEntityResolver(
+        (publicId, systemId) -> {
+          throw new IllegalArgumentException("External SVG entities are forbidden");
+        });
     org.w3c.dom.Document document = builder.parse(new InputSource(new StringReader(svg)));
     Element root = document.getDocumentElement();
     if (!"svg".equals(root.getLocalName()) || !SVG_NS.equals(root.getNamespaceURI())) {
@@ -132,11 +204,20 @@ final class SecureSvg {
       double width = Math.ceil(pixelWidth);
       double height = Math.ceil(pixelHeight);
       long maximum = policy.getMaxOutputPixels();
-      if (!Double.isFinite(width) || !Double.isFinite(height) || width <= 0 || height <= 0
-          || width > Integer.MAX_VALUE || height > Integer.MAX_VALUE
+      if (!Double.isFinite(width)
+          || !Double.isFinite(height)
+          || width <= 0
+          || height <= 0
+          || width > Integer.MAX_VALUE
+          || height > Integer.MAX_VALUE
           || width > maximum / height) {
-        throw new IllegalArgumentException("Rendered image " + width + "x" + height
-            + " exceeds the security policy pixel limit " + maximum);
+        throw new IllegalArgumentException(
+            "Rendered image "
+                + width
+                + "x"
+                + height
+                + " exceeds the security policy pixel limit "
+                + maximum);
       }
       root.setAttribute("width", Float.toString(pixelWidth));
       root.setAttribute("height", Float.toString(pixelHeight));
@@ -180,45 +261,49 @@ final class SecureSvg {
     reader.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
     // Include xmlns declarations in the attribute budgets, not just ordinary attributes.
     reader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-    reader.setEntityResolver((publicId, systemId) -> {
-      throw new IllegalArgumentException("External SVG entities are forbidden");
-    });
-    DefaultHandler handler = new DefaultHandler() {
-      private int depth;
-      private int elements;
-      private int attributes;
-      private int images;
+    reader.setEntityResolver(
+        (publicId, systemId) -> {
+          throw new IllegalArgumentException("External SVG entities are forbidden");
+        });
+    DefaultHandler handler =
+        new DefaultHandler() {
+          private int depth;
+          private int elements;
+          private int attributes;
+          private int images;
 
-      @Override
-      public void startElement(String uri, String localName, String qName, Attributes attrs) {
-        if (++depth > MAX_DEPTH) {
-          throw new IllegalArgumentException("SVG exceeds the XML nesting depth limit " + MAX_DEPTH);
-        }
-        if (++elements > MAX_ELEMENTS) {
-          throw new IllegalArgumentException("SVG exceeds the element limit " + MAX_ELEMENTS);
-        }
-        attributes += attrs.getLength();
-        if (attrs.getLength() > MAX_ATTRIBUTES_PER_ELEMENT || attributes > MAX_ATTRIBUTES) {
-          throw new IllegalArgumentException("SVG exceeds the XML attribute limit");
-        }
-        if (!SVG_NS.equals(uri) || !ELEMENTS.contains(localName)) {
-          throw new IllegalArgumentException("Unsupported active or foreign SVG element: " + localName);
-        }
-        if ("image".equals(localName) && ++images > MAX_IMAGES) {
-          throw new IllegalArgumentException("SVG exceeds the image count limit " + MAX_IMAGES);
-        }
-      }
+          @Override
+          public void startElement(String uri, String localName, String qName, Attributes attrs) {
+            if (++depth > MAX_DEPTH) {
+              throw new IllegalArgumentException(
+                  "SVG exceeds the XML nesting depth limit " + MAX_DEPTH);
+            }
+            if (++elements > MAX_ELEMENTS) {
+              throw new IllegalArgumentException("SVG exceeds the element limit " + MAX_ELEMENTS);
+            }
+            attributes += attrs.getLength();
+            if (attrs.getLength() > MAX_ATTRIBUTES_PER_ELEMENT || attributes > MAX_ATTRIBUTES) {
+              throw new IllegalArgumentException("SVG exceeds the XML attribute limit");
+            }
+            if (!SVG_NS.equals(uri) || !ELEMENTS.contains(localName)) {
+              throw new IllegalArgumentException(
+                  "Unsupported active or foreign SVG element: " + localName);
+            }
+            if ("image".equals(localName) && ++images > MAX_IMAGES) {
+              throw new IllegalArgumentException("SVG exceeds the image count limit " + MAX_IMAGES);
+            }
+          }
 
-      @Override
-      public void endElement(String uri, String localName, String qName) {
-        depth--;
-      }
+          @Override
+          public void endElement(String uri, String localName, String qName) {
+            depth--;
+          }
 
-      @Override
-      public void processingInstruction(String target, String data) {
-        throw new IllegalArgumentException("SVG processing instructions are forbidden");
-      }
-    };
+          @Override
+          public void processingInstruction(String target, String data) {
+            throw new IllegalArgumentException("SVG processing instructions are forbidden");
+          }
+        };
     reader.setContentHandler(handler);
     reader.setErrorHandler(handler);
     reader.parse(new InputSource(new StringReader(svg)));
@@ -235,7 +320,8 @@ final class SecureSvg {
       if (!SVG_NS.equals(element.getNamespaceURI()) || !ELEMENTS.contains(tag)) {
         throw new IllegalArgumentException("Unsupported active or foreign SVG element: " + tag);
       }
-      if ("image".equals(tag) && element.hasAttribute("href")
+      if ("image".equals(tag)
+          && element.hasAttribute("href")
           && element.hasAttributeNS(XLINK_NS, "href")) {
         throw new IllegalArgumentException("Ambiguous SVG image href attributes are forbidden");
       }
@@ -255,14 +341,14 @@ final class SecureSvg {
           element.removeAttributeNode((org.w3c.dom.Attr) attribute);
           continue;
         }
-        if ("href".equals(name) && (namespace == null
-            || XLINK_NS.equals(namespace))) {
+        if ("href".equals(name) && (namespace == null || XLINK_NS.equals(namespace))) {
           if ("a".equals(tag)) {
             // Hyperlinks have no meaning in an exported bitmap/PDF and need no resource access.
             element.removeAttributeNode((org.w3c.dom.Attr) attribute);
           } else if (!"image".equals(tag)) {
-            throw new IllegalArgumentException("SVG href references, including gradient chains, "
-                + "are forbidden outside images and navigation links");
+            throw new IllegalArgumentException(
+                "SVG href references, including gradient chains, "
+                    + "are forbidden outside images and navigation links");
           }
           continue;
         }
@@ -272,16 +358,20 @@ final class SecureSvg {
         }
         // DOT names become IDs verbatim. Metadata values are not CSS/resource expressions;
         // parentheses and backslashes here cannot load resources or introduce selectors.
-        if (namespace == null && ("id".equals(name) || "class".equals(name)
-            || "data-node-decoration".equals(name))) {
+        if (namespace == null
+            && ("id".equals(name) || "class".equals(name) || "data-node-decoration".equals(name))) {
           continue;
         }
-        if (namespace != null || !ATTRIBUTES.contains(name) || value.indexOf('\\') >= 0
-            || value.indexOf('(') >= 0 && !"transform".equals(name)
-            && !"gradientTransform".equals(name)
-            && !value.matches("url\\(#[A-Za-z_][A-Za-z0-9_.:-]*\\)")
-            && !value.matches("rgba?\\([0-9.,% +\\-]+\\)")) {
-          throw new IllegalArgumentException("Unsupported SVG attribute: " + attribute.getNodeName());
+        if (namespace != null
+            || !ATTRIBUTES.contains(name)
+            || value.indexOf('\\') >= 0
+            || value.indexOf('(') >= 0
+                && !"transform".equals(name)
+                && !"gradientTransform".equals(name)
+                && !value.matches("url\\(#[A-Za-z_][A-Za-z0-9_.:-]*\\)")
+                && !value.matches("rgba?\\([0-9.,% +\\-]+\\)")) {
+          throw new IllegalArgumentException(
+              "Unsupported SVG attribute: " + attribute.getNodeName());
         }
       }
     }
@@ -294,17 +384,21 @@ final class SecureSvg {
       throws Exception {
     // Clamp the loader itself, so even a caller's larger per-image policy cannot allocate past the
     // remaining document budget. The encoded allowance includes a conservative data URI header.
-    long remaining = Math.min(MAX_IMAGE_BYTES - budget.bytes,
-        (MAX_ENCODED_IMAGE_BYTES - budget.encodedBytes - 32) / 4 * 3);
+    long remaining =
+        Math.min(
+            MAX_IMAGE_BYTES - budget.bytes,
+            (MAX_ENCODED_IMAGE_BYTES - budget.encodedBytes - 32) / 4 * 3);
     if (remaining <= 0) {
       throw new IllegalArgumentException("SVG exceeds the aggregate image byte limit");
     }
-    SecurityPolicy.Builder bounded = SecurityPolicy.builder()
-        .allowRemoteImages(policy.isAllowRemoteImages())
-        .connectTimeoutMillis(policy.getConnectTimeoutMillis())
-        .readTimeoutMillis(policy.getReadTimeoutMillis())
-        .maxImageBytes((int) Math.min(policy.getMaxImageBytes(), remaining))
-        .maxImagePixels(policy.getMaxImagePixels()).maxOutputPixels(policy.getMaxOutputPixels());
+    SecurityPolicy.Builder bounded =
+        SecurityPolicy.builder()
+            .allowRemoteImages(policy.isAllowRemoteImages())
+            .connectTimeoutMillis(policy.getConnectTimeoutMillis())
+            .readTimeoutMillis(policy.getReadTimeoutMillis())
+            .maxImageBytes((int) Math.min(policy.getMaxImageBytes(), remaining))
+            .maxImagePixels(policy.getMaxImagePixels())
+            .maxOutputPixels(policy.getMaxOutputPixels());
     for (String host : policy.getAllowedRemoteImageHosts()) {
       bounded.allowRemoteImageHost(host);
     }
@@ -313,7 +407,8 @@ final class SecureSvg {
     }
     byte[] bytes = SecureImageLoader.load(reference, bounded.build());
     budget.bytes += bytes.length;
-    try (ImageInputStream input = new MemoryCacheImageInputStream(new ByteArrayInputStream(bytes))) {
+    try (ImageInputStream input =
+        new MemoryCacheImageInputStream(new ByteArrayInputStream(bytes))) {
       Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
       if (!readers.hasNext()) {
         throw new IllegalArgumentException("SVG image must contain a supported raster image");
@@ -327,13 +422,15 @@ final class SecureSvg {
         String mime = "image/" + format;
         if (reference.regionMatches(true, 0, "data:", 0, 5)
             && !reference.substring(5, reference.indexOf(';')).equalsIgnoreCase(mime)) {
-          throw new IllegalArgumentException("SVG image MIME type does not match its raster format");
+          throw new IllegalArgumentException(
+              "SVG image MIME type does not match its raster format");
         }
         reader.setInput(input, false, true);
         int width = reader.getWidth(0);
         int height = reader.getHeight(0);
         if (width <= 0 || height <= 0 || (long) width * height > policy.getMaxImagePixels()) {
-          throw new IllegalArgumentException("Embedded image exceeds the security policy pixel limit");
+          throw new IllegalArgumentException(
+              "Embedded image exceeds the security policy pixel limit");
         }
         long pixels = (long) width * height;
         // Allow up to 16 bits in each of four channels for the supported raster formats.

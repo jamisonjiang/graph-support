@@ -91,8 +91,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
    * Returns all vertices adjacent to the specified vertex, each pair of adjacent vertex and the
    * current vertex represents an edge.
    *
-   * <p>For a de-directed graph, "adjacent" contains edges in both directions. The function seems
-   * to fall back to the state of {@link org.graphper.def.Graph.VertexGraph#adjacent(Object)} from
+   * <p>For a de-directed graph, "adjacent" contains edges in both directions. The function seems to
+   * fall back to the state of {@link org.graphper.def.Graph.VertexGraph#adjacent(Object)} from
    * {@link org.graphper.def.Digraph.VertexDigraph#adjacent(Object)}.
    *
    * @param v vertex to be queried
@@ -131,8 +131,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
   /**
    * Performs the given action for each incoming adjacent vertex of the specified vertex until all
    * incoming adjacent vertices have been processed or the action throws an exception. This method
-   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating intermediate
-   * iterable objects, reducing GC pressure.
+   * delegates to the underlying reverse graph's forEachAdjacent method to avoid creating
+   * intermediate iterable objects, reducing GC pressure.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each incoming adjacent vertex
@@ -147,8 +147,8 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
   /**
    * Performs the given action for each outgoing adjacent vertex of the specified vertex until all
    * outgoing adjacent vertices have been processed or the action throws an exception. This method
-   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating intermediate
-   * iterable objects, reducing GC pressure.
+   * delegates to the underlying forward graph's forEachAdjacent method to avoid creating
+   * intermediate iterable objects, reducing GC pressure.
    *
    * @param v vertex to be queried
    * @param action The action to be performed for each outgoing adjacent vertex
@@ -182,11 +182,15 @@ public class DedirectedGraph<V> extends ProxyDedigraph<V, DirectedGraph<V>, Dire
 
   @Override
   public String toString() {
-    return "DedirectedGraph{" +
-        "vertexNum=" + vertexNum() +
-        ", edgeNum=" + edgeNum() +
-        ", digraph=" + digraph +
-        ", reDigraph=" + reDigraph +
-        '}';
+    return "DedirectedGraph{"
+        + "vertexNum="
+        + vertexNum()
+        + ", edgeNum="
+        + edgeNum()
+        + ", digraph="
+        + digraph
+        + ", reDigraph="
+        + reDigraph
+        + '}';
   }
 }

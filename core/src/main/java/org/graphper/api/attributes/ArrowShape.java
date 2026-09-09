@@ -23,7 +23,6 @@ package org.graphper.api.attributes;
  * @author Jamison Jiang
  */
 public enum ArrowShape {
-
   VEE(0.75, true),
 
   CURVE(1, false),

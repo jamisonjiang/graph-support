@@ -21,15 +21,15 @@ import static org.graphper.layout.dot.AbstractDotLineRouter.LABEL_NODE_SIDE_MIN_
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import org.graphper.def.FlatPoint;
-import org.graphper.layout.Maze;
-import org.graphper.util.Asserts;
 import org.graphper.api.Line;
 import org.graphper.api.ext.Box;
 import org.graphper.api.ext.DefaultBox;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.Grid.GridBuilder;
+import org.graphper.layout.Maze;
 import org.graphper.layout.dot.RankContent.RankNode;
+import org.graphper.util.Asserts;
 
 class DotMaze extends Maze {
 
@@ -97,12 +97,12 @@ class DotMaze extends Maze {
         return node;
       }
 
-      return new DefaultBox(node.getLeftBorder(), splitLine,
-                            node.getUpBorder(), node.getDownBorder());
+      return new DefaultBox(
+          node.getLeftBorder(), splitLine, node.getUpBorder(), node.getDownBorder());
     }
 
-    return new DefaultBox(splitLine, node.getRightBorder(),
-                          node.getUpBorder(), node.getDownBorder());
+    return new DefaultBox(
+        splitLine, node.getRightBorder(), node.getUpBorder(), node.getDownBorder());
   }
 
   private void addFlatLabelNode(GridBuilder gridBuilder, DNode node) {
@@ -119,13 +119,19 @@ class DotMaze extends Maze {
       Box guideBox;
       FlatPoint labelSize = line.getLabelSize();
       if (labelSize != null) {
-        label = new DefaultBox(node.getLeftBorder(), node.getRightBorder(), start,
-                               start += (labelSize.getHeight() - DNode.FLAT_LABEL_GAP));
-        guideBox = new DefaultBox(node.getLeftBorder(), node.getRightBorder(), start,
-                                  start += DNode.FLAT_LABEL_GAP);
+        label =
+            new DefaultBox(
+                node.getLeftBorder(),
+                node.getRightBorder(),
+                start,
+                start += (labelSize.getHeight() - DNode.FLAT_LABEL_GAP));
+        guideBox =
+            new DefaultBox(
+                node.getLeftBorder(), node.getRightBorder(), start, start += DNode.FLAT_LABEL_GAP);
       } else {
-        guideBox = new DefaultBox(node.getLeftBorder(), node.getRightBorder(), start,
-                                  start += DNode.FLAT_LABEL_GAP);
+        guideBox =
+            new DefaultBox(
+                node.getLeftBorder(), node.getRightBorder(), start, start += DNode.FLAT_LABEL_GAP);
       }
 
       addGuideBox(guideBox, gridBuilder);

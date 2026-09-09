@@ -24,15 +24,15 @@ import org.graphper.api.ext.CirclePropCalc;
 import org.graphper.api.ext.CylinderPropCalc;
 import org.graphper.api.ext.DiamondPropCalc;
 import org.graphper.api.ext.EllipsePropCalc;
+import org.graphper.api.ext.MarkedCirclePropCalc;
 import org.graphper.api.ext.NodeShapePost;
 import org.graphper.api.ext.NotePropCalc;
-import org.graphper.api.ext.MarkedCirclePropCalc;
-import org.graphper.api.ext.PeripheryNodePropCalc;
-import org.graphper.api.ext.PolygonNodePropCalc;
-import org.graphper.api.ext.PolygonNodePropCalc.Type;
 import org.graphper.api.ext.ParallelogramPropCalc;
+import org.graphper.api.ext.PeripheryNodePropCalc;
 import org.graphper.api.ext.PlainPropCalc;
 import org.graphper.api.ext.PointPropCalc;
+import org.graphper.api.ext.PolygonNodePropCalc;
+import org.graphper.api.ext.PolygonNodePropCalc.Type;
 import org.graphper.api.ext.RecordPropCalc;
 import org.graphper.api.ext.RectanglePropCalc;
 import org.graphper.api.ext.RegularPolylinePropCalc;
@@ -50,16 +50,15 @@ import org.graphper.util.Asserts;
 /**
  * Enumeration of node shapes supported by the system by default.
  *
- * <p><strong>Declaration order is part of the compatibility contract.</strong> Constants are
- * never inserted in the middle of this enum, because {@link Enum#ordinal()} of every existing
- * constant would shift and any consumer that stored a raw ordinal, a positional index or a bit
- * position would silently re-map to a different shape. New shapes are always appended after the
- * last constant. {@code NodeShapeEnumOrdinalTest} pins the historical block.</p>
+ * <p><strong>Declaration order is part of the compatibility contract.</strong> Constants are never
+ * inserted in the middle of this enum, because {@link Enum#ordinal()} of every existing constant
+ * would shift and any consumer that stored a raw ordinal, a positional index or a bit position
+ * would silently re-map to a different shape. New shapes are always appended after the last
+ * constant. {@code NodeShapeEnumOrdinalTest} pins the historical block.
  *
  * @author Jamison Jiang
  */
 public enum NodeShapeEnum implements NodeShape {
-
   NOTE("note", new NotePropCalc()),
 
   PLAIN("plain", 0.1, 0.1, new PlainPropCalc()),
@@ -72,7 +71,7 @@ public enum NodeShapeEnum implements NodeShape {
 
   CIRCLE("circle", 0.75, 0.75, new CirclePropCalc()),
 
-  BOX ("box", new RectanglePropCalc()),
+  BOX("box", new RectanglePropCalc()),
 
   RECT("rect", new RectanglePropCalc()),
 
@@ -106,13 +105,13 @@ public enum NodeShapeEnum implements NodeShape {
    * Rules and more deformations, like: square, regular pentagon, regular hexagon. Please check
    * {@link NodeBuilder#sides(int)}.
    */
-  REGULAR_POLYLINE("regular_polyline", 0.75, 0.75,
-                   new RegularPolylinePropCalc(), new RegularPolyShapePost()),
+  REGULAR_POLYLINE(
+      "regular_polyline", 0.75, 0.75, new RegularPolylinePropCalc(), new RegularPolyShapePost()),
 
   /**
    * When the node label is an <strong>Cell Expression</strong>, the node will be displayed as a
-   * structure with multiple horizontal or vertical levels. Please refer to
-   * {@link NodeBuilder#label(String)} for details.
+   * structure with multiple horizontal or vertical levels. Please refer to {@link
+   * NodeBuilder#label(String)} for details.
    */
   RECORD("record", 0.75, 1, new RecordPropCalc(false)),
 
@@ -135,8 +134,7 @@ public enum NodeShapeEnum implements NodeShape {
 
   SQUARE("square", 0.5, 0.5, new PolygonNodePropCalc(Type.SQUARE)),
 
-  POLYGON("polygon", 0.5, 0.75, new StretchablePolygonPropCalc(4),
-          new RegularPolyShapePost()),
+  POLYGON("polygon", 0.5, 0.75, new StretchablePolygonPropCalc(4), new RegularPolyShapePost()),
 
   HOUSE("house", new PolygonNodePropCalc(Type.HOUSE)),
 
@@ -181,20 +179,33 @@ public enum NodeShapeEnum implements NodeShape {
     this.nodeShapePost = null;
   }
 
-  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
-                ShapePropCalc shapePropCalc) {
+  NodeShapeEnum(
+      String name, double defaultHeight, double defaultWidth, ShapePropCalc shapePropCalc) {
     this(name, defaultHeight, defaultWidth, SymmetryShapeCenterCalc.SSPC, shapePropCalc, null);
   }
 
-  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
-                ShapePropCalc shapePropCalc, NodeShapePost nodeShapePost) {
-    this(name, defaultHeight, defaultWidth, SymmetryShapeCenterCalc.SSPC,
-         shapePropCalc, nodeShapePost);
+  NodeShapeEnum(
+      String name,
+      double defaultHeight,
+      double defaultWidth,
+      ShapePropCalc shapePropCalc,
+      NodeShapePost nodeShapePost) {
+    this(
+        name,
+        defaultHeight,
+        defaultWidth,
+        SymmetryShapeCenterCalc.SSPC,
+        shapePropCalc,
+        nodeShapePost);
   }
 
-  NodeShapeEnum(String name, double defaultHeight, double defaultWidth,
-                ShapeCenterCalc shapeCenterCalc, ShapePropCalc shapePropCalc,
-                NodeShapePost nodeShapePost) {
+  NodeShapeEnum(
+      String name,
+      double defaultHeight,
+      double defaultWidth,
+      ShapeCenterCalc shapeCenterCalc,
+      ShapePropCalc shapePropCalc,
+      NodeShapePost nodeShapePost) {
     this.name = name;
     this.defaultHeight = defaultHeight;
     this.defaultWidth = defaultWidth;
@@ -237,8 +248,8 @@ public enum NodeShapeEnum implements NodeShape {
   }
 
   @Override
-  public FlatPoint minContainerSize(double innerHeight, double innerWidth,
-                                    double minHeight, double minWidth) {
+  public FlatPoint minContainerSize(
+      double innerHeight, double innerWidth, double minHeight, double minWidth) {
     return shapePropCalc.minContainerSize(innerHeight, innerWidth, minHeight, minWidth);
   }
 

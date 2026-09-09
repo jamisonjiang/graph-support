@@ -21,6 +21,7 @@ import org.graphper.api.ext.Box;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Renders circular node and cluster outlines in SVG. */
 public class CircleShapeRender extends EllipseShapeRender {
 
   @Override

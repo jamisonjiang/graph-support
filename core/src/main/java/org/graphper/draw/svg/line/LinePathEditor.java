@@ -28,10 +28,11 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.layout.LabelLines;
+import org.graphper.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.graphper.util.CollectionUtils;
 
+/** Converts routed edge geometry into SVG paths. */
 public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   private static final Logger log = LoggerFactory.getLogger(LinePathEditor.class);
@@ -43,29 +44,32 @@ public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
       return true;
     }
 
-    Element pathElement = brush.getOrCreateChildElementById(SvgConstants.PATH_ELE,
-                                                             SvgConstants.PATH_ELE);
-    pathElement.setAttribute(CLASS,
-                             lineDrawProp.isBesselCurve() ? PATH_ELE + SPACE + CURVE : PATH_ELE);
+    Element pathElement =
+        brush.getOrCreateChildElementById(SvgConstants.PATH_ELE, SvgConstants.PATH_ELE);
+    pathElement.setAttribute(
+        CLASS, lineDrawProp.isBesselCurve() ? PATH_ELE + SPACE + CURVE : PATH_ELE);
 
     Color color = lineDrawProp.lineAttrs().getColor();
-    pathElement.setAttribute(SvgConstants.D, pointsToSvgLine(lineDrawProp.getStart(), lineDrawProp,
-                                                             lineDrawProp.isBesselCurve()));
+    pathElement.setAttribute(
+        SvgConstants.D,
+        pointsToSvgLine(lineDrawProp.getStart(), lineDrawProp, lineDrawProp.isBesselCurve()));
     pathElement.setAttribute(SvgConstants.FILL, SvgConstants.NONE);
     pathElement.setAttribute(SvgConstants.STROKE, color.value());
 
-    Element title = brush.getOrCreateChildElementById(SvgConstants.TITLE_ELE,
-                                                      SvgConstants.TITLE_ELE);
+    Element title =
+        brush.getOrCreateChildElementById(SvgConstants.TITLE_ELE, SvgConstants.TITLE_ELE);
 
     String text;
     if (brush.drawBoard().drawGraph().getGraphviz().isDirected()) {
-      text = LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
-          + "->"
-          + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
+      text =
+          LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
+              + "->"
+              + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
     } else {
-      text = LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
-          + "--"
-          + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
+      text =
+          LabelLines.plainText(lineDrawProp.getLine().tail().nodeAttrs().getLabel())
+              + "--"
+              + LabelLines.plainText(lineDrawProp.getLine().head().nodeAttrs().getLabel());
     }
 
     title.setTextContent(text);

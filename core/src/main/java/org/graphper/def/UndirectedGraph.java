@@ -25,8 +25,7 @@ import java.util.function.Consumer;
  * @param <V> the type of vertex
  * @author Jamison Jiang
  */
-public class UndirectedGraph<V> extends AbstractAdjGraph<V, V>
-    implements Graph.VertexGraph<V> {
+public class UndirectedGraph<V> extends AbstractAdjGraph<V, V> implements Graph.VertexGraph<V> {
 
   private static final long serialVersionUID = -7910958796521952954L;
 
@@ -123,7 +122,7 @@ public class UndirectedGraph<V> extends AbstractAdjGraph<V, V>
     if (obj == null || getClass() != obj.getClass()) {
       return false;
     }
-    
+
     return super.equals(obj);
   }
 

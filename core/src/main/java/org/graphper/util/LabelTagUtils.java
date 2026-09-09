@@ -18,16 +18,15 @@ import org.graphper.layout.LabelAttributes;
  */
 public class LabelTagUtils {
 
-  private LabelTagUtils() {
-  }
+  private LabelTagUtils() {}
 
   /**
    * Measures the size of the given {@link LabelTag} based on its attributes.
    *
-   * @param labelTag   The {@link LabelTag} whose size needs to be measured.
+   * @param labelTag The {@link LabelTag} whose size needs to be measured.
    * @param labelAttrs The {@link LabelAttributes} containing font and style information.
-   * @return A {@link FlatPoint} representing the measured width and height of the label, or
-   * {@code null} if the label contains no measurable content.
+   * @return A {@link FlatPoint} representing the measured width and height of the label, or {@code
+   *     null} if the label contains no measurable content.
    * @throws CycleDependencyException If the label contains a cycle dependency.
    */
   public static FlatPoint measure(LabelTag labelTag, LabelAttributes labelAttrs) {
@@ -60,8 +59,8 @@ public class LabelTagUtils {
     return finalizeSize(size, currentLineSize);
   }
 
-  private static TagProcessingResult processTag(BasicLabelTag tag, FlatPoint currentLineSize,
-                                                LabelAttributes labelAttrs, FlatPoint size) {
+  private static TagProcessingResult processTag(
+      BasicLabelTag tag, FlatPoint currentLineSize, LabelAttributes labelAttrs, FlatPoint size) {
     if (isLineBreak(tag)) {
       size = processLineBreak(size, currentLineSize);
       return new TagProcessingResult(size, null);
@@ -125,15 +124,18 @@ public class LabelTagUtils {
 
   private static FlatPoint measureTagSize(BasicLabelTag tag, LabelAttributes labelAttrs) {
     if (StringUtils.isNotEmpty(tag.getText())) {
-      return FontUtils.measure(tag.getText(), labelAttrs.getFontName(),
-                               labelAttrs.getFontSize(), 0,
-                               labelAttrs.toFontStyles());
+      return FontUtils.measure(
+          tag.getText(),
+          labelAttrs.getFontName(),
+          labelAttrs.getFontSize(),
+          0,
+          labelAttrs.toFontStyles());
     }
     return measure(tag.getSubLabelTag(), labelAttrs);
   }
 
-  private static FlatPoint updateCurrentLineSize(FlatPoint currentLineSize,
-                                                 FlatPoint currentLabelSize) {
+  private static FlatPoint updateCurrentLineSize(
+      FlatPoint currentLineSize, FlatPoint currentLabelSize) {
     if (currentLineSize == null) {
       return currentLabelSize;
     }

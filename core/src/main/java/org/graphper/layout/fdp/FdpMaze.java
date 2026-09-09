@@ -20,10 +20,12 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.layout.Grid.GridBuilder;
 import org.graphper.layout.Maze;
 
+/** Builds orthogonal routing obstacles from nonvirtual force-directed layout nodes. */
 public class FdpMaze extends Maze {
 
   private final FdpGraph fdpGraph;
 
+  /** Creates the maze and initializes its visibility graph from the positioned nodes. */
   public FdpMaze(DrawGraph drawGraph, FdpGraph fdpGraph) {
     super(drawGraph, true);
     this.fdpGraph = fdpGraph;

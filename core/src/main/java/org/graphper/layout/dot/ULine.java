@@ -54,12 +54,17 @@ class ULine extends AbstractUndirectedEdge<DNode, ULine> {
 
   @Override
   public String toString() {
-    return "ULine{" +
-        "left=" + left.name() +
-        ", right=" + right.name() +
-        ", weight=" + weight +
-        ", limit=" + limit() +
-        ", cutval=" + cutVal() +
-        '}';
+    return "ULine{"
+        + "left="
+        + left.name()
+        + ", right="
+        + right.name()
+        + ", weight="
+        + weight
+        + ", limit="
+        + limit()
+        + ", cutval="
+        + cutVal()
+        + '}';
   }
 }

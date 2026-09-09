@@ -23,8 +23,6 @@ package org.graphper.layout;
  */
 public interface LineRouter {
 
-  /**
-   * Routing the line.
-   */
+  /** Routing the line. */
   void route();
 }

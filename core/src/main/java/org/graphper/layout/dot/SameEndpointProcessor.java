@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.graphper.layout.dot;
 
 import static org.graphper.layout.StraightPathClip.straightLineClipShape;
@@ -69,7 +70,8 @@ final class SameEndpointProcessor {
   }
 
   private void add(Map<Node, Map<String, List<DLine>>> groups, Node node, String id, DLine line) {
-    groups.computeIfAbsent(node, key -> new HashMap<>())
+    groups
+        .computeIfAbsent(node, key -> new HashMap<>())
         .computeIfAbsent(id, key -> new ArrayList<>(2))
         .add(line);
   }
@@ -139,8 +141,7 @@ final class SameEndpointProcessor {
     NodeDrawProp ownerProp = drawGraph.getNodeDrawProp(owner);
     FlatPoint center = new FlatPoint(ownerNode.getX(), ownerNode.getY());
     double radius = Math.max(ownerProp.getWidth(), ownerProp.getHeight()) + 1;
-    FlatPoint outside = new FlatPoint(center.getX() + sumX * radius,
-                                      center.getY() + sumY * radius);
+    FlatPoint outside = new FlatPoint(center.getX() + sumX * radius, center.getY() + sumY * radius);
     return straightLineClipShape(ownerProp, ownerProp.shapeProp(), center, outside);
   }
 }

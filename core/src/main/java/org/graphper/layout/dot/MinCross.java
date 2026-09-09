@@ -16,8 +16,8 @@
 
 package org.graphper.layout.dot;
 
-import java.util.ArrayList;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -143,15 +143,17 @@ class MinCross {
         digraphProxy.add(from);
 
         // Short line parallel side recording.
-        Map<DNode, DLine> lineMap = parallelEdgesRecord
-            .computeIfAbsent(from, k -> new HashMap<>(dotAttachment.getDotDigraph().degree(from)));
+        Map<DNode, DLine> lineMap =
+            parallelEdgesRecord.computeIfAbsent(
+                from, k -> new HashMap<>(dotAttachment.getDotDigraph().degree(from)));
 
         for (DLine e : digraph.adjacent(from)) {
           DNode to = e.to();
           DLine edge = lineMap.get(to);
 
           if (edge != null) {
-            // Add short parallel edges, all parallel edges without intermediate nodes need to be processed separately.
+            // Add short parallel edges, all parallel edges without intermediate nodes need to be
+            // processed separately.
             edge.addParallelEdge(e);
             continue;
           }
@@ -238,8 +240,7 @@ class MinCross {
       } else {
         digraphProxy.addEdge(
             new DLine(from, to, edge.getLineDrawProp(), edge.weight(), edge.limit()),
-            dotAttachment.getDrawGraph()
-        );
+            dotAttachment.getDrawGraph());
       }
 
       from = to;
@@ -418,7 +419,7 @@ class MinCross {
           // Find empty rank in cluster and insert one node
           for (int i = pre + 1; i < rank; i++) {
             RankNode rankNode = rankContent.get(i);
-            DNode node = new DNode(null, 0 , 0,0);
+            DNode node = new DNode(null, 0, 0, 0);
             node.setContainer(cluster);
             node.setRank(i);
             rankNode.add(node);
@@ -431,7 +432,8 @@ class MinCross {
     }
   }
 
-  private void updateClusterContinuity(DNode n, Map<Cluster, TreeSet<Integer>> clusterRankContinuity) {
+  private void updateClusterContinuity(
+      DNode n, Map<Cluster, TreeSet<Integer>> clusterRankContinuity) {
     if (!n.getContainer().isCluster()) {
       return;
     }
@@ -487,8 +489,13 @@ class MinCross {
     }
   }
 
-  private void addLine(DNode from, DNode fromClusterNode, Map<DNode, Set<DNode>> nodeHaveLine,
-                       DLine line, DNode to, DNode toCLusterNode) {
+  private void addLine(
+      DNode from,
+      DNode fromClusterNode,
+      Map<DNode, Set<DNode>> nodeHaveLine,
+      DLine line,
+      DNode to,
+      DNode toCLusterNode) {
     Set<DNode> nodes = nodeHaveLine.computeIfAbsent(fromClusterNode, f -> new HashSet<>(2));
     if (from != fromClusterNode || to != toCLusterNode) {
       if (!nodes.contains(toCLusterNode) && fromClusterNode != toCLusterNode) {
@@ -513,8 +520,9 @@ class MinCross {
 
     while (container != null && container.isCluster()) {
       Cluster cluster = (Cluster) container;
-      ClusterRankRange range = clusterExpand.clusterMerge.clusterRankRange
-          .computeIfAbsent(cluster, c -> new ClusterRankRange());
+      ClusterRankRange range =
+          clusterExpand.clusterMerge.clusterRankRange.computeIfAbsent(
+              cluster, c -> new ClusterRankRange());
 
       range.minRank = Math.min(range.minRank, rank);
       range.maxRank = Math.max(range.maxRank, rank);
@@ -602,8 +610,8 @@ class MinCross {
 
   /**
    * Runs crossing reduction once every cluster is expanded. The existing order already preserves
-   * the cluster blocks established by the preceding passes, so this pass deliberately excludes
-   * both InitSort and flatOrder and only applies median sorting and adjacent transposition.
+   * the cluster blocks established by the preceding passes, so this pass deliberately excludes both
+   * InitSort and flatOrder and only applies median sorting and adjacent transposition.
    */
   private void finalMincross(int startPass, int endPass) {
     int maxIter = 24;
@@ -611,7 +619,8 @@ class MinCross {
     CrossSnapshot optimal = rootCrossRank.crossSnapshot();
     SameRankAdjacentRecord flatPreferences = rootCrossRank.getSameRankAdjacentRecord();
     CrossSnapshot preferred = null;
-    if (dotAttachment.getDrawGraph().needFlip() && optimal.getCrossNum() > 0
+    if (dotAttachment.getDrawGraph().needFlip()
+        && optimal.getCrossNum() > 0
         && flatPreferences != null) {
       // Once all clusters are expanded, flat precedence must not prevent a strictly better
       // crossing result. Keep cluster restrictions and restore the preferred arrangement on ties.
@@ -623,8 +632,12 @@ class MinCross {
       int trying = 0;
       for (int i = 0; i < maxIter; i++) {
         if (log.isDebugEnabled()) {
-          log.debug("final pass {} iter {} trying {} best_cross {}", pass, i, trying,
-                    optimal.getCrossNum());
+          log.debug(
+              "final pass {} iter {} trying {} best_cross {}",
+              pass,
+              i,
+              trying,
+              optimal.getCrossNum());
         }
 
         if (trying++ >= minQuit || optimal.getCrossNum() == 0) {
@@ -647,7 +660,8 @@ class MinCross {
     }
 
     rootCrossRank.transpose(false);
-    if (preferred != null && rootCrossRank.crossSnapshot().getCrossNum() >= preferred.getCrossNum()) {
+    if (preferred != null
+        && rootCrossRank.crossSnapshot().getCrossNum() >= preferred.getCrossNum()) {
       rootCrossRank.updateCross(preferred);
     }
     rootCrossRank.setSameRankAdjacentRecord(flatPreferences);
@@ -660,10 +674,11 @@ class MinCross {
     if (!EnvProp.qualityCheck()) {
       return;
     }
-    List<String> violations = ClusterOrderConsistency
-        .violations(rootCrossRank.getBasicCrossRank(), dotAttachment);
-    violations.addAll(ClusterOrderConsistency
-                          .contiguityViolations(rootCrossRank.getBasicCrossRank(), dotAttachment));
+    List<String> violations =
+        ClusterOrderConsistency.violations(rootCrossRank.getBasicCrossRank(), dotAttachment);
+    violations.addAll(
+        ClusterOrderConsistency.contiguityViolations(
+            rootCrossRank.getBasicCrossRank(), dotAttachment));
     Asserts.illegalArgument(!violations.isEmpty(), "Cluster order changed: " + violations);
   }
 
@@ -681,27 +696,36 @@ class MinCross {
     int legacyViolations = crossClusterFlatViolations(legacyOptimal.getCrossRank());
     int bestViolations = Integer.MAX_VALUE;
 
-    for (boolean rankForward : new boolean[]{true, false}) {
-      for (boolean orderForward : new boolean[]{true, false}) {
+    for (boolean rankForward : new boolean[] {true, false}) {
+      for (boolean orderForward : new boolean[] {true, false}) {
         BasicCrossRank candidate = initial.clone();
-        InitSort initSort = new InitSort(candidate, candidate.container(),
-                                         dotAttachment.getDrawGraph(), rankForward,
-                                         orderForward, true);
+        InitSort initSort =
+            new InitSort(
+                candidate,
+                candidate.container(),
+                dotAttachment.getDrawGraph(),
+                rankForward,
+                orderForward,
+                true);
         CrossSnapshot snapshot = rootCrossRank.tryCacheCrossNum(candidate);
         int violations = crossClusterFlatViolations(candidate);
-        if (best == null || snapshot.getCrossNum() < best.getCrossNum()
+        if (best == null
+            || snapshot.getCrossNum() < best.getCrossNum()
             || snapshot.getCrossNum() == best.getCrossNum() && violations < bestViolations) {
           best = snapshot;
           bestViolations = violations;
-          bestRecord = initSort.sameRankAdjacentRecord != null
-              ? initSort.sameRankAdjacentRecord : legacyRecord;
+          bestRecord =
+              initSort.sameRankAdjacentRecord != null
+                  ? initSort.sameRankAdjacentRecord
+                  : legacyRecord;
         }
       }
     }
 
-    if (best == null || best.getCrossNum() > legacyOptimal.getCrossNum()
+    if (best == null
+        || best.getCrossNum() > legacyOptimal.getCrossNum()
         || best.getCrossNum() == legacyOptimal.getCrossNum()
-        && bestViolations >= legacyViolations) {
+            && bestViolations >= legacyViolations) {
       rootCrossRank.setSameRankAdjacentRecord(legacyRecord);
       rootCrossRank.updateCross(legacyOptimal);
       return legacyOptimal;
@@ -720,10 +744,9 @@ class MinCross {
       if (from.getRank() != to.getRank()) {
         continue;
       }
-      GraphContainer fromContainer = dotAttachment
-          .clusterDirectContainer(crossRank.container(), from);
-      GraphContainer toContainer = dotAttachment
-          .clusterDirectContainer(crossRank.container(), to);
+      GraphContainer fromContainer =
+          dotAttachment.clusterDirectContainer(crossRank.container(), from);
+      GraphContainer toContainer = dotAttachment.clusterDirectContainer(crossRank.container(), to);
       if (fromContainer == toContainer) {
         continue;
       }
@@ -743,8 +766,8 @@ class MinCross {
     }
   }
 
-  private CrossSnapshot runDotMincrossProcess(int startPass, int endPass, int maxIter, int minQuit,
-                                             CrossSnapshot optimal) {
+  private CrossSnapshot runDotMincrossProcess(
+      int startPass, int endPass, int maxIter, int minQuit, CrossSnapshot optimal) {
     for (int pass = startPass; pass <= endPass; pass++) {
       if (pass <= 1) {
         flatOrder(optimal.getCrossRank());
@@ -754,7 +777,8 @@ class MinCross {
       int trying = 0;
       for (int i = 0; i < maxIter; i++) {
         if (log.isDebugEnabled()) {
-          log.debug("pass {} iter {} trying {} best_cross {}", pass, i, trying, optimal.getCrossNum());
+          log.debug(
+              "pass {} iter {} trying {} best_cross {}", pass, i, trying, optimal.getCrossNum());
         }
 
         if (trying++ >= minQuit || optimal.getCrossNum() == 0) {
@@ -766,7 +790,7 @@ class MinCross {
         optimal = rootCrossRank.crossSnapshot();
 
         if (preOptimalCrossNum * CONVERGENCE <= optimal.getCrossNum()) {
-            trying++;
+          trying++;
         }
       }
 
@@ -806,8 +830,7 @@ class MinCross {
     for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
       for (DNode node : current.getNodes(rank)) {
         GraphContainer direct = dotAttachment.clusterDirectContainer(current.container(), node);
-        Object block = direct != null && direct.isCluster()
-            ? direct : node;
+        Object block = direct != null && direct.isCluster() ? direct : node;
         blocks.put(node, block);
         outgoing.computeIfAbsent(block, k -> new LinkedHashSet<>());
         indegree.putIfAbsent(block, 0);
@@ -827,8 +850,8 @@ class MinCross {
       }
     }
 
-    List<Object> ordered = topologicalOrder(new ArrayList<>(outgoing.keySet()), indegree,
-                                            outgoing::get);
+    List<Object> ordered =
+        topologicalOrder(new ArrayList<>(outgoing.keySet()), indegree, outgoing::get);
     Map<Object, Integer> order = new HashMap<>();
     for (Object block : ordered) {
       order.put(block, order.size());
@@ -853,8 +876,8 @@ class MinCross {
     }
   }
 
-  private void initialFlatOrder(CrossRank crossRank,
-                                SameRankAdjacentRecord sameRankAdjacentRecord) {
+  private void initialFlatOrder(
+      CrossRank crossRank, SameRankAdjacentRecord sameRankAdjacentRecord) {
     int[] no = {0};
     int connectNo = 0;
     Set<DNode> mark = new HashSet<>();
@@ -869,18 +892,22 @@ class MinCross {
         postOrder(connectNo++, no, node, mark, postOrderRecord);
       }
     }
-    crossRank.sort((left, right) -> {
-      Integer leftConnect = postOrderRecord.get(left).getKey();
-      Integer rightConnect = postOrderRecord.get(right).getKey();
-      if (!Objects.equals(leftConnect, rightConnect)) {
-        return leftConnect.compareTo(rightConnect);
-      }
-      return postOrderRecord.get(right).getValue().compareTo(postOrderRecord.get(left).getValue());
-    }, true);
+    crossRank.sort(
+        (left, right) -> {
+          Integer leftConnect = postOrderRecord.get(left).getKey();
+          Integer rightConnect = postOrderRecord.get(right).getKey();
+          if (!Objects.equals(leftConnect, rightConnect)) {
+            return leftConnect.compareTo(rightConnect);
+          }
+          return postOrderRecord
+              .get(right)
+              .getValue()
+              .compareTo(postOrderRecord.get(left).getValue());
+        },
+        true);
   }
 
-  private void repairFlatOrder(CrossRank crossRank,
-                               SameRankAdjacentRecord sameRankAdjacentRecord) {
+  private void repairFlatOrder(CrossRank crossRank, SameRankAdjacentRecord sameRankAdjacentRecord) {
     for (int rank = crossRank.minRank(); rank <= crossRank.maxRank(); rank++) {
       List<DNode> original = new ArrayList<>(crossRank.getNodes(rank));
       Set<DNode> rankNodes = new HashSet<>(original);
@@ -896,9 +923,9 @@ class MinCross {
         }
       }
 
-      List<DNode> ordered = topologicalOrder(original, indegree,
-                                             n -> sameContainerFlatAdjacent(
-                                                 sameRankAdjacentRecord, n));
+      List<DNode> ordered =
+          topologicalOrder(
+              original, indegree, n -> sameContainerFlatAdjacent(sameRankAdjacentRecord, n));
 
       Map<DNode, Integer> order = new HashMap<>();
       boolean changed = false;
@@ -915,9 +942,9 @@ class MinCross {
   }
 
   /**
-   * The flat successors of {@code node} that share its container, which are exactly the ones a
-   * flat order can honour. Both the indegree count and the placement have to read the same set, so
-   * they read it from here.
+   * The flat successors of {@code node} that share its container, which are exactly the ones a flat
+   * order can honour. Both the indegree count and the placement have to read the same set, so they
+   * read it from here.
    */
   private static List<DNode> sameContainerFlatAdjacent(SameRankAdjacentRecord record, DNode node) {
     List<DNode> out = null;
@@ -949,13 +976,13 @@ class MinCross {
    * <p>A node's indegree only ever drops while it waits, and never leaves zero once it gets there,
    * which is what makes the ready subset maintainable incrementally.
    *
-   * @param items      the nodes, distinct, in the order the scan used to visit them
-   * @param indegree   unplaced predecessors per node, consumed here
+   * @param items the nodes, distinct, in the order the scan used to visit them
+   * @param indegree unplaced predecessors per node, consumed here
    * @param successors successors of a node, filtered exactly as {@code indegree} was counted
    * @return the nodes in placement order
    */
-  private static <T> List<T> topologicalOrder(List<T> items, Map<T, Integer> indegree,
-                                              Function<T, Iterable<T>> successors) {
+  private static <T> List<T> topologicalOrder(
+      List<T> items, Map<T, Integer> indegree, Function<T, Iterable<T>> successors) {
     Map<T, Integer> index = new HashMap<>(items.size());
     NavigableSet<Integer> remaining = new TreeSet<>();
     NavigableSet<Integer> ready = new TreeSet<>();
@@ -990,8 +1017,12 @@ class MinCross {
     return ordered;
   }
 
-  private int postOrder(int connectNo, int[] no, DNode node, Set<DNode> mark,
-                        Map<DNode, Map.Entry<Integer, Integer>> orderRecord) {
+  private int postOrder(
+      int connectNo,
+      int[] no,
+      DNode node,
+      Set<DNode> mark,
+      Map<DNode, Map.Entry<Integer, Integer>> orderRecord) {
     mark.add(node);
     Set<DNode> adjacent = rootCrossRank.getSameRankAdjacentRecord().outAdjacent(node);
     if (CollectionUtils.isNotEmpty(adjacent)) {
@@ -1059,7 +1090,8 @@ class MinCross {
         crossRank.addNode(node);
 
         // If the two vertices are consistent, expand the vertex; and if it is directly under the
-        // Cluster, remove the record, otherwise keep the merged record and leave it to the sub-Cluster to expand.
+        // Cluster, remove the record, otherwise keep the merged record and leave it to the
+        // sub-Cluster to expand.
         if (node == mergeNode) {
           mergeNodes.computeIfAbsent(mergeNode, n -> new LinkedHashSet<>()).add(node);
           if (node.getContainer() == cluster) {
@@ -1068,17 +1100,20 @@ class MinCross {
           continue;
         }
 
-        // If the merged vertex directly belongs to the current Cluster, add an expansion record and remove the old record.
+        // If the merged vertex directly belongs to the current Cluster, add an expansion record and
+        // remove the old record.
         if (node.getContainer() == cluster) {
           mergeNodes.computeIfAbsent(mergeNode, n -> new LinkedHashSet<>()).add(node);
           iterator.remove();
         } else if (mergeNode.getContainer() == cluster) {
           /*
-           * If the merged vertex directly belongs to the current Cluster, and the merged vertex does
-           * not directly belong to the current Cluster, the added expanded vertex should be the merged
-           * vertex of the merged vertex in the Cluster directly belonging to the current cluster.
+           * If the merged vertex directly belongs to the current Cluster, and the merged vertex
+           * does not directly belong to the current Cluster, the added expanded vertex should be
+           * the merged vertex of the merged vertex in the Cluster directly belonging to the
+           * current cluster.
            * */
-          mergeNodes.computeIfAbsent(mergeNode, n -> new LinkedHashSet<>())
+          mergeNodes
+              .computeIfAbsent(mergeNode, n -> new LinkedHashSet<>())
               .add(clusterProxyNode(node, cluster));
         } else {
           /*
@@ -1086,7 +1121,8 @@ class MinCross {
            * and the logic is the same as above.
            */
           if (commonParent == cluster) {
-            mergeNodes.computeIfAbsent(mergeNode, n -> new LinkedHashSet<>())
+            mergeNodes
+                .computeIfAbsent(mergeNode, n -> new LinkedHashSet<>())
                 .add(clusterProxyNode(node, cluster));
           } else {
             /*
@@ -1109,8 +1145,9 @@ class MinCross {
           FlatPoint margin = cluster.clusterAttrs().getMargin();
           double verMargin = (outSize.getHeight() - size.getHeight()) / 2;
           double horMargin = (outSize.getWidth() - size.getWidth()) / 2;
-          drawProp.setMargin(new FlatPoint(Math.max(verMargin, margin.getHeight()),
-                                           Math.max(horMargin, margin.getWidth())));
+          drawProp.setMargin(
+              new FlatPoint(
+                  Math.max(verMargin, margin.getHeight()), Math.max(horMargin, margin.getWidth())));
         }
       }
       return crossRank;
@@ -1154,8 +1191,13 @@ class MinCross {
 
     private final Set<GraphContainer> placedClusterBlocks;
 
-    InitSort(CrossRank crossRank, GraphContainer graphContainer, DrawGraph drawGraph,
-             boolean isOutDirection, boolean isOrderForward, boolean atomicClusterBlocks) {
+    InitSort(
+        CrossRank crossRank,
+        GraphContainer graphContainer,
+        DrawGraph drawGraph,
+        boolean isOutDirection,
+        boolean isOrderForward,
+        boolean atomicClusterBlocks) {
       this.isOutDirection = isOutDirection;
       this.isOrderForward = isOrderForward;
       this.atomicClusterBlocks = atomicClusterBlocks;
@@ -1177,7 +1219,8 @@ class MinCross {
       nodeComOrderMap.put(node, comOrder);
     }
 
-    private void initByNatureDsfOrder(CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
+    private void initByNatureDsfOrder(
+        CrossRank crossRank, DrawGraph drawGraph, boolean isOutDirection) {
       int first, addNum, limit;
 
       if (isOutDirection) {
@@ -1192,23 +1235,24 @@ class MinCross {
 
       EdgeDedigraph<DNode, DLine> digraph = rootCrossRank.getDigraphProxy();
 
-      Function<DNode, Iterable<DLine>> adjacentFunc = n -> {
-        if (digraph instanceof MinCrossDedigraph) {
-          MinCrossDedigraph dedigraph = (MinCrossDedigraph) digraph;
-          if (isOutDirection) {
-            if (dedigraph.outHavePort(n)) {
-              return sortLines(n, drawGraph, dedigraph.outAdjacent(n));
+      Function<DNode, Iterable<DLine>> adjacentFunc =
+          n -> {
+            if (digraph instanceof MinCrossDedigraph) {
+              MinCrossDedigraph dedigraph = (MinCrossDedigraph) digraph;
+              if (isOutDirection) {
+                if (dedigraph.outHavePort(n)) {
+                  return sortLines(n, drawGraph, dedigraph.outAdjacent(n));
+                }
+                return dedigraph.outAdjacent(n);
+              }
+              if (dedigraph.inHavePort(n)) {
+                return sortLines(n, drawGraph, dedigraph.inAdjacent(n));
+              }
+              return dedigraph.inAdjacent(n);
+            } else {
+              return isOutDirection ? digraph.outAdjacent(n) : digraph.inAdjacent(n);
             }
-            return dedigraph.outAdjacent(n);
-          }
-          if (dedigraph.inHavePort(n)) {
-            return sortLines(n, drawGraph, dedigraph.inAdjacent(n));
-          }
-          return dedigraph.inAdjacent(n);
-        } else {
-          return isOutDirection ? digraph.outAdjacent(n) : digraph.inAdjacent(n);
-        }
-      };
+          };
 
       int componentNo = 0;
       for (int i = first; i != limit; i += addNum) {
@@ -1232,9 +1276,9 @@ class MinCross {
       }
       if (EnvProp.qualityCheck()) {
         List<String> violations = ClusterOrderConsistency.violations(crossRank, dotAttachment);
-        Asserts.illegalArgument(!violations.isEmpty(),
-                                "Cluster order changed between ranks in " + graphContainer.id()
-                                    + ": " + violations);
+        Asserts.illegalArgument(
+            !violations.isEmpty(),
+            "Cluster order changed between ranks in " + graphContainer.id() + ": " + violations);
       }
     }
 
@@ -1245,21 +1289,25 @@ class MinCross {
         component.refreshByRefComs();
       }
 
-      Comparator<DNode> comparator = (l, r) -> {
-        ComOrder lc = nodeComOrderMap.get(l);
-        ComOrder rc = nodeComOrderMap.get(r);
-        int compare = lc.compareTo(rc);
-        return isOrderForward ? compare : -compare;
-      };
+      Comparator<DNode> comparator =
+          (l, r) -> {
+            ComOrder lc = nodeComOrderMap.get(l);
+            ComOrder rc = nodeComOrderMap.get(r);
+            int compare = lc.compareTo(rc);
+            return isOrderForward ? compare : -compare;
+          };
       crossRank.sort(comparator, false);
     }
 
-    private void dfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
+    private void dfs(
+        DNode from, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
       if (atomicClusterBlocks && clusterExpand != null && clusterExpand.clusterMerge != null) {
         GraphContainer direct = dotAttachment.clusterDirectContainer(graphContainer, from);
         // An already expanded cluster no longer owns merge nodes, so there is no block to place and
         // the node has to be handled like any other, or it would be left without a component.
-        if (direct != null && direct.isCluster() && hasMergeNode((Cluster) direct)
+        if (direct != null
+            && direct.isCluster()
+            && hasMergeNode((Cluster) direct)
             && placedClusterBlocks.add(direct)) {
           atomicClusterDfs((Cluster) direct, adjacentFunc, component);
           return;
@@ -1271,19 +1319,20 @@ class MinCross {
       int idx = nextRankIndex(from.getRank());
       crossRank.exchange(from, crossRank.getNode(from.getRank(), idx), false);
 
-      GraphContainer fromContainer = dotAttachment
-          .clusterDirectContainer(crossRank.container(), from);
+      GraphContainer fromContainer =
+          dotAttachment.clusterDirectContainer(crossRank.container(), from);
       fromContainer = fromContainer == null ? from.getContainer() : fromContainer;
       DNode clusterAdjRankNode = null;
 
-      if (fromContainer.isCluster() && clusterExpand != null
+      if (fromContainer.isCluster()
+          && clusterExpand != null
           && clusterExpand.clusterMerge != null) {
         Cluster cluster = (Cluster) fromContainer;
         /*
          * Get merge node of adjacent of cluster
          */
-        clusterAdjRankNode = clusterExpand.clusterMerge
-            .clusterMergeAdjRankNode(cluster, from, isOutDirection);
+        clusterAdjRankNode =
+            clusterExpand.clusterMerge.clusterMergeAdjRankNode(cluster, from, isOutDirection);
       }
 
       Iterable<DLine> adjacent = adjacentFunc.apply(from);
@@ -1302,9 +1351,8 @@ class MinCross {
       }
     }
 
-    private void atomicClusterDfs(Cluster cluster,
-                                  Function<DNode, Iterable<DLine>> adjacentFunc,
-                                  ComOrder component) {
+    private void atomicClusterDfs(
+        Cluster cluster, Function<DNode, Iterable<DLine>> adjacentFunc, ComOrder component) {
       List<DNode> representatives = new ArrayList<>();
       clusterExpand.clusterMerge.clusterMergeNode(cluster).forEach(representatives::add);
       if (!isOutDirection) {
@@ -1331,8 +1379,8 @@ class MinCross {
         }
         mark(representative, component);
         int index = nextRankIndex(representative.getRank());
-        crossRank.exchange(representative,
-                           crossRank.getNode(representative.getRank(), index), false);
+        crossRank.exchange(
+            representative, crossRank.getNode(representative.getRank(), index), false);
       }
 
       // With the complete block reserved, its edges can safely discover other collapsed blocks.
@@ -1354,9 +1402,13 @@ class MinCross {
       return isOrderForward ? accessed : crossRank.rankSize(rank) - accessed - 1;
     }
 
-    private void toDfs(DNode from, Function<DNode, Iterable<DLine>> adjacentFunc,
-                       GraphContainer fromContainer, DNode to, DLine dLine,
-                       ComOrder component) {
+    private void toDfs(
+        DNode from,
+        Function<DNode, Iterable<DLine>> adjacentFunc,
+        GraphContainer fromContainer,
+        DNode to,
+        DLine dLine,
+        ComOrder component) {
       /*
        * 1. Make sure cluster of to not intersect with cluster of from;
        * 2. Make sure only access head or tail node when to node in different cluster.
@@ -1395,8 +1447,8 @@ class MinCross {
         return false;
       }
 
-      GraphContainer parentContainer = DotAttachment
-          .commonParent(dotAttachment.getGraphviz(), from, to);
+      GraphContainer parentContainer =
+          DotAttachment.commonParent(dotAttachment.getGraphviz(), from, to);
       if (parentContainer != crossRank.container()) {
         return false;
       }
@@ -1407,13 +1459,18 @@ class MinCross {
       // Direct child clusters are placed as complete atomic rank blocks by dfs(). Once both sides
       // are such blocks, following their edge cannot split either cluster across components, even
       // when the edge enters at an intermediate rank.
-      if (atomicClusterBlocks && fromContainer != toContainer && fromContainer.isCluster()
+      if (atomicClusterBlocks
+          && fromContainer != toContainer
+          && fromContainer.isCluster()
           && toContainer.isCluster()) {
         return false;
       }
 
-      if (!atomicClusterBlocks && fromContainer != toContainer && fromContainer.isCluster()
-          && toContainer.isCluster() && parentContainer != fromContainer
+      if (!atomicClusterBlocks
+          && fromContainer != toContainer
+          && fromContainer.isCluster()
+          && toContainer.isCluster()
+          && parentContainer != fromContainer
           && parentContainer != toContainer) {
         int fromMin = clusterExpand.clusterMerge.minRank((Cluster) fromContainer);
         int fromMax = clusterExpand.clusterMerge.maxRank((Cluster) fromContainer);
@@ -1442,8 +1499,10 @@ class MinCross {
     }
 
     private boolean intersect(int fromMin, int fromMax, int toMin, int toMax) {
-      return inRange(toMin, toMax, fromMin) || inRange(toMin, toMax, fromMax)
-          || inRange(fromMin, fromMax, toMin) || inRange(fromMin, fromMax, toMax);
+      return inRange(toMin, toMax, fromMin)
+          || inRange(toMin, toMax, fromMax)
+          || inRange(fromMin, fromMax, toMin)
+          || inRange(fromMin, fromMax, toMax);
     }
 
     private boolean inRange(int start, int end, int target) {
@@ -1495,7 +1554,8 @@ class MinCross {
       return inOrOutHavePort != null && inOrOutHavePort.outHavePort;
     }
 
-    private void markNodeHavePort(LineDrawProp line, DNode node, DrawGraph drawGraph, boolean isIn) {
+    private void markNodeHavePort(
+        LineDrawProp line, DNode node, DrawGraph drawGraph, boolean isIn) {
       double compareNo = PortHelper.portCompareNo(line, node, drawGraph);
       if (compareNo == 0) {
         return;
@@ -1504,8 +1564,8 @@ class MinCross {
       if (nodeInOrOutHavePortMap == null) {
         nodeInOrOutHavePortMap = new HashMap<>();
       }
-      InOrOutHavePort havePort = nodeInOrOutHavePortMap
-          .computeIfAbsent(node, n -> new InOrOutHavePort());
+      InOrOutHavePort havePort =
+          nodeInOrOutHavePortMap.computeIfAbsent(node, n -> new InOrOutHavePort());
       if (isIn) {
         havePort.inHavePort = true;
       } else {
@@ -1558,8 +1618,10 @@ class MinCross {
     }
 
     DNode getMergeNodeOrPut(Cluster cluster, DNode node) {
-      DNode n = clusterRankProxyNode.computeIfAbsent(cluster, c -> new TreeMap<>())
-          .computeIfAbsent(node.getRank(), k -> node);
+      DNode n =
+          clusterRankProxyNode
+              .computeIfAbsent(cluster, c -> new TreeMap<>())
+              .computeIfAbsent(node.getRank(), k -> node);
 
       mergeNodeMap.put(node, n);
       return n;
@@ -1589,15 +1651,13 @@ class MinCross {
 
     int minRank(Cluster cluster) {
       ClusterRankRange range = clusterRankRange.get(cluster);
-      Asserts.illegalArgument(range == null,
-                              "Do not have cluster rank record");
+      Asserts.illegalArgument(range == null, "Do not have cluster rank record");
       return range.minRank;
     }
 
     int maxRank(Cluster cluster) {
       ClusterRankRange range = clusterRankRange.get(cluster);
-      Asserts.illegalArgument(range == null,
-                              "Do not have cluster rank record");
+      Asserts.illegalArgument(range == null, "Do not have cluster rank record");
       return range.maxRank;
     }
 
@@ -1619,14 +1679,16 @@ class MinCross {
         rankSize = new HashMap<>();
       }
 
-      rankSize.compute(node.getRank(), (r, w) -> {
-        if (w == null) {
-          return new FlatPoint(node.getHeight(), node.getNodeSep() + node.getWidth());
-        }
-        w.setHeight(Math.max(w.getHeight(), node.getHeight()));
-        w.setWidth(w.getWidth() + node.getWidth() + node.getNodeSep());
-        return w;
-      });
+      rankSize.compute(
+          node.getRank(),
+          (r, w) -> {
+            if (w == null) {
+              return new FlatPoint(node.getHeight(), node.getNodeSep() + node.getWidth());
+            }
+            w.setHeight(Math.max(w.getHeight(), node.getHeight()));
+            w.setWidth(w.getWidth() + node.getWidth() + node.getNodeSep());
+            return w;
+          });
     }
 
     FlatPoint size() {
@@ -1666,7 +1728,7 @@ class MinCross {
         return;
       }
 
-      double newOrder =  0;
+      double newOrder = 0;
       for (ComOrder refCom : refComs) {
         newOrder += refCom.order;
       }

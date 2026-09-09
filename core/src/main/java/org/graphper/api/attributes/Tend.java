@@ -24,13 +24,9 @@ import org.graphper.api.FloatLabel;
  * @author Jamison Jiang
  */
 public enum Tend {
-  /**
-   * Float Label as close as possible to the tail node.
-   */
+  /** Float Label as close as possible to the tail node. */
   TAIL,
 
-  /**
-   * Float Label as close as possible to the head node.
-   */
+  /** Float Label as close as possible to the head node. */
   HEAD;
 }

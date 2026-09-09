@@ -29,6 +29,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
+/** Applies edge stroke styles to SVG paths. */
 public class LineStyleEditor implements LineEditor<SvgBrush>, SvgConstants {
 
   @Override

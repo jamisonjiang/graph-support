@@ -19,14 +19,14 @@ package org.graphper.layout;
 import java.util.List;
 import java.util.Set;
 import org.graphper.def.FlatPoint;
-import org.graphper.layout.dot.RouterBox;
-import org.graphper.util.Asserts;
-import org.graphper.util.CollectionUtils;
 import org.graphper.draw.ArrowDrawProp;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
+import org.graphper.layout.dot.RouterBox;
+import org.graphper.util.Asserts;
+import org.graphper.util.CollectionUtils;
 
 /**
  * A shifter that combines multiple {@link ShifterStrategy} to trigger movement in sequence.
@@ -39,9 +39,10 @@ public class CombineShifter implements Shifter {
 
   private final List<ShifterStrategy> shifterStrategies;
 
+  /** Combines a nonempty strategy list with a set tracking points already moved. */
   public CombineShifter(Set<FlatPoint> pointMark, List<ShifterStrategy> shifterStrategies) {
-    Asserts.illegalArgument(CollectionUtils.isEmpty(shifterStrategies),
-                            "shifterStrategies is empty");
+    Asserts.illegalArgument(
+        CollectionUtils.isEmpty(shifterStrategies), "shifterStrategies is empty");
     this.pointMark = pointMark;
     this.shifterStrategies = shifterStrategies;
   }

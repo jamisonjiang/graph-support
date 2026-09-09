@@ -30,6 +30,7 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
 
+/** Draws the graph label as SVG text. */
 public class GraphLabelEditor implements GraphEditor<SvgBrush>, SvgConstants {
 
   @Override
@@ -41,16 +42,24 @@ public class GraphLabelEditor implements GraphEditor<SvgBrush>, SvgConstants {
     }
 
     double fontSize = graphAttrs.getFontSize();
-    Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      Element text = brush.getOrCreateChildElementById(
-          TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo(), TEXT_ELE);
-      setText(text, fontSize, textLineAttribute);
-      text.setTextContent(textLineAttribute.getLine());
-    };
+    Consumer<TextLineAttribute> lineConsumer =
+        textLineAttribute -> {
+          Element text =
+              brush.getOrCreateChildElementById(
+                  TEXT_ELE + UNDERSCORE + textLineAttribute.getLineNo(), TEXT_ELE);
+          setText(text, fontSize, textLineAttribute);
+          text.setTextContent(textLineAttribute.getLine());
+        };
 
-    text(new TextAttribute(graphvizDrawProp.getLabelCenter(), fontSize, label,
-                            graphAttrs.getFontColor(), graphAttrs.getFontName(),
-                            graphvizDrawProp.getLabelSize().getWidth(), lineConsumer));
+    text(
+        new TextAttribute(
+            graphvizDrawProp.getLabelCenter(),
+            fontSize,
+            label,
+            graphAttrs.getFontColor(),
+            graphAttrs.getFontName(),
+            graphvizDrawProp.getLabelSize().getWidth(),
+            lineConsumer));
     return true;
   }
 }

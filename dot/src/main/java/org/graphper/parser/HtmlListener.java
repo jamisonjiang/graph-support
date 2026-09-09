@@ -66,8 +66,8 @@ import org.graphper.util.CollectionUtils;
 /**
  * A listener for parsing a subset of HTML-like syntax and converting it into a {@link Table} or
  * {@link LabelTag} structure, depending on the input.
- * <p>
- * This listener extends {@link HTMLParserBaseListener} and processes events such as entering and
+ *
+ * <p>This listener extends {@link HTMLParserBaseListener} and processes events such as entering and
  * exiting tags ({@code <table>}, {@code <td>}, etc.), gathering content (text or nested tags), and
  * applying attributes (e.g., font color, size). The result can be retrieved using:
  * <ul>
@@ -577,8 +577,8 @@ public class HtmlListener extends HTMLParserBaseListener {
     if (tagCtx == null) {
       return;
     }
-    pushTag(new Tag(labelTag -> peekAndConsTagIfAbsent(() -> tagTagSupplier.apply(labelTag),
-                                                       lt -> tagChainTagConsumer.accept(lt, labelTag))));
+    pushTag(new Tag(labelTag -> peekAndConsTagIfAbsent(
+        () -> tagTagSupplier.apply(labelTag), lt -> tagChainTagConsumer.accept(lt, labelTag))));
   }
 
   /**

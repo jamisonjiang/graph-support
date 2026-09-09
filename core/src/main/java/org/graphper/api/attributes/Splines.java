@@ -25,9 +25,7 @@ import org.graphper.api.Line.LineBuilder;
  */
 public enum Splines {
 
-  /**
-   * Line routing is not performed and all lines are hidden.
-   */
+  /** Line routing is not performed and all lines are hidden. */
   NONE,
 
   /**
@@ -43,9 +41,7 @@ public enum Splines {
    */
   SPLINE,
 
-  /**
-   * Connect a line directly between two nodes.
-   */
+  /** Connect a line directly between two nodes. */
   LINE,
 
   /**
@@ -54,8 +50,6 @@ public enum Splines {
    */
   POLYLINE,
 
-  /**
-   * Draw lines using horizontal or vertical segments.
-   */
+  /** Draw lines using horizontal or vertical segments. */
   ORTHO;
 }

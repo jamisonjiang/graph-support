@@ -39,7 +39,7 @@ import org.graphper.util.FontUtils;
  * <p>The preferred position still comes from {@link LineClip}; this class only moves a label when
  * that position intersects existing drawable content. Placement is deterministic and bounded. It
  * first keeps the label close to the side of its endpoint node and slides it along that side, then
- * increases the normal distance only when the nearer lane is blocked.</p>
+ * increases the normal distance only when the nearer lane is blocked.
  */
 final class ExternalLabelPlacer {
 
@@ -55,8 +55,7 @@ final class ExternalLabelPlacer {
 
   private static final double INTERIOR_EPSILON = 1e-6;
 
-  private ExternalLabelPlacer() {
-  }
+  private ExternalLabelPlacer() {}
 
   static void place(DrawGraph drawGraph, List<Placement> placements) {
     if (placements == null || placements.isEmpty()) {
@@ -80,8 +79,8 @@ final class ExternalLabelPlacer {
     }
   }
 
-  private static FlatPoint bestCenter(Placement placement, List<LabelBox> obstacles,
-                                      List<Placement> placements) {
+  private static FlatPoint bestCenter(
+      Placement placement, List<LabelBox> obstacles, List<Placement> placements) {
     FlatPoint best = placement.preferred;
     Score bestScore = score(new Candidate(best, 0), placement, obstacles, placements);
     if (bestScore.intersections == 0) {
@@ -105,8 +104,7 @@ final class ExternalLabelPlacer {
   }
 
   private static List<Candidate> candidates(Placement placement) {
-    List<Candidate> candidates = new ArrayList<>(
-        1 + 4 * NORMAL_LANES * (TANGENT_STEPS * 2 + 1));
+    List<Candidate> candidates = new ArrayList<>(1 + 4 * NORMAL_LANES * (TANGENT_STEPS * 2 + 1));
     candidates.add(new Candidate(placement.preferred, 0));
     double width = placement.size.getWidth();
     double height = placement.size.getHeight();
@@ -127,10 +125,10 @@ final class ExternalLabelPlacer {
         }
         for (int step = 1; step <= TANGENT_STEPS; step++) {
           double tangentOffset = step * tangentStep;
-          addCandidate(candidates, placement, normal, preferred, normalGap,
-                       -tangentBase - tangentOffset);
-          addCandidate(candidates, placement, normal, preferred, normalGap,
-                       tangentBase + tangentOffset);
+          addCandidate(
+              candidates, placement, normal, preferred, normalGap, -tangentBase - tangentOffset);
+          addCandidate(
+              candidates, placement, normal, preferred, normalGap, tangentBase + tangentOffset);
         }
       }
     }
@@ -141,16 +139,16 @@ final class ExternalLabelPlacer {
     Direction opposite = new Direction(preferred.horizontal, -preferred.sign);
     Direction before = new Direction(!preferred.horizontal, -1);
     Direction after = new Direction(!preferred.horizontal, 1);
-    return new Direction[]{preferred, before, after, opposite};
+    return new Direction[] {preferred, before, after, opposite};
   }
 
   private static Direction normalDirection(Placement placement) {
     NodeDrawProp node = placement.endpoint;
     if (node != null) {
-      double horizontal = Math.abs(placement.anchor.getX() - node.getX())
-          / Math.max(node.getWidth(), 1);
-      double vertical = Math.abs(placement.anchor.getY() - node.getY())
-          / Math.max(node.getHeight(), 1);
+      double horizontal =
+          Math.abs(placement.anchor.getX() - node.getX()) / Math.max(node.getWidth(), 1);
+      double vertical =
+          Math.abs(placement.anchor.getY() - node.getY()) / Math.max(node.getHeight(), 1);
       if (horizontal >= vertical) {
         return new Direction(true, placement.anchor.getX() < node.getX() ? -1 : 1);
       }
@@ -164,22 +162,28 @@ final class ExternalLabelPlacer {
         : new Direction(false, dy < 0 ? -1 : 1);
   }
 
-  private static void addCandidate(List<Candidate> candidates, Placement placement,
-                                   Direction normal, Direction preferred, double normalGap,
-                                   double tangentOffset) {
+  private static void addCandidate(
+      List<Candidate> candidates,
+      Placement placement,
+      Direction normal,
+      Direction preferred,
+      double normalGap,
+      double tangentOffset) {
     FlatPoint anchor = placement.anchor;
     double x;
     double y;
     if (normal.horizontal) {
-      x = normal.sign < 0
-          ? placement.endpoint.getLeftBorder() - normalGap - placement.size.getWidth() / 2
-          : placement.endpoint.getRightBorder() + normalGap + placement.size.getWidth() / 2;
+      x =
+          normal.sign < 0
+              ? placement.endpoint.getLeftBorder() - normalGap - placement.size.getWidth() / 2
+              : placement.endpoint.getRightBorder() + normalGap + placement.size.getWidth() / 2;
       y = anchor.getY() + tangentOffset;
     } else {
       x = anchor.getX() + tangentOffset;
-      y = normal.sign < 0
-          ? placement.endpoint.getUpBorder() - normalGap - placement.size.getHeight() / 2
-          : placement.endpoint.getDownBorder() + normalGap + placement.size.getHeight() / 2;
+      y =
+          normal.sign < 0
+              ? placement.endpoint.getUpBorder() - normalGap - placement.size.getHeight() / 2
+              : placement.endpoint.getDownBorder() + normalGap + placement.size.getHeight() / 2;
     }
     FlatPoint center = new FlatPoint(x, y);
     double association = Math.abs(tangentOffset) * TANGENT_PENALTY;
@@ -195,8 +199,11 @@ final class ExternalLabelPlacer {
     candidates.add(new Candidate(center, association));
   }
 
-  private static Score score(Candidate candidate, Placement placement, List<LabelBox> obstacles,
-                             List<Placement> placements) {
+  private static Score score(
+      Candidate candidate,
+      Placement placement,
+      List<LabelBox> obstacles,
+      List<Placement> placements) {
     FlatPoint center = candidate.center;
     LabelBox candidateBox = LabelBox.of(center, placement.size);
     int intersections = 0;
@@ -216,9 +223,11 @@ final class ExternalLabelPlacer {
     if (candidateBox.intersects(placement.ownerPath)) {
       intersections++;
     }
-    return new Score(intersections, area,
-                     candidate.association + candidateBox.distanceTo(placement.anchor),
-                     FlatPoint.twoFlatPointDistance(center, placement.preferred));
+    return new Score(
+        intersections,
+        area,
+        candidate.association + candidateBox.distanceTo(placement.anchor),
+        FlatPoint.twoFlatPointDistance(center, placement.preferred));
   }
 
   private static List<LabelBox> obstacles(DrawGraph drawGraph) {
@@ -228,8 +237,8 @@ final class ExternalLabelPlacer {
     }
     for (LineDrawProp line : drawGraph.lines()) {
       addLabel(obstacles, line.getLabelCenter(), line.getLabelSize());
-      for (java.util.Map.Entry<FloatLabel, FlatPoint> entry : line
-          .getFloatLabelFlatCenters().entrySet()) {
+      for (java.util.Map.Entry<FloatLabel, FlatPoint> entry :
+          line.getFloatLabelFlatCenters().entrySet()) {
         // Endpoint labels have not been written yet; existing entries are the legacy along-edge
         // labels whose positions remain fixed.
         FloatLabel label = entry.getKey();
@@ -237,9 +246,11 @@ final class ExternalLabelPlacer {
           continue;
         }
         Assemble assemble = line.getFloatAssemble(label);
-        FlatPoint size = assemble != null ? assemble.size()
-            : FontUtils.measure(label.getLabel(), line.lineAttrs().getFontName(),
-                                label.getFontSize(), 0);
+        FlatPoint size =
+            assemble != null
+                ? assemble.size()
+                : FontUtils.measure(
+                    label.getLabel(), line.lineAttrs().getFontName(), label.getFontSize(), 0);
         addLabel(obstacles, entry.getValue(), size);
       }
       FloatLabel[] labels = line.lineAttrs().getFloatLabels();
@@ -267,8 +278,8 @@ final class ExternalLabelPlacer {
     }
   }
 
-  private static void addAssemble(List<LabelBox> obstacles, DrawGraph drawGraph,
-                                  Assemble assemble) {
+  private static void addAssemble(
+      List<LabelBox> obstacles, DrawGraph drawGraph, Assemble assemble) {
     LabelBox box = null;
     for (Node cell : assemble.getCells()) {
       NodeDrawProp cellProp = drawGraph.getNodeDrawProp(cell);
@@ -301,8 +312,14 @@ final class ExternalLabelPlacer {
 
     private final List<FlatPoint> ownerPath;
 
-    Placement(LineDrawProp line, FloatLabel label, FlatPoint anchor, FlatPoint preferred,
-              FlatPoint size, Assemble assemble, NodeDrawProp endpoint) {
+    Placement(
+        LineDrawProp line,
+        FloatLabel label,
+        FlatPoint anchor,
+        FlatPoint preferred,
+        FlatPoint size,
+        Assemble assemble,
+        NodeDrawProp endpoint) {
       this.line = line;
       this.label = label;
       this.anchor = anchor;
@@ -332,15 +349,17 @@ final class ExternalLabelPlacer {
     }
 
     private static LabelBox of(ContainerDrawProp container) {
-      return new LabelBox(container.getLeftBorder(), container.getRightBorder(),
-                          container.getUpBorder(), container.getDownBorder());
+      return new LabelBox(
+          container.getLeftBorder(), container.getRightBorder(),
+          container.getUpBorder(), container.getDownBorder());
     }
 
     private static LabelBox of(FlatPoint center, FlatPoint size) {
       double halfWidth = size.getWidth() / 2;
       double halfHeight = size.getHeight() / 2;
-      return new LabelBox(center.getX() - halfWidth, center.getX() + halfWidth,
-                          center.getY() - halfHeight, center.getY() + halfHeight);
+      return new LabelBox(
+          center.getX() - halfWidth, center.getX() + halfWidth,
+          center.getY() - halfHeight, center.getY() + halfHeight);
     }
 
     private double overlap(LabelBox other) {
@@ -350,8 +369,10 @@ final class ExternalLabelPlacer {
     }
 
     private boolean contains(FlatPoint point) {
-      return point.getX() > left && point.getX() < right
-          && point.getY() > top && point.getY() < bottom;
+      return point.getX() > left
+          && point.getX() < right
+          && point.getY() > top
+          && point.getY() < bottom;
     }
 
     private double distanceTo(FlatPoint point) {
@@ -361,8 +382,9 @@ final class ExternalLabelPlacer {
     }
 
     private LabelBox union(LabelBox other) {
-      return new LabelBox(Math.min(left, other.left), Math.max(right, other.right),
-                          Math.min(top, other.top), Math.max(bottom, other.bottom));
+      return new LabelBox(
+          Math.min(left, other.left), Math.max(right, other.right),
+          Math.min(top, other.top), Math.max(bottom, other.bottom));
     }
 
     private boolean intersects(List<FlatPoint> path) {
@@ -385,8 +407,7 @@ final class ExternalLabelPlacer {
       double dx = to.getX() - from.getX();
       double dy = to.getY() - from.getY();
       double[] p = {-dx, dx, -dy, dy};
-      double[] q = {from.getX() - minX, maxX - from.getX(),
-          from.getY() - minY, maxY - from.getY()};
+      double[] q = {from.getX() - minX, maxX - from.getX(), from.getY() - minY, maxY - from.getY()};
       double enter = 0;
       double leave = 1;
       for (int i = 0; i < p.length; i++) {
@@ -419,8 +440,9 @@ final class ExternalLabelPlacer {
     }
     for (int i = 0; i + 3 < line.size(); i += 3) {
       for (int step = 1; step <= 12; step++) {
-        path.add(Curves.besselEquationCalc(step / 12D, line.get(i), line.get(i + 1),
-                                           line.get(i + 2), line.get(i + 3)));
+        path.add(
+            Curves.besselEquationCalc(
+                step / 12D, line.get(i), line.get(i + 1), line.get(i + 2), line.get(i + 3)));
       }
     }
     return path;

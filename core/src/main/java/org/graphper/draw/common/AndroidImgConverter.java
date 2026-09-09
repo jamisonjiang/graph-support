@@ -123,16 +123,16 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
    */
   @Override
   public FileType[] supportFileTypes() {
-    return new FileType[]{FileType.PNG, FileType.JPEG};
+    return new FileType[] {FileType.PNG, FileType.JPEG};
   }
 
   /**
    * Converts the given SVG document into an image of the specified type. Processes each element of
    * the SVG and renders it using Android's graphics classes.
    *
-   * @param document  the SVG document to convert
+   * @param document the SVG document to convert
    * @param drawGraph the drawing context with graph-related attributes
-   * @param fileType  the target image type for conversion
+   * @param fileType the target image type for conversion
    * @return a {@link DefaultGraphResource} representing the converted image
    * @throws FailInitResourceException if the conversion fails or if parameters are missing
    */
@@ -145,44 +145,45 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     }
 
     ImgContext imgContext = new ImgContext();
-    document.accessEles(((ele, children) -> {
-      try {
-        if (Objects.equals(ele.tagName(), SVG_ELE)) {
-          initImage(drawGraph, imgContext, ele);
-          return;
-        }
-        Object canvas = imgContext.canvas;
-        if (canvas == null) {
-          return;
-        }
+    document.accessEles(
+        ((ele, children) -> {
+          try {
+            if (Objects.equals(ele.tagName(), SVG_ELE)) {
+              initImage(drawGraph, imgContext, ele);
+              return;
+            }
+            Object canvas = imgContext.canvas;
+            if (canvas == null) {
+              return;
+            }
 
-        if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
-          drawEllipse(ele, canvas);
-          return;
-        }
+            if (Objects.equals(ele.tagName(), ELLIPSE_ELE)) {
+              drawEllipse(ele, canvas);
+              return;
+            }
 
-        if (Objects.equals(ele.tagName(), TEXT_ELE)) {
-          drawString(ele, canvas);
-          return;
-        }
+            if (Objects.equals(ele.tagName(), TEXT_ELE)) {
+              drawString(ele, canvas);
+              return;
+            }
 
-        if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
-          drawPolygon(ele, canvas);
-          return;
-        }
+            if (Objects.equals(ele.tagName(), POLYGON_ELE)) {
+              drawPolygon(ele, canvas);
+              return;
+            }
 
-        if (Objects.equals(ele.tagName(), PATH_ELE)) {
-          drawPath(ele, canvas);
-          return;
-        }
+            if (Objects.equals(ele.tagName(), PATH_ELE)) {
+              drawPath(ele, canvas);
+              return;
+            }
 
-        if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
-          drawImage(ele, canvas, drawGraph.getGraphviz().graphAttrs().getSecurityPolicy());
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }));
+            if (Objects.equals(ele.tagName(), IMAGE_ELE)) {
+              drawImage(ele, canvas, drawGraph.getGraphviz().graphAttrs().getSecurityPolicy());
+            }
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }));
 
     if (imgContext.img == null) {
       return null;
@@ -190,10 +191,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
-      ClassUtils.invoke(imgContext.img, "compress",
-                        new Class[]{COMPRESS_FORMAT, int.class, OutputStream.class},
-                        Enum.valueOf((Class<? extends Enum>) COMPRESS_FORMAT,
-                                     fileType.getType().toUpperCase()), 100, baos);
+      ClassUtils.invoke(
+          imgContext.img,
+          "compress",
+          new Class[] {COMPRESS_FORMAT, int.class, OutputStream.class},
+          Enum.valueOf((Class<? extends Enum>) COMPRESS_FORMAT, fileType.getType().toUpperCase()),
+          100,
+          baos);
       String label = drawGraph.getGraphviz().graphAttrs().getLabel();
       return new DefaultGraphResource(label, fileType.getType(), baos);
     } catch (Exception e) {
@@ -204,9 +208,9 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Initializes an image based on the provided dimensions and scale.
    *
-   * @param drawGraph  the drawing context
+   * @param drawGraph the drawing context
    * @param imgContext the image context to be initialized
-   * @param ele        the SVG element containing the attributes
+   * @param ele the SVG element containing the attributes
    * @throws Exception if initialization fails
    */
   private void initImage(DrawGraph drawGraph, ImgContext imgContext, Element ele) throws Exception {
@@ -215,24 +219,31 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
     SecurityPolicy policy = drawGraph.getGraphviz().graphAttrs().getSecurityPolicy();
     if (w <= 0 || h <= 0 || (long) w * h > policy.getMaxOutputPixels()) {
-      throw new IllegalArgumentException("Rendered image " + w + "x" + h
-                                             + " exceeds the security policy pixel limit "
-                                             + policy.getMaxOutputPixels());
+      throw new IllegalArgumentException(
+          "Rendered image "
+              + w
+              + "x"
+              + h
+              + " exceeds the security policy pixel limit "
+              + policy.getMaxOutputPixels());
     }
 
-    imgContext.img = ClassUtils.invokeStatic(BIT_MAP, "createBitmap",
-                                             new Class[]{int.class, int.class, CONFIG}, w, h,
-                                             Enum.valueOf((Class<? extends Enum>) CONFIG,
-                                                          "ARGB_8888"));
+    imgContext.img =
+        ClassUtils.invokeStatic(
+            BIT_MAP,
+            "createBitmap",
+            new Class[] {int.class, int.class, CONFIG},
+            w,
+            h,
+            Enum.valueOf((Class<? extends Enum>) CONFIG, "ARGB_8888"));
     imgContext.canvas = ClassUtils.newObject(CANVAS, imgContext.img);
-    ClassUtils.invoke(imgContext.canvas, "drawColor",
-                      ClassUtils.getStaticField(COLOR, "WHITE"));
+    ClassUtils.invoke(imgContext.canvas, "drawColor", ClassUtils.getStaticField(COLOR, "WHITE"));
 
     FlatPoint scale = drawGraph.getGraphviz().graphAttrs().getScale();
     if (scale != null) {
       Object transform = ClassUtils.newObject(MATRIX);
-      ClassUtils.invoke(transform, "setScale", (float) (scale.getX() / 10),
-                        (float) (scale.getY() / 10));
+      ClassUtils.invoke(
+          transform, "setScale", (float) (scale.getX() / 10), (float) (scale.getY() / 10));
       ClassUtils.invoke(imgContext.canvas, "setMatrix", transform);
     }
   }
@@ -240,7 +251,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Draws an ellipse based on the attributes of the given SVG element.
    *
-   * @param ele    the SVG element representing the ellipse
+   * @param ele the SVG element representing the ellipse
    * @param canvas the graphics context used to draw the ellipse
    * @throws Exception if drawing fails
    */
@@ -265,7 +276,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Draws a text string based on the attributes of the given SVG element.
    *
-   * @param ele    the SVG element representing the text
+   * @param ele the SVG element representing the text
    * @param canvas the graphics context used to draw the text
    * @throws Exception if drawing fails
    */
@@ -287,48 +298,70 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
       ClassUtils.invoke(paint, "setColor", color);
     }
 
-    Object typeface = ClassUtils.invokeStatic(TYPE_FACE, "create",
-                                              new Class[]{String.class, int.class},
-                                              fontName, fontStyle(ele));
+    Object typeface =
+        ClassUtils.invokeStatic(
+            TYPE_FACE, "create", new Class[] {String.class, int.class}, fontName, fontStyle(ele));
     ClassUtils.invoke(paint, "setTypeface", typeface);
     ClassUtils.invoke(paint, "setTextSize", (float) fontSize);
 
     float textX = (float) (x - (size.getWidth() / 2));
     float textY = (float) y;
-    ClassUtils.invoke(canvas, "drawText",
-                      new Class[]{String.class, float.class, float.class, PAINT},
-                      text, textX, textY, paint);
+    ClassUtils.invoke(
+        canvas,
+        "drawText",
+        new Class[] {String.class, float.class, float.class, PAINT},
+        text,
+        textX,
+        textY,
+        paint);
 
     float strokeWidth = fontSize / 10.0f; // Proportional to font size
     ClassUtils.invoke(paint, "setStrokeWidth", strokeWidth);
 
     if (haveFontOverline(ele)) {
       int overline = (int) (y - size.getHeight() + Math.max(1.0f, fontSize / 4.0f));
-      ClassUtils.invoke(canvas, "drawLine",
-                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
-                        textX, overline, textX + (float) size.getWidth(), overline, paint);
+      ClassUtils.invoke(
+          canvas,
+          "drawLine",
+          new Class[] {float.class, float.class, float.class, float.class, PAINT},
+          textX,
+          overline,
+          textX + (float) size.getWidth(),
+          overline,
+          paint);
     }
 
     if (haveFontUnderline(ele)) {
       float underlineY = (float) (textY + (size.getHeight() / 10.0f) + strokeWidth);
-      ClassUtils.invoke(canvas, "drawLine",
-                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
-                        textX, underlineY, textX + (float) size.getWidth(), underlineY, paint);
+      ClassUtils.invoke(
+          canvas,
+          "drawLine",
+          new Class[] {float.class, float.class, float.class, float.class, PAINT},
+          textX,
+          underlineY,
+          textX + (float) size.getWidth(),
+          underlineY,
+          paint);
     }
 
     if (haveFontStrikeThrough(ele)) {
       float strikeThroughY = (float) (textY - (size.getHeight() / 3.0f));
-      ClassUtils.invoke(canvas, "drawLine",
-                        new Class[]{float.class, float.class, float.class, float.class, PAINT},
-                        textX, strikeThroughY, textX + (float) size.getWidth(), strikeThroughY,
-                        paint);
+      ClassUtils.invoke(
+          canvas,
+          "drawLine",
+          new Class[] {float.class, float.class, float.class, float.class, PAINT},
+          textX,
+          strikeThroughY,
+          textX + (float) size.getWidth(),
+          strikeThroughY,
+          paint);
     }
   }
 
   /**
    * Draws a polygon based on the attributes of the given SVG element.
    *
-   * @param ele    the SVG element representing the polygon
+   * @param ele the SVG element representing the polygon
    * @param canvas the graphics context used to draw the polygon
    * @throws Exception if drawing fails
    */
@@ -344,7 +377,7 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Draws a path based on the attributes of the given SVG element.
    *
-   * @param ele    the SVG element representing the path
+   * @param ele the SVG element representing the path
    * @param canvas the graphics context used to draw the path
    * @throws Exception if drawing fails
    */
@@ -361,15 +394,16 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
   /**
    * Draws a path based on given points.
    *
-   * @param ele       the SVG element
-   * @param canvas    the graphics context
-   * @param pointFs   the points defining the path
-   * @param isCurve   {@code true} if the path contains curves, {@code false} otherwise
+   * @param ele the SVG element
+   * @param canvas the graphics context
+   * @param pointFs the points defining the path
+   * @param isCurve {@code true} if the path contains curves, {@code false} otherwise
    * @param needClose {@code true} if the path should be closed, {@code false} otherwise
    * @throws Exception if drawing fails
    */
-  private void drawPath(Element ele, Object canvas, Object[] pointFs,
-                        boolean isCurve, boolean needClose) throws Exception {
+  private void drawPath(
+      Element ele, Object canvas, Object[] pointFs, boolean isCurve, boolean needClose)
+      throws Exception {
     Object path = ClassUtils.newObject(PATH);
     ClassUtils.invoke(path, "moveTo", getX(pointFs[0]), getY(pointFs[0]));
     if (isCurve) {
@@ -377,11 +411,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
         Object p1 = pointFs[i];
         Object p2 = pointFs[i + 1];
         Object p3 = pointFs[i + 2];
-        ClassUtils.invoke(path, "cubicTo",
-                          getX(p1), getY(p1),
-                          getX(p2), getY(p2),
-                          getX(p3), getY(p3)
-        );
+        ClassUtils.invoke(
+            path, "cubicTo", getX(p1), getY(p1), getX(p2), getY(p2), getX(p3), getY(p3));
         ClassUtils.invoke(path, "moveTo", getX(p3), getY(p3));
       }
     } else {
@@ -432,10 +463,14 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     // If no bounding box, just draw at natural size
     if (boxW <= 0 || boxH <= 0) {
       // Draw at (x, y) with the image’s intrinsic size
-      ClassUtils.invoke(canvas, "drawBitmap",
-                        new Class[]{BIT_MAP, float.class, float.class, PAINT},
-                        bitmap, (float)x, (float)y, null
-      );
+      ClassUtils.invoke(
+          canvas,
+          "drawBitmap",
+          new Class[] {BIT_MAP, float.class, float.class, PAINT},
+          bitmap,
+          (float) x,
+          (float) y,
+          null);
       return;
     }
 
@@ -457,17 +492,13 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     // 8) Make a Matrix for scaling, so we can call drawBitmap(Bitmap, Matrix, Paint).
     Object matrix = ClassUtils.newObject(MATRIX);
     // First translate so top-left is at (xOffset, yOffset)
-    ClassUtils.invoke(matrix, "postTranslate", (float)xOffset, (float)yOffset);
+    ClassUtils.invoke(matrix, "postTranslate", (float) xOffset, (float) yOffset);
     // Then scale the image’s top-left corner
-    ClassUtils.invoke(matrix, "preScale",
-                      (float)(scale), (float)(scale)
-    );
+    ClassUtils.invoke(matrix, "preScale", (float) (scale), (float) (scale));
 
     // 9) Draw the image using drawBitmap(Bitmap, Matrix, Paint)
-    ClassUtils.invoke(canvas, "drawBitmap",
-                      new Class[]{BIT_MAP, MATRIX, PAINT},
-                      bitmap, matrix, null
-    );
+    ClassUtils.invoke(
+        canvas, "drawBitmap", new Class[] {BIT_MAP, MATRIX, PAINT}, bitmap, matrix, null);
   }
 
   private Object loadBitmap(String href, SecurityPolicy policy) throws Exception {
@@ -483,25 +514,24 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     Object options = ClassUtils.newObject(BITMAP_FACTORY_OPTIONS);
     Field boundsOnly = BITMAP_FACTORY_OPTIONS.getField("inJustDecodeBounds");
     boundsOnly.setBoolean(options, true);
-    Class<?>[] signature = new Class[]{byte[].class, int.class, int.class,
-        BITMAP_FACTORY_OPTIONS};
-    ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeByteArray", signature,
-                            bytes, 0, bytes.length, options);
+    Class<?>[] signature = new Class[] {byte[].class, int.class, int.class, BITMAP_FACTORY_OPTIONS};
+    ClassUtils.invokeStatic(
+        BITMAP_FACTORY, "decodeByteArray", signature, bytes, 0, bytes.length, options);
     int width = BITMAP_FACTORY_OPTIONS.getField("outWidth").getInt(options);
     int height = BITMAP_FACTORY_OPTIONS.getField("outHeight").getInt(options);
     if (width <= 0 || height <= 0 || (long) width * height > policy.getMaxImagePixels()) {
       return null;
     }
     boundsOnly.setBoolean(options, false);
-    return ClassUtils.invokeStatic(BITMAP_FACTORY, "decodeByteArray", signature,
-                                   bytes, 0, bytes.length, options);
+    return ClassUtils.invokeStatic(
+        BITMAP_FACTORY, "decodeByteArray", signature, bytes, 0, bytes.length, options);
   }
 
   /**
    * Sets the common attributes of a shape such as fill color, stroke color, and stroke width.
    *
-   * @param ele      the SVG element with attributes to be set
-   * @param paint    the paint object to apply these attributes
+   * @param ele the SVG element with attributes to be set
+   * @param paint the paint object to apply these attributes
    * @param isBorder {@code true} if setting border attributes, {@code false} for fill attributes
    * @return {@code true} if the shape attributes were successfully set, {@code false} otherwise
    * @throws Exception if setting attributes fails
@@ -594,8 +624,8 @@ public class AndroidImgConverter implements SvgConverter, SvgConstants {
     if (hexColorCode == null || NONE.equals(hexColorCode)) {
       return null;
     }
-    return (Integer) ClassUtils.invokeStatic(COLOR, "parseColor",
-                                             new Class[]{String.class}, hexColorCode);
+    return (Integer)
+        ClassUtils.invokeStatic(COLOR, "parseColor", new Class[] {String.class}, hexColorCode);
   }
 
   private float[] toFloatPair(String pair) {

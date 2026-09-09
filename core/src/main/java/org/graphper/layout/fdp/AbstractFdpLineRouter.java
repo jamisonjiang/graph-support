@@ -36,7 +36,7 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
    * Constructs an FDP line router with the specified drawing graph and layout graph.
    *
    * @param drawGraph the {@link DrawGraph} used for managing drawing properties
-   * @param fdpGraph  the {@link FdpGraph} used for force-directed placement layout
+   * @param fdpGraph the {@link FdpGraph} used for force-directed placement layout
    */
   protected AbstractFdpLineRouter(DrawGraph drawGraph, FdpGraph fdpGraph) {
     this.drawGraph = drawGraph;
@@ -46,12 +46,12 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
   /**
    * Routes all lines in the layout graph using the implemented routing logic.
    *
-   * <p>Iterates through all nodes and their outgoing edges in the {@link FdpGraph}.
-   * For each line:
+   * <p>Iterates through all nodes and their outgoing edges in the {@link FdpGraph}. For each line:
+   *
    * <ul>
-   *   <li>Skips virtual lines and self-loops.</li>
-   *   <li>If the line is a parallel merge and not virtual, invokes specific handling logic.</li>
-   *   <li>Delegates other lines to the {@link #handle(FLine)} method for routing.</li>
+   *   <li>Skips virtual lines and self-loops.
+   *   <li>If the line is a parallel merge and not virtual, invokes specific handling logic.
+   *   <li>Delegates other lines to the {@link #handle(FLine)} method for routing.
    * </ul>
    */
   @Override
@@ -76,8 +76,8 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
   /**
    * Handles routing of a single line.
    *
-   * <p>This method must be implemented by subclasses to define the specific routing logic
-   * for each line in the graph.</p>
+   * <p>This method must be implemented by subclasses to define the specific routing logic for each
+   * line in the graph.
    *
    * @param line the {@link FLine} to be routed
    */
@@ -87,7 +87,7 @@ abstract class AbstractFdpLineRouter extends LineClip implements LineRouter {
    * Draws a straight line between the tail and head nodes of the specified line.
    *
    * <p>This method directly connects the tail and head points of the line with a straight segment.
-   * It skips processing if the line has already been drawn.</p>
+   * It skips processing if the line has already been drawn.
    *
    * @param fLine the {@link FLine} to draw as a straight line
    */

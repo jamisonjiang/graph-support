@@ -153,8 +153,7 @@ abstract class ProxyDedigraph<V, D extends Digraph<V>, R extends Digraph<V>>
       return false;
     }
     ProxyDedigraph<?, ?, ?> that = (ProxyDedigraph<?, ?, ?>) o;
-    return Objects.equals(digraph, that.digraph)
-        && Objects.equals(reDigraph, that.reDigraph);
+    return Objects.equals(digraph, that.digraph) && Objects.equals(reDigraph, that.reDigraph);
   }
 
   @Override
@@ -167,7 +166,7 @@ abstract class ProxyDedigraph<V, D extends Digraph<V>, R extends Digraph<V>>
     return digraph.toString();
   }
 
-  /*------------------------------------------- Iterable or Iterator Object -------------------------------------------*/
+  // Iterable or iterator object.
 
   private static class ProxyIterator<V, D extends Digraph<V>> implements Iterator<V> {
 

@@ -31,8 +31,8 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor.TextAttribute;
 import org.graphper.draw.svg.SvgEditor.TextLineAttribute;
-import org.graphper.util.CollectionUtils;
 
+/** Draws node labels and their text decorations in SVG. */
 public class NodeLabelEditor implements NodeEditor<SvgBrush> {
 
   @Override
@@ -48,17 +48,25 @@ public class NodeLabelEditor implements NodeEditor<SvgBrush> {
     }
 
     double fontSize = nodeAttrs.getFontSize() == null ? 0D : nodeAttrs.getFontSize();
-    Consumer<TextLineAttribute> lineConsumer = textLineAttribute -> {
-      String id = SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
-      Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
-      setText(text, fontSize, textLineAttribute);
-      text.setTextContent(textLineAttribute.getLine());
-      setFontStyle(text, nodeAttrs.getFontStyles());
-    };
+    Consumer<TextLineAttribute> lineConsumer =
+        textLineAttribute -> {
+          String id =
+              SvgConstants.TEXT_ELE + SvgConstants.UNDERSCORE + textLineAttribute.getLineNo();
+          Element text = brush.getOrCreateChildElementById(id, SvgConstants.TEXT_ELE);
+          setText(text, fontSize, textLineAttribute);
+          text.setTextContent(textLineAttribute.getLine());
+          setFontStyle(text, nodeAttrs.getFontStyles());
+        };
 
-    text(new TextAttribute(nodeDrawProp.getLabelCenter(), fontSize, label,
-                           nodeAttrs.getFontColor(), nodeAttrs.getFontName(),
-                           nodeDrawProp.getWidth(), lineConsumer));
+    text(
+        new TextAttribute(
+            nodeDrawProp.getLabelCenter(),
+            fontSize,
+            label,
+            nodeAttrs.getFontColor(),
+            nodeAttrs.getFontName(),
+            nodeDrawProp.getWidth(),
+            lineConsumer));
     return nodeDrawProp.nodeAttrs().getShape() != NodeShapeEnum.PLAINTEXT;
   }
 }

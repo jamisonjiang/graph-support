@@ -24,10 +24,10 @@ import org.graphper.def.FlatPoint;
  * are: specific text, font size, font, etc., which usually have different implementations according
  * to the specific environment of the relying on party.
  *
- * <p>By default, {@link AWTMeasureText} will be used as the measurement method. If it is found
- * that the current environment does not support {@code java.awt}, a very rough measurement method
- * {@link RoughMeasureText} will be used. If you have a better way, please implement this interface
- * and register the corresponding implementation in <a
+ * <p>By default, {@link AWTMeasureText} will be used as the measurement method. If it is found that
+ * the current environment does not support {@code java.awt}, a very rough measurement method {@link
+ * RoughMeasureText} will be used. If you have a better way, please implement this interface and
+ * register the corresponding implementation in <a
  * href="https://docs.oracle.com/cd/F32325_01/doc.192/f32328/c_payments_spi.htm#SIMCG-TheSimphonyPaymentInterfaceSPI-DA817CDC">SPI</a>.
  *
  * @author Jamison Jiang
@@ -57,9 +57,9 @@ public interface MeasureText extends EnvStrategy {
   /**
    * Calculate the actual size of the label container based on the font and size of the label.
    *
-   * @param text       text content
-   * @param fontName   font name
-   * @param fontSize   font size
+   * @param text text content
+   * @param fontName font name
+   * @param fontSize font size
    * @param fontStyles font styles
    * @return label size
    */

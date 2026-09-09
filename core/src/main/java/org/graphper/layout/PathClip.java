@@ -31,8 +31,8 @@ import org.graphper.util.CollectionUtils;
  * clusters or nodes. It also includes utility methods for working with path points and determining
  * in-out transitions with respect to shapes.
  *
- * <p>Designed to be extended by specific implementations that provide concrete behavior for
- * path clipping based on graph rendering requirements.</p>
+ * <p>Designed to be extended by specific implementations that provide concrete behavior for path
+ * clipping based on graph rendering requirements.
  *
  * @author Jamison Jiang
  */
@@ -58,7 +58,7 @@ public abstract class PathClip {
    * Clips the start of the path to fit an arrow of the specified size.
    *
    * @param arrowSize the size of the arrow
-   * @param path      the {@link LineDrawProp} representing the path
+   * @param path the {@link LineDrawProp} representing the path
    * @return the clipped {@link LineDrawProp}
    */
   protected abstract LineDrawProp fromArrowClip(double arrowSize, LineDrawProp path);
@@ -67,7 +67,7 @@ public abstract class PathClip {
    * Clips the end of the path to fit an arrow of the specified size.
    *
    * @param arrowSize the size of the arrow
-   * @param path      the {@link LineDrawProp} representing the path
+   * @param path the {@link LineDrawProp} representing the path
    * @return the clipped {@link LineDrawProp}
    */
   protected abstract LineDrawProp toArrowClip(double arrowSize, LineDrawProp path);
@@ -76,7 +76,7 @@ public abstract class PathClip {
    * Clips the path around a cluster boundary.
    *
    * @param clusterDrawProp the {@link ClusterDrawProp} representing the cluster's properties
-   * @param path            the {@link LineDrawProp} representing the path
+   * @param path the {@link LineDrawProp} representing the path
    * @return the clipped {@link LineDrawProp}
    */
   protected abstract LineDrawProp clusterClip(ClusterDrawProp clusterDrawProp, LineDrawProp path);
@@ -84,13 +84,13 @@ public abstract class PathClip {
   /**
    * Clips the path around a node's shape boundary.
    *
-   * @param node       the {@link ShapePosition} representing the node's position and shape
-   * @param path       the {@link LineDrawProp} representing the path
+   * @param node the {@link ShapePosition} representing the node's position and shape
+   * @param path the {@link LineDrawProp} representing the path
    * @param firstStart whether the clipping applies to the start of the path
    * @return the clipped {@link LineDrawProp}
    */
-  protected abstract LineDrawProp nodeClip(ShapePosition node, LineDrawProp path,
-                                           boolean firstStart);
+  protected abstract LineDrawProp nodeClip(
+      ShapePosition node, LineDrawProp path, boolean firstStart);
 
   /**
    * Checks if the given path is null.
@@ -116,8 +116,8 @@ public abstract class PathClip {
    * Retrieves the point at the specified index from the path.
    *
    * @param path the list of {@link FlatPoint} representing the path
-   * @param i    the index of the point to retrieve
-   * @param <E>  FlatPoint type
+   * @param i the index of the point to retrieve
+   * @param <E> FlatPoint type
    * @return the point at the specified index, or {@code null} if the index is out of bounds
    */
   public static <E extends FlatPoint> E getPoint(List<E> path, int i) {
@@ -131,7 +131,7 @@ public abstract class PathClip {
    * Retrieves the first point of the path.
    *
    * @param path the list of {@link FlatPoint} representing the path
-   * @param <E>  FlatPoint type
+   * @param <E> FlatPoint type
    * @return the first point, or {@code null} if the path is empty
    */
   public static <E extends FlatPoint> E getFirst(List<E> path) {
@@ -142,7 +142,7 @@ public abstract class PathClip {
    * Retrieves the last point of the path.
    *
    * @param path the list of {@link FlatPoint} representing the path
-   * @param <E>  FlatPoint type
+   * @param <E> FlatPoint type
    * @return the last point, or {@code null} if the path is empty
    */
   public static <E extends FlatPoint> E getLast(List<E> path) {
@@ -152,17 +152,16 @@ public abstract class PathClip {
   /**
    * Finds the in-out transition points in the path with respect to a shape boundary.
    *
-   * @param unit          the step size for traversing the path
-   * @param path          the list of {@link FlatPoint} representing the path
-   * @param firstStart    whether to check the start of the path first
+   * @param unit the step size for traversing the path
+   * @param path the list of {@link FlatPoint} representing the path
+   * @param firstStart whether to check the start of the path first
    * @param shapePosition the {@link ShapePosition} representing the shape boundary
-   * @param <E>  FlatPoint type
+   * @param <E> FlatPoint type
    * @return an {@link InOutPointPair} representing the transition points, or {@code null} if not
-   * found
+   *     found
    */
-  public static <E extends FlatPoint> InOutPointPair findInOutPair(int unit, List<E> path,
-                                                                   boolean firstStart,
-                                                                   ShapePosition shapePosition) {
+  public static <E extends FlatPoint> InOutPointPair findInOutPair(
+      int unit, List<E> path, boolean firstStart, ShapePosition shapePosition) {
     Asserts.nullArgument(shapePosition, "shapePosition");
     Asserts.nullArgument(shapePosition.shapeProp(), "shapePosition.nodeShape()");
 
@@ -195,11 +194,7 @@ public abstract class PathClip {
 
         if (preIn != pointIn) {
           return new InOutPointPair(
-              idx - count,
-              count > 0,
-              preIn ? pre : point,
-              pointIn ? pre : point
-          );
+              idx - count, count > 0, preIn ? pre : point, pointIn ? pre : point);
         }
       }
 
@@ -211,9 +206,7 @@ public abstract class PathClip {
     return null;
   }
 
-  /**
-   * Represents a pair of points where a path transitions in and out of a shape boundary.
-   */
+  /** Represents a pair of points where a path transitions in and out of a shape boundary. */
   public static class InOutPointPair {
 
     private final int idx;
@@ -224,10 +217,10 @@ public abstract class PathClip {
     /**
      * Constructs an {@code InOutPointPair}.
      *
-     * @param idx          the index of the transition point
+     * @param idx the index of the transition point
      * @param deleteBefore whether to delete points before the transition
-     * @param in           the point where the path enters the shape
-     * @param out          the point where the path exits the shape
+     * @param in the point where the path enters the shape
+     * @param out the point where the path exits the shape
      */
     public InOutPointPair(int idx, boolean deleteBefore, FlatPoint in, FlatPoint out) {
       this.idx = idx;

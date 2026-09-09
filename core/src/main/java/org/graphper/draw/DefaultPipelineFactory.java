@@ -38,14 +38,14 @@ public class DefaultPipelineFactory implements PipelineFactory {
   }
 
   @Override
-  public <B extends Brush, T extends ClusterEditor<B>> ClusterPipelineTrigger<B, T> clusterExecutePipeline(
-      List<T> editors, DrawGraph graphviz) {
+  public <B extends Brush, T extends ClusterEditor<B>>
+      ClusterPipelineTrigger<B, T> clusterExecutePipeline(List<T> editors, DrawGraph graphviz) {
     return new ClusterPipelineTrigger<>(editors, graphviz);
   }
 
   @Override
-  public <B extends Brush, T extends GraphEditor<B>> GraphPipelineTrigger<B, T> graphExecutePipeline(
-      List<T> editors, DrawGraph graphviz) {
+  public <B extends Brush, T extends GraphEditor<B>>
+      GraphPipelineTrigger<B, T> graphExecutePipeline(List<T> editors, DrawGraph graphviz) {
     return new GraphPipelineTrigger<>(editors, graphviz);
   }
 }

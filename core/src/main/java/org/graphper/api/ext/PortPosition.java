@@ -16,6 +16,7 @@
 
 package org.graphper.api.ext;
 
+/** Computes a port's horizontal and vertical offsets for a box. */
 public interface PortPosition {
 
   double horOffset(Box box);

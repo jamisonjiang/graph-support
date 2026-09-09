@@ -22,7 +22,7 @@
 
   <groupId>org.graphper</groupId>
   <artifactId>graph-support</artifactId>
-  <version>1.5.4-SNAPSHOT</version>
+  <version>1.5.4</version>
   <packaging>pom</packaging>
 
   <name>${project.artifactId}</name>
@@ -58,7 +58,7 @@
     <connection>scm:git:https://github.com/jamisonjiang/graph-support</connection>
     <developerConnection>scm:git:https://github.com/jamisonjiang/graph-support</developerConnection>
     <url>https://github.com/jamisonjiang/graph-support</url>
-    <tag>v1.5.3</tag>
+    <tag>v1.5.4</tag>
   </scm>
 
   <issueManagement>
@@ -83,6 +83,10 @@
     <sonatype-version>0.8.0</sonatype-version>
     <log4j-version>1.8.0-alpha2</log4j-version>
     <org.antlr-version>4.13.2</org.antlr-version>
+    <checkstyle-version>9.3</checkstyle-version>
+    <maven-checkstyle-version>3.3.1</maven-checkstyle-version>
+    <!-- Only core enforces the optional-platform boundary; UI intentionally uses Swing/AWT. -->
+    <checkstyle.core>false()</checkstyle.core>
   </properties>
 
   <dependencyManagement>
@@ -144,6 +148,57 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle-version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+          <suppressionsLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/suppressions.xml</suppressionsLocation>
+          <propertyExpansion>checkstyle.core=${checkstyle.core}</propertyExpansion>
+          <!-- Check owned production sources, not tests or generated build output. -->
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          </sourceDirectories>
+          <excludes>org/apache_gs/**</excludes>
+          <includeTestSourceDirectory>false</includeTestSourceDirectory>
+          <includeResources>false</includeResources>
+          <includeTestResources>false</includeTestResources>
+          <consoleOutput>true</consoleOutput>
+          <failOnViolation>true</failOnViolation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>static-checks</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>google-style</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/google-style.xml</configLocation>
+              <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+              <!-- The selected Google rules emit warnings; these must fail the build too. -->
+              <violationSeverity>warning</violationSeverity>
+              <outputFile>${project.build.directory}/checkstyle-google-result.xml</outputFile>
+              <cacheFile>${project.build.directory}/checkstyle-google-cachefile</cacheFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

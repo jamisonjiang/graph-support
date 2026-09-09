@@ -25,6 +25,7 @@ import org.graphper.def.AbstractDirectedEdge;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
 
+/** A directed layout edge that can aggregate parallel edges and their drawing properties. */
 public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirectedEdge<N, E> {
 
   private static final long serialVersionUID = 7155243474988517017L;
@@ -80,6 +81,7 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     return CollectionUtils.isEmpty(parallelLineRecord) ? (E) this : parallelLineRecord.get(no);
   }
 
+  /** Adds a parallel edge, retaining this edge as the first member of a new group. */
   @SuppressWarnings("unchecked")
   public void addParallelEdge(E edge) {
     if (parallelLineRecord == null) {
@@ -94,6 +96,7 @@ public class ALine<N extends ANode, E extends ALine<N, E>> extends AbstractDirec
     return lineDrawProp != null ? lineDrawProp.lineAttrs() : null;
   }
 
+  /** Reports whether this edge is virtual or explicitly invisible. */
   public boolean isHide() {
     if (isVirtual() || lineAttrs() == null) {
       return true;

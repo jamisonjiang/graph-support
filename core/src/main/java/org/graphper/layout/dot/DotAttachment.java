@@ -95,8 +95,7 @@ class DotAttachment extends LayoutAttach {
     this.sameRankAdjacentRecord = null;
   }
 
-  public void setSameRankAdjacentRecord(
-      SameRankAdjacentRecord sameRankAdjacentRecord) {
+  public void setSameRankAdjacentRecord(SameRankAdjacentRecord sameRankAdjacentRecord) {
     this.sameRankAdjacentRecord = sameRankAdjacentRecord;
   }
 
@@ -105,8 +104,7 @@ class DotAttachment extends LayoutAttach {
         node,
         drawGraph.width(node.getNode()),
         drawGraph.height(node.getNode()),
-        drawGraph.getGraphviz().graphAttrs().getNodeSep()
-    );
+        drawGraph.getGraphviz().graphAttrs().getNodeSep());
   }
 
   List<DLine> getLabelLines() {
@@ -179,14 +177,6 @@ class DotAttachment extends LayoutAttach {
     return generatePort;
   }
 
-  boolean notContains(GraphContainer father, GraphContainer container) {
-    return notContains(drawGraph.getGraphviz(), father, container);
-  }
-
-  GraphContainer commonParent(DNode v, DNode w) {
-    return commonParent(getGraphviz(), v, w);
-  }
-
   void addGeneratePort(DLine line) {
     if (line == null || line.isVirtual()) {
       return;
@@ -226,6 +216,10 @@ class DotAttachment extends LayoutAttach {
     return dotDigraph.clusters(container);
   }
 
+  boolean notContains(GraphContainer father, GraphContainer container) {
+    return notContains(drawGraph.getGraphviz(), father, container);
+  }
+
   static boolean notContains(Graphviz graphviz, GraphContainer father, GraphContainer container) {
     if (father == null || container == null) {
       return true;
@@ -238,14 +232,17 @@ class DotAttachment extends LayoutAttach {
     return p == null;
   }
 
+  GraphContainer commonParent(DNode v, DNode w) {
+    return commonParent(getGraphviz(), v, w);
+  }
 
   /**
    * Finds up to the first common parent container containing two nodes within the specified root
    * container.
    *
    * @param graphviz root container
-   * @param n        node
-   * @param w        node
+   * @param n node
+   * @param w node
    * @return The first common parent container of both nodes
    */
   static GraphContainer commonParent(Graphviz graphviz, DNode n, DNode w) {
@@ -260,13 +257,11 @@ class DotAttachment extends LayoutAttach {
    * container.
    *
    * @param graphviz root container
-   * @param c1       container one
-   * @param c2       container two
+   * @param c1 container one
+   * @param c2 container two
    * @return The first common parent container of both nodes
    */
-  static GraphContainer commonParent(Graphviz graphviz,
-                                     GraphContainer c1,
-                                     GraphContainer c2) {
+  static GraphContainer commonParent(Graphviz graphviz, GraphContainer c1, GraphContainer c2) {
     if (c1 == c2) {
       return c1;
     }
@@ -354,8 +349,13 @@ class DotAttachment extends LayoutAttach {
     return false;
   }
 
-  private void setCell(Node node, Node tail, Node head, LineAttrs lineAttrs,
-                       GeneratePortLine generatePortLine, boolean isFrom) {
+  private void setCell(
+      Node node,
+      Node tail,
+      Node head,
+      LineAttrs lineAttrs,
+      GeneratePortLine generatePortLine,
+      boolean isFrom) {
     Cell cell = null;
     NodeDrawProp nodeDrawProp;
     if (Objects.equals(tail, node)) {

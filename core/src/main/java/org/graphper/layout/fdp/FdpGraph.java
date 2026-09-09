@@ -28,12 +28,12 @@ import org.graphper.def.FlatPoint;
 import org.graphper.draw.Rectangle;
 import org.graphper.layout.LayoutGraph;
 
+/** A force-directed layout graph with adjacency records and occupied-area tracking. */
 public class FdpGraph extends LayoutGraph<FNode, FLine> {
 
   private Map<FNode, Map<FNode, FLine>> adjRecord;
 
-  public FdpGraph(int capacity, Graphviz graphviz,
-                  Map<Node, FNode> nodeMap) {
+  public FdpGraph(int capacity, Graphviz graphviz, Map<Node, FNode> nodeMap) {
     super(capacity, graphviz, nodeMap);
   }
 
@@ -70,6 +70,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
     recordAdj(edge);
   }
 
+  /** Returns the largest specified minimum length among edges connecting the two nodes. */
   public Integer maxMinLen(FNode n, FNode w) {
     if (n.isVirtual() || w.isVirtual() || adjRecord == null) {
       return null;
@@ -96,7 +97,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       if (maxMinLen == null) {
         maxMinLen = minlen;
       } else {
-        maxMinLen = Math.max(maxMinLen,  minlen);
+        maxMinLen = Math.max(maxMinLen, minlen);
       }
     }
 
@@ -134,13 +135,14 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
   @Override
   public String toString() {
     Map<String, FlatPoint> map = new HashMap<>();
-    nodeMap.forEach((k, v) -> {
-      map.put(k.nodeAttrs().getLabel(), new FlatPoint(v.getX(), v.getY()));
-    });
+    nodeMap.forEach(
+        (k, v) -> {
+          map.put(k.nodeAttrs().getLabel(), new FlatPoint(v.getX(), v.getY()));
+        });
     return map.toString();
   }
 
-
+  /** A bidirectional graph that tracks the bounding rectangle of positioned nodes. */
   public static class AreaGraph extends DedirectedEdgeGraph<FNode, FLine> implements Box {
 
     private static final long serialVersionUID = -8984880695666572968L;
@@ -155,6 +157,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       this(capacity, null);
     }
 
+    /** Creates an area-tracking graph associated with an optional layout graph. */
     public AreaGraph(int capacity, FdpGraph fdpGraph) {
       super(capacity);
       this.area = new Rectangle();
@@ -173,6 +176,7 @@ public class FdpGraph extends LayoutGraph<FNode, FLine> {
       area.updateYAxisRange(y);
     }
 
+    /** Positions a node and expands the occupied area to include its bounds. */
     public void setNodeLocation(FNode node, double x, double y) {
       initStatus = false;
       node.setLocation(x, y);

@@ -119,8 +119,8 @@ class RootCrossRank implements CrossRank {
     setBasicCrossRank(basicCrossRank, false, true);
   }
 
-  void setBasicCrossRank(BasicCrossRank basicCrossRank, boolean remainCache,
-                         boolean needRefreshNodeIdx) {
+  void setBasicCrossRank(
+      BasicCrossRank basicCrossRank, boolean remainCache, boolean needRefreshNodeIdx) {
     if (basicCrossRank == childCrossRank) {
       return;
     }
@@ -155,8 +155,7 @@ class RootCrossRank implements CrossRank {
     crossCache.setCacheExpired(rank);
   }
 
-  void setSameRankAdjacentRecord(
-      SameRankAdjacentRecord sameRankAdjacentRecord) {
+  void setSameRankAdjacentRecord(SameRankAdjacentRecord sameRankAdjacentRecord) {
     this.sameRankAdjacentRecord = sameRankAdjacentRecord;
   }
 
@@ -198,7 +197,7 @@ class RootCrossRank implements CrossRank {
 
   @Override
   public List<DNode> getNodes(int rank) {
-    return childCrossRank == null ? root.getNodes(rank) :childCrossRank.getNodes(rank);
+    return childCrossRank == null ? root.getNodes(rank) : childCrossRank.getNodes(rank);
   }
 
   @Override
@@ -261,6 +260,16 @@ class RootCrossRank implements CrossRank {
     }
   }
 
+  @Override
+  public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
+    if (childCrossRank != null) {
+      childCrossRank.sort(rank, comparator, needSyncRankIdx);
+      syncChildNodeRankIdx(needSyncRankIdx, rank, rank);
+    } else {
+      root.sort(rank, comparator, needSyncRankIdx);
+    }
+  }
+
   private void syncChildNodeRankIdx(boolean needSyncRankIdx, int minRank, int maxRank) {
     if (!needSyncRankIdx || childCrossRank == null) {
       return;
@@ -293,16 +302,6 @@ class RootCrossRank implements CrossRank {
           node.setRankIndex(i);
         }
       }
-    }
-  }
-
-  @Override
-  public void sort(int rank, Comparator<DNode> comparator, boolean needSyncRankIdx) {
-    if (childCrossRank != null) {
-      childCrossRank.sort(rank, comparator, needSyncRankIdx);
-      syncChildNodeRankIdx(needSyncRankIdx, rank, rank);
-    } else {
-      root.sort(rank, comparator, needSyncRankIdx);
     }
   }
 
@@ -355,9 +354,7 @@ class RootCrossRank implements CrossRank {
 
       List<DNode> nodes = root.getNodes(expandNode.getRank());
       Asserts.illegalArgument(
-          CollectionUtils.isEmpty(nodes),
-          "Illegal expand node, root not contain"
-      );
+          CollectionUtils.isEmpty(nodes), "Illegal expand node, root not contain");
       Iterable<DNode> replaceNodes = expandInfoProvider.replaceNodes(expandNode);
       if (replaceNodes == null) {
         continue;
@@ -434,14 +431,16 @@ class RootCrossRank implements CrossRank {
     BasicCrossRank repl = original.clone();
     setBasicCrossRank(repl, true, false);
 
-    Consumer<DNode> positiveAction = v -> {
-      double v1 = medianValue(v, true);
-      v.setMedian(v1);
-    };
-    Consumer<DNode> reverseAction = v -> {
-      double v1 = medianValue(v, false);
-      v.setMedian(v1);
-    };
+    Consumer<DNode> positiveAction =
+        v -> {
+          double v1 = medianValue(v, true);
+          v.setMedian(v1);
+        };
+    Consumer<DNode> reverseAction =
+        v -> {
+          double v1 = medianValue(v, false);
+          v.setMedian(v1);
+        };
 
     IntConsumer rankIndexAction = this::sortRankVertex;
     accessRankNode(i, positiveAction, reverseAction, rankIndexAction);
@@ -454,17 +453,11 @@ class RootCrossRank implements CrossRank {
   }
 
   /**
-   * Visits each vertex of each level in turn, reducing intersections by swapping two adjacent
-   * vertices. Repeat this action until the number of crossings cannot be reduced.
-   *
-   * @param reverse access direction, true is top to bottom, false is bottom to top
-   */
-  /**
    * Assigns each node a stable number, in the arrangement's own order.
    *
-   * <p>Identity hash codes would be the obvious key here and are the wrong choice: they differ from one
-   * JVM run to the next, which would make the signature - and therefore the point at which a cycle is
-   * noticed, and therefore the layout - irreproducible.
+   * <p>Identity hash codes would be the obvious key here and are the wrong choice: they differ from
+   * one JVM run to the next, which would make the signature - and therefore the point at which a
+   * cycle is noticed, and therefore the layout - irreproducible.
    */
   private Map<DNode, Integer> nodeIds(CrossRank crossRank) {
     Map<DNode, Integer> ids = new HashMap<>();
@@ -478,8 +471,8 @@ class RootCrossRank implements CrossRank {
   }
 
   /**
-   * Order-sensitive fingerprint of the whole node arrangement, used to notice that
-   * {@link #transpose(boolean)} has returned to an arrangement it already produced.
+   * Order-sensitive fingerprint of the whole node arrangement, used to notice that {@link
+   * #transpose(boolean)} has returned to an arrangement it already produced.
    */
   private int orderSignature(CrossRank crossRank, Map<DNode, Integer> ids) {
     int hash = 1;
@@ -494,6 +487,12 @@ class RootCrossRank implements CrossRank {
     return hash;
   }
 
+  /**
+   * Visits each vertex of each level in turn, reducing intersections by swapping two adjacent
+   * vertices. Repeat this action until the number of crossings cannot be reduced.
+   *
+   * @param reverse access direction, true is top to bottom, false is bottom to top
+   */
   void transpose(boolean reverse) {
     int delta;
     int[] leftCrossRecord = new int[3];
@@ -502,11 +501,12 @@ class RootCrossRank implements CrossRank {
     CrossRank crossRank = calcCrossRank();
 
     /*
-     * The loop below assumes delta reflects every reordering, so that it reaches 0 once no crossing can
-     * be removed. Curvature swaps break that: they reorder a rank while contributing 0, which lets a
-     * swap at one rank restore a crossing at another, whose removal then reports a genuine delta of 1
-     * forever. Two such ranks can take turns undoing each other and the loop never exits - observed at
-     * over 94 million iterations on a nine node graph. Well behaved graphs converge in a few dozen
+     * The loop below assumes delta reflects every reordering, so that it reaches 0 once no crossing
+     * can be removed. Curvature swaps break that: they reorder a rank while contributing 0, which
+     * lets a swap at one rank restore a crossing at another, whose removal then reports a genuine
+     * delta of 1 forever. Two such ranks can take turns undoing each other and the loop never
+     * exits - observed at over 94 million iterations on a nine node graph. Well behaved graphs
+     * converge in a few dozen
      * iterations, so this bound only cuts off the pathological cycle.
      */
     Map<DNode, Integer> nodeIds = nodeIds(crossRank);
@@ -526,10 +526,10 @@ class RootCrossRank implements CrossRank {
       }
 
       /*
-       * Stopping on a repeated order is not a heuristic: the loop is deterministic, so revisiting an
-       * order means every subsequent order repeats too and no further crossing can be removed. It is
-       * therefore the earliest provably correct exit, and it terminates the oscillation instead of
-       * letting the iteration bound truncate it after thousands of wasted rounds.
+       * Stopping on a repeated order is not a heuristic: the loop is deterministic, so revisiting
+       * an order means every subsequent order repeats too and no further crossing can be removed.
+       * It is therefore the earliest provably correct exit, and it terminates the oscillation
+       * instead of letting the iteration bound truncate it after thousands of wasted rounds.
        */
       if (delta >= 1 && !visitedOrders.add(orderSignature(crossRank, nodeIds))) {
         break;
@@ -564,10 +564,10 @@ class RootCrossRank implements CrossRank {
    *
    * <ul>
    *   <li>every cluster has been expanded, so a rank holds the members themselves and the guard
-   *   compares containers directly;</li>
+   *       compares containers directly;
    *   <li>the graph has no cluster at all, so there is no container to split. Tying the pass to the
-   *   expansion flag alone made it unreachable for those graphs, because nothing expands and
-   *   nothing sets the flag.</li>
+   *       expansion flag alone made it unreachable for those graphs, because nothing expands and
+   *       nothing sets the flag.
    * </ul>
    */
   private boolean clusterContiguityFullyGuarded() {
@@ -578,14 +578,14 @@ class RootCrossRank implements CrossRank {
     CrossRank current = calcCrossRank();
     for (int rank = current.minRank(); rank <= current.maxRank(); rank++) {
       for (int i = 0; i + 2 < current.rankSize(rank); i++) {
-        for (boolean pairFirst : new boolean[]{true, false}) {
+        for (boolean pairFirst : new boolean[] {true, false}) {
           DNode a = current.getNode(rank, i);
           DNode b = current.getNode(rank, i + 1);
           DNode c = current.getNode(rank, i + 2);
           DNode first = pairFirst ? a : b;
           DNode second = pairFirst ? b : c;
           boolean flatLeaf = false;
-          for (DNode leaf : new DNode[]{first, second}) {
+          for (DNode leaf : new DNode[] {first, second}) {
             if (digraphProxy.degree(leaf) != 1) {
               continue;
             }
@@ -642,7 +642,9 @@ class RootCrossRank implements CrossRank {
    * kept, so this never trades a crossing away for a tidier flat edge.
    */
   void contractFlatSpans() {
-    if (!isDot() || !anyFlatEdge || !clusterContiguityFullyGuarded()
+    if (!isDot()
+        || !anyFlatEdge
+        || !clusterContiguityFullyGuarded()
         || crossSnapshot().getCrossNum() == 0) {
       return;
     }
@@ -688,8 +690,8 @@ class RootCrossRank implements CrossRank {
   }
 
   /**
-   * Conservative work units for three two-layer recounts, two walks and indexed restores.
-   * This bounds estimated work, not elapsed time; adjacency/precedence lookups are not uniform.
+   * Conservative work units for three two-layer recounts, two walks and indexed restores. This
+   * bounds estimated work, not elapsed time; adjacency/precedence lookups are not uniform.
    */
   private long flatSpanTrialWork(int rank) {
     long work = 0;
@@ -736,7 +738,8 @@ class RootCrossRank implements CrossRank {
 
   private boolean contractFlatSpan(CrossRank current, int rank, DLine span) {
     int before = affectedRanksCrossNum(rank);
-    // The order is put back from saved indexes rather than by walking back: the exchange guard is not
+    // The order is put back from saved indexes rather than by walking back: the exchange guard is
+    // not
     // symmetric, so a step that was allowed one way is not guaranteed to be allowed in reverse, and
     // a walk that stalled halfway back would leave behind an order that was never evaluated.
     Map<DNode, Integer> restore = new HashMap<>();
@@ -901,14 +904,16 @@ class RootCrossRank implements CrossRank {
   /**
    * Visit the vertices of each level in a forward and reverse manner.
    *
-   * @param i               Forward and reverse signs Even forward, odd reverse
-   * @param positiveAction  Action when visiting a vertex forward
-   * @param reverseAction   Action when visiting vertices in reverse
+   * @param i Forward and reverse signs Even forward, odd reverse
+   * @param positiveAction Action when visiting a vertex forward
+   * @param reverseAction Action when visiting vertices in reverse
    * @param rankIndexAction Action after visiting post action
    */
-  private void accessRankNode(int i, Consumer<DNode> positiveAction,
-                              Consumer<DNode> reverseAction,
-                              IntConsumer rankIndexAction) {
+  private void accessRankNode(
+      int i,
+      Consumer<DNode> positiveAction,
+      Consumer<DNode> reverseAction,
+      IntConsumer rankIndexAction) {
     Objects.requireNonNull(positiveAction);
     Objects.requireNonNull(reverseAction);
 
@@ -927,9 +932,8 @@ class RootCrossRank implements CrossRank {
     }
   }
 
-  private void rankNodesHandle(Consumer<DNode> positiveAction,
-                               IntConsumer rankIndexAction,
-                               int rank) {
+  private void rankNodesHandle(
+      Consumer<DNode> positiveAction, IntConsumer rankIndexAction, int rank) {
     CrossRank crossRank = calcCrossRank();
     int rankSize = crossRank.rankSize(rank);
     if (rankSize <= 1) {
@@ -945,9 +949,8 @@ class RootCrossRank implements CrossRank {
     }
   }
 
-  private int transposeStep(int rank, boolean reverse,
-                            int[] leftCrossRecord,
-                            int[] rightCrossRecord) {
+  private int transposeStep(
+      int rank, boolean reverse, int[] leftCrossRecord, int[] rightCrossRecord) {
 
     int rv = 0;
     CrossRank crossRank = calcCrossRank();
@@ -965,23 +968,22 @@ class RootCrossRank implements CrossRank {
       crossing(w, v, rightCrossRecord);
 
       if (leftCrossRecord[2] > rightCrossRecord[2]
-          || (leftCrossRecord[2] > 0 && reverse
-          && leftCrossRecord[2] == rightCrossRecord[2]
-          && canSacrificeCurvature(v, w))
-      ) {
+          || (leftCrossRecord[2] > 0
+              && reverse
+              && leftCrossRecord[2] == rightCrossRecord[2]
+              && canSacrificeCurvature(v, w))) {
         int delta = leftCrossRecord[2] - rightCrossRecord[2];
         rv += delta;
         exchange(v, w, true);
 
         /*
-         * The total is the sum of the per rank caches, so it may only absorb what the ranks absorbed.
+         * The total is the sum of the per rank caches, so it may only absorb what the ranks
+         * absorbed.
          * Updating it with the full delta regardless drove it below zero on hundreds of ordinary
          * graphs, and MinCross steers on this value.
          */
-        int applied = updateRankCache(v.getRank() - 1,
-                                      rightCrossRecord[0] - leftCrossRecord[0]);
-        applied += updateRankCache(v.getRank(),
-                                   rightCrossRecord[1] - leftCrossRecord[1]);
+        int applied = updateRankCache(v.getRank() - 1, rightCrossRecord[0] - leftCrossRecord[0]);
+        applied += updateRankCache(v.getRank(), rightCrossRecord[1] - leftCrossRecord[1]);
         crossCache.crossNum += applied;
       }
     }
@@ -999,9 +1001,10 @@ class RootCrossRank implements CrossRank {
   /**
    * Applies a crossing delta to one rank's cache, and reports how much was actually applied.
    *
-   * <p>An expired rank drops the delta on purpose, because its value gets recomputed from scratch on
-   * the next read. The caller has to know that, otherwise the running total would absorb increments
-   * that no rank did — and the total is defined as the sum of the ranks (see {@link #crossNum}).
+   * <p>An expired rank drops the delta on purpose, because its value gets recomputed from scratch
+   * on the next read. The caller has to know that, otherwise the running total would absorb
+   * increments that no rank did — and the total is defined as the sum of the ranks (see {@link
+   * #crossNum}).
    *
    * @return the delta that landed in the cache, {@code 0} when it was dropped
    */
@@ -1064,10 +1067,10 @@ class RootCrossRank implements CrossRank {
     }
 
     GraphContainer container = childCrossRank == null ? root.container : childCrossRank.container;
-    GraphContainer leftDirC = DotAttachment
-        .clusterDirectContainer(drawGraph.getGraphviz(), container, left);
-    GraphContainer rightDirC = DotAttachment
-        .clusterDirectContainer(drawGraph.getGraphviz(), container, right);
+    GraphContainer leftDirC =
+        DotAttachment.clusterDirectContainer(drawGraph.getGraphviz(), container, left);
+    GraphContainer rightDirC =
+        DotAttachment.clusterDirectContainer(drawGraph.getGraphviz(), container, right);
 
     if (leftDirC == null || rightDirC == null) {
       return false;
@@ -1111,25 +1114,24 @@ class RootCrossRank implements CrossRank {
    * exact change of the total that {@link #computeCrossNum(int, boolean)} would report.
    *
    * <p>That total pairs up the <em>outgoing</em> edges of two nodes that share a rank, so a term of
-   * it is identified by the two distinct tails it comes from. Swapping {@code left} with
-   * {@code right} flips exactly one order relation, so a term can only move if one of its edges
-   * touches {@code left} and the other touches {@code right}. Enumerating those:
+   * it is identified by the two distinct tails it comes from. Swapping {@code left} with {@code
+   * right} flips exactly one order relation, so a term can only move if one of its edges touches
+   * {@code left} and the other touches {@code right}. Enumerating those:
    *
    * <ul>
-   *   <li>outgoing against outgoing - a term of this rank, both for plain and for flat edges.</li>
+   *   <li>outgoing against outgoing - a term of this rank, both for plain and for flat edges.
    *   <li>outgoing against an <em>incoming flat</em> edge - still a term of this rank, because a
-   *   flat edge's tail sits on this very rank. Missing these used to hide real improvements: a swap
-   *   that pulls a node out from under a flat edge scored 0.</li>
-   *   <li>incoming flat against incoming flat - a term of this rank for the same reason.</li>
-   *   <li>incoming plain against incoming plain - a term of the rank above, whose tails live
-   *   there.</li>
+   *       flat edge's tail sits on this very rank. Missing these used to hide real improvements: a
+   *       swap that pulls a node out from under a flat edge scored 0.
+   *   <li>incoming flat against incoming flat - a term of this rank for the same reason.
+   *   <li>incoming plain against incoming plain - a term of the rank above, whose tails live there.
    *   <li>incoming plain against incoming flat - <em>not</em> a term at all: one tail is on this
-   *   rank and the other on the rank above, so the total never pairs them. Counting these used to
-   *   push the cached total below zero.</li>
-   *   <li>outgoing against incoming plain - not a term either, same reason.</li>
+   *       rank and the other on the rank above, so the total never pairs them. Counting these used
+   *       to push the cached total below zero.
+   *   <li>outgoing against incoming plain - not a term either, same reason.
    * </ul>
    *
-   * @param left  the node that ends up first
+   * @param left the node that ends up first
    * @param right the node that ends up second
    * @param result [0] terms owned by the rank above, [1] terms owned by this rank, [2] their sum
    */
@@ -1143,7 +1145,8 @@ class RootCrossRank implements CrossRank {
     int leftSortIndex = left.getRankIndex();
     int rightSortIndex = right.getRankIndex();
 
-    // If left and right are in order, calculate the number of intersections at the current position,
+    // If left and right are in order, calculate the number of intersections at the current
+    // position,
     // otherwise you need to exchange the two vertices to calculate
     boolean needExchange = leftSortIndex > rightSortIndex;
 
@@ -1163,12 +1166,12 @@ class RootCrossRank implements CrossRank {
   }
 
   /**
-   * Rank-owned objective: unordered edge pairs with distinct tails on this rank, evaluated in
-   * tail order. Flat/outgoing span penalties extend the inter-rank model; flat/incoming pairs
-   * have different origin ranks and are excluded from both this total and its swap deltas.
-   * This is not invariant under reversing all ranks/edges, nor a count of routed intersections.
-   * Graphviz instead keeps flat adjacency separate from rcross's inter-rank adjacency, using it
-   * for precedence in flat_reorder/left2right (lib/dotgen/mincross.c and fastgr.c).
+   * Rank-owned objective: unordered edge pairs with distinct tails on this rank, evaluated in tail
+   * order. Flat/outgoing span penalties extend the inter-rank model; flat/incoming pairs have
+   * different origin ranks and are excluded from both this total and its swap deltas. This is not
+   * invariant under reversing all ranks/edges, nor a count of routed intersections. Graphviz
+   * instead keeps flat adjacency separate from rcross's inter-rank adjacency, using it for
+   * precedence in flat_reorder/left2right (lib/dotgen/mincross.c and fastgr.c).
    */
   private int computeCrossNum(int rank, boolean refreshRankIdx) {
     int rankSize = rankSize(rank);
@@ -1212,10 +1215,10 @@ class RootCrossRank implements CrossRank {
    *
    * <p>Flatness is rank membership, not {@code minlen}. A {@code minlen} of zero is one way to end
    * up on one rank, but not the only one: a same-rank constraint puts both ends on one rank while
-   * leaving the default {@code minlen} of {@code 1} in place (see {@code DefaultVal}), and
-   * {@link MinCross} already derives flat precedence from exactly those edges. Reading
-   * {@code minlen} therefore ordered them without ever counting them, so no swap could be scored as
-   * an improvement.
+   * leaving the default {@code minlen} of {@code 1} in place (see {@code DefaultVal}), and {@link
+   * MinCross} already derives flat precedence from exactly those edges. Reading {@code minlen}
+   * therefore ordered them without ever counting them, so no swap could be scored as an
+   * improvement.
    *
    * <p>The draw-property guard stays. While a cluster is collapsed its external edges are replaced
    * by edges built with a {@code null} draw property, which stand in for whole ranks of that
@@ -1226,8 +1229,10 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean shareEndpoint(DLine line1, DLine line2) {
-    return line1.from() == line2.from() || line1.from() == line2.to()
-        || line1.to() == line2.from() || line1.to() == line2.to();
+    return line1.from() == line2.from()
+        || line1.from() == line2.to()
+        || line1.to() == line2.from()
+        || line1.to() == line2.to();
   }
 
   private boolean sharedEndpointEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
@@ -1263,7 +1268,8 @@ class RootCrossRank implements CrossRank {
           == lessRankIdx(line1Head, line2Head, useRankIdx);
     }
     return locationTag(line1Port, line2Port) * locationTag(line2Head, line1Head, useRankIdx)
-        + locationTag(line2Port, line1Port) * locationTag(line1Head, line2Head, useRankIdx) == 1;
+            + locationTag(line2Port, line1Port) * locationTag(line1Head, line2Head, useRankIdx)
+        == 1;
   }
 
   private boolean commonHeadEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
@@ -1277,26 +1283,27 @@ class RootCrossRank implements CrossRank {
           == lessRankIdx(line1Tail, line2Tail, useRankIdx);
     }
     return locationTag(line1Tail, line2Tail, useRankIdx) * locationTag(line2Port, line1Port)
-        + locationTag(line2Tail, line1Tail, useRankIdx) * locationTag(line1Port, line2Port) == 1;
+            + locationTag(line2Tail, line1Tail, useRankIdx) * locationTag(line1Port, line2Port)
+        == 1;
   }
 
   private boolean differentRankEdgesCross(DLine line1, DLine line2, boolean useRankIdx) {
     return locationTag(line1.from(), line2.from(), useRankIdx)
-        * locationTag(line2.to(), line1.to(), useRankIdx)
-        + locationTag(line2.from(), line1.from(), useRankIdx)
-        * locationTag(line1.to(), line2.to(), useRankIdx) == 1;
+                * locationTag(line2.to(), line1.to(), useRankIdx)
+            + locationTag(line2.from(), line1.from(), useRankIdx)
+                * locationTag(line1.to(), line2.to(), useRankIdx)
+        == 1;
   }
 
-  private boolean flatEdgesCross(DLine line1, DLine line2, boolean line1Flat,
-                                 boolean line2Flat, boolean useRankIdx) {
+  private boolean flatEdgesCross(
+      DLine line1, DLine line2, boolean line1Flat, boolean line2Flat, boolean useRankIdx) {
     DLine flat = line1Flat ? line1 : line2;
     DLine other = line1Flat ? line2 : line1;
     if (line1Flat && line2Flat) {
       if (flat.from().getRank() != other.from().getRank()) {
         return false;
       }
-      return between(flat, other.from(), useRankIdx)
-          != between(flat, other.to(), useRankIdx);
+      return between(flat, other.from(), useRankIdx) != between(flat, other.to(), useRankIdx);
     }
 
     DNode sameRankEndpoint = endpointAtRank(other, flat.from().getRank());
@@ -1311,8 +1318,7 @@ class RootCrossRank implements CrossRank {
   }
 
   private boolean between(DLine line, DNode node, boolean useRankIdx) {
-    return lessRankIdx(line.from(), node, useRankIdx)
-        != lessRankIdx(line.to(), node, useRankIdx);
+    return lessRankIdx(line.from(), node, useRankIdx) != lessRankIdx(line.to(), node, useRankIdx);
   }
 
   private int locationTag(DNode v, DNode w, boolean useRankIdx) {
@@ -1365,7 +1371,8 @@ class RootCrossRank implements CrossRank {
 
   private int getChildRankStartIndex(int rank) {
     Integer idx;
-    if (childCrossRank == null || rankStartIndex == null
+    if (childCrossRank == null
+        || rankStartIndex == null
         || (idx = rankStartIndex.get(rank)) == null) {
       return 0;
     }
@@ -1480,8 +1487,7 @@ class RootCrossRank implements CrossRank {
 
     private boolean effective;
 
-    private RankCrossCache() {
-    }
+    private RankCrossCache() {}
 
     @Override
     protected RankCrossCache clone() {
@@ -1571,9 +1577,9 @@ class RootCrossRank implements CrossRank {
     }
 
     /**
-     * One term of the global total: the crossings between the outgoing edges loaded by
-     * {@link #openOutgoing(DNode)} and the outgoing edges of {@code node}, which has to come later
-     * in the rank.
+     * One term of the global total: the crossings between the outgoing edges loaded by {@link
+     * #openOutgoing(DNode)} and the outgoing edges of {@code node}, which has to come later in the
+     * rank.
      */
     int outCross(DNode node) {
       secondSize = 0;
@@ -1582,10 +1588,10 @@ class RootCrossRank implements CrossRank {
     }
 
     /**
-     * The terms this rank owns for the pair {@code (left, right)}. Alongside the outgoing edges that
-     * {@link #outCross(DNode)} pairs up, a node's incoming flat edges take part: a flat edge has its
-     * tail on this rank, so pairing it with the other node's outgoing edge is a term of this rank,
-     * and swapping the two nodes can switch that term on or off.
+     * The terms this rank owns for the pair {@code (left, right)}. Alongside the outgoing edges
+     * that {@link #outCross(DNode)} pairs up, a node's incoming flat edges take part: a flat edge
+     * has its tail on this rank, so pairing it with the other node's outgoing edge is a term of
+     * this rank, and swapping the two nodes can switch that term on or off.
      */
     int originRankCross(DNode left, DNode right) {
       firstSize = 0;
@@ -1603,8 +1609,8 @@ class RootCrossRank implements CrossRank {
     /**
      * The terms the rank above owns for the pair {@code (left, right)}: incoming edges on both
      * sides, and only the ones that really descend from up there. A flat edge's tail is on
-     * <em>this</em> rank, so pairing it with an edge from the rank above would score a pair that the
-     * global total, which only ever pairs edges whose tails share a rank, does not have.
+     * <em>this</em> rank, so pairing it with an edge from the rank above would score a pair that
+     * the global total, which only ever pairs edges whose tails share a rank, does not have.
      */
     int interRankInCross(DNode left, DNode right) {
       firstSize = 0;
@@ -1657,9 +1663,9 @@ class RootCrossRank implements CrossRank {
      *
      * <p>The counterpart {@link #countByArrangement()} is a separate method on purpose. The
      * crossing test branches on where to take an index from, and it is only cheap while that choice
-     * is a constant at the call site; handing it in as a flag keeps both halves of every such branch
-     * reachable, which grew the test past the point where it still gets inlined and turned the port
-     * comparison inside it into a per-comparison allocation.
+     * is a constant at the call site; handing it in as a flag keeps both halves of every such
+     * branch reachable, which grew the test past the point where it still gets inlined and turned
+     * the port comparison inside it into a per-comparison allocation.
      */
     private int countByNodeIdx() {
       int num = 0;

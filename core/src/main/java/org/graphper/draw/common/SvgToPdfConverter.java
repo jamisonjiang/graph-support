@@ -21,9 +21,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
 
@@ -69,9 +69,9 @@ public class SvgToPdfConverter extends BatikImgConverter {
    * Checks if the current environment supports image conversion to PDF. Specifically, it checks for
    * the availability of required AWT, Apache Batik, and Apache FOP classes.
    *
-   * <p>Every class this converter dereferences reflectively is checked, so an incomplete
-   * Batik/FOP classpath deselects the converter instead of failing at conversion time. Required
-   * security hints must be applicable to the PDF transcoder as well.</p>
+   * <p>Every class this converter dereferences reflectively is checked, so an incomplete Batik/FOP
+   * classpath deselects the converter instead of failing at conversion time. Required security
+   * hints must be applicable to the PDF transcoder as well.
    *
    * @return {@code true} if the environment supports conversion to PDF, {@code false} otherwise
    */
@@ -80,8 +80,11 @@ public class SvgToPdfConverter extends BatikImgConverter {
     if (!super.envSupport()) {
       return false;
     }
-    if (PDF_TRANSCODER == null || TRANSCODING_HINTS == null || SVG_A_TRANSCODER == null
-        || XML_A_TRANSCODER == null || SVG_DOM_IMPL == null) {
+    if (PDF_TRANSCODER == null
+        || TRANSCODING_HINTS == null
+        || SVG_A_TRANSCODER == null
+        || XML_A_TRANSCODER == null
+        || SVG_DOM_IMPL == null) {
       return false;
     }
     try {
@@ -99,16 +102,16 @@ public class SvgToPdfConverter extends BatikImgConverter {
    */
   @Override
   public FileType[] supportFileTypes() {
-    return new FileType[]{FileType.PDF};
+    return new FileType[] {FileType.PDF};
   }
 
   /**
    * Converts the given SVG document into a PDF. Uses Apache FOP's {@code PDFTranscoder} to handle
    * the conversion.
    *
-   * @param document  the SVG document to convert
+   * @param document the SVG document to convert
    * @param drawGraph the drawing context with graph-related attributes
-   * @param fileType  the target file type for conversion, which must be PDF
+   * @param fileType the target file type for conversion, which must be PDF
    * @return a {@link DefaultGraphResource} representing the converted PDF
    * @throws FailInitResourceException if the conversion fails or if parameters are missing
    */
@@ -130,20 +133,36 @@ public class SvgToPdfConverter extends BatikImgConverter {
       Object transcoder = ClassUtils.newObject(PDF_TRANSCODER);
       Object transcodingHints = ClassUtils.newObject(TRANSCODING_HINTS);
       Class<?>[] paramTypes = {Object.class, Object.class};
-      ClassUtils.invoke(transcodingHints, "put", paramTypes,
-                        ClassUtils.getStaticField(SVG_A_TRANSCODER, "KEY_WIDTH"), 1000f);
-      ClassUtils.invoke(transcodingHints, "put", paramTypes,
-                        ClassUtils.getStaticField(SVG_A_TRANSCODER, "KEY_HEIGHT"), 1000f);
-      ClassUtils.invoke(transcodingHints, "put", paramTypes,
-                        ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOM_IMPLEMENTATION"),
-                        ClassUtils.invokeStatic(SVG_DOM_IMPL, "getDOMImplementation"));
-      ClassUtils.invoke(transcodingHints, "put", paramTypes,
-                        ClassUtils.getStaticField(XML_A_TRANSCODER,
-                                                  "KEY_DOCUMENT_ELEMENT_NAMESPACE_URI"),
-                        ClassUtils.getStaticField(SVG_DOM_IMPL, "SVG_NAMESPACE_URI"));
-      ClassUtils.invoke(transcodingHints, "put", paramTypes,
-                        ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOCUMENT_ELEMENT"),
-                        FileType.SVG.getType());
+      ClassUtils.invoke(
+          transcodingHints,
+          "put",
+          paramTypes,
+          ClassUtils.getStaticField(SVG_A_TRANSCODER, "KEY_WIDTH"),
+          1000f);
+      ClassUtils.invoke(
+          transcodingHints,
+          "put",
+          paramTypes,
+          ClassUtils.getStaticField(SVG_A_TRANSCODER, "KEY_HEIGHT"),
+          1000f);
+      ClassUtils.invoke(
+          transcodingHints,
+          "put",
+          paramTypes,
+          ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOM_IMPLEMENTATION"),
+          ClassUtils.invokeStatic(SVG_DOM_IMPL, "getDOMImplementation"));
+      ClassUtils.invoke(
+          transcodingHints,
+          "put",
+          paramTypes,
+          ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOCUMENT_ELEMENT_NAMESPACE_URI"),
+          ClassUtils.getStaticField(SVG_DOM_IMPL, "SVG_NAMESPACE_URI"));
+      ClassUtils.invoke(
+          transcodingHints,
+          "put",
+          paramTypes,
+          ClassUtils.getStaticField(XML_A_TRANSCODER, "KEY_DOCUMENT_ELEMENT"),
+          FileType.SVG.getType());
       ClassUtils.invoke(transcoder, "setTranscodingHints", transcodingHints);
       configureSecurityHints(transcoder);
       try (InputStream is = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8))) {

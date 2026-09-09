@@ -21,15 +21,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.FileType;
 import org.graphper.api.SecurityPolicy;
+import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
-import org.graphper.draw.DefaultGraphResource;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
 import org.slf4j.Logger;
@@ -39,7 +40,8 @@ import org.slf4j.LoggerFactory;
  * Implementation of {@link SvgConverter} that uses Apache Batik to convert SVG documents into
  * various image formats. This class supports formats such as PNG, JPEG, and TIFF by utilizing
  * Batik's transcoder classes. The environment must support the AWT {@link java.awt.Graphics2D} and
- * have Batik libraries available.
+ * have Batik libraries available. TIFF output also requires an ImageIO TIFF writer and is
+ * unsupported on a default Java 8 runtime.
  *
  * @author Jamison Jiang
  */
@@ -57,12 +59,12 @@ public class BatikImgConverter implements SvgConverter {
   private static final String HINT_KEY_C = "org.apache.batik.transcoder.TranscodingHints$Key";
 
   /**
-   * Hardening hints switched off before transcoding, most restrictive first.
-   * {@code KEY_ALLOW_EXTERNAL_RESOURCES} only exists from Batik 1.13 onwards, so it is probed
-   * rather than assumed.
+   * Hardening hints switched off before transcoding, most restrictive first. {@code
+   * KEY_ALLOW_EXTERNAL_RESOURCES} only exists from Batik 1.13 onwards, so it is probed rather than
+   * assumed.
    */
   private static final String[] SECURITY_HINT_FIELDS = {
-      "KEY_ALLOW_EXTERNAL_RESOURCES", "KEY_EXECUTE_ONLOAD"
+    "KEY_ALLOW_EXTERNAL_RESOURCES", "KEY_EXECUTE_ONLOAD"
   };
 
   /** Sentinel stored for a hint that this Batik build does not expose. */
@@ -75,7 +77,8 @@ public class BatikImgConverter implements SvgConverter {
    * Hints already reported as unavailable. Package-private so the one-time warning can be asserted
    * by tests.
    */
-  static final Set<String> DEGRADED_HINTS = ConcurrentHashMap.newKeySet();
+  static final Set<String> DEGRADED_HINTS =
+      Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
   /**
    * Returns the priority order of this converter. The default order is set to 0.
@@ -92,7 +95,7 @@ public class BatikImgConverter implements SvgConverter {
    * availability of required AWT and Batik classes.
    *
    * <p>Required security hints must also be applicable. Otherwise the native PNG/JPEG converter
-   * remains available, but this converter is not selected.</p>
+   * remains available, but this converter is not selected.
    *
    * @return {@code true} if the environment supports image conversion, {@code false} otherwise
    */
@@ -124,16 +127,16 @@ public class BatikImgConverter implements SvgConverter {
    */
   @Override
   public FileType[] supportFileTypes() {
-    return new FileType[]{FileType.PNG, FileType.JPG, FileType.JPEG, FileType.TIFF};
+    return new FileType[] {FileType.PNG, FileType.JPG, FileType.JPEG, FileType.TIFF};
   }
 
   /**
    * Converts the given SVG document into an image of the specified type. Uses Apache Batik's
    * transcoders to handle the conversion.
    *
-   * @param document  the SVG document to convert
+   * @param document the SVG document to convert
    * @param drawGraph the drawing context with graph-related attributes
-   * @param fileType  the target image type for conversion
+   * @param fileType the target image type for conversion
    * @return a {@link DefaultGraphResource} representing the converted image
    * @throws FailInitResourceException if the conversion fails or if parameters are missing
    */
@@ -142,6 +145,12 @@ public class BatikImgConverter implements SvgConverter {
       throws FailInitResourceException {
     if (document == null || drawGraph == null || fileType == null) {
       throw new FailInitResourceException("Lack parameters to convert image");
+    }
+    if (fileType == FileType.TIFF
+        && !javax.imageio.ImageIO.getImageWritersByFormatName("TIFF").hasNext()) {
+      throw new FailInitResourceException(
+          "TIFF export requires an ImageIO TIFF writer;"
+              + " default Java 8 runtimes do not support TIFF");
     }
 
     String svg = document.toXml();
@@ -180,11 +189,11 @@ public class BatikImgConverter implements SvgConverter {
   /**
    * Converts static SVG to PNG without allowing Batik to fetch external resources. Policy-approved
    * image references, including opt-in remote and local sources, are loaded by the shared secure
-   * image loader, raster-validated, and replaced with canonical data URIs before transcoding.
-   * Local file URIs must resolve inside the policy's real base directory; relative paths resolve
-   * against that base. Fixed SVG structural/aggregate image limits and the policy's output pixel
-   * budget are checked before transcoding. These limits are not a general complexity guarantee
-   * for arbitrary untrusted SVG.
+   * image loader, raster-validated, and replaced with canonical data URIs before transcoding. Local
+   * file URIs must resolve inside the policy's real base directory; relative paths resolve against
+   * that base. Fixed SVG structural/aggregate image limits and the policy's output pixel budget are
+   * checked before transcoding. These limits are not a general complexity guarantee for arbitrary
+   * untrusted SVG.
    *
    * @param svg SVG source, including sources not generated by graph-support
    * @param policy rendering policy, or {@code null} for the secure default
@@ -193,8 +202,8 @@ public class BatikImgConverter implements SvgConverter {
    */
   public byte[] pngBytes(String svg, SecurityPolicy policy) throws FailInitResourceException {
     try {
-      String safeSvg = SecureSvg.prepare(svg,
-          policy == null ? SecurityPolicy.defaultPolicy() : policy, true);
+      String safeSvg =
+          SecureSvg.prepare(svg, policy == null ? SecurityPolicy.defaultPolicy() : policy, true);
       Object transcoder = ClassUtils.newObject(Class.forName(P_T_C));
       configureSecurityHints(transcoder);
       try (InputStream input = new ByteArrayInputStream(safeSvg.getBytes(StandardCharsets.UTF_8))) {
@@ -209,7 +218,7 @@ public class BatikImgConverter implements SvgConverter {
    * Switches off external resource loading and on-load script execution for {@code transcoder}.
    *
    * <p>A missing or rejected hint aborts conversion, including direct calls that bypass converter
-   * selection.</p>
+   * selection.
    *
    * @param transcoder the Batik transcoder to harden
    * @throws Exception if the Batik transcoder base classes are missing altogether
@@ -222,9 +231,9 @@ public class BatikImgConverter implements SvgConverter {
    * Applies every required hardening hint. Package-private so tests can supply a transcoder base
    * that is missing a hint field.
    *
-   * @param transcoder      transcoder receiving the hints
-   * @param transcoderBase  class declaring the hint key constants
-   * @param hintKeyType     declared parameter type of {@code addTranscodingHint}
+   * @param transcoder transcoder receiving the hints
+   * @param transcoderBase class declaring the hint key constants
+   * @param hintKeyType declared parameter type of {@code addTranscodingHint}
    */
   static void applySecurityHints(Object transcoder, Class<?> transcoderBase, Class<?> hintKeyType) {
     for (String field : SECURITY_HINT_FIELDS) {
@@ -233,8 +242,12 @@ public class BatikImgConverter implements SvgConverter {
         throw insecureBatik(field, null);
       }
       try {
-        ClassUtils.invoke(transcoder, "addTranscodingHint",
-                          new Class[]{hintKeyType, Object.class}, key, Boolean.FALSE);
+        ClassUtils.invoke(
+            transcoder,
+            "addTranscodingHint",
+            new Class[] {hintKeyType, Object.class},
+            key,
+            Boolean.FALSE);
       } catch (Exception | LinkageError e) {
         throw insecureBatik(field, e);
       }
@@ -265,9 +278,11 @@ public class BatikImgConverter implements SvgConverter {
   }
 
   private static IllegalStateException insecureBatik(String field, Throwable cause) {
-    String message = "No secure Batik/FOP converter: required security hint " + field
-        + " is unavailable or rejected. Use a supported modern Batik (1.13+ security hints)"
-        + " and compatible FOP for TIFF/PDF; graph PNG/JPEG can use the native converter.";
+    String message =
+        "No secure Batik/FOP converter: required security hint "
+            + field
+            + " is unavailable or rejected. Use a supported modern Batik (1.13+ security hints)"
+            + " and compatible FOP for TIFF/PDF; graph PNG/JPEG can use the native converter.";
     if (DEGRADED_HINTS.add(field)) {
       log.warn(message, cause);
     }
@@ -277,26 +292,24 @@ public class BatikImgConverter implements SvgConverter {
   /**
    * Generates a {@link DefaultGraphResource} for the converted image.
    *
-   * @param drawGraph  the drawing context with graph-related attributes
-   * @param fileType   the target image type for conversion
-   * @param is         the input stream containing the SVG data
+   * @param drawGraph the drawing context with graph-related attributes
+   * @param fileType the target image type for conversion
+   * @param is the input stream containing the SVG data
    * @param transcoder the Batik transcoder object used for conversion
    * @return a {@link DefaultGraphResource} representing the converted image
    * @throws Exception if the conversion fails
    */
-  protected DefaultGraphResource getFileGraphResource(DrawGraph drawGraph, FileType fileType,
-                                                      InputStream is, Object transcoder)
-      throws Exception {
+  protected DefaultGraphResource getFileGraphResource(
+      DrawGraph drawGraph, FileType fileType, InputStream is, Object transcoder) throws Exception {
     ByteArrayOutputStream baos = transcodeAndReturnOS(is, transcoder);
     String label = drawGraph.getGraphviz().graphAttrs().getLabel();
     return new DefaultGraphResource(label, fileType.getType(), baos);
   }
 
   /**
-   * Transcodes the SVG data from the input stream and writes it to a
-   * {@link ByteArrayOutputStream}.
+   * Transcodes the SVG data from the input stream and writes it to a {@link ByteArrayOutputStream}.
    *
-   * @param is         the input stream containing the SVG data
+   * @param is the input stream containing the SVG data
    * @param transcoder the Batik transcoder object used for conversion
    * @return a {@link ByteArrayOutputStream} containing the transcoded image data
    * @throws Exception if the transcoding process fails
@@ -308,8 +321,8 @@ public class BatikImgConverter implements SvgConverter {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Object input = ClassUtils.newObjectOne(inputClazz, InputStream.class, is);
     Object output = ClassUtils.newObjectOne(outputClazz, OutputStream.class, baos);
-    ClassUtils.invoke(transcoder, "transcode",
-                      new Class[]{inputClazz, outputClazz}, input, output);
+    ClassUtils.invoke(
+        transcoder, "transcode", new Class[] {inputClazz, outputClazz}, input, output);
     return baos;
   }
 }

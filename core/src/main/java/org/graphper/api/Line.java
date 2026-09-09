@@ -19,18 +19,18 @@ package org.graphper.api;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import org.graphper.api.Cluster.ClusterBuilder;
 import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
+import org.graphper.api.Node.NodeBuilder;
 import org.graphper.api.attributes.ArrowShape;
 import org.graphper.api.attributes.Color;
 import org.graphper.api.attributes.Dir;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.LineStyle;
+import org.graphper.api.attributes.Port;
 import org.graphper.api.attributes.Splines;
 import org.graphper.util.Asserts;
-import org.graphper.api.Cluster.ClusterBuilder;
-import org.graphper.api.Node.NodeBuilder;
-import org.graphper.api.attributes.Port;
 import org.graphper.util.FontUtils;
 
 /**
@@ -44,14 +44,10 @@ public class Line implements Comparable<Line>, Serializable {
 
   private static final Node EMPTY = Node.builder().build();
 
-  /**
-   * Line head
-   */
+  /** Line head. */
   private final Node head;
 
-  /**
-   * Line tail
-   */
+  /** Line tail. */
   private final Node tail;
 
   // Line attribute
@@ -173,9 +169,7 @@ public class Line implements Comparable<Line>, Serializable {
 
   // ------------------------------------------ Line Builder ---------------------------------------
 
-  /**
-   * {@link Line} builder, used to build a {@link Line}.
-   */
+  /** {@link Line} builder, used to build a {@link Line}. */
   public static class LineBuilder {
 
     protected Node from;
@@ -227,10 +221,11 @@ public class Line implements Comparable<Line>, Serializable {
      * Assigns an HTML-like {@link LabelTag} to this line, enabling rich text formatting (such as
      * bold, italic, or multi-line text) in the line's label.
      *
-     * <p>If a plain text label was previously set via {@code label(String)}, this call
-     * will override that label with the provided {@code LabelTag}.</p>
+     * <p>If a plain text label was previously set via {@code label(String)}, this call will
+     * override that label with the provided {@code LabelTag}.
      *
-     * <p><b>Example Usage:</b></p>
+     * <p><b>Example Usage:</b>
+     *
      * <pre>{@code
      * LabelTag tag = bold("Graph Analysis")
      *     .br()
@@ -240,7 +235,8 @@ public class Line implements Comparable<Line>, Serializable {
      *     .br()
      *     .top(bold(italic("Key Takeaways:")))
      *     .br()
-     *     .left(font(text("H").subscript("2").text("O").superscript("2"), fontAttrs().color(Color.RED).pointSize(16)))
+     *     .left(font(text("H").subscript("2").text("O").superscript("2"),
+     *         fontAttrs().color(Color.RED).pointSize(16)))
      *     .br()
      *     .right(strikeThrough("Outdated Formula"))
      *     .br()
@@ -273,10 +269,11 @@ public class Line implements Comparable<Line>, Serializable {
     /**
      * Set whether to display the position of the box of the routing line. Set whether to display
      * the position of the box of the routing line. Only valid for routing algorithms such as:
+     *
      * <ul>
-     *   <li> {@link Splines#SPLINE}
-     *   <li> {@link Splines#ROUNDED}
-     *   <li> {@link Splines#POLYLINE}
+     *   <li>{@link Splines#SPLINE}
+     *   <li>{@link Splines#ROUNDED}
+     *   <li>{@link Splines#POLYLINE}
      * </ul>
      *
      * @param showboxes show the router box of the line
@@ -326,8 +323,8 @@ public class Line implements Comparable<Line>, Serializable {
     }
 
     /**
-     * Set the font color of line, including {@link #label(String)} and
-     * {@link #floatLabels(FloatLabel...)}.
+     * Set the font color of line, including {@link #label(String)} and {@link
+     * #floatLabels(FloatLabel...)}.
      *
      * @param fontColor font color
      * @return line builder
@@ -364,8 +361,8 @@ public class Line implements Comparable<Line>, Serializable {
 
     /**
      * Sets whether lines need to be clipped to fit the shape of the head node. If this value is
-     * false, the line will go directly to the center of gravity of the head (unless
-     * {@link #headPort(Port)} is set).
+     * false, the line will go directly to the center of gravity of the head (unless {@link
+     * #headPort(Port)} is set).
      *
      * @param headclip head endpoint need to clip
      * @return line builder
@@ -377,8 +374,8 @@ public class Line implements Comparable<Line>, Serializable {
 
     /**
      * Sets whether lines need to be clipped to fit the shape of the tail node. If this value is
-     * false, the line will go directly to the center of gravity of the tail (unless
-     * {@link #tailPort(Port)} is set).
+     * false, the line will go directly to the center of gravity of the tail (unless {@link
+     * #tailPort(Port)} is set).
      *
      * @param tailclip tail endpoint need to clip
      * @return line builder
@@ -391,12 +388,13 @@ public class Line implements Comparable<Line>, Serializable {
     /**
      * Sets the {@code minlen} attribute for the current line, which influences the layout depending
      * on the selected layout engine.
+     *
      * <ul>
-     *   <li>In the {@link Layout#DOT} and {@link Layout#DOTQ} layouts, {@code minlen} specifies the least spanning ranks
-     *       between the tail and head nodes of the current line.</li>
-     *   <li>In the  fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout,
+     *   <li>In the {@link Layout#DOT} and {@link Layout#DOTQ} layouts, {@code minlen} specifies the
+     *       least spanning ranks between the tail and head nodes of the current line.
+     *   <li>In the fdp({@link Layout#FDP}|{@link Layout#JFDP}|{@link Layout#GFDP}) series layout,
      *       {@code minlen} defines the minimum distance between the two connected nodes when set
-     *       {@link org.graphper.api.Graphviz.GraphvizBuilder#overlap(boolean)} to false.</li>
+     *       {@link org.graphper.api.Graphviz.GraphvizBuilder#overlap(boolean)} to false.
      * </ul>
      *
      * @param minlen the minimum spanning ranks or distance, depending on the layout
@@ -498,25 +496,26 @@ public class Line implements Comparable<Line>, Serializable {
      * Set the head direction of the line according to which {@link Cluster} to clip. If attribute
      * {@link #headclip(boolean)} is set to false, {@code lhead} would never take effect.
      *
-     * <p>To make this property take effect, set the corresponding id
-     * ({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
-     * attribute to the corresponding id. Here is a simple example:
-     * <pre>{@code
-     *     Graphviz.digraph()
-     *         // The line will point directly to the head node, not the cluster
-     *         .addLine(a, b)
-     *         // Set the head node position of the line to be cut by the cluster with id "cluster_0"
-     *         .addLine(Line.builder(a, c).lhead("cluster_0").build())
+     * <p>To make this property take effect, set the corresponding id ({@link
+     * ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this attribute
+     * to the corresponding id. Here is a simple example:
      *
-     *         // The head node "b" and "c" in a same cluster
-     *         .cluster(
-     *             Cluster.builder()
-     *                 // Set a cluster id, provide lhead with a unique cluster ID
-     *                 .id("cluster_0")
-     *                 .addNode(b, c)
-     *                 .build()
-     *         )
-     *         .build();
+     * <pre>{@code
+     * Graphviz.digraph()
+     *     // The line will point directly to the head node, not the cluster
+     *     .addLine(a, b)
+     *     // Set the head node position of the line to be cut by the cluster with id "cluster_0"
+     *     .addLine(Line.builder(a, c).lhead("cluster_0").build())
+     *
+     *     // The head node "b" and "c" in a same cluster
+     *     .cluster(
+     *         Cluster.builder()
+     *             // Set a cluster id, provide lhead with a unique cluster ID
+     *             .id("cluster_0")
+     *             .addNode(b, c)
+     *             .build()
+     *     )
+     *     .build();
      * }</pre>
      *
      * @param lhead the id of the cluster that the head of line needs to clipped
@@ -531,25 +530,26 @@ public class Line implements Comparable<Line>, Serializable {
      * Set the tail direction of the line according to which {@link Cluster} to clip. If attribute
      * {@link #tailclip(boolean)} is set to false, {@code ltail} would never take effect.
      *
-     * <p>To make this property take effect, set the corresponding
-     * id({@link ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this
-     * attribute to the corresponding id. Here is a simple example:
-     * <pre>{@code
-     *     Graphviz.digraph()
-     *         // The line will point directly to the tail node, not the cluster
-     *         .addLine(b, a)
-     *         // Set the tail node position of the line to be cut by the cluster with id "cluster_0"
-     *         .addLine(Line.builder(c, a).ltail("cluster_0").build())
+     * <p>To make this property take effect, set the corresponding id({@link
+     * ClusterBuilder#id(String)}) for the specified {@link Cluster} and then point this attribute
+     * to the corresponding id. Here is a simple example:
      *
-     *         // The tail node "b" and "c" in a same cluster
-     *         .cluster(
-     *             Cluster.builder()
-     *                 // Set a cluster id, provide ltail with a unique cluster ID
-     *                 .id("cluster_0")
-     *                 .addNode(b, c)
-     *                 .build()
-     *         )
-     *         .build();
+     * <pre>{@code
+     * Graphviz.digraph()
+     *     // The line will point directly to the tail node, not the cluster
+     *     .addLine(b, a)
+     *     // Set the tail node position of the line to be cut by the cluster with id "cluster_0"
+     *     .addLine(Line.builder(c, a).ltail("cluster_0").build())
+     *
+     *     // The tail node "b" and "c" in a same cluster
+     *     .cluster(
+     *         Cluster.builder()
+     *             // Set a cluster id, provide ltail with a unique cluster ID
+     *             .id("cluster_0")
+     *             .addNode(b, c)
+     *             .build()
+     *     )
+     *     .build();
      * }</pre>
      *
      * @param ltail the id of the cluster that the tail of line needs to clipped
@@ -563,13 +563,17 @@ public class Line implements Comparable<Line>, Serializable {
     /**
      * The floating label object of the Line. Uses two parameters to describe the position of the
      * label relative to the line:
+     *
      * <ul>
-     *   <li>First use the parameter {@link FloatLabel#getLengthRatio()} to locate a position of the current line,
-     *   0 indicates the position closest to the tail node, 1 indicates the position closest to the head node;
-     *   <li>Secondly, if {@link FloatLabel#getTend()} is set, the set {@link FloatLabel#getLengthRatio()} attribute will be ignored,
-     *   and the program will automatically select the appropriate point according to the corresponding value.
-     *   <li>Finally, manually adjust an offset according to the obtained node by {@link FloatLabel#getOffset()}.
-     *   The horizontal and vertical offset ratios corresponding to this offset are based on the size of the current label size.
+     *   <li>First use the parameter {@link FloatLabel#getLengthRatio()} to locate a position of the
+     *       current line, 0 indicates the position closest to the tail node, 1 indicates the
+     *       position closest to the head node;
+     *   <li>Secondly, if {@link FloatLabel#getTend()} is set, the set {@link
+     *       FloatLabel#getLengthRatio()} attribute will be ignored, and the program will
+     *       automatically select the appropriate point according to the corresponding value.
+     *   <li>Finally, manually adjust an offset according to the obtained node by {@link
+     *       FloatLabel#getOffset()}. The horizontal and vertical offset ratios corresponding to
+     *       this offset are based on the size of the current label size.
      * </ul>
      *
      * @param floatLabels float label array
@@ -619,6 +623,7 @@ public class Line implements Comparable<Line>, Serializable {
      * <p>If the current line had set to {@link #tailPort(Port)}, then the line will first fall to
      * the corresponding cell, and then fall to the corresponding position of the cell according to
      * {@link #tailPort(Port)}. Here is a dot script and code example:
+     *
      * <pre>{@code
      * digraph G {
      *     a[shape=record label="1|<P2>2"]
@@ -643,8 +648,7 @@ public class Line implements Comparable<Line>, Serializable {
      *                 .build()
      *         )
      *         .build();
-     * }
-     * </pre>
+     * }</pre>
      *
      * @param tailCell tail cell id
      * @return line builder
@@ -661,6 +665,7 @@ public class Line implements Comparable<Line>, Serializable {
      * <p>If the current line had set to {@link #headPort(Port)}, then the line will first fall to
      * the corresponding cell, and then fall to the corresponding position of the cell according to
      * {@link #headPort(Port)}. Here is a dot script and code example:
+     *
      * <pre>{@code
      * digraph G {
      *     b[shape=record label="<P1>1|2"]
@@ -685,8 +690,7 @@ public class Line implements Comparable<Line>, Serializable {
      *                 .build()
      *         )
      *         .build();
-     * }
-     * </pre>
+     * }</pre>
      *
      * @param headCell head cell id
      * @return line builder
@@ -711,7 +715,7 @@ public class Line implements Comparable<Line>, Serializable {
      * Sets the tooltip text for the edge.
      *
      * <p><strong>Note:</strong> The tooltip only takes effect if the edge has an {@code href} set
-     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.</p>
+     * and is rendered in SVG format. It does not work in PNG, JPG, or other raster formats.
      *
      * @param tooltip the text to be displayed as the tooltip
      * @return line builder
@@ -753,58 +757,57 @@ public class Line implements Comparable<Line>, Serializable {
      * where the label was originally placed.
      *
      * <p>{@link Assemble} will be used as a common parent container, and all other cells set are
-     * placed based on {@link Assemble}, so when adding a cell, an offset position based on
-     * {@link Assemble} will be set, and the position of {@link Assemble} is where the label should
+     * placed based on {@link Assemble}, so when adding a cell, an offset position based on {@link
+     * Assemble} will be set, and the position of {@link Assemble} is where the label should
      * be.Therefore, {@link Assemble} does not provide automatic layout and cell size calculation
      * (by default, it does not automatically calculate the size of the cell according to the label
-     * of the cell), which requires the setter to completely accurate calculation of all
-     * parameters.
+     * of the cell), which requires the setter to completely accurate calculation of all parameters.
      *
      * <p>This is an example of setting three cells side by assemble.
+     *
      * <pre>{@code
-     *     Node left = Node.builder().label("left").build();
-     *     Node right = Node.builder().label("right").build();
-     *     Graphviz.digraph()
-     *         .startSub()
-     *         .rank(Rank.SAME)
-     *         .addLine(
-     *             Line.builder(left, right)
-     *                 .assemble(
-     *                     Assemble.builder()
-     *                         .width(1.6)
-     *                         .height(0.6)
-     *                         .addCell(0.05, 0.05,
-     *                                  Node.builder()
-     *                                      .width(0.2)
-     *                                      .height(0.5)
-     *                                      .fillColor(Color.RED)
-     *                                      .build())
-     *                         .addCell(0.3, 0.05,
-     *                                  Node.builder()
-     *                                      .width(1)
-     *                                      .height(0.5)
-     *                                      .fontSize(12)
-     *                                      .label("Edge labels\nalso")
-     *                                      .build())
-     *                         .addCell(1.35, 0.05,
-     *                                  Node.builder()
-     *                                      .width(0.2)
-     *                                      .height(0.5)
-     *                                      .fillColor(Color.BLUE)
-     *                                      .build())
-     *                         .addCell(0, 0,
-     *                                  Node.builder()
-     *                                      .width(1.6)
-     *                                      .height(0.6)
-     *                                      .build())
-     *                         .build()
-     *                 )
-     *                 .build()
-     *         )
-     *         .endSub()
-     *         .build();
-     * }
-     * </pre>
+     * Node left = Node.builder().label("left").build();
+     * Node right = Node.builder().label("right").build();
+     * Graphviz.digraph()
+     *     .startSub()
+     *     .rank(Rank.SAME)
+     *     .addLine(
+     *         Line.builder(left, right)
+     *             .assemble(
+     *                 Assemble.builder()
+     *                     .width(1.6)
+     *                     .height(0.6)
+     *                     .addCell(0.05, 0.05,
+     *                              Node.builder()
+     *                                  .width(0.2)
+     *                                  .height(0.5)
+     *                                  .fillColor(Color.RED)
+     *                                  .build())
+     *                     .addCell(0.3, 0.05,
+     *                              Node.builder()
+     *                                  .width(1)
+     *                                  .height(0.5)
+     *                                  .fontSize(12)
+     *                                  .label("Edge labels\nalso")
+     *                                  .build())
+     *                     .addCell(1.35, 0.05,
+     *                              Node.builder()
+     *                                  .width(0.2)
+     *                                  .height(0.5)
+     *                                  .fillColor(Color.BLUE)
+     *                                  .build())
+     *                     .addCell(0, 0,
+     *                              Node.builder()
+     *                                  .width(1.6)
+     *                                  .height(0.6)
+     *                                  .build())
+     *                     .build()
+     *             )
+     *             .build()
+     *     )
+     *     .endSub()
+     *     .build();
+     * }</pre>
      *
      * @param assemble assemble
      * @return line builder

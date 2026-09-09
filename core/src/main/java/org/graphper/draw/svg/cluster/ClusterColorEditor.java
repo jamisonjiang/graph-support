@@ -24,6 +24,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Applies cluster fill and stroke colors to SVG shapes. */
 public class ClusterColorEditor implements ClusterEditor<SvgBrush>, SvgConstants {
 
   @Override

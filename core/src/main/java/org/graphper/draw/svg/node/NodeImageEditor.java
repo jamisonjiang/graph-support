@@ -17,16 +17,17 @@
 package org.graphper.draw.svg.node;
 
 import java.util.Locale;
-import org.graphper.api.SecurityPolicy;
-import org.graphper.draw.svg.Element;
-import org.graphper.def.FlatPoint;
 import org.graphper.api.NodeAttrs;
+import org.graphper.api.SecurityPolicy;
+import org.graphper.def.FlatPoint;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
+import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Adds positioned images to SVG nodes. */
 public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEditor<SvgBrush> {
 
   private static final Logger log = LoggerFactory.getLogger(NodeImageEditor.class);
@@ -74,9 +75,12 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
    * hardest failure to diagnose.
    */
   private void logRejected(NodeDrawProp node, String image, SecurityPolicy securityPolicy) {
-    log.warn("Node {} image reference was rejected by the security policy and will not be "
-                 + "rendered, but its space is still reserved: {}. {}",
-             nodeDescription(node), abbreviate(image), enableHint(image, securityPolicy));
+    log.warn(
+        "Node {} image reference was rejected by the security policy and will not be "
+            + "rendered, but its space is still reserved: {}. {}",
+        nodeDescription(node),
+        abbreviate(image),
+        enableHint(image, securityPolicy));
   }
 
   /**
@@ -89,7 +93,8 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
     if (lower.startsWith("data:")) {
       return "Embedded data images are allowed by default; this one was refused because it is not"
           + " a supported base64 raster type (png, jpeg, gif, webp, bmp) or it exceeds"
-          + " SecurityPolicy.Builder#maxImageBytes (" + securityPolicy.getMaxImageBytes()
+          + " SecurityPolicy.Builder#maxImageBytes ("
+          + securityPolicy.getMaxImageBytes()
           + " bytes).";
     }
     if (lower.startsWith("http://") || lower.startsWith("https://")) {
@@ -99,7 +104,8 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
             + " allowRemoteImages(true).allowRemoteImageHost(\"<host>\"); the graph-support CLI"
             + " exposes the same switch as --allow-image-host <host>.";
       }
-      return "The host is not in the allow list " + securityPolicy.getAllowedRemoteImageHosts()
+      return "The host is not in the allow list "
+          + securityPolicy.getAllowedRemoteImageHosts()
           + ". Add it with SecurityPolicy.Builder#allowRemoteImageHost, or with the graph-support"
           + " CLI option --allow-image-host <host>.";
     }
@@ -109,7 +115,8 @@ public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEdit
           + " graph-support CLI option --image-dir <directory>.";
     }
     return "The reference does not resolve inside the local image base directory "
-        + securityPolicy.getLocalImageBaseDirectory() + ".";
+        + securityPolicy.getLocalImageBaseDirectory()
+        + ".";
   }
 
   private static String nodeDescription(NodeDrawProp node) {

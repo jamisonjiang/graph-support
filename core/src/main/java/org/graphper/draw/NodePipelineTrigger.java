@@ -18,6 +18,7 @@ package org.graphper.draw;
 
 import java.util.List;
 
+/** Applies a node editor pipeline to the graph's nodes. */
 public class NodePipelineTrigger<B extends Brush, T extends NodeEditor<B>>
     extends AbstractPipelineTrigger<NodeDrawProp, B, T, NodePipelineTrigger<B, T>> {
 

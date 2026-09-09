@@ -17,7 +17,6 @@
 package org.graphper.ui;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import org.antlr.v4.runtime.CharStreams;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Graphviz;
@@ -115,7 +114,7 @@ public class DotRenderService {
     }
     if (StringUtils.isNotBlank(baseDirectory)) {
       try {
-        builder.localImageBaseDirectory(Paths.get(baseDirectory.trim()));
+        builder.localImageBaseDirectory(baseDirectory.trim());
         changed = true;
       } catch (RuntimeException ignore) {
         // An unusable directory simply stays denied.

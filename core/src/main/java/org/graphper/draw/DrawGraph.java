@@ -30,8 +30,8 @@ import org.graphper.api.LineAttrs;
 import org.graphper.api.Node;
 import org.graphper.api.attributes.Layout;
 import org.graphper.api.attributes.Rankdir;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.util.Asserts;
 import org.graphper.util.FontUtils;
 
@@ -57,6 +57,7 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   private Map<Cluster, ClusterDrawProp> clusterDrawPropMap;
 
+  /** Creates drawing state for the supplied graph. */
   public DrawGraph(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphvizDrawProp = new GraphvizDrawProp(graphviz);
@@ -64,6 +65,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     this.lineDrawPropMap = new LinkedHashMap<>();
   }
 
+  /** Registers node drawing properties and their label identity space. */
   public void nodePut(Node node, NodeDrawProp nodeDrawProp) {
     if (node == null || nodeDrawProp == null) {
       return;
@@ -72,6 +74,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     nodeDrawPropMap.put(node, nodeDrawProp);
   }
 
+  /** Registers line drawing properties when both arguments are present. */
   public void linePut(Line line, LineDrawProp lineDrawProp) {
     if (line == null || lineDrawProp == null || lineDrawPropMap == null) {
       return;
@@ -80,6 +83,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     lineDrawPropMap.put(line, lineDrawProp);
   }
 
+  /** Registers cluster drawing properties and their label identity space. */
   public void clusterPut(Cluster cluster, ClusterDrawProp clusterDrawProp) {
     if (cluster == null || clusterDrawProp == null) {
       return;
@@ -102,6 +106,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return !needFlip();
   }
 
+  /** Returns whether the layout requires swapping the coordinate axes. */
   public boolean needFlip() {
     if (ignoreRankdir()) {
       return false;
@@ -130,6 +135,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return nodes(false);
   }
 
+  /** Returns node drawing properties, optionally excluding label cells. */
   @SuppressWarnings("unchecked")
   public Iterable<NodeDrawProp> nodes(boolean filterCell) {
     if (filterCell) {
@@ -143,9 +149,7 @@ public class DrawGraph extends Rectangle implements Serializable {
   }
 
   public Collection<ClusterDrawProp> clusters() {
-    return clusterDrawPropMap != null
-        ? clusterDrawPropMap.values()
-        : Collections.emptyList();
+    return clusterDrawPropMap != null ? clusterDrawPropMap.values() : Collections.emptyList();
   }
 
   public Map<Cluster, ClusterDrawProp> getClusterDrawPropMap() {
@@ -156,6 +160,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return nodeDrawPropMap.get(node);
   }
 
+  /** Returns drawing properties for a line, or null if none are registered. */
   public LineDrawProp getLineDrawProp(Line line) {
     if (line == null) {
       return null;
@@ -163,6 +168,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return getLineDrawPropMap().get(line);
   }
 
+  /** Returns drawing properties for a cluster, or null if none are registered. */
   public ClusterDrawProp getClusterDrawProp(Cluster cluster) {
     if (clusterDrawPropMap == null) {
       return null;
@@ -171,6 +177,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return clusterDrawPropMap.get(cluster);
   }
 
+  /** Returns resolved line attributes, falling back to the original attributes. */
   public LineAttrs lineAttrs(Line line) {
     Asserts.nullArgument(line, "line");
     LineDrawProp lineDrawProp = getLineDrawPropMap().get(line);
@@ -182,18 +189,29 @@ public class DrawGraph extends Rectangle implements Serializable {
     return lineDrawPropMap != null ? lineDrawPropMap : Collections.emptyMap();
   }
 
+  /** Returns the node width, or zero if the node is not registered. */
   public double width(Node node) {
     NodeDrawProp nodeDrawProp = nodeDrawPropMap.get(node);
 
     return nodeDrawProp != null ? nodeDrawProp.getWidth() : 0;
   }
 
+  public double width() {
+    return getMaxX() - getMinX();
+  }
+
+  /** Returns the node height, or zero if the node is not registered. */
   public double height(Node node) {
     NodeDrawProp nodeDrawProp = nodeDrawPropMap.get(node);
 
     return nodeDrawProp != null ? nodeDrawProp.getHeight() : 0;
   }
 
+  public double height() {
+    return getMaxY() - getMinY();
+  }
+
+  /** Returns whether drawing properties are registered for the cluster. */
   public boolean haveCluster(Cluster cluster) {
     if (clusterDrawPropMap == null || cluster == null) {
       return false;
@@ -202,6 +220,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return clusterDrawPropMap.get(cluster) != null;
   }
 
+  /** Returns the authored or generated node ID, or null for an unregistered node. */
   public String nodeId(Node node) {
     NodeDrawProp nodeDrawProp = nodeDrawPropMap.get(node);
     if (nodeDrawProp == null) {
@@ -213,6 +232,7 @@ public class DrawGraph extends Rectangle implements Serializable {
         : NODE_ID_PREFIX + nodeDrawProp.id();
   }
 
+  /** Returns the node sequence number, or zero for an unregistered node. */
   public int nodeNo(Node node) {
     NodeDrawProp nodeDrawProp = nodeDrawPropMap.get(node);
 
@@ -223,6 +243,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return nodeDrawPropMap == null ? 0 : nodeDrawPropMap.keySet().size();
   }
 
+  /** Returns the line ID, or null for an unregistered line. */
   public String lineId(Line line) {
     if (lineDrawPropMap == null) {
       return null;
@@ -231,6 +252,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return lineDrawProp != null ? lineDrawProp.id() : null;
   }
 
+  /** Returns the cluster ID, or null for an unregistered cluster. */
   public String clusterId(Cluster cluster) {
     if (clusterDrawPropMap == null) {
       return null;
@@ -239,6 +261,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     return clusterDrawProp != null ? clusterDrawProp.id() : null;
   }
 
+  /** Copies the graph drawing properties' borders into this drawing state. */
   public void syncGraphvizBorder() {
     leftBorder = graphvizDrawProp.getLeftBorder();
     rightBorder = graphvizDrawProp.getRightBorder();
@@ -246,6 +269,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     downBorder = graphvizDrawProp.getDownBorder();
   }
 
+  /** Copies this drawing state's borders into the graph drawing properties. */
   public void syncToGraphvizBorder() {
     graphvizDrawProp.setLeftBorder(leftBorder);
     graphvizDrawProp.setRightBorder(rightBorder);
@@ -276,11 +300,11 @@ public class DrawGraph extends Rectangle implements Serializable {
       updateArrowBounds(bounds, line.getArrowHead());
       updateArrowBounds(bounds, line.getArrowTail());
       updateLabelBounds(bounds, line.getLabelCenter(), line.getLabelSize());
-      for (Map.Entry<FloatLabel, FlatPoint> entry
-          : line.getFloatLabelFlatCenters().entrySet()) {
+      for (Map.Entry<FloatLabel, FlatPoint> entry : line.getFloatLabelFlatCenters().entrySet()) {
         FloatLabel floatLabel = entry.getKey();
-        FlatPoint size = FontUtils.measure(floatLabel.getLabel(), floatLabel.getFontName(),
-                                           floatLabel.getFontSize(), 0);
+        FlatPoint size =
+            FontUtils.measure(
+                floatLabel.getLabel(), floatLabel.getFontName(), floatLabel.getFontSize(), 0);
         updateLabelBounds(bounds, entry.getValue(), size);
       }
     }
@@ -334,6 +358,7 @@ public class DrawGraph extends Rectangle implements Serializable {
     bounds.updateYAxisRange(Math.max(begin.getY(), end.getY()) + radius);
   }
 
+  /** Expands both coordinate ranges to include the point and routing padding. */
   public void updateRange(FlatPoint point) {
     if (point == null) {
       return;
@@ -367,14 +392,6 @@ public class DrawGraph extends Rectangle implements Serializable {
 
   public double getMaxY() {
     return downBorder;
-  }
-
-  public double width() {
-    return getMaxX() - getMinX();
-  }
-
-  public double height() {
-    return getMaxY() - getMinY();
   }
 
   public Object getAttach() {

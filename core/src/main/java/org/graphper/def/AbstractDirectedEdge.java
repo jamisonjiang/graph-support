@@ -34,7 +34,7 @@ public abstract class AbstractDirectedEdge<V, E extends AbstractDirectedEdge<V, 
    * Initialize edges based on vertices, with weights defaulting to 0.
    *
    * @param from from vertex of edge
-   * @param to   to vertex of edge
+   * @param to to vertex of edge
    */
   protected AbstractDirectedEdge(V from, V to) {
     super(from, to);
@@ -43,8 +43,8 @@ public abstract class AbstractDirectedEdge<V, E extends AbstractDirectedEdge<V, 
   /**
    * Initialize edges from vertices and weights.
    *
-   * @param from   from vertex of edge
-   * @param to     to vertex of edge
+   * @param from from vertex of edge
+   * @param to to vertex of edge
    * @param weight weight of edge
    */
   protected AbstractDirectedEdge(V from, V to, double weight) {
@@ -73,10 +73,14 @@ public abstract class AbstractDirectedEdge<V, E extends AbstractDirectedEdge<V, 
 
   @Override
   public String toString() {
-    return "DefaultDirectedEdge{" +
-        "from=" + left +
-        ", to=" + right +
-        ", weight=" + weight +
-        "} " + super.toString();
+    return "DefaultDirectedEdge{"
+        + "from="
+        + left
+        + ", to="
+        + right
+        + ", weight="
+        + weight
+        + "} "
+        + super.toString();
   }
 }

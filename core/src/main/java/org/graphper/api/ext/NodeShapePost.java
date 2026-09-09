@@ -16,9 +16,9 @@
 
 package org.graphper.api.ext;
 
+import org.graphper.api.NodeAttrs;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.util.Asserts;
-import org.graphper.api.NodeAttrs;
 
 /**
  * {@link NodeShape} post processing.

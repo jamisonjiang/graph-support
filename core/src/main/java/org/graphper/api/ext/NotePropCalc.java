@@ -17,10 +17,11 @@
 package org.graphper.api.ext;
 
 import java.io.Serializable;
+import org.graphper.api.attributes.NodeShapeEnum;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
-import org.graphper.api.attributes.NodeShapeEnum;
 
+/** Calculates container dimensions and containment for note shapes. */
 public class NotePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = -2681885778176559296L;
@@ -61,13 +62,23 @@ public class NotePropCalc implements ShapePropCalc, Serializable {
   private boolean inRightUpCorner(Box box, FlatPoint point) {
     double rightAngleX = box.getRightBorder() - RIGHT_UP_LEN;
     double rightAngleY = box.getUpBorder() + RIGHT_UP_LEN;
-    return Vectors.inAngle(rightAngleX, rightAngleY,
-                           rightAngleX, box.getUpBorder(),
-                           box.getRightBorder(), rightAngleY,
-                           point.getX(), point.getY())
-        && Vectors.inAngle(box.getRightBorder(), rightAngleY,
-                           box.getRightBorder(), rightAngleY,
-                           rightAngleX, box.getUpBorder(),
-                           point.getX(), point.getY());
+    return Vectors.inAngle(
+            rightAngleX,
+            rightAngleY,
+            rightAngleX,
+            box.getUpBorder(),
+            box.getRightBorder(),
+            rightAngleY,
+            point.getX(),
+            point.getY())
+        && Vectors.inAngle(
+            box.getRightBorder(),
+            rightAngleY,
+            box.getRightBorder(),
+            rightAngleY,
+            rightAngleX,
+            box.getUpBorder(),
+            point.getX(),
+            point.getY());
   }
 }

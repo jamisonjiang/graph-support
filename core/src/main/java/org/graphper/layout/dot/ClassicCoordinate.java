@@ -30,17 +30,19 @@ import org.graphper.def.EdgeDedigraph;
 
 /**
  * Classic coordinate implementation for DOT layout.
- * 
- * <p>This implementation uses the traditional network simplex approach to achieve
- * global optimal x-position, providing the highest quality layout but may take
- * longer for large graphs.
+ *
+ * <p>This implementation uses the traditional network simplex approach to achieve global optimal
+ * x-position, providing the highest quality layout but may take longer for large graphs.
  */
 class ClassicCoordinate extends AbstractCoordinate {
 
   private DotDigraph auxDotDigraph;
 
-  public ClassicCoordinate(int nslimit, RankContent rankContent, DotAttachment dotAttachment,
-                      EdgeDedigraph<DNode, DLine> proxyDigraph) {
+  public ClassicCoordinate(
+      int nslimit,
+      RankContent rankContent,
+      DotAttachment dotAttachment,
+      EdgeDedigraph<DNode, DLine> proxyDigraph) {
     super(nslimit, rankContent, dotAttachment, proxyDigraph);
 
     // Auxiliary graph network simplex method to set the level
@@ -60,7 +62,8 @@ class ClassicCoordinate extends AbstractCoordinate {
     return getContainerContent(container).rightNode.getAuxRank();
   }
 
-  // ----------------------------------------------------- private method -----------------------------------------------------
+  // ----------------------------------------------------- private method
+  // -----------------------------------------------------
 
   private DotDigraph createAuxGraph() {
     auxDotDigraph = new DotDigraph(proxyDigraph.vertexNum());
@@ -87,7 +90,8 @@ class ClassicCoordinate extends AbstractCoordinate {
       for (int j = i + 1; j < siblings.size(); j++) {
         Cluster right = siblings.get(j);
         ContainerBorder rightBorder = getContainerBorder(right);
-        if (rightBorder == null || leftBorder.max < rightBorder.min
+        if (rightBorder == null
+            || leftBorder.max < rightBorder.min
             || rightBorder.max < leftBorder.min) {
           continue;
         }
@@ -194,12 +198,10 @@ class ClassicCoordinate extends AbstractCoordinate {
         DNode leftNode = rank.get(leftIndex);
         DNode rightNode = rank.get(i);
         GraphContainer commonParent = dotAttachment.commonParent(leftNode, rightNode);
-        ContainerContent left = getContainerContent(
-            dotAttachment.clusterDirectContainer(commonParent, leftNode)
-        );
-        ContainerContent right = getContainerContent(
-            dotAttachment.clusterDirectContainer(commonParent, rightNode)
-        );
+        ContainerContent left =
+            getContainerContent(dotAttachment.clusterDirectContainer(commonParent, leftNode));
+        ContainerContent right =
+            getContainerContent(dotAttachment.clusterDirectContainer(commonParent, rightNode));
         if (left != null && right != null && left.container != right.container) {
           auxDotDigraph.addEdge(new DLine(left.rightNode, right.leftNode, 0, 16, false));
         }
@@ -259,8 +261,8 @@ class ClassicCoordinate extends AbstractCoordinate {
       other.switchNormalModel();
 
       if (dLine.from().getRank() == dLine.to().getRank()) {
-        DNode from = dLine.from().getRankIndex() < dLine.to().getRankIndex()
-            ? dLine.from() : dLine.to();
+        DNode from =
+            dLine.from().getRankIndex() < dLine.to().getRankIndex() ? dLine.from() : dLine.to();
         DNode to = dLine.other(from);
 
         sameRankLine((int) (from.getNodeSep() * dLine.limit()), from, to, 1);
@@ -356,30 +358,26 @@ class ClassicCoordinate extends AbstractCoordinate {
         return;
       }
 
-      ContainerContent containerContent = getContainerContent(
-          dotAttachment.clusterDirectContainer(commonParent, other)
-      );
-      auxDotDigraph.addEdge(new DLine(node, containerContent.leftNode, 0,
-                                      (int) (20 + node.rightWidth()), false));
+      ContainerContent containerContent =
+          getContainerContent(dotAttachment.clusterDirectContainer(commonParent, other));
+      auxDotDigraph.addEdge(
+          new DLine(node, containerContent.leftNode, 0, (int) (20 + node.rightWidth()), false));
     }
     if (commonParent == other.getContainer()) {
       if (other.isRoutingVirtual()) {
         return;
       }
 
-      ContainerContent containerContent = getContainerContent(
-          dotAttachment.clusterDirectContainer(commonParent, node)
-      );
-      auxDotDigraph.addEdge(new DLine(containerContent.rightNode, other, 0,
-                                      (int) (20 + other.leftWidth()), false));
+      ContainerContent containerContent =
+          getContainerContent(dotAttachment.clusterDirectContainer(commonParent, node));
+      auxDotDigraph.addEdge(
+          new DLine(containerContent.rightNode, other, 0, (int) (20 + other.leftWidth()), false));
     } else {
 
-      ContainerContent left = getContainerContent(
-          dotAttachment.clusterDirectContainer(commonParent, node)
-      );
-      ContainerContent right = getContainerContent(
-          dotAttachment.clusterDirectContainer(commonParent, other)
-      );
+      ContainerContent left =
+          getContainerContent(dotAttachment.clusterDirectContainer(commonParent, node));
+      ContainerContent right =
+          getContainerContent(dotAttachment.clusterDirectContainer(commonParent, other));
       if (left != null && right != null) {
         auxDotDigraph.addEdge(new DLine(left.rightNode, right.leftNode, 0, 16, false));
       }
@@ -395,11 +393,19 @@ class ClassicCoordinate extends AbstractCoordinate {
     if (containerContent.container.isGraphviz()) {
       return;
     }
-    auxDotDigraph.addEdge(new DLine(containerContent.leftNode, node, 0,
-                                    (int) (containerContent.leftMargin + node.leftWidth()), false));
-    auxDotDigraph.addEdge(new DLine(node, containerContent.rightNode, 0,
-                                    (int) (containerContent.rightMargin + node.rightWidth()),
-                                    false));
+    auxDotDigraph.addEdge(
+        new DLine(
+            containerContent.leftNode,
+            node,
+            0,
+            (int) (containerContent.leftMargin + node.leftWidth()),
+            false));
+    auxDotDigraph.addEdge(
+        new DLine(
+            node,
+            containerContent.rightNode,
+            0,
+            (int) (containerContent.rightMargin + node.rightWidth()),
+            false));
   }
-
 }

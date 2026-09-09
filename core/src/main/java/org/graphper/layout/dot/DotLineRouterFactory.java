@@ -38,8 +38,9 @@ abstract class DotLineRouterFactory<T extends LineRouter> {
     return splines != Splines.NONE;
   }
 
-  protected abstract T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph,
-                                   RankContent rankContent,
-                                   EdgeDedigraph<DNode, DLine> digraphProxy);
+  protected abstract T newInstance(
+      DrawGraph drawGraph,
+      DotDigraph dotDigraph,
+      RankContent rankContent,
+      EdgeDedigraph<DNode, DLine> digraphProxy);
 }
-

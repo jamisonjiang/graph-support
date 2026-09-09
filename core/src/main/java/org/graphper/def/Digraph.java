@@ -29,8 +29,8 @@ public interface Digraph<V> extends BaseGraph<V> {
    * Returns the number of out vertex neighbors. Returns 0 if the vertex does not exist in the
    * graph.
    *
-   * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), degree indicates 
-   * the out-degree (outgoing neighbors only). This is different from {@link Dedigraph} where degree 
+   * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), degree indicates
+   * the out-degree (outgoing neighbors only). This is different from {@link Dedigraph} where degree
    * indicates the sum of in-degree and out-degree.
    *
    * @param v vertex to be queried
@@ -72,9 +72,9 @@ public interface Digraph<V> extends BaseGraph<V> {
      * {@code adjacent(v)} must contain <tt>w</tt>, but in turn {@code adjacent(w)} not contain
      * <tt>v</tt> (assuming there is no edge from w to v in the graph).
      *
-     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent 
-     * method returns only the out-neighbors (vertices reachable via outgoing edges from the 
-     * specified vertex). This is different from {@link Dedigraph} where adjacent returns all 
+     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent
+     * method returns only the out-neighbors (vertices reachable via outgoing edges from the
+     * specified vertex). This is different from {@link Dedigraph} where adjacent returns all
      * neighbors (both in and out).
      *
      * @param v vertex to be queried
@@ -110,9 +110,10 @@ public interface Digraph<V> extends BaseGraph<V> {
      * {@code adjacent(v)} must contain <tt>w</tt>, but in turn {@code adjacent(w)} not contain
      * <tt>v</tt> (assuming there is no edge from w to v in the graph).
      *
-     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent 
-     * method returns only the outgoing edges (edges originating from the specified vertex). This 
-     * is different from {@link Dedigraph} where adjacent returns all edges (both incoming and outgoing).
+     * <p>For single-direction directed graphs (not subclass of {@link Dedigraph}), the adjacent
+     * method returns only the outgoing edges (edges originating from the specified vertex). This is
+     * different from {@link Dedigraph} where adjacent returns all edges (both incoming and
+     * outgoing).
      *
      * @param v vertex to be queried
      * @return all adjacent edges (outgoing edges only)
@@ -125,17 +126,18 @@ public interface Digraph<V> extends BaseGraph<V> {
      * in the graph, and a reversed direction edge will be created and inserted into the current
      * graph, and finally the new reversed directed edge will be returned. Returns <tt>null</tt> if
      * the edge does not exist. This action is equivalent to the following sequence of actions:
-     * <pre> {@code
-     *   EdgeDigraph<V, E> digraph = ...;
-     *   E edge = ...;
      *
-     *   // Remove edge from graph
-     *   if (digraph.remove(edge)) {
-     *      // Manually flip edges
-     *      edge = edge.reverse();
-     *      // Insert the reversed edge
-     *      digraph.addEdge(edge);
-     *   }
+     * <pre>{@code
+     * EdgeDigraph<V, E> digraph = ...;
+     * E edge = ...;
+     *
+     * // Remove edge from graph
+     * if (digraph.remove(edge)) {
+     *    // Manually flip edges
+     *    edge = edge.reverse();
+     *    // Insert the reversed edge
+     *    digraph.addEdge(edge);
+     * }
      * }</pre>
      *
      * @param e edge that needs to be reversed

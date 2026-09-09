@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import org.graphper.def.BaseGraph;
+import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.layout.dot.RankContent.RankNode;
 
 /**
  * Used to store nodes, grouped by hierarchy.
@@ -45,8 +45,11 @@ class RankContent implements Iterable<RankNode> {
 
   Map<Integer, RankNode> rankNodeMap;
 
-  RankContent(BaseGraph<DNode> graph, double rankSep,
-              boolean positiveRank, Consumer<DNode[]> sortNodesConsumer) {
+  RankContent(
+      BaseGraph<DNode> graph,
+      double rankSep,
+      boolean positiveRank,
+      Consumer<DNode[]> sortNodesConsumer) {
     this.rankNodeMap = new HashMap<>();
     this.rankSep = rankSep;
     this.positiveRank = positiveRank;
@@ -125,9 +128,11 @@ class RankContent implements Iterable<RankNode> {
 
   RankNode insertLabelRankNode(int idx) {
     RankNode rankNode = rankNodeMap.get(idx);
-    // The current rank must be a normal rank, and the rank above the rank must also be a normal rank
-    if (rankNode == null || rankNode.noNormalNode() || (rankNode.pre != null && rankNode.pre
-        .noNormalNode())) {
+    // The current rank must be a normal rank, and the rank above the rank must also be a normal
+    // rank
+    if (rankNode == null
+        || rankNode.noNormalNode()
+        || (rankNode.pre != null && rankNode.pre.noNormalNode())) {
       return null;
     }
 
@@ -136,8 +141,7 @@ class RankContent implements Iterable<RankNode> {
     }
 
     RankNode r = new RankNode(rankNode.pre, rankNode, 0);
-    r.setRankSep(
-        rankNode.pre != null ? rankNode.pre.getRankSep() : rankNode.getRankSep());
+    r.setRankSep(rankNode.pre != null ? rankNode.pre.getRankSep() : rankNode.getRankSep());
     if (rankNode.pre != null) {
       rankNode.pre.next = r;
     }
@@ -237,11 +241,14 @@ class RankContent implements Iterable<RankNode> {
 
   @Override
   public String toString() {
-    return "RankContent{\n" +
-        "rankNodeMap=" + rankNodeMap +
-        ", \nminRank=" + minRank +
-        ", \nmaxRank=" + maxRank +
-        "\n}";
+    return "RankContent{\n"
+        + "rankNodeMap="
+        + rankNodeMap
+        + ", \nminRank="
+        + minRank
+        + ", \nmaxRank="
+        + maxRank
+        + "\n}";
   }
 
   @Override
@@ -249,9 +256,7 @@ class RankContent implements Iterable<RankNode> {
     return rankNodeMap.values().iterator();
   }
 
-  /**
-   * Rank information for graphs.
-   */
+  /** Rank information for graphs. */
   static class RankNode implements Iterable<DNode> {
 
     private double startY;

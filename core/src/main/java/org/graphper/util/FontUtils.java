@@ -17,15 +17,17 @@
 package org.graphper.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.ServiceLoader;
+import java.util.ServiceConfigurationError;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.layout.FontSelector;
-import org.graphper.layout.MeasureText;
 import org.graphper.layout.LabelLines;
+import org.graphper.layout.MeasureText;
+import org.graphper.layout.RoughMeasureText;
 
 /**
  * Utility class for font-related operations. Provides methods to measure text dimensions, check
@@ -42,9 +44,7 @@ public class FontUtils {
   private static final MeasureText MEASURE_TEXT = selectMeasureText();
   private static final FontSelector FONT_SELECTOR = selectFontSelector();
 
-  /**
-   * Default font to use when no suitable font is specified or found.
-   */
+  /** Default font to use when no suitable font is specified or found. */
   public static final String DEFAULT_FONT = defaultFont();
 
   private static String defaultFont() {
@@ -53,62 +53,66 @@ public class FontUtils {
   }
 
   private static MeasureText selectMeasureText() {
-    ServiceLoader<MeasureText> measureTextServiceLoader = ServiceLoader.load(MeasureText.class);
-    MeasureText measureText = null;
-    for (MeasureText ms : measureTextServiceLoader) {
-      if (!ms.envSupport()) {
-        continue;
-      }
-
-      if (measureText == null || measureText.order() > ms.order()) {
-        measureText = ms;
-      }
-    }
-
-    if (measureText == null) {
-      throw new RuntimeException("Could not find any available MeasureText");
-    }
-
-    return measureText;
+    List<MeasureText> providers = OptionalProviders.load(MeasureText.class);
+    return providers.isEmpty() ? new RoughMeasureText() : providers.get(0);
   }
 
   private static FontSelector selectFontSelector() {
-    ServiceLoader<FontSelector> fontSelectorServiceLoader = ServiceLoader.load(FontSelector.class);
-    FontSelector fontSelector = null;
-    for (FontSelector fs : fontSelectorServiceLoader) {
-      if (!fs.envSupport()) {
-        continue;
-      }
-
-      if (fontSelector == null || fontSelector.order() > fs.order()) {
-        fontSelector = fs;
+    for (FontSelector selector : OptionalProviders.load(FontSelector.class)) {
+      try {
+        // System font enumeration may link native APIs only on first use.
+        selector.defaultFont();
+        return selector;
+      } catch (ServiceConfigurationError | LinkageError | RuntimeException e) {
+        // Try the next supported provider before falling back to a font name only.
       }
     }
+    return new FontSelector() {
+      @Override
+      public String defaultFont() {
+        return "Times New Roman";
+      }
 
-    if (fontSelector == null) {
-      throw new RuntimeException("Could not find any available FontSelector");
-    }
-    return fontSelector;
+      @Override
+      public int order() {
+        return Integer.MAX_VALUE;
+      }
+
+      @Override
+      public boolean envSupport() {
+        return true;
+      }
+
+      @Override
+      public boolean exists(String fontName) {
+        return false;
+      }
+
+      @Override
+      public boolean fontSupport(String fontName, char c) {
+        // Preserve explicit SVG font names; the viewer, not this runtime, resolves them.
+        return StringUtils.isNotEmpty(fontName);
+      }
+    };
   }
 
   /**
    * Measures the actual size of a label's bounding box based on its content, font, and size.
    *
-   * @param label      the label content to measure
-   * @param fontName   the name of the font used for the label
-   * @param fontSize   the size of the font
-   * @param widthIncr  additional width added for fault tolerance
+   * @param label the label content to measure
+   * @param fontName the name of the font used for the label
+   * @param fontSize the size of the font
+   * @param widthIncr additional width added for fault tolerance
    * @param fontStyles the font styles of label
    * @return a {@link FlatPoint} representing the width and height of the label
    * @throws RuntimeException if the measurement operation fails or returns null
    */
-  public static FlatPoint measure(String label, String fontName, double fontSize,
-                                  double widthIncr, FontStyle... fontStyles) {
-    FlatPoint size = MEASURE_TEXT.measure(LabelLines.plainText(label), fontName, fontSize,
-                                          fontStyles);
+  public static FlatPoint measure(
+      String label, String fontName, double fontSize, double widthIncr, FontStyle... fontStyles) {
+    FlatPoint size =
+        MEASURE_TEXT.measure(LabelLines.plainText(label), fontName, fontSize, fontStyles);
     if (size == null) {
-      throw new RuntimeException(
-          "Unexpected error: MeasureText returned null for label size");
+      throw new RuntimeException("Unexpected error: MeasureText returned null for label size");
     }
     size.setWidth(size.getWidth() + widthIncr);
     return size;
@@ -129,7 +133,7 @@ public class FontUtils {
    *
    * @param c the character to check
    * @return the name of the first font that supports the character, or {@code null} if none is
-   * found
+   *     found
    */
   public static String findFirstSupportFont(char c) {
     return FONT_SELECTOR.findFirstSupportFont(c);
@@ -140,7 +144,7 @@ public class FontUtils {
    * in the text, it is returned. Otherwise, the font that supports the most characters in the text
    * is selected.
    *
-   * @param text     the text to be rendered
+   * @param text the text to be rendered
    * @param fontName the preferred font name
    * @return the selected font name
    */

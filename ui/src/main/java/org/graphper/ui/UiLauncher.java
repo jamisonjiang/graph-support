@@ -30,6 +30,7 @@ import javax.swing.UIManager;
  */
 public final class UiLauncher {
 
+  /** Schedules the desktop editor's creation and initial render on the Swing event thread. */
   public static void launch() {
     System.setProperty("apple.awt.application.name", "graph-support DOT Studio");
     SwingUtilities.invokeLater(() -> {

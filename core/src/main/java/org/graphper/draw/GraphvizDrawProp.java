@@ -46,9 +46,9 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   private List<Segment> grid;
 
   /**
-   * Identity scope of the graph label. There is exactly one {@code GraphvizDrawProp} per
-   * {@link DrawGraph}, so a constant is already unique among the label owners of a graph, all of
-   * which carry an owner kind prefix.
+   * Identity scope of the graph label. There is exactly one {@code GraphvizDrawProp} per {@link
+   * DrawGraph}, so a constant is already unique among the label owners of a graph, all of which
+   * carry an owner kind prefix.
    */
   private static final String LABEL_SCOPE = "graph";
 
@@ -59,6 +59,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
    */
   private final LabelIdSpace labelIdSpace = new LabelIdSpace();
 
+  /** Creates graph drawing properties and reserves node IDs for label conversion. */
   public GraphvizDrawProp(Graphviz graphviz) {
     Asserts.nullArgument(graphviz, "graphviz");
     this.graphviz = graphviz;
@@ -71,8 +72,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
     for (Node node : graphviz.nodes()) {
       labelIdSpace.reserve(node.nodeAttrs().getId());
     }
-    convertToAssemble(graphviz.graphAttrs().getTable(),
-                      graphviz.graphAttrs().getLabelTag());
+    convertToAssemble(graphviz.graphAttrs().getTable(), graphviz.graphAttrs().getLabelTag());
   }
 
   @Override
@@ -90,16 +90,14 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
     return labelIdSpace;
   }
 
-  /**
-   * The graph owns the identity space of its labels and never borrows one.
-   */
+  /** The graph owns the identity space of its labels and never borrows one. */
   @Override
   public void setLabelIdSpace(LabelIdSpace labelIdSpace) {
     // no-op
   }
 
   /**
-   * Returns the graphviz
+   * Returns the graphviz.
    *
    * @return graphviz
    */
@@ -147,8 +145,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
   }
 
   /**
-   * Returns the line segment used to draw the grid in
-   * {@link Splines#ORTHO}.
+   * Returns the line segment used to draw the grid in {@link Splines#ORTHO}.
    *
    * @return the line segments of grid
    */
@@ -156,6 +153,7 @@ public class GraphvizDrawProp extends ContainerDrawProp implements Serializable 
     return grid;
   }
 
+  /** Adds a non-null segment to the routing grid. */
   public void addSegment(Segment segment) {
     if (segment == null) {
       return;

@@ -107,8 +107,7 @@ public class LineAttrs implements Serializable, Cloneable {
 
   Assemble assemble;
 
-  LineAttrs() {
-  }
+  LineAttrs() {}
 
   public String getId() {
     return id;
@@ -196,6 +195,7 @@ public class LineAttrs implements Serializable, Cloneable {
     return sameHead;
   }
 
+  /** Returns the configured styles, or an empty collection when none are set. */
   public Collection<LineStyle> getStyles() {
     if (CollectionUtils.isEmpty(styles)) {
       return Collections.emptyList();
@@ -276,9 +276,12 @@ public class LineAttrs implements Serializable, Cloneable {
     return Objects.equals(id, lineAttrs.id)
         && Objects.equals(controlPoints, lineAttrs.controlPoints)
         && Objects.equals(showboxes, lineAttrs.showboxes)
-        && arrowHead == lineAttrs.arrowHead && arrowTail == lineAttrs.arrowTail
-        && Objects.equals(arrowSize, lineAttrs.arrowSize) && Objects.equals(color, lineAttrs.color)
-        && dir == lineAttrs.dir && Objects.equals(fontColor, lineAttrs.fontColor)
+        && arrowHead == lineAttrs.arrowHead
+        && arrowTail == lineAttrs.arrowTail
+        && Objects.equals(arrowSize, lineAttrs.arrowSize)
+        && Objects.equals(color, lineAttrs.color)
+        && dir == lineAttrs.dir
+        && Objects.equals(fontColor, lineAttrs.fontColor)
         && Objects.equals(fontSize, lineAttrs.fontSize)
         && Objects.equals(fontName, lineAttrs.fontName)
         && Objects.equals(headclip, lineAttrs.headclip)
@@ -290,24 +293,56 @@ public class LineAttrs implements Serializable, Cloneable {
         && Objects.equals(weight, lineAttrs.weight)
         && Objects.equals(label, lineAttrs.label)
         && Objects.equals(labelTag, lineAttrs.labelTag)
-        && Objects.equals(styles, lineAttrs.styles) && Objects.equals(lhead, lineAttrs.lhead)
-        && Objects.equals(ltail, lineAttrs.ltail) && Objects.equals(radian, lineAttrs.radian)
+        && Objects.equals(styles, lineAttrs.styles)
+        && Objects.equals(lhead, lineAttrs.lhead)
+        && Objects.equals(ltail, lineAttrs.ltail)
+        && Objects.equals(radian, lineAttrs.radian)
         && Arrays.equals(floatLabels, lineAttrs.floatLabels)
-        && tailPort == lineAttrs.tailPort && headPort == lineAttrs.headPort
-        && Objects.equals(tailCell, lineAttrs.tailCell) && Objects.equals(
-        headCell, lineAttrs.headCell) && Objects.equals(href, lineAttrs.href)
+        && tailPort == lineAttrs.tailPort
+        && headPort == lineAttrs.headPort
+        && Objects.equals(tailCell, lineAttrs.tailCell)
+        && Objects.equals(headCell, lineAttrs.headCell)
+        && Objects.equals(href, lineAttrs.href)
         && Objects.equals(tooltip, lineAttrs.tooltip)
         && Objects.equals(penWidth, lineAttrs.penWidth)
-        && Objects.equals(table, lineAttrs.table) && Objects.equals(assemble, lineAttrs.assemble);
+        && Objects.equals(table, lineAttrs.table)
+        && Objects.equals(assemble, lineAttrs.assemble);
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hash(id, controlPoints, showboxes, arrowHead, arrowTail, arrowSize, color,
-                              dir, fontColor, fontSize, fontName, headclip, tailclip, minlen,
-                              weight, label, labelTag, styles, lhead, ltail, radian, tailPort,
-                              headPort, tailCell, headCell, href, tooltip, penWidth, table,
-                              assemble);
+    int result =
+        Objects.hash(
+            id,
+            controlPoints,
+            showboxes,
+            arrowHead,
+            arrowTail,
+            arrowSize,
+            color,
+            dir,
+            fontColor,
+            fontSize,
+            fontName,
+            headclip,
+            tailclip,
+            minlen,
+            weight,
+            label,
+            labelTag,
+            styles,
+            lhead,
+            ltail,
+            radian,
+            tailPort,
+            headPort,
+            tailCell,
+            headCell,
+            href,
+            tooltip,
+            penWidth,
+            table,
+            assemble);
     result = 31 * result + Arrays.hashCode(floatLabels);
     if (constraint != null || sameTail != null || sameHead != null) {
       result = 31 * result + Objects.hash(constraint, sameTail, sameHead);
@@ -317,41 +352,87 @@ public class LineAttrs implements Serializable, Cloneable {
 
   @Override
   public String toString() {
-    return "LineAttrs{" +
-        "id='" + id + '\'' +
-        ", controlPoints=" + controlPoints +
-        ", showboxes=" + showboxes +
-        ", arrowHead=" + arrowHead +
-        ", arrowTail=" + arrowTail +
-        ", arrowSize=" + arrowSize +
-        ", color=" + color +
-        ", dir=" + dir +
-        ", fontColor=" + fontColor +
-        ", fontSize=" + fontSize +
-        ", fontName='" + fontName + '\'' +
-        ", headclip=" + headclip +
-        ", tailclip=" + tailclip +
-        ", minlen=" + minlen +
-        ", constraint=" + constraint +
-        ", sameTail='" + sameTail + '\'' +
-        ", sameHead='" + sameHead + '\'' +
-        ", weight=" + weight +
-        ", label='" + label + '\'' +
-        ", labelTag='" + labelTag + '\'' +
-        ", styles=" + styles +
-        ", lhead='" + lhead + '\'' +
-        ", ltail='" + ltail + '\'' +
-        ", radian=" + radian +
-        ", floatLabels=" + Arrays.toString(floatLabels) +
-        ", tailPort=" + tailPort +
-        ", headPort=" + headPort +
-        ", tailCell='" + tailCell + '\'' +
-        ", headCell='" + headCell + '\'' +
-        ", href='" + href + '\'' +
-        ", tooltip='" + tooltip + '\'' +
-        ", penWidth=" + penWidth +
-        ", table=" + table +
-        ", assemble=" + assemble +
-        '}';
+    return "LineAttrs{"
+        + "id='"
+        + id
+        + '\''
+        + ", controlPoints="
+        + controlPoints
+        + ", showboxes="
+        + showboxes
+        + ", arrowHead="
+        + arrowHead
+        + ", arrowTail="
+        + arrowTail
+        + ", arrowSize="
+        + arrowSize
+        + ", color="
+        + color
+        + ", dir="
+        + dir
+        + ", fontColor="
+        + fontColor
+        + ", fontSize="
+        + fontSize
+        + ", fontName='"
+        + fontName
+        + '\''
+        + ", headclip="
+        + headclip
+        + ", tailclip="
+        + tailclip
+        + ", minlen="
+        + minlen
+        + ", constraint="
+        + constraint
+        + ", sameTail='"
+        + sameTail
+        + '\''
+        + ", sameHead='"
+        + sameHead
+        + '\''
+        + ", weight="
+        + weight
+        + ", label='"
+        + label
+        + '\''
+        + ", labelTag='"
+        + labelTag
+        + '\''
+        + ", styles="
+        + styles
+        + ", lhead='"
+        + lhead
+        + '\''
+        + ", ltail='"
+        + ltail
+        + '\''
+        + ", radian="
+        + radian
+        + ", floatLabels="
+        + Arrays.toString(floatLabels)
+        + ", tailPort="
+        + tailPort
+        + ", headPort="
+        + headPort
+        + ", tailCell='"
+        + tailCell
+        + '\''
+        + ", headCell='"
+        + headCell
+        + '\''
+        + ", href='"
+        + href
+        + '\''
+        + ", tooltip='"
+        + tooltip
+        + '\''
+        + ", penWidth="
+        + penWidth
+        + ", table="
+        + table
+        + ", assemble="
+        + assemble
+        + '}';
   }
 }

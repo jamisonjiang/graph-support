@@ -24,6 +24,7 @@ import org.graphper.draw.PipelineFactory;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgRenderEngine;
 
+/** Renders graphs through SVG with optional output format conversion. */
 public class CommonRenderEngine extends SvgRenderEngine {
 
   private static final CommonRenderEngine instance;
@@ -42,11 +43,12 @@ public class CommonRenderEngine extends SvgRenderEngine {
 
   @Override
   protected DrawBoard<SvgBrush, SvgBrush, SvgBrush, SvgBrush> drawBoard(DrawGraph drawGraph) {
-    CommonDrawBoard drawBoard = new CommonDrawBoard(drawGraph);
     Object attach = drawGraph.getAttach();
-    if (attach instanceof FileType) {
-      drawBoard.setImageType((FileType) attach);
+    if (!(attach instanceof FileType) || attach == FileType.SVG) {
+      return super.drawBoard(drawGraph);
     }
+    CommonDrawBoard drawBoard = new CommonDrawBoard(drawGraph);
+    drawBoard.setImageType((FileType) attach);
     return drawBoard;
   }
 }

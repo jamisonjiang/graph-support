@@ -35,6 +35,7 @@ import org.graphper.util.CollectionUtils;
  *
  * <p>The following is an example that combines multiple iterators and performs transformations and
  * filters during iteration.
+ *
  * <pre>
  * <Strong>1. Indication of the type to be combined:</Strong>
  *   {@code
@@ -75,19 +76,13 @@ import org.graphper.util.CollectionUtils;
  */
 public class ConcatIterable<P, T> implements Iterable<T> {
 
-  /**
-   * Iterator collection.
-   */
+  /** Iterator collection. */
   private final Collection<? extends Iterable<? extends P>> iterables;
 
-  /**
-   * Element filter, filtering is done before conversion.
-   */
+  /** Element filter, filtering is done before conversion. */
   private final Predicate<? super T> filter;
 
-  /**
-   * Element converter, must pass filter before transform.
-   */
+  /** Element converter, must pass filter before transform. */
   private final Function<? super P, ? extends T> converter;
 
   /**
@@ -99,8 +94,8 @@ public class ConcatIterable<P, T> implements Iterable<T> {
    * @throws NullPointerException if the converter is null or iterables is empty
    */
   @SafeVarargs
-  public ConcatIterable(Function<? super P, ? extends T> converter,
-                        Iterable<? extends P>... iterables) {
+  public ConcatIterable(
+      Function<? super P, ? extends T> converter, Iterable<? extends P>... iterables) {
     this(converter, Stream.of(iterables).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
@@ -108,17 +103,20 @@ public class ConcatIterable<P, T> implements Iterable<T> {
    * Creates a combined iterator from the passed iterator array, using {@code filter} as the element
    * filter and using {@code converter} as the element converter.
    *
-   * @param filter    element filter
+   * @param filter element filter
    * @param converter element converter
    * @param iterables all iterators to be grouped
    * @throws NullPointerException if the converter is null or iterables is empty
    */
   @SafeVarargs
-  public ConcatIterable(Predicate<? super T> filter,
-                        Function<? super P, ? extends T> converter,
-                        Iterable<? extends P>... iterables) {
-    this(filter, converter, Stream.of(iterables).filter(Objects::nonNull)
-        .collect(Collectors.toList()));
+  public ConcatIterable(
+      Predicate<? super T> filter,
+      Function<? super P, ? extends T> converter,
+      Iterable<? extends P>... iterables) {
+    this(
+        filter,
+        converter,
+        Stream.of(iterables).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
   /**
@@ -128,10 +126,11 @@ public class ConcatIterable<P, T> implements Iterable<T> {
    * @param converter element converter
    * @param iterables all iterators to be grouped
    * @throws IllegalArgumentException empty iterator collection
-   * @throws NullPointerException     if the converter is null
+   * @throws NullPointerException if the converter is null
    */
-  public ConcatIterable(Function<? super P, ? extends T> converter,
-                        Collection<? extends Iterable<? extends P>> iterables) {
+  public ConcatIterable(
+      Function<? super P, ? extends T> converter,
+      Collection<? extends Iterable<? extends P>> iterables) {
     this(null, converter, iterables);
   }
 
@@ -139,15 +138,16 @@ public class ConcatIterable<P, T> implements Iterable<T> {
    * Creates a combined iterator from the passed iterator collection, using {@code filter} as the
    * element filter and using {@code converter} as the element converter.
    *
-   * @param filter    element filter
+   * @param filter element filter
    * @param converter element converter
    * @param iterables all iterators to be grouped
    * @throws IllegalArgumentException empty iterator collection
-   * @throws NullPointerException     if the converter is null
+   * @throws NullPointerException if the converter is null
    */
-  public ConcatIterable(Predicate<? super T> filter,
-                        Function<? super P, ? extends T> converter,
-                        Collection<? extends Iterable<? extends P>> iterables) {
+  public ConcatIterable(
+      Predicate<? super T> filter,
+      Function<? super P, ? extends T> converter,
+      Collection<? extends Iterable<? extends P>> iterables) {
     Asserts.illegalArgument(CollectionUtils.isEmpty(iterables), "iterables is empty!");
     Asserts.nullArgument(converter, "converter");
     this.iterables = iterables;
@@ -157,11 +157,12 @@ public class ConcatIterable<P, T> implements Iterable<T> {
 
   @Override
   public Iterator<T> iterator() {
-    Iterator<? extends Iterator<? extends P>> iterator = iterables.stream()
-        .map(Iterable::iterator)
-        .filter(Iterator::hasNext)
-        .collect(Collectors.toList())
-        .iterator();
+    Iterator<? extends Iterator<? extends P>> iterator =
+        iterables.stream()
+            .map(Iterable::iterator)
+            .filter(Iterator::hasNext)
+            .collect(Collectors.toList())
+            .iterator();
 
     if (!iterator.hasNext()) {
       return Collections.emptyIterator();
@@ -206,8 +207,9 @@ public class ConcatIterable<P, T> implements Iterable<T> {
 
     private final Function<? super P, ? extends T> converter;
 
-    private ConcatIterator(Iterator<? extends Iterator<? extends P>> iterators,
-                           Function<? super P, ? extends T> converter) {
+    private ConcatIterator(
+        Iterator<? extends Iterator<? extends P>> iterators,
+        Function<? super P, ? extends T> converter) {
       this.iterators = iterators;
       this.converter = converter;
     }
@@ -262,9 +264,10 @@ public class ConcatIterable<P, T> implements Iterable<T> {
 
     private final Predicate<? super T> filter;
 
-    private FilterContactIterator(Iterator<? extends Iterator<? extends P>> iterators,
-                                  Function<? super P, ? extends T> converter,
-                                  Predicate<? super T> filter) {
+    private FilterContactIterator(
+        Iterator<? extends Iterator<? extends P>> iterators,
+        Function<? super P, ? extends T> converter,
+        Predicate<? super T> filter) {
       super(iterators, converter);
       Asserts.nullArgument(filter, "filter");
       this.filter = filter;

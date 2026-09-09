@@ -30,8 +30,7 @@ class DotDigraph extends LayoutGraph<DNode, DLine> {
     super(capacity);
   }
 
-  public DotDigraph(int capacity, Graphviz graphviz,
-                    Map<Node, DNode> nodeMap) {
+  public DotDigraph(int capacity, Graphviz graphviz, Map<Node, DNode> nodeMap) {
     super(capacity, graphviz, nodeMap);
   }
 

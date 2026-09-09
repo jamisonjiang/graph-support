@@ -44,7 +44,7 @@ public class UnaryConcatIterable<T> extends ConcatIterable<T, T> {
    * Creates a combined iterator from the passed iterator array, using {@code filter} as the element
    * filter.
    *
-   * @param filter    element filter
+   * @param filter element filter
    * @param iterables all iterators to be grouped
    * @throws NullPointerException if the converter is null or iterables is empty
    */
@@ -58,7 +58,7 @@ public class UnaryConcatIterable<T> extends ConcatIterable<T, T> {
    *
    * @param iterables all iterators to be grouped
    * @throws IllegalArgumentException empty iterator collection
-   * @throws NullPointerException     if the converter is null
+   * @throws NullPointerException if the converter is null
    */
   public UnaryConcatIterable(Collection<? extends Iterable<? extends T>> iterables) {
     super(Function.identity(), iterables);
@@ -68,13 +68,13 @@ public class UnaryConcatIterable<T> extends ConcatIterable<T, T> {
    * Creates a combined iterator from the passed iterator collection, using {@code filter} as the
    * element filter.
    *
-   * @param filter    element filter
+   * @param filter element filter
    * @param iterables all iterators to be grouped
    * @throws IllegalArgumentException empty iterator collection
-   * @throws NullPointerException     if the converter is null
+   * @throws NullPointerException if the converter is null
    */
-  public UnaryConcatIterable(Predicate<? super T> filter,
-                             Collection<? extends Iterable<? extends T>> iterables) {
+  public UnaryConcatIterable(
+      Predicate<? super T> filter, Collection<? extends Iterable<? extends T>> iterables) {
     super(filter, Function.identity(), iterables);
   }
 }

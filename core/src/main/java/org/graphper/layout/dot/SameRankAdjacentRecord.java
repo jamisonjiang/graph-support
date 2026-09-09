@@ -40,8 +40,8 @@ class SameRankAdjacentRecord {
       outSameRankAdjacent = new HashMap<>();
     }
 
-    SameRankAdjacentInfo sameRankAdjacentInfo = outSameRankAdjacent
-        .computeIfAbsent(node, n -> new SameRankAdjacentInfo());
+    SameRankAdjacentInfo sameRankAdjacentInfo =
+        outSameRankAdjacent.computeIfAbsent(node, n -> new SameRankAdjacentInfo());
 
     if (outContains(line.other(node), node)) {
       addOutAdjacent(line.other(node), line);
@@ -65,8 +65,8 @@ class SameRankAdjacentRecord {
       inSameRankRecord = new HashMap<>();
     }
 
-    SameRankAdjacentInfo sameRankAdjacentInfo = inSameRankRecord
-        .computeIfAbsent(node, n -> new SameRankAdjacentInfo());
+    SameRankAdjacentInfo sameRankAdjacentInfo =
+        inSameRankRecord.computeIfAbsent(node, n -> new SameRankAdjacentInfo());
     if (sameRankAdjacentInfo.nodes == null) {
       sameRankAdjacentInfo.nodes = new TreeSet<>(this::sameRankNodeCompare);
     }
@@ -155,7 +155,6 @@ class SameRankAdjacentRecord {
     }
     return n.isVirtual() ? -1 : 1;
   }
-
 
   static class SameRankAdjacentInfo {
 

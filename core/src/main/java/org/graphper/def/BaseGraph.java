@@ -77,11 +77,14 @@ public interface BaseGraph<V> extends Iterable<V> {
    * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.
    *
    * <p>The meaning of "degree" varies depending on the graph type:
+   *
    * <ul>
-   * <li>For undirected graphs ({@link Graph}): degree indicates all neighbor nodes connected to the vertex</li>
-   * <li>For bidirectional directed graphs ({@link EdgeDedigraph}, {@link VertexDedigraph}):
-   * degree indicates all neighbor nodes (sum of in-degree and out-degree)</li>
-   * <li>For single-direction directed graphs ({@link Digraph}): degree indicates the out-degree (outgoing neighbors only)</li>
+   *   <li>For undirected graphs ({@link Graph}): degree indicates all neighbor nodes connected to
+   *       the vertex
+   *   <li>For bidirectional directed graphs ({@link EdgeDedigraph}, {@link VertexDedigraph}):
+   *       degree indicates all neighbor nodes (sum of in-degree and out-degree)
+   *   <li>For single-direction directed graphs ({@link Digraph}): degree indicates the out-degree
+   *       (outgoing neighbors only)
    * </ul>
    *
    * @param v vertex to be queried
@@ -156,9 +159,7 @@ public interface BaseGraph<V> extends Iterable<V> {
    */
   V[] toArray();
 
-  /**
-   * Removes all the vertices and edges from this graph.
-   */
+  /** Removes all the vertices and edges from this graph. */
   void clear();
 
   /**

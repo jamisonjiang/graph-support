@@ -16,6 +16,7 @@
 
 package org.graphper.def;
 
+/** Indicates that a requested geometric operation has no feasible result. */
 public class UnfeasibleException extends Exception {
 
   private static final long serialVersionUID = 724199542997633250L;

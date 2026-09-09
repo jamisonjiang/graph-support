@@ -16,6 +16,7 @@
 
 package org.graphper.draw.svg;
 
+/** Defines SVG element names, attribute names, and rendering constants. */
 public interface SvgConstants {
 
   String QUOTATION_MARK = "\"";
@@ -42,7 +43,7 @@ public interface SvgConstants {
 
   String LINE_THROUGH = "line-through";
 
-  /* -------------------------------------------- Connect character ------------------------------------------ */
+  /* Separators. */
 
   String COMMA = ",";
 
@@ -54,7 +55,7 @@ public interface SvgConstants {
 
   String EQUAL_SIGN = "=";
 
-  /* -------------------------------------------- tag names ------------------------------------------ */
+  /* Tag names. */
 
   String SVG_ELE = "svg";
 
@@ -78,7 +79,7 @@ public interface SvgConstants {
 
   String IMAGE_ELE = "image";
 
-  /* -------------------------------------------- attributes ------------------------------------------ */
+  /* Attributes. */
 
   String D = "d";
 

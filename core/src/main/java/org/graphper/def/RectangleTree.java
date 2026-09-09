@@ -165,9 +165,7 @@ public class RectangleTree<B extends Box> {
     return minIncrNode;
   }
 
-  /**
-   * Represents a node in the RectangleTree. Each node can contain child nodes or a single box.
-   */
+  /** Represents a node in the RectangleTree. Each node can contain child nodes or a single box. */
   private class Node extends Rectangle {
 
     private final B box;
@@ -305,9 +303,7 @@ public class RectangleTree<B extends Box> {
     }
   }
 
-  /**
-   * A pair of nodes used during splitting.
-   */
+  /** A pair of nodes used during splitting. */
   private class NodePair {
 
     private final Node origin;

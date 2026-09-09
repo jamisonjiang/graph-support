@@ -36,6 +36,7 @@ public class StraightLineRouter extends AbstractFdpLineRouter {
     drawStraightLine(fline);
   }
 
+  /** Creates straight-edge routers for the default or explicit line routing style. */
   public static class StraightLineRouterFactory extends LineRouterFactory<StraightLineRouter> {
 
     @Override

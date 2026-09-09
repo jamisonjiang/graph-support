@@ -23,6 +23,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 
+/** Applies node fill and stroke colors to SVG shapes. */
 public class NodeColorEditor extends AbstractNodeShapeEditor {
 
   @Override

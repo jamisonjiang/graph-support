@@ -1,11 +1,24 @@
 /*
  * Copyright 2022 The graph-support project
- * Licensed under the Apache License, Version 2.0.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.graphper.api;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -17,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -51,6 +65,57 @@ public class SecurityPolicyTest {
     } finally {
       Files.deleteIfExists(outside);
     }
+  }
+
+  @Test
+  public void fileStringAndDesktopPathBuildersAgree() {
+    File directory = temporaryDirectory.resolve("child/../images").toFile();
+    SecurityPolicy policy = SecurityPolicy.builder().localImageBaseDirectory(directory).build();
+    Assertions.assertEquals(temporaryDirectory.resolve("images").toAbsolutePath().toFile(),
+                            policy.getLocalImageBaseDirectoryFile());
+    Assertions.assertEquals(policy.getLocalImageBaseDirectoryFile(),
+                            policy.getLocalImageBaseDirectory());
+    Assertions.assertEquals(policy, SecurityPolicy.builder()
+        .localImageBaseDirectory(directory.getPath()).build());
+    Assertions.assertEquals(policy, SecurityPolicy.builder()
+        .localImageBaseDirectory(directory.toPath()).build());
+    Assertions.assertEquals(policy, SecurityPolicy.builder()
+        .localImageBaseDirectory((Object) directory).build());
+    Assertions.assertThrows(IllegalArgumentException.class,
+                            () -> SecurityPolicy.builder().localImageBaseDirectory(new Object()));
+    Assertions.assertThrows(IllegalArgumentException.class,
+                            () -> SecurityPolicy.builder().localImageBaseDirectory("bad\0path"));
+  }
+
+  @Test
+  public void localReferencesRejectMissingFilesTraversalAndSiblingPrefixes() throws Exception {
+    Path base = Files.createDirectory(temporaryDirectory.resolve("base"));
+    Path sibling = Files.createDirectory(temporaryDirectory.resolve("base-other"));
+    Path outside = Files.write(sibling.resolve("outside.png"), new byte[]{1});
+    Path image = Files.write(base.resolve("image with space.png"), new byte[]{1});
+    SecurityPolicy policy = SecurityPolicy.builder().localImageBaseDirectory(base.toFile()).build();
+    Assertions.assertNull(policy.sanitizeImage("missing.png"));
+    Assertions.assertNull(policy.sanitizeImage("../base-other/outside.png"));
+    Assertions.assertNull(policy.sanitizeImage(outside.toString()));
+    Assertions.assertNull(policy.sanitizeImage(outside.toUri().toString()));
+    Assertions.assertEquals(image.toRealPath().toUri().toString(),
+                            policy.sanitizeImage(image.toUri().toString()));
+  }
+
+  @Test
+  public void localReferencesRejectSymlinksOutsideBase() throws Exception {
+    Path base = Files.createDirectory(temporaryDirectory.resolve("base"));
+    Path outside = Files.write(temporaryDirectory.resolve("outside.png"), new byte[]{1});
+    try {
+      Files.createSymbolicLink(base.resolve("link.png"), outside);
+      Files.createSymbolicLink(base.resolve("dangling.png"),
+                               temporaryDirectory.resolve("missing.png"));
+    } catch (IOException | UnsupportedOperationException | SecurityException e) {
+      Assumptions.assumeTrue(false, "Symbolic links unavailable: " + e);
+    }
+    SecurityPolicy policy = SecurityPolicy.builder().localImageBaseDirectory(base.toFile()).build();
+    Assertions.assertNull(policy.sanitizeImage("link.png"));
+    Assertions.assertNull(policy.sanitizeImage("dangling.png"));
   }
 
   @Test

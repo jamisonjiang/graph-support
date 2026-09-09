@@ -31,12 +31,8 @@ import org.graphper.util.Asserts;
  */
 @SuppressWarnings("all")
 public abstract class PipelineRenderEngine<
-    NB extends Brush,
-    LB extends Brush,
-    CB extends Brush,
-    GB extends Brush>
-    extends AbstractRenderEngine
-    implements RenderEngine {
+        NB extends Brush, LB extends Brush, CB extends Brush, GB extends Brush>
+    extends AbstractRenderEngine implements RenderEngine {
 
   protected volatile List<NodeEditor<NB>> nodeEditors;
 
@@ -57,14 +53,14 @@ public abstract class PipelineRenderEngine<
   public GraphResource render0(DrawGraph drawGraph) throws ExecuteException {
     Asserts.nullArgument(drawGraph, "drawGraph");
 
-    GraphPipelineTrigger<GB, GraphEditor<GB>> graphExecutePipeline = pipelineFactory
-        .graphExecutePipeline(graphEditors(), drawGraph);
-    ClusterPipelineTrigger<CB, ClusterEditor<CB>> clusterExecutePipeline = pipelineFactory
-        .clusterExecutePipeline(clusterEditors(), drawGraph);
-    NodePipelineTrigger<NB, NodeEditor<NB>> nodeExecutePipeline = pipelineFactory
-        .nodeExecutePipeline(nodeEditors(), drawGraph);
-    LinePipelineTrigger<LB, LineEditor<LB>> lineExecutePipeline = pipelineFactory
-        .lineExecutePipeline(lineEditors(), drawGraph);
+    GraphPipelineTrigger<GB, GraphEditor<GB>> graphExecutePipeline =
+        pipelineFactory.graphExecutePipeline(graphEditors(), drawGraph);
+    ClusterPipelineTrigger<CB, ClusterEditor<CB>> clusterExecutePipeline =
+        pipelineFactory.clusterExecutePipeline(clusterEditors(), drawGraph);
+    NodePipelineTrigger<NB, NodeEditor<NB>> nodeExecutePipeline =
+        pipelineFactory.nodeExecutePipeline(nodeEditors(), drawGraph);
+    LinePipelineTrigger<LB, LineEditor<LB>> lineExecutePipeline =
+        pipelineFactory.lineExecutePipeline(lineEditors(), drawGraph);
 
     try {
       // Triggle all editors of graph items

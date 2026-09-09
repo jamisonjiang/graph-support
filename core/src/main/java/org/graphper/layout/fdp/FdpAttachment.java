@@ -24,10 +24,12 @@ import org.graphper.layout.LayoutAttach;
 import org.graphper.layout.LayoutGraph;
 import org.graphper.util.Asserts;
 
+/** Shares the force-directed layout graph and drawing state between layout stages. */
 public class FdpAttachment extends LayoutAttach {
 
   private final FdpGraph fdpGraph;
 
+  /** Associates the non-null layout and drawing graphs. */
   public FdpAttachment(FdpGraph fdpGraph, DrawGraph drawGraph) {
     super(drawGraph);
     Asserts.nullArgument(drawGraph, "drawGraph");

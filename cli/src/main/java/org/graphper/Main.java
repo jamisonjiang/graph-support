@@ -49,7 +49,9 @@ public class Main {
   private static final List<CommandUnit> UI_COMMAND_UNITS =
       Arrays.asList(new AllowImageHost(), new ImageBaseDirectory());
 
+  /** Renders a DOT graph from command-line options or launches the desktop editor. */
   public static void main(String[] args) {
+    configureHeadless(args);
     if (isUiCommand(args)) {
       launchUi(args);
       return;
@@ -78,13 +80,22 @@ public class Main {
           .toFile(command.getFileType())
           .save(output.getParentFile().getAbsolutePath(), output.getName());
     } catch (StackOverflowError e) {
-      log.warn("Big graph, please increasing the stack size (e.g., java -Xss2024m -jar graph-support-cli.jar xxx).");
-    }catch (ParseException e) {
+      log.warn("Big graph, please increasing the stack size "
+          + "(e.g., java -Xss2024m -jar graph-support-cli.jar xxx).");
+    } catch (ParseException e) {
       log.error("Parse script error: {}", e.getMessage());
     } catch (WrongCommandException e) {
       log.error("Command error: {}", e.getMessage());
     } catch (Exception e) {
       log.error("Generate error:", e);
+    }
+  }
+
+  static void configureHeadless(String[] args) {
+    // Set this before parsing or font measurement initializes AWT. The library itself must not
+    // change the host application's graphics mode, and explicit JVM settings take precedence.
+    if (!isUiCommand(args) && System.getProperty("java.awt.headless") == null) {
+      System.setProperty("java.awt.headless", "true");
     }
   }
 

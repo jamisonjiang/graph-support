@@ -17,11 +17,11 @@
 package org.graphper.draw;
 
 import java.util.Objects;
-import org.graphper.api.ext.ShapePropCalc;
-import org.graphper.util.Asserts;
 import org.graphper.api.attributes.NodeShape;
 import org.graphper.api.ext.DefaultBox;
 import org.graphper.api.ext.ShapePosition;
+import org.graphper.api.ext.ShapePropCalc;
+import org.graphper.util.Asserts;
 
 /**
  * An object with container properties and a shape descriptor implemented by default.
@@ -32,8 +32,9 @@ public class DefaultShapePosition extends DefaultBox implements ShapePosition {
 
   private final ShapePropCalc shapeProp;
 
-  public DefaultShapePosition(double x, double y, double height,
-                              double width, NodeShape nodeShape) {
+  /** Creates a shape box from its center, dimensions, and node shape. */
+  public DefaultShapePosition(
+      double x, double y, double height, double width, NodeShape nodeShape) {
     super(x - width / 2, x + width / 2, y - height / 2, y + height / 2);
     Asserts.nullArgument(nodeShape, "nodeShape");
     this.shapeProp = nodeShape;
@@ -63,5 +64,4 @@ public class DefaultShapePosition extends DefaultBox implements ShapePosition {
   public int hashCode() {
     return Objects.hash(super.hashCode(), shapeProp);
   }
-
 }

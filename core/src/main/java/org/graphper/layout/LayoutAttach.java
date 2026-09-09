@@ -20,6 +20,7 @@ import org.graphper.api.GraphContainer;
 import org.graphper.api.Graphviz;
 import org.graphper.draw.DrawGraph;
 
+/** Shared drawing state and container lookup support for layout stages. */
 public abstract class LayoutAttach {
   private boolean haveClusters;
 
@@ -41,8 +42,9 @@ public abstract class LayoutAttach {
     return clusterDirectContainer(getGraphviz(), parent, node);
   }
 
-  public static GraphContainer clusterDirectContainer(Graphviz graphviz,
-                                                      GraphContainer parent, ANode node) {
+  /** Finds the direct child of the parent container that contains the node. */
+  public static GraphContainer clusterDirectContainer(
+      Graphviz graphviz, GraphContainer parent, ANode node) {
     if (node.getContainer() == parent || graphviz == null) {
       return null;
     }

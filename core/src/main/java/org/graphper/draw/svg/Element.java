@@ -62,6 +62,20 @@ public interface Element {
   Element createChildElement(String tagName);
 
   /**
+   * Creates a new child element with the specified ID and tag name, then appends it to this
+   * element.
+   *
+   * @param id the ID for the new child element
+   * @param tagName the tag name for the new child element
+   * @return the newly created child element
+   */
+  default Element createChildElement(String id, String tagName) {
+    Element childElement = createChildElement(tagName);
+    childElement.setId(id);
+    return childElement;
+  }
+
+  /**
    * Sets the text content for this element.
    *
    * @param textContent the text content to set
@@ -72,7 +86,7 @@ public interface Element {
    * Sets an attribute on this element with the specified name and value.
    *
    * @param attrName the name of the attribute to set
-   * @param value    the value of the attribute
+   * @param value the value of the attribute
    */
   void setAttribute(String attrName, String value);
 
@@ -104,18 +118,4 @@ public interface Element {
    * @return the document containing this element
    */
   Document getDocument();
-
-  /**
-   * Creates a new child element with the specified ID and tag name, then appends it to this
-   * element.
-   *
-   * @param id      the ID for the new child element
-   * @param tagName the tag name for the new child element
-   * @return the newly created child element
-   */
-  default Element createChildElement(String id, String tagName) {
-    Element childElement = createChildElement(tagName);
-    childElement.setId(id);
-    return childElement;
-  }
 }

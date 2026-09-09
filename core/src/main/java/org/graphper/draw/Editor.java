@@ -30,7 +30,7 @@ public interface Editor<T, B extends Brush> {
    * next editor.
    *
    * @param drawnEle elements to be drawn
-   * @param brush    draw brush
+   * @param brush draw brush
    * @return <tt>true</tt> if the next editor continues editing
    */
   boolean edit(T drawnEle, B brush);

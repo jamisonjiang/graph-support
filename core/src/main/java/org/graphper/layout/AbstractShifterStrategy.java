@@ -17,26 +17,27 @@
 package org.graphper.layout;
 
 import java.util.List;
-import org.graphper.util.CollectionUtils;
 import org.graphper.draw.ContainerDrawProp;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.layout.OrthoVisGraph.Segment;
+import org.graphper.util.CollectionUtils;
 
+/** Base movement strategy with shared handling for routing-grid segments. */
 public abstract class AbstractShifterStrategy implements ShifterStrategy {
 
-	protected void moveGrid(ContainerDrawProp containerDrawProp) {
-		if (!(containerDrawProp instanceof GraphvizDrawProp)) {
-			return;
-		}
+  protected void moveGrid(ContainerDrawProp containerDrawProp) {
+    if (!(containerDrawProp instanceof GraphvizDrawProp)) {
+      return;
+    }
 
-		List<Segment> grid = ((GraphvizDrawProp) containerDrawProp).getGrid();
-		if (CollectionUtils.isEmpty(grid)) {
-			return;
-		}
+    List<Segment> grid = ((GraphvizDrawProp) containerDrawProp).getGrid();
+    if (CollectionUtils.isEmpty(grid)) {
+      return;
+    }
 
-		for (Segment segment : grid) {
-			movePoint(segment.getStart());
-			movePoint(segment.getEnd());
-		}
-	}
+    for (Segment segment : grid) {
+      movePoint(segment.getStart());
+      movePoint(segment.getEnd());
+    }
+  }
 }

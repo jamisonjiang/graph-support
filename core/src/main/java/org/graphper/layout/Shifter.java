@@ -30,28 +30,28 @@ import org.graphper.draw.NodeDrawProp;
 public interface Shifter {
 
   /**
-   * Move graphviz item
+   * Moves the graph drawing properties.
    *
    * @param graphvizDrawProp graphviz properties object
    */
   void graph(GraphvizDrawProp graphvizDrawProp);
 
   /**
-   * Move cluster item
+   * Moves the cluster drawing properties.
    *
    * @param clusterDrawProp cluster properties object
    */
   void cluster(ClusterDrawProp clusterDrawProp);
 
   /**
-   * Move node item
+   * Moves the node drawing properties.
    *
    * @param nodeDrawProp node properties object
    */
   void node(NodeDrawProp nodeDrawProp);
 
   /**
-   * Move line item
+   * Moves the line drawing properties.
    *
    * @param lineDrawProp line properties object
    */

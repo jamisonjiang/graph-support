@@ -28,7 +28,8 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.CollectionUtils;
 
-public class ClusterStyleEditor  implements ClusterEditor<SvgBrush> {
+/** Applies cluster stroke styles to SVG shapes. */
+public class ClusterStyleEditor implements ClusterEditor<SvgBrush> {
 
   @Override
   public boolean edit(ClusterDrawProp cluster, SvgBrush brush) {

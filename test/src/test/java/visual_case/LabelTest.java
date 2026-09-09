@@ -23,7 +23,6 @@ import org.graphper.api.attributes.FontStyle;
 import org.graphper.draw.ExecuteException;
 import org.junit.jupiter.api.Test;
 import org.graphper.api.Graphviz;
-import org.graphper.api.Line;
 import org.graphper.api.Node;
 
 @VisualTags({"label", "text"})

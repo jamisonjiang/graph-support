@@ -19,6 +19,7 @@ package org.graphper.api.ext;
 import java.io.Serializable;
 import org.graphper.util.Asserts;
 
+/** Computes port offsets as ratios of box width and height. */
 public class RatioPortPosition implements PortPosition, Serializable {
 
   private static final long serialVersionUID = -1767859727952040562L;

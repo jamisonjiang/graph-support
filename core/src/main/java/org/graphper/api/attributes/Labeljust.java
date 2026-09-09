@@ -16,11 +16,11 @@
 
 package org.graphper.api.attributes;
 
-import org.graphper.def.FlatPoint;
 import org.graphper.api.ext.LabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.HorCenterLabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.LeftLabelPositionCalc;
 import org.graphper.api.ext.LabelPositionCalc.RightLabelPositionCalc;
+import org.graphper.def.FlatPoint;
 
 /**
  * Used to control the horizontal position of label.
@@ -29,19 +29,13 @@ import org.graphper.api.ext.LabelPositionCalc.RightLabelPositionCalc;
  */
 public enum Labeljust {
 
-  /**
-   * Label aligns to the left.
-   */
+  /** Label aligns to the left. */
   LEFT(new LeftLabelPositionCalc()),
 
-  /**
-   * Label horizontal centered.
-   */
+  /** Label horizontal centered. */
   CENTER(new HorCenterLabelPositionCalc()),
 
-  /**
-   * Label aligns to the right.
-   */
+  /** Label aligns to the right. */
   RIGHT(new RightLabelPositionCalc());
 
   private final LabelPositionCalc labelPositionCalc;
@@ -53,9 +47,9 @@ public enum Labeljust {
   /**
    * Returns the x coordinate after mobilization.
    *
-   * @param upperLeft  left upper conner point
+   * @param upperLeft left upper conner point
    * @param lowerRight right down conner point
-   * @param labelSize  label size
+   * @param labelSize label size
    * @return x coordinate after mobilization
    * @throws NullPointerException any parameter is null
    */

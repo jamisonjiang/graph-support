@@ -21,14 +21,15 @@ import static org.graphper.util.EnvProp.CLIP_DIST_ERROR;
 import java.util.ArrayList;
 import java.util.List;
 import org.graphper.api.ext.Box;
+import org.graphper.api.ext.ShapePosition;
 import org.graphper.api.ext.ShapePropCalc;
 import org.graphper.def.FlatPoint;
-import org.graphper.api.ext.ShapePosition;
 import org.graphper.draw.ClusterDrawProp;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.layout.dot.AbstractDotLineRouter;
 import org.graphper.util.Asserts;
 
+/** Clips straight and polyline paths to endpoint shapes and arrow boundaries. */
 public class StraightPathClip extends PathClip {
 
   public static final StraightPathClip INSTANCE = new StraightPathClip();
@@ -81,18 +82,17 @@ public class StraightPathClip extends PathClip {
     return path;
   }
 
-
   /**
    * Divide the path using the tangent vector that the path intersects at the node boundary to fit
    * the path to the node shape.
    *
    * @param shapePosition shape position information
-   * @param inPoint       point inside node
-   * @param outPoint      point outside node
+   * @param inPoint point inside node
+   * @param outPoint point outside node
    * @return border crossing point
    */
-  public static FlatPoint straightLineClipShape(ShapePosition shapePosition,
-                                                FlatPoint inPoint, FlatPoint outPoint) {
+  public static FlatPoint straightLineClipShape(
+      ShapePosition shapePosition, FlatPoint inPoint, FlatPoint outPoint) {
     Asserts.nullArgument(shapePosition, "shapePosition");
     return straightLineClipShape(shapePosition, shapePosition.shapeProp(), inPoint, outPoint);
   }
@@ -101,27 +101,23 @@ public class StraightPathClip extends PathClip {
    * Divide the path using the tangent vector that the path intersects at the node boundary to fit
    * the path to the node shape.
    *
-   * @param box           node box
+   * @param box node box
    * @param shapePropCalc node shape properties function
-   * @param inPoint       point inside node
-   * @param outPoint      point outside node
+   * @param inPoint point inside node
+   * @param outPoint point outside node
    * @return border crossing point
    */
-  public static FlatPoint straightLineClipShape(Box box, ShapePropCalc shapePropCalc,
-                                                FlatPoint inPoint, FlatPoint outPoint) {
+  public static FlatPoint straightLineClipShape(
+      Box box, ShapePropCalc shapePropCalc, FlatPoint inPoint, FlatPoint outPoint) {
     Asserts.nullArgument(inPoint, "inPoint");
     Asserts.nullArgument(outPoint, "outPoint");
     Asserts.nullArgument(box, "shapePosition");
     Asserts.nullArgument(shapePropCalc, "shapePosition.nodeShape()");
 
     Asserts.illegalArgument(
-        !shapePropCalc.in(box, inPoint),
-        "The specified internal node is not inside the node"
-    );
+        !shapePropCalc.in(box, inPoint), "The specified internal node is not inside the node");
     Asserts.illegalArgument(
-        shapePropCalc.in(box, outPoint),
-        "The specified external node is inside the node"
-    );
+        shapePropCalc.in(box, outPoint), "The specified external node is inside the node");
 
     FlatPoint midPoint;
     FlatPoint in = inPoint;
@@ -141,8 +137,7 @@ public class StraightPathClip extends PathClip {
     return midPoint;
   }
 
-  private LineDrawProp subPath(LineDrawProp path, InOutPointPair inOutPair,
-                               FlatPoint p) {
+  private LineDrawProp subPath(LineDrawProp path, InOutPointPair inOutPair, FlatPoint p) {
     if (inOutPair.isDeleteBefore()) {
       List<FlatPoint> temp = subList(inOutPair.getIdx(), path.size(), path);
       path.clear();
@@ -157,8 +152,8 @@ public class StraightPathClip extends PathClip {
     return path;
   }
 
-  private LineDrawProp arrowClip(double arrowSize, LineDrawProp path,
-                                 FlatPoint first, boolean firstStart) {
+  private LineDrawProp arrowClip(
+      double arrowSize, LineDrawProp path, FlatPoint first, boolean firstStart) {
     if (first == null) {
       return path;
     }

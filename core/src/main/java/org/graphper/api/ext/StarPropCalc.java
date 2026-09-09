@@ -41,17 +41,14 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
    * Angular step between two consecutive tips.
    *
    * @deprecated Retained for source and binary compatibility. The geometry below walks the rendered
-   *             decagon tip by notch with {@link #UNIT_ARC} instead.
+   *     decagon tip by notch with {@link #UNIT_ARC} instead.
    */
-  @Deprecated
-  public static final double AXIS_ARC = 2 * UNIT_ARC;
+  @Deprecated public static final double AXIS_ARC = 2 * UNIT_ARC;
 
-  public static final double IN_OUT_RATIO = ValueUtils.cos(36)
-      + ValueUtils.cos(54) * ValueUtils.tan(72);
+  public static final double IN_OUT_RATIO =
+      ValueUtils.cos(36) + ValueUtils.cos(54) * ValueUtils.tan(72);
 
-  /**
-   * Number of vertices of the rendered outline: five tips interleaved with five notches.
-   */
+  /** Number of vertices of the rendered outline: five tips interleaved with five notches. */
   private static final int VERTEX_NUM = 10;
 
   /**
@@ -64,9 +61,7 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
   private static final int MAX_SEARCH_STEPS =
       (int) Math.ceil(Math.log(1 / SCALE_TOLERANCE) / Math.log(2));
 
-  /**
-   * Upper bound of the growth factor applied to the estimated container before giving up.
-   */
+  /** Upper bound of the growth factor applied to the estimated container before giving up. */
   private static final double MAX_SCALE = 1_048_576;
 
   /**
@@ -87,13 +82,13 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
    * <p>The closed form below fixes the aspect ratio of the container and is exact for most inner
    * rectangles, but for some proportions the rectangle pokes through one of the two edges that meet
    * at an inward notch. Those cases are repaired by growing the estimate uniformly, which is sound
-   * because the star is star shaped about its centre: {@code s * Star} is contained in
-   * {@code s' * Star} for every {@code s' > s}, so containment is monotone in the growth factor and
-   * can be bracketed by bisection.
+   * because the star is star shaped about its centre: {@code s * Star} is contained in {@code s' *
+   * Star} for every {@code s' > s}, so containment is monotone in the growth factor and can be
+   * bracketed by bisection.
    */
   @Override
-  public FlatPoint minContainerSize(double innerHeight, double innerWidth,
-                                    double minHeight, double minWidth) {
+  public FlatPoint minContainerSize(
+      double innerHeight, double innerWidth, double minHeight, double minWidth) {
     FlatPoint estimate = estimateContainerSize(innerHeight, innerWidth);
     double height = Math.max(estimate.getHeight(), minHeight);
     double width = Math.max(estimate.getWidth(), minWidth);
@@ -125,19 +120,6 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
     return new FlatPoint(height * high, width * high);
   }
 
-  @Override
-  public boolean in(Box box, FlatPoint point) {
-    Asserts.nullArgument(box, "box");
-    Asserts.nullArgument(point, "point");
-
-    double[] vertices = new double[2 * VERTEX_NUM];
-    vertices(vertices, box.getX(), box.getY(), box.getHeight(), box.getWidth());
-    double tolerance = BORDER_TOLERANCE * Math.max(box.getHeight(), box.getWidth());
-    return in(vertices, point.getX(), point.getY(), tolerance);
-  }
-
-  // ----------------------------------- private method -----------------------------------
-
   /**
    * Closed form container estimate. Keeps the intrinsic proportion of the shape and is the size
    * this shape has always reported; {@link #minContainerSize(double, double, double, double)} only
@@ -148,17 +130,19 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
     double radiusX = innerWidth / (2 * Math.cos(alpha));
     double radiusY = innerHeight / (Math.sin(alpha) + Math.sin(3 * alpha));
     double radius0 = Math.max(radiusX, radiusY);
-    double radius = radius0 * Math.sin(4 * alpha) * Math.cos(2 * alpha)
-        / (Math.cos(alpha) * Math.cos(4 * alpha));
-    return new FlatPoint(radius * (1 + Math.sin(3 * alpha)),
-                         2 * radius * Math.cos(alpha));
+    double radius =
+        radius0
+            * Math.sin(4 * alpha)
+            * Math.cos(2 * alpha)
+            / (Math.cos(alpha) * Math.cos(4 * alpha));
+    return new FlatPoint(radius * (1 + Math.sin(3 * alpha)), 2 * radius * Math.cos(alpha));
   }
 
   /**
    * Writes the vertices of the rendered outline into {@code vertices} as consecutive x, y pairs.
    */
-  private static void vertices(double[] vertices, double centerX, double centerY,
-                               double height, double width) {
+  private static void vertices(
+      double[] vertices, double centerX, double centerY, double height, double width) {
     double outerRadiusX = width / 2;
     double outerRadiusY = height / 2;
     double innerRadiusX = outerRadiusX / IN_OUT_RATIO;
@@ -180,15 +164,15 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
    * of the centred box {@code width x height}.
    *
    * <p>Exact, and in particular exact around the inward notches, where sampling the rectangle
-   * border is not: the notch can cut a band out of a rectangle edge that is narrower than any
-   * fixed sample step. The rectangle is convex and the outline is a simple closed polygon, so if no
+   * border is not: the notch can cut a band out of a rectangle edge that is narrower than any fixed
+   * sample step. The rectangle is convex and the outline is a simple closed polygon, so if no
    * outline edge meets the closed rectangle then the whole rectangle sits in one component of the
    * complement of the outline, and the centre decides which one.
    *
    * @param vertices scratch buffer of {@code 2 * VERTEX_NUM} doubles, overwritten by this call
    */
-  private static boolean covers(double[] vertices, double height, double width,
-                                double innerHeight, double innerWidth) {
+  private static boolean covers(
+      double[] vertices, double height, double width, double innerHeight, double innerWidth) {
     if (height <= 0 || width <= 0) {
       return false;
     }
@@ -197,9 +181,13 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
     double halfInnerWidth = Math.max(innerWidth, 0) / 2;
     double halfInnerHeight = Math.max(innerHeight, 0) / 2;
     for (int i = 0, j = VERTEX_NUM - 1; i < VERTEX_NUM; j = i++) {
-      if (meetsRectangle(vertices[j * 2], vertices[j * 2 + 1],
-                         vertices[i * 2], vertices[i * 2 + 1],
-                         halfInnerWidth, halfInnerHeight)) {
+      if (meetsRectangle(
+          vertices[j * 2],
+          vertices[j * 2 + 1],
+          vertices[i * 2],
+          vertices[i * 2 + 1],
+          halfInnerWidth,
+          halfInnerHeight)) {
         return false;
       }
     }
@@ -210,8 +198,8 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
    * Whether the segment meets the closed rectangle centred on the origin, by clipping the segment
    * against the two rectangle slabs.
    */
-  private static boolean meetsRectangle(double x1, double y1, double x2, double y2,
-                                        double halfWidth, double halfHeight) {
+  private static boolean meetsRectangle(
+      double x1, double y1, double x2, double y2, double halfWidth, double halfHeight) {
     double enter = 0;
     double exit = 1;
 
@@ -242,6 +230,17 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
     return enter <= exit;
   }
 
+  @Override
+  public boolean in(Box box, FlatPoint point) {
+    Asserts.nullArgument(box, "box");
+    Asserts.nullArgument(point, "point");
+
+    double[] vertices = new double[2 * VERTEX_NUM];
+    vertices(vertices, box.getX(), box.getY(), box.getHeight(), box.getWidth());
+    double tolerance = BORDER_TOLERANCE * Math.max(box.getHeight(), box.getWidth());
+    return in(vertices, point.getX(), point.getY(), tolerance);
+  }
+
   /**
    * Crossing number test against the rendered outline, with points within {@code tolerance} of the
    * outline counted as inside.
@@ -264,8 +263,8 @@ public class StarPropCalc implements ShapePropCalc, Serializable {
     return inside;
   }
 
-  private static double distanceToSegment(double x1, double y1, double x2, double y2,
-                                          double x, double y) {
+  private static double distanceToSegment(
+      double x1, double y1, double x2, double y2, double x, double y) {
     double dx = x2 - x1;
     double dy = y2 - y1;
     double squaredLen = dx * dx + dy * dy;

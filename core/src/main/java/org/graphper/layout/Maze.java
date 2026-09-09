@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Map;
 import org.graphper.api.Line;
 import org.graphper.api.ext.Box;
-import org.graphper.def.UnaryConcatIterable;
 import org.graphper.def.FlatPoint;
+import org.graphper.def.UnaryConcatIterable;
 import org.graphper.draw.DrawGraph;
 import org.graphper.draw.GraphvizDrawProp;
 import org.graphper.layout.Grid.GridAxis;
@@ -36,6 +36,7 @@ import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.EnvProp;
 
+/** Builds an orthogonal visibility graph from obstacle cells and routing guides. */
 public abstract class Maze {
 
   private static final int LEFT = 0b0001;
@@ -64,8 +65,8 @@ public abstract class Maze {
     this.drawGraph = drawGraph;
     this.checkMaze = checkMaze;
     this.cellMap = new LinkedHashMap<>();
-    this.minBorderExtendSize = Math.max(this.minBorderExtendSize,
-                                        drawGraph.getGraphviz().graphAttrs().getNodeSep());
+    this.minBorderExtendSize =
+        Math.max(this.minBorderExtendSize, drawGraph.getGraphviz().graphAttrs().getNodeSep());
   }
 
   protected void init() {
@@ -83,6 +84,7 @@ public abstract class Maze {
     }
   }
 
+  /** Returns the line's guides after resolving and validating their visibility vertices. */
   public List<GuideInfo> getGuideInfos(Line line) {
     if (line == null || guideBoxes == null) {
       return null;
@@ -96,12 +98,12 @@ public abstract class Maze {
       if (guideInfo.getGuideVertex() == null) {
         guideInfo.setGuideVertex(getGuideVertex(guideInfo.getGuideBox()));
       }
-      Asserts.illegalArgument(guideInfo.getSignPos() == null,
-                              "Can not found guide sign of label line");
-      Asserts.illegalArgument(guideInfo.getGuideBox() == null,
-                              "Can not found guide box of label line");
-      Asserts.illegalArgument(guideInfo.getGuideVertex() == null,
-                              "Can not found guide vertex of label line");
+      Asserts.illegalArgument(
+          guideInfo.getSignPos() == null, "Can not found guide sign of label line");
+      Asserts.illegalArgument(
+          guideInfo.getGuideBox() == null, "Can not found guide box of label line");
+      Asserts.illegalArgument(
+          guideInfo.getGuideVertex() == null, "Can not found guide vertex of label line");
     }
     return guideInfos;
   }
@@ -110,6 +112,7 @@ public abstract class Maze {
     return cellMap.get(cellKey);
   }
 
+  /** Returns the visibility vertex for a guide box, or null if none is registered. */
   public GridVertex getGuideVertex(Box sign) {
     if (sign == null || guideVertex == null) {
       return null;
@@ -136,9 +139,17 @@ public abstract class Maze {
     addToGrid(gridBuilder, guideVertexKey);
   }
 
+  private void addGuideBox(Box box) {
+    if (guideVertex == null) {
+      guideVertex = new LinkedHashMap<>();
+    }
+    guideVertex.put(box, null);
+  }
+
   protected abstract void initGrid(GridBuilder gridBuilder);
 
-  // ------------------------------------------------------ private method ------------------------------------------------------
+  // ------------------------------------------------------ private method
+  // ------------------------------------------------------
 
   @SuppressWarnings("unchecked")
   private Iterable<? extends Box> boxes() {
@@ -146,13 +157,6 @@ public abstract class Maze {
       return cellMap.values();
     }
     return new UnaryConcatIterable<>(cellMap.values(), guideVertex.keySet());
-  }
-
-  private void addGuideBox(Box box) {
-    if (guideVertex == null) {
-      guideVertex = new LinkedHashMap<>();
-    }
-    guideVertex.put(box, null);
   }
 
   private void addToGrid(GridBuilder gridBuilder, Box box) {
@@ -285,9 +289,14 @@ public abstract class Maze {
     nodeTrack(track, leftAxis, rightAxis, topAxis, bottomAxis);
   }
 
-  private void directAccess(boolean isPre, boolean isHor, int dir,
-                            int[][] track, GridAxis firstAxis,
-                            GridAxis secondAxis, GridAxis startAxis) {
+  private void directAccess(
+      boolean isPre,
+      boolean isHor,
+      int dir,
+      int[][] track,
+      GridAxis firstAxis,
+      GridAxis secondAxis,
+      GridAxis startAxis) {
     boolean fc = true;
     boolean sc = true;
     GridAxis pre = null;
@@ -308,12 +317,16 @@ public abstract class Maze {
     } while (current != null && (fc || sc));
   }
 
-  private boolean directAccess(boolean isHor, boolean isFirst, int dir,
-                               int[][] track, GridAxis axis, GridAxis startAxis,
-                               GridAxis pre, GridAxis current) {
-    int v = isHor
-        ? track[axis.getIdx()][current.getIdx()]
-        : track[current.getIdx()][axis.getIdx()];
+  private boolean directAccess(
+      boolean isHor,
+      boolean isFirst,
+      int dir,
+      int[][] track,
+      GridAxis axis,
+      GridAxis startAxis,
+      GridAxis pre,
+      GridAxis current) {
+    int v = isHor ? track[axis.getIdx()][current.getIdx()] : track[current.getIdx()][axis.getIdx()];
 
     if (!isFirst) {
       markDir(track, reverseDir(dir), isHor, axis, current);
@@ -344,9 +357,12 @@ public abstract class Maze {
     checkOvg();
   }
 
-  private void generateOutCellVertexEdge(Grid grid, int[][] track, GridAxis firstVerAxis,
-                                         GridAxis firstHorAxis,
-                                         Map<Integer, GridVertex> vertexMap) {
+  private void generateOutCellVertexEdge(
+      Grid grid,
+      int[][] track,
+      GridAxis firstVerAxis,
+      GridAxis firstHorAxis,
+      Map<Integer, GridVertex> vertexMap) {
     GridVertex pre = null;
     GridAxis horAxis = firstHorAxis;
     while (horAxis != null) {
@@ -400,8 +416,8 @@ public abstract class Maze {
     }
   }
 
-  private void generateInCellVertexEdge(Grid grid, int[][] track,
-                                        Map<Integer, GridVertex> vertexMap) {
+  private void generateInCellVertexEdge(
+      Grid grid, int[][] track, Map<Integer, GridVertex> vertexMap) {
     for (Cell cell : cellMap.values()) {
       if (!cell.needInternalVertex()) {
         continue;
@@ -428,7 +444,9 @@ public abstract class Maze {
         val = track[bottomAxis.getIdx()][current.getIdx()];
         // Bottom axis, find the point which is left up point of cell vertex
         if (current.getVal() < rightAxis.getVal()
-            && haveDown(val) && haveRight(val) && isNotNodeLeftUpCorner(val)) {
+            && haveDown(val)
+            && haveRight(val)
+            && isNotNodeLeftUpCorner(val)) {
           GridVertex vertex = vertexMap.get(grid.coordToIdx(bottomAxis.getIdx(), current.getIdx()));
           Asserts.illegalArgument(vertex == null, "Can not found ovg node");
           connectNodeInternal(vertex, cell, DOWN);
@@ -453,7 +471,9 @@ public abstract class Maze {
         val = track[current.getIdx()][rightAxis.getIdx()];
         // Right axis, find the point which is left up point of cell vertex
         if (current.getVal() < bottomAxis.getVal()
-            && haveRight(val) && haveDown(val) && isNotNodeLeftUpCorner(val)) {
+            && haveRight(val)
+            && haveDown(val)
+            && isNotNodeLeftUpCorner(val)) {
           GridVertex vertex = vertexMap.get(grid.coordToIdx(current.getIdx(), rightAxis.getIdx()));
           Asserts.illegalArgument(vertex == null, "Can not found ovg node");
           connectNodeInternal(vertex, cell, RIGHT);
@@ -470,34 +490,29 @@ public abstract class Maze {
     GridVertex vertex = null;
     switch (dir) {
       case LEFT:
-        leftUp = new FlatPoint(adjVertex.getRightDown().getX(),
-                               adjVertex.getLeftUp().getY());
-        rightDown = new FlatPoint(cell.getRightBorder() - INTERNAL_OFFSET,
-                                  adjVertex.getRightDown().getY());
+        leftUp = new FlatPoint(adjVertex.getRightDown().getX(), adjVertex.getLeftUp().getY());
+        rightDown =
+            new FlatPoint(cell.getRightBorder() - INTERNAL_OFFSET, adjVertex.getRightDown().getY());
         vertex = new GridVertex(leftUp, rightDown);
         ovg.addLeft(vertex, adjVertex);
         break;
       case RIGHT:
-        leftUp = new FlatPoint(cell.getLeftBorder() + INTERNAL_OFFSET,
-                               adjVertex.getLeftUp().getY());
-        rightDown = new FlatPoint(adjVertex.getLeftUp().getX(),
-                                  adjVertex.getRightDown().getY());
+        leftUp =
+            new FlatPoint(cell.getLeftBorder() + INTERNAL_OFFSET, adjVertex.getLeftUp().getY());
+        rightDown = new FlatPoint(adjVertex.getLeftUp().getX(), adjVertex.getRightDown().getY());
         vertex = new GridVertex(leftUp, rightDown);
         ovg.addRight(vertex, adjVertex);
         break;
       case UP:
-        leftUp = new FlatPoint(adjVertex.getLeftUp().getX(),
-                               adjVertex.getRightDown().getY());
-        rightDown = new FlatPoint(adjVertex.getRightDown().getX(),
-                                  cell.getDownBorder() - INTERNAL_OFFSET);
+        leftUp = new FlatPoint(adjVertex.getLeftUp().getX(), adjVertex.getRightDown().getY());
+        rightDown =
+            new FlatPoint(adjVertex.getRightDown().getX(), cell.getDownBorder() - INTERNAL_OFFSET);
         vertex = new GridVertex(leftUp, rightDown);
         ovg.addTop(vertex, adjVertex);
         break;
       case DOWN:
-        leftUp = new FlatPoint(adjVertex.getLeftUp().getX(),
-                               cell.getUpBorder() + INTERNAL_OFFSET);
-        rightDown = new FlatPoint(adjVertex.getRightDown().getX(),
-                                  adjVertex.getLeftUp().getY());
+        leftUp = new FlatPoint(adjVertex.getLeftUp().getX(), cell.getUpBorder() + INTERNAL_OFFSET);
+        rightDown = new FlatPoint(adjVertex.getRightDown().getX(), adjVertex.getLeftUp().getY());
         vertex = new GridVertex(leftUp, rightDown);
         ovg.addBottom(vertex, adjVertex);
         break;
@@ -586,8 +601,8 @@ public abstract class Maze {
     while (currentVer != null && currentVer.getVal() < rightAxis.getVal()) {
       GridAxis currentHor = topAxis;
       while (currentHor != null && currentHor.getVal() < bottomAxis.getVal()) {
-        GridVertex vertex = vertexMap
-            .get(grid.coordToIdx(currentHor.getIdx(), currentVer.getIdx()));
+        GridVertex vertex =
+            vertexMap.get(grid.coordToIdx(currentHor.getIdx(), currentVer.getIdx()));
         if (vertexOverlapBoxCenter(vertex, box)) {
           return vertex;
         }
@@ -609,8 +624,10 @@ public abstract class Maze {
     FlatPoint leftUp = vertex.getLeftUp();
     FlatPoint rightDown = vertex.getRightDown();
 
-    return leftUp.getX() <= box.getX() && leftUp.getY() <= box.getY()
-        && rightDown.getX() >= box.getX() && rightDown.getY() >= box.getY();
+    return leftUp.getX() <= box.getX()
+        && leftUp.getY() <= box.getY()
+        && rightDown.getX() >= box.getX()
+        && rightDown.getY() >= box.getY();
   }
 
   private void checkOvg() {
@@ -624,14 +641,14 @@ public abstract class Maze {
       GridVertex top = node.getTop();
       GridVertex bottom = node.getBottom();
 
-      Asserts.illegalArgument(left != null && !isHorContinuous(left, node),
-                              "Left vertex is not continuous");
-      Asserts.illegalArgument(right != null && !isHorContinuous(node, right),
-                              "Right vertex is not continuous");
-      Asserts.illegalArgument(top != null && !isVerContinuous(top, node),
-                              "Top vertex is not continuous");
-      Asserts.illegalArgument(bottom != null && !isVerContinuous(node, bottom),
-                              "Bottom vertex is not continuous");
+      Asserts.illegalArgument(
+          left != null && !isHorContinuous(left, node), "Left vertex is not continuous");
+      Asserts.illegalArgument(
+          right != null && !isHorContinuous(node, right), "Right vertex is not continuous");
+      Asserts.illegalArgument(
+          top != null && !isVerContinuous(top, node), "Top vertex is not continuous");
+      Asserts.illegalArgument(
+          bottom != null && !isVerContinuous(node, bottom), "Bottom vertex is not continuous");
     }
   }
 
@@ -717,8 +734,8 @@ public abstract class Maze {
     graphvizDrawProp.addSegment(segment);
   }
 
-  private void nodeTrack(int[][] track, GridAxis leftAxis, GridAxis rightAxis,
-                         GridAxis topAxis, GridAxis bottomAxis) {
+  private void nodeTrack(
+      int[][] track, GridAxis leftAxis, GridAxis rightAxis, GridAxis topAxis, GridAxis bottomAxis) {
     markRight(track, topAxis.getIdx(), leftAxis.getIdx());
     markDown(track, topAxis.getIdx(), leftAxis.getIdx());
 
@@ -749,7 +766,6 @@ public abstract class Maze {
   private boolean isNotNodeLeftUpCorner(int val) {
     return !isNodeLeftUpCorner(val);
   }
-
 
   private boolean isNodeLeftUpCorner(int val) {
     return (val & LEFT_UP_CORNET) == LEFT_UP_CORNET;
@@ -815,12 +831,12 @@ public abstract class Maze {
     return rightAccessed(track[row][col]);
   }
 
-  private boolean bottomAccessed(int[][] track, int row, int col) {
-    return downAccessed(track[row][col]);
-  }
-
   private boolean rightAccessed(int val) {
     return (val & RIGHT_ACCESSED) == RIGHT_ACCESSED;
+  }
+
+  private boolean bottomAccessed(int[][] track, int row, int col) {
+    return downAccessed(track[row][col]);
   }
 
   private boolean downAccessed(int val) {
@@ -846,6 +862,7 @@ public abstract class Maze {
     }
   }
 
+  /** An obstacle box with visibility vertices along its axes. */
   public abstract static class Cell implements Box {
 
     private List<GridVertex> axisVertexes;
@@ -876,11 +893,11 @@ public abstract class Maze {
     }
 
     List<GridVertex> getAxisVertexes() {
-      return CollectionUtils.isNotEmpty(axisVertexes)
-          ? axisVertexes : Collections.emptyList();
+      return CollectionUtils.isNotEmpty(axisVertexes) ? axisVertexes : Collections.emptyList();
     }
   }
 
+  /** A maze obstacle that adds a small clearance around a layout node. */
   public static class NodeCell extends Cell {
 
     private final ANode node;
@@ -922,12 +939,11 @@ public abstract class Maze {
 
     @Override
     public String toString() {
-      return "NodeCell{" +
-          "node=" + node +
-          '}';
+      return "NodeCell{" + "node=" + node + '}';
     }
   }
 
+  /** A box-backed obstacle that does not require internal visibility vertices. */
   public static class VirtualCell extends Cell {
 
     private final Box box;
@@ -973,6 +989,7 @@ public abstract class Maze {
     }
   }
 
+  /** Associates a routing guide box with its sign position and visibility vertex. */
   public static class GuideInfo {
 
     private Box signPos;

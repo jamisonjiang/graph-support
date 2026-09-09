@@ -26,24 +26,25 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.graphper.layout.Mark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.layout.dot.RankContent.RankNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The network simplex method iterates to minimize the sum of the rank spanning and weight of the
  * edges. The main steps are as follows:
+ *
  * <ul>
  *   <li>Pop tree edges with negative tangent;
  *   <li>Find the non-tree edge that replaces this tree edge with the least amount of slack;
  *   <li>Starting from the two endpoints of the replaced non-tree edge, search upwards to the first
- *   common node, and all the tree edges that pass through are the tree edges that need to change
- *   the cut value;
+ *       common node, and all the tree edges that pass through are the tree edges that need to
+ *       change the cut value;
  *   <li>Recalculate low and lim and rank;
- *   <li>If the node can be translated in multiple ranks without affecting the final edge sum,
- *   the node moves to the rank with fewer nodes;
+ *   <li>If the node can be translated in multiple ranks without affecting the final edge sum, the
+ *       node moves to the rank with fewer nodes;
  * </ul>
  *
  * @author Jamison Jiang
@@ -72,26 +73,32 @@ class NetworkSimplex {
 
   private final double rankSep;
 
-
-  public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, double rankSep,
-                        Consumer<DNode[]> sortNodesConsumer) {
+  public NetworkSimplex(
+      FeasibleTree feasibleTree, int nsLimit, double rankSep, Consumer<DNode[]> sortNodesConsumer) {
     this(feasibleTree, nsLimit, true, true, true, rankSep, sortNodesConsumer);
   }
 
-  public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, boolean positiveRank,
-                        boolean needRankContent, double rankSep,
-                        Consumer<DNode[]> sortNodesConsumer) {
+  public NetworkSimplex(
+      FeasibleTree feasibleTree,
+      int nsLimit,
+      boolean positiveRank,
+      boolean needRankContent,
+      double rankSep,
+      Consumer<DNode[]> sortNodesConsumer) {
     this(feasibleTree, nsLimit, positiveRank, needRankContent, true, rankSep, sortNodesConsumer);
   }
 
-  public NetworkSimplex(FeasibleTree feasibleTree, int nsLimit, boolean positiveRank,
-                        boolean needRankContent, boolean needBalance, double rankSep,
-                        Consumer<DNode[]> sortNodesConsumer) {
+  public NetworkSimplex(
+      FeasibleTree feasibleTree,
+      int nsLimit,
+      boolean positiveRank,
+      boolean needRankContent,
+      boolean needBalance,
+      double rankSep,
+      Consumer<DNode[]> sortNodesConsumer) {
     Asserts.nullArgument(feasibleTree, "feasibleTree");
     Asserts.illegalArgument(
-        feasibleTree.getDotDigraph() == null,
-        "feasibleTree.getDotDigraph() can not be null"
-    );
+        feasibleTree.getDotDigraph() == null, "feasibleTree.getDotDigraph() can not be null");
     Asserts.illegalArgument(rankSep < 0, "rankSpace (" + rankSep + ") must be > 0");
     this.feasibleTree = feasibleTree;
     this.dotDigraph = feasibleTree.getDotDigraph();
@@ -123,9 +130,12 @@ class NetworkSimplex {
     long start = System.currentTimeMillis();
     if (log.isDebugEnabled()) {
       prefix = "network simplex: ";
-      log.debug("{} nodes={} edges={} maxiter={}",
-                prefix, dotDigraph.vertexNum(),
-                dotDigraph.edgeNum(), nsLimit);
+      log.debug(
+          "{} nodes={} edges={} maxiter={}",
+          prefix,
+          dotDigraph.vertexNum(),
+          dotDigraph.edgeNum(),
+          nsLimit);
     }
 
     ULine out;
@@ -155,30 +165,35 @@ class NetworkSimplex {
     }
 
     if (log.isDebugEnabled()) {
-      log.debug("Network is done,total number of iterations is {},time is {}s", count,
-                (System.currentTimeMillis() - start) / 1000);
+      log.debug(
+          "Network is done,total number of iterations is {},time is {}s",
+          count,
+          (System.currentTimeMillis() - start) / 1000);
     }
   }
 
   private ULine findEnterLine(ULine outLine, List<Set<DNode>> halfNodeRecord) {
-    ULine[] minSlackLine = new ULine[]{null};
-    int[] minSlack = new int[]{Integer.MAX_VALUE};
+    ULine[] minSlackLine = new ULine[] {null};
+    int[] minSlack = new int[] {Integer.MAX_VALUE};
 
-    // Find all edges that span the tail and head components, and get the edge with the least slack as a replacement edge.
-    Consumer<ULine> consumer = uLine -> {
-      // Remove edges that do not straddle tail and head.
-      if (!FeasibleTree.isCross(outLine.getdLine(), uLine.getdLine())
-          || FeasibleTree.inTail(uLine.getdLine().from(), outLine.getdLine())) {
-        return;
-      }
+    // Find all edges that span the tail and head components, and get the edge with the least slack
+    // as a replacement edge.
+    Consumer<ULine> consumer =
+        uLine -> {
+          // Remove edges that do not straddle tail and head.
+          if (!FeasibleTree.isCross(outLine.getdLine(), uLine.getdLine())
+              || FeasibleTree.inTail(uLine.getdLine().from(), outLine.getdLine())) {
+            return;
+          }
 
-      int slack = uLine.reduceLen();
-      // If the slack is less than the current minimum slack edge, the current edge becomes the minimum slack edge.
-      if (minSlackLine[0] == null || slack < minSlack[0]) {
-        minSlackLine[0] = uLine;
-        minSlack[0] = slack;
-      }
-    };
+          int slack = uLine.reduceLen();
+          // If the slack is less than the current minimum slack edge, the current edge becomes the
+          // minimum slack edge.
+          if (minSlackLine[0] == null || slack < minSlack[0]) {
+            minSlackLine[0] = uLine;
+            minSlack[0] = slack;
+          }
+        };
 
     // Add component nodes
     halfNodeRecord.add(FeasibleTree.halfDfs(feasibleTree.graph(), outLine, consumer));
@@ -199,8 +214,10 @@ class NetworkSimplex {
 
     // Find all edges that need to modify the cut value.
     DNode root = findNeedUpdateCutvalLines(tree, enterLine);
-    DNode largeLimNode = outLine.getdLine().from().getLim() > outLine.getdLine().to().getLim()
-        ? outLine.getdLine().from() : outLine.getdLine().to();
+    DNode largeLimNode =
+        outLine.getdLine().from().getLim() > outLine.getdLine().to().getLim()
+            ? outLine.getdLine().from()
+            : outLine.getdLine().to();
 
     if (notInLimLowRange(root, largeLimNode)) {
       root = publicRoot(tree, root, largeLimNode, null);
@@ -213,8 +230,10 @@ class NetworkSimplex {
     if (enterLine.reduceLen() != 0) {
       int r = enterLine.reduceLen();
 
-      DNode t = FeasibleTree.inTail(outLine.either(), outLine.getdLine())
-          ? outLine.either() : outLine.other(outLine.either());
+      DNode t =
+          FeasibleTree.inTail(outLine.either(), outLine.getdLine())
+              ? outLine.either()
+              : outLine.other(outLine.either());
 
       if (halfNodes.contains(t)) {
         r = -r;
@@ -234,16 +253,16 @@ class NetworkSimplex {
     updateCutvalLines.clear();
   }
 
-  private Map<Integer, DNode> balance(boolean needRankContent,
-                                      Consumer<DNode[]> sortNodesConsumer) {
+  private Map<Integer, DNode> balance(
+      boolean needRankContent, Consumer<DNode[]> sortNodesConsumer) {
     if (positiveRank) {
       return tbBalance(sortNodesConsumer);
     } else {
       lrBalance();
 
       if (needRankContent) {
-        this.rankContent = new RankContent(feasibleTree.graph(), rankSep,
-                                           positiveRank, sortNodesConsumer);
+        this.rankContent =
+            new RankContent(feasibleTree.graph(), rankSep, positiveRank, sortNodesConsumer);
       }
       return null;
     }
@@ -257,21 +276,23 @@ class NetworkSimplex {
   private Map<Integer, DNode> tbBalance(Consumer<DNode[]> sortNodesConsumer) {
     DotGraph dotGraph = feasibleTree.graph();
 
-    Map<Integer, DNode> connectLowRank = feasibleTree.isHaveUnconnectedGraph()
-        ? new HashMap<>()
-        : null;
+    Map<Integer, DNode> connectLowRank =
+        feasibleTree.isHaveUnconnectedGraph() ? new HashMap<>() : null;
     this.rankContent = new RankContent(dotGraph, rankSep, positiveRank, sortNodesConsumer);
 
-    // Each node has a greedy way to obtain the most balanced rank allocation in the current situation.
+    // Each node has a greedy way to obtain the most balanced rank allocation in the current
+    // situation.
     for (DNode node : dotGraph) {
       int connectNo = feasibleTree.getConnectNo(node);
       if (connectLowRank != null) {
-        connectLowRank.compute(connectNo, (c, n) -> {
-          if (n == null) {
-            return node;
-          }
-          return n.getRank() < node.getRank() ? n : node;
-        });
+        connectLowRank.compute(
+            connectNo,
+            (c, n) -> {
+              if (n == null) {
+                return node;
+              }
+              return n.getRank() < node.getRank() ? n : node;
+            });
       }
 
       int currentRank = node.getRank();
@@ -349,9 +370,8 @@ class NetworkSimplex {
        */
       RankNode preMaxNode = rankContent.get(preMax);
       RankNode nextMinNode = nextMin > rankContent.maxRank() ? null : rankContent.get(nextMin);
-      RankNode curNode = preMaxNode != null
-          ? preMaxNode.next
-          : rankContent.get(rankContent.minRank());
+      RankNode curNode =
+          preMaxNode != null ? preMaxNode.next : rankContent.get(rankContent.minRank());
 
       while (curNode != null && curNode != nextMinNode) {
         if (curNode.size() >= sparsestRank.size() - 1) {
@@ -430,15 +450,16 @@ class NetworkSimplex {
 
   /*
    * Find all the edges that need to change the cut value, start from the two nodes of the replaced
-   * edge, and find the common first parent node along the spanning tree, the path from the parent node
-   * to the two nodes in the spanning tree is all the edges that need to adjust the cut value.
+   * edge, and find the common first parent node along the spanning tree, the path from the parent
+   * node to the two nodes in the spanning tree is all the edges that need to adjust the cut value.
    * */
   private DNode findNeedUpdateCutvalLines(DotGraph tree, ULine enterLine) {
     DNode from = enterLine.getdLine().from();
     DNode to = enterLine.getdLine().to();
     DNode current = calcCutvalHead = from;
 
-    // Find the common node of the two nodes of the replacement edge, and add from to the path of this node
+    // Find the common node of the two nodes of the replacement edge, and add from to the path of
+    // this node
     current = publicRoot(tree, to, current, this::addUpdateCutvalLines);
     DNode root = current;
 
@@ -490,28 +511,28 @@ class NetworkSimplex {
 
     DotGraph tree = feasibleTree.tree();
 
-    // Calculate from the head of the node list composed of the edge paths that change the cut value.
+    // Calculate from the head of the node list composed of the edge paths that change the cut
+    // value.
     DNode current = calcCutvalHead;
     for (int i = 0; i < updateCutvalLines.size(); i++) {
       ULine updateCutvalLine = updateCutvalLines.get(i);
-      double cutval = FeasibleTree.calcCutValByAdjTreeLine(
-          feasibleTree.graph(),
-          current,
-          updateCutvalLine,
-          tree::containEdge
-      );
+      double cutval =
+          FeasibleTree.calcCutValByAdjTreeLine(
+              feasibleTree.graph(), current, updateCutvalLine, tree::containEdge);
 
       updateCutvalLine.getdLine().setCutVal(cutval);
       current = updateCutvalLine.other(current);
 
-      // If the modified tree edge cut value is less than 0, re-throw it into the queue for calculating the cut value.
+      // If the modified tree edge cut value is less than 0, re-throw it into the queue for
+      // calculating the cut value.
       if (cutval < 0) {
         negativeLine.offer(updateCutvalLine);
       }
     }
   }
 
-  // Determine whether the lim value of a node target is not within the interval [low, lim) of another node source
+  // Determine whether the lim value of a node target is not within the interval [low, lim) of
+  // another node source
   private boolean notInLimLowRange(DNode source, DNode target) {
     return source.getLow() > target.getLim() || source.getLim() < target.getLim();
   }

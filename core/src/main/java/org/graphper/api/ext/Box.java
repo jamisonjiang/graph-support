@@ -138,10 +138,10 @@ public interface Box {
    * bound, and the upper bound must be smaller than the lower bound.
    *
    * @throws IllegalArgumentException The following two scenarios will report an error:
-   *                                  <ul>
-   *                                    <li>leftBorder greater than rightBorder
-   *                                    <li>upBorder greater than downBorder
-   *                                  </ul>
+   *     <ul>
+   *       <li>leftBorder greater than rightBorder
+   *       <li>upBorder greater than downBorder
+   *     </ul>
    */
   default void check() {
     if (EnvProp.ignoreBoxCheck()) {
@@ -185,20 +185,22 @@ public interface Box {
   }
 
   /**
-   * Returns true if the coordinate (x, y) is inside the box area, shrinking each border
-   * by a given inner deviation.
+   * Returns true if the coordinate (x, y) is inside the box area, shrinking each border by a given
+   * inner deviation.
    *
-   * @param x          x-coordinate
-   * @param y          y-coordinate
-   * @param deviation  how much to shrink each border
+   * @param x x-coordinate
+   * @param y y-coordinate
+   * @param deviation how much to shrink each border
    * @return true if (x, y) is within the adjusted box, false otherwise
    */
   default boolean inInnerDeviation(double x, double y, double deviation) {
     if (!positive()) {
       return false;
     }
-    return x >= getLeftBorder() + deviation && x <= getRightBorder() - deviation
-        && y >= getUpBorder() + deviation && y <= getDownBorder() - deviation;
+    return x >= getLeftBorder() + deviation
+        && x <= getRightBorder() - deviation
+        && y >= getUpBorder() + deviation
+        && y <= getDownBorder() - deviation;
   }
 
   /**

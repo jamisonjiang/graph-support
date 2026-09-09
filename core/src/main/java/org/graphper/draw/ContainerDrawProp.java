@@ -49,8 +49,8 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
   protected Assemble assemble;
 
   /**
-   * Html-like label registered by the subclass, converted on first use. See
-   * {@link #convertToAssemble(Table, LabelTag, String)}.
+   * Html-like label registered by the subclass, converted on first use. See {@link
+   * #convertToAssemble(Table, LabelTag, String)}.
    */
   private Table htmlTable;
 
@@ -62,6 +62,7 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
 
   private LabelIdSpace labelIdSpace;
 
+  /** Returns the minimum top clearance required by the margin and label. */
   public double topLowestHeight() {
     Asserts.nullArgument(margin(), "margin");
     Asserts.nullArgument(labelloc(), "labelloc");
@@ -73,6 +74,7 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return Math.max(getVerMargin(), labelSize.getHeight());
   }
 
+  /** Returns the minimum bottom clearance required by the margin and label. */
   public double bottomLowestHeight() {
     Asserts.nullArgument(margin(), "margin");
     Asserts.nullArgument(labelloc(), "labelloc");
@@ -118,6 +120,7 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
     return labelSize;
   }
 
+  /** Returns the label assembly, converting a registered HTML-like label on first use. */
   public Assemble getAssemble() {
     if (assemble() != null) {
       return assemble();
@@ -128,7 +131,8 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
         // Without a scope there is nothing for the id space to fall back to, so the label keeps
         // the authored ids exactly as an unscoped conversion always has.
         String scope = labelScope();
-        assemble = HtmlConvertor.toAssemble(htmlTable, scope, scope == null ? null : labelIdSpace());
+        assemble =
+            HtmlConvertor.toAssemble(htmlTable, scope, scope == null ? null : labelIdSpace());
       } else {
         assemble = HtmlConvertor.toAssemble(htmlLabelTag, labelAttrs());
       }
@@ -188,10 +192,10 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
    * cluster only learns its number afterwards - and the {@link LabelIdSpace} is only handed over
    * once the element joins its {@link DrawGraph}.
    *
-   * @param table    table label, takes precedence over {@code labelTag}
+   * @param table table label, takes precedence over {@code labelTag}
    * @param labelTag rich text label
-   * @param scope    identity scope of this label, or {@code null} when the subclass answers
-   *                 {@link #labelScope()} itself
+   * @param scope identity scope of this label, or {@code null} when the subclass answers {@link
+   *     #labelScope()} itself
    */
   protected void convertToAssemble(Table table, LabelTag labelTag, String scope) {
     this.htmlTable = table;
@@ -217,8 +221,8 @@ public abstract class ContainerDrawProp extends Rectangle implements ShapePositi
 
   /**
    * Attaches the identity space that this element's html-like label draws the identity of its
-   * generated nodes from. Must be called before the label is first converted, which the
-   * {@link DrawGraph} does by attaching the space when the element joins the graph.
+   * generated nodes from. Must be called before the label is first converted, which the {@link
+   * DrawGraph} does by attaching the space when the element joins the graph.
    *
    * @param labelIdSpace identity space of the graph the element belongs to
    */

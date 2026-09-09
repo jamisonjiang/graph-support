@@ -33,6 +33,7 @@ import org.graphper.util.Asserts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Calculates regular polygon vertices, container dimensions, and containment. */
 public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 8672914749052162330L;
@@ -47,8 +48,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
    */
   private transient volatile List<FlatPoint> flatPoints;
 
-  public RegularPolylinePropCalc() {
-  }
+  public RegularPolylinePropCalc() {}
 
   public RegularPolylinePropCalc(int side) {
     Asserts.illegalArgument(side <= 0, "side can not be lower than 0");
@@ -83,6 +83,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
     return true;
   }
 
+  /** Calculates polygon vertices using the box center and half its height as the radius. */
   public List<FlatPoint> calcPoints(Box box) {
     Asserts.nullArgument(box, "box");
     List<FlatPoint> points = new ArrayList<>(side);
@@ -105,7 +106,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
    * Calculates and stores the points for {@link #getPoints()}.
    *
    * @deprecated Geometry is box-dependent. Prefer {@link #calcPoints(Box)} and keep the returned
-   *             value locally.
+   *     value locally.
    */
   @Deprecated
   public void initPoints(Box box) {
@@ -124,14 +125,15 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   // -------------------------- Shape proxy handler --------------------------
 
-  public static class RegularPolyShapePost implements NodeShapePost, ClusterShapePost, Serializable {
+  /** Configures polygon geometry from node or cluster attributes. */
+  public static class RegularPolyShapePost
+      implements NodeShapePost, ClusterShapePost, Serializable {
 
     private static final long serialVersionUID = -814521973404226705L;
 
     private Integer slideSize;
 
-    public RegularPolyShapePost() {
-    }
+    public RegularPolyShapePost() {}
 
     public RegularPolyShapePost(Integer slideSize) {
       this.slideSize = slideSize;
@@ -149,25 +151,28 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
       }
       size = size == null ? 4 : size;
 
-      boolean regular = Boolean.TRUE.equals(nodeAttrs.getRegular())
-          || nodeShape == org.graphper.api.attributes.NodeShapeEnum.REGULAR_POLYLINE;
+      boolean regular =
+          Boolean.TRUE.equals(nodeAttrs.getRegular())
+              || nodeShape == org.graphper.api.attributes.NodeShapeEnum.REGULAR_POLYLINE;
       RegularPolylinePropCalc propCalc = new StretchablePolygonPropCalc(size, regular);
-      return (NodeShape) Proxy.newProxyInstance(
-          NodeShape.class.getClassLoader(),
-          new Class[]{NodeShape.class},
-          new RegularProxyInvoker(nodeShape, propCalc));
+      return (NodeShape)
+          Proxy.newProxyInstance(
+              NodeShape.class.getClassLoader(),
+              new Class[] {NodeShape.class},
+              new RegularProxyInvoker(nodeShape, propCalc));
     }
 
     @Override
     public ClusterShape post(ClusterAttrs clusterAttrs) {
       Asserts.nullArgument(clusterAttrs, "clusterAttrs");
       ClusterShape clusterShape = clusterAttrs.getShape();
-      RegularPolylinePropCalc propCalc = new RegularPolylinePropCalc(
-          slideSize == null ? 4 : slideSize);
-      return (ClusterShape) Proxy.newProxyInstance(
-          ClusterShape.class.getClassLoader(),
-          new Class[]{ClusterShape.class},
-          new RegularProxyInvoker(clusterShape, propCalc));
+      RegularPolylinePropCalc propCalc =
+          new RegularPolylinePropCalc(slideSize == null ? 4 : slideSize);
+      return (ClusterShape)
+          Proxy.newProxyInstance(
+              ClusterShape.class.getClassLoader(),
+              new Class[] {ClusterShape.class},
+              new RegularProxyInvoker(clusterShape, propCalc));
     }
   }
 
@@ -244,8 +249,7 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
     private final RegularPolylinePropCalc propCalc;
 
-    public RegularProxyInvoker(Object originalShape,
-                               RegularPolylinePropCalc propCalc) {
+    public RegularProxyInvoker(Object originalShape, RegularPolylinePropCalc propCalc) {
       this.originalShape = originalShape;
       this.propCalc = propCalc;
     }
@@ -257,8 +261,9 @@ public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
       }
       if (method.getName().equals("minContainerSize")) {
         if (args.length == 4) {
-          return propCalc.minContainerSize((double) args[0], (double) args[1],
-                                           (double) args[2], (double) args[3]);
+          return propCalc.minContainerSize(
+              (double) args[0], (double) args[1],
+              (double) args[2], (double) args[3]);
         }
         return propCalc.minContainerSize((double) args[0], (double) args[1]);
       }

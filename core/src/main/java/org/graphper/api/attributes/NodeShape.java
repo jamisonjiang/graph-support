@@ -18,25 +18,28 @@ package org.graphper.api.attributes;
 
 import java.io.Serializable;
 import org.graphper.api.ext.NodeShapePost;
-import org.graphper.draw.CustomizeShapeRender;
 import org.graphper.api.ext.ShapeCenterCalc;
 import org.graphper.api.ext.ShapePropCalc;
+import org.graphper.draw.CustomizeShapeRender;
 
 /**
  * Represents the description object of a node shape, defining its characteristics and properties
  * such as dimensions, center of gravity, and line-clipping behavior. This interface is essential
  * for determining the layout and container dimensions of a node shape.
  *
- * <p>To create and use a custom node shape:</p>
+ * <p>To create and use a custom node shape:
+ *
  * <ol>
- *   <li>Implement the {@code NodeShape} interface to describe the shape's properties and behaviors.</li>
- *   <li>Implement the {@link CustomizeShapeRender} abstract class to define the rendering logic for the shape.</li>
- *   <li>Register the renderer using {@link CustomizeShapeRender#register(CustomizeShapeRender)} or via SPI.</li>
+ *   <li>Implement the {@code NodeShape} interface to describe the shape's properties and behaviors.
+ *   <li>Implement the {@link CustomizeShapeRender} abstract class to define the rendering logic for
+ *       the shape.
+ *   <li>Register the renderer using {@link CustomizeShapeRender#register(CustomizeShapeRender)} or
+ *       via SPI.
  * </ol>
  *
- * <p>Example of creating and registering a custom node shape:</p>
- * <pre>
- * {@code
+ * <p>Example of creating and registering a custom node shape:
+ *
+ * <pre>{@code
  * // Implement the characteristics of the custom shape
  * public class ArrowNodeShape implements NodeShape {
  *     // Implement methods to describe node shape properties...
@@ -59,17 +62,15 @@ import org.graphper.api.ext.ShapePropCalc;
  * // Use the custom shape
  * NodeShape shape = new ArrowNodeShape();
  * Node node = Node.builder().shape(shape).build();
- * }
- * </pre>
+ * }</pre>
  *
  * <p>This pairing of a {@code NodeShape} and its {@link CustomizeShapeRender} implementation
- * ensures a complete lifecycle for defining, describing, and rendering the node shape.</p>
+ * ensures a complete lifecycle for defining, describing, and rendering the node shape.
  *
  * @author Jamison Jiang
  * @see CustomizeShapeRender Renderer for custom shapes
  * @see NodeShapeEnum System-supported default shapes
  */
-
 public interface NodeShape extends ShapeCenterCalc, ShapePropCalc, NodeShapePost, Serializable {
 
   /**

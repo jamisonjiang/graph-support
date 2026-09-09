@@ -30,16 +30,16 @@ import org.graphper.api.Html.RecordTag;
  * Recovers the record structure from an angle-bracket label on a record-shaped node, turning
  * {@code label=<{<i>a</i>|<u>b</u>}>} into a {@link RecordTag} whose cells carry rich text.
  *
- * <p>Graphviz treats {@code {}} and {@code |} as record structure even inside an HTML label, but the
- * HTML lexer has no notion of the node's shape, so it hands them over as ordinary text. Rather than
- * teach the grammar about shapes, this class post-processes the parsed {@link LabelTag}: the
+ * <p>Graphviz treats {@code {}} and {@code |} as record structure even inside an HTML label.
+ * The HTML lexer does not know the node's shape, so it hands them over as ordinary text. Rather
+ * than teach the grammar about shapes, this class post-processes the parsed {@link LabelTag}: the
  * structural characters are consumed out of the text leaves and everything else is regrouped
  * per cell. The four grammar files stay untouched.
  *
  * <h2>Scope</h2>
  * Deliberately matched to what Graphviz itself accepts here — rich text, but no port ids. In an
- * angle-bracket label {@code <f0>} is lexed as an (unknown) HTML tag and fails the parse before this
- * class is ever reached, exactly as it does in Graphviz. Ports combined with rich text are reachable
+ * angle-bracket label {@code <f0>} is lexed as an unknown HTML tag and fails parsing before
+ * this class is reached, as it does in Graphviz. Ports combined with rich text are reachable
  * only through the Java API, {@code Html.cell(Html.italic("a")).id("f0")}.
  *
  * @author Jamison Jiang
@@ -54,7 +54,7 @@ public class RecordTagFromLabelTag {
    *
    * @param labelTag the label to convert, may be {@code null}
    * @return the record structure, or {@code null} when the label carries no record structure at all
-   * and should therefore stay an ordinary rich-text label
+   *     and should therefore stay an ordinary rich-text label
    */
   public static RecordTag convert(LabelTag labelTag) {
     if (labelTag == null || labelTag.getTags() == null) {
@@ -148,8 +148,8 @@ public class RecordTagFromLabelTag {
   }
 
   /**
-   * Folds the atom stream into a record tree. Mirrors the string grammar's shape rules: the top level
-   * is horizontal and every {@code {...}} flips the orientation.
+   * Folds the atom stream into a record tree. As in the string grammar, the top level is horizontal
+   * and every {@code {...}} flips the orientation.
    */
   private static RecordTag build(List<Atom> atoms) {
     Frame root = new Frame(true);
@@ -231,8 +231,8 @@ public class RecordTagFromLabelTag {
     private LabelTag richBody;
 
     /**
-     * Set when a {@code {...}} closed at this level: it becomes the body of the cell being read, and
-     * is only committed on the next {@code |} or at the end of the level. Committing it eagerly on
+     * Set when a {@code {...}} closed at this level: it becomes the current cell's body and is
+     * only committed on the next {@code |} or at the end of the level. Committing it eagerly on
      * {@code }} would make the following {@code |} open a phantom empty cell.
      */
     private RecordTag pendingNested;

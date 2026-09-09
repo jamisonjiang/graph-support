@@ -45,18 +45,26 @@ final class ClusterAwareBoxGuide {
   // Wide enough that a fitted spline overshooting its corridor box still misses the cluster.
   private static final double CLEARANCE = 8;
 
-  private ClusterAwareBoxGuide() {
-  }
+  private ClusterAwareBoxGuide() {}
 
-  static ClusterRoute routeBoxes(Line line, DNode from, DNode to, List<RouterBox> boxes,
-                                 boolean horizontal, DrawGraph drawGraph,
-                                 ClusterObstacleIndex obstacleIndex, Set<Cluster> ignored) {
+  static ClusterRoute routeBoxes(
+      Line line,
+      DNode from,
+      DNode to,
+      List<RouterBox> boxes,
+      boolean horizontal,
+      DrawGraph drawGraph,
+      ClusterObstacleIndex obstacleIndex,
+      Set<Cluster> ignored) {
     if (line == null || boxes == null || boxes.isEmpty() || drawGraph.clusters().isEmpty()) {
       // Copy on every path: callers mutate the returned boxes, so aliasing their list here would
       // make the contract depend on whether the graph happens to have clusters.
-      return new ClusterRoute(boxes == null ? Collections.emptyList() : copy(boxes),
-                              Collections.emptySet(), Collections.emptyMap(),
-                              Collections.emptyMap(), Collections.emptySet());
+      return new ClusterRoute(
+          boxes == null ? Collections.emptyList() : copy(boxes),
+          Collections.emptySet(),
+          Collections.emptyMap(),
+          Collections.emptyMap(),
+          Collections.emptySet());
     }
 
     List<RouterBox> routed = copy(boxes);
@@ -116,7 +124,8 @@ final class ClusterAwareBoxGuide {
       if (first || second) {
         avoided.add(cluster);
         for (int index : affected) {
-          restrictions.computeIfAbsent(routed.get(index), key -> new LinkedHashSet<>())
+          restrictions
+              .computeIfAbsent(routed.get(index), key -> new LinkedHashSet<>())
               .add(cluster.getCluster());
         }
       }
@@ -165,9 +174,11 @@ final class ClusterAwareBoxGuide {
           if (crossesInterior(route.get(i), route.get(i + 1), node)) {
             return true;
           }
-        } else if (curveCrossesNode(new ThirdOrderBezierCurve(route.get(i), route.get(i + 1),
-                                                               route.get(i + 2), route.get(i + 3)),
-                                    node, 0)) {
+        } else if (curveCrossesNode(
+            new ThirdOrderBezierCurve(
+                route.get(i), route.get(i + 1), route.get(i + 2), route.get(i + 3)),
+            node,
+            0)) {
           return true;
         }
       }
@@ -190,8 +201,8 @@ final class ClusterAwareBoxGuide {
   }
 
   private static boolean curveCrossesNode(ThirdOrderBezierCurve curve, DNode node, int depth) {
-    DefaultBox hull = bounds(java.util.Arrays.asList(curve.getV1(), curve.getV2(),
-                                                    curve.getV3(), curve.getV4()));
+    DefaultBox hull =
+        bounds(java.util.Arrays.asList(curve.getV1(), curve.getV2(), curve.getV3(), curve.getV4()));
     if (hull.getRightBorder() <= node.getLeftBorder() + 1e-6
         || hull.getLeftBorder() >= node.getRightBorder() - 1e-6
         || hull.getDownBorder() <= node.getUpBorder() + 1e-6
@@ -216,15 +227,16 @@ final class ClusterAwareBoxGuide {
     }
     for (int i = 0; i + 3 < route.size(); i += 3) {
       for (int step = 1; step <= 24; step++) {
-        path.add(Curves.besselEquationCalc(step / 24D, route.get(i), route.get(i + 1),
-                                           route.get(i + 2), route.get(i + 3)));
+        path.add(
+            Curves.besselEquationCalc(
+                step / 24D, route.get(i), route.get(i + 1), route.get(i + 2), route.get(i + 3)));
       }
     }
     return path;
   }
 
-  private static boolean validCrossing(List<FlatPoint> path, ClusterDrawProp cluster,
-                                       EndpointRole role, boolean headStart) {
+  private static boolean validCrossing(
+      List<FlatPoint> path, ClusterDrawProp cluster, EndpointRole role, boolean headStart) {
     if (role == null || role == EndpointRole.UNRELATED) {
       return doesNotCross(path, cluster);
     }
@@ -264,12 +276,20 @@ final class ClusterAwareBoxGuide {
   }
 
   private static boolean inside(FlatPoint point, ClusterDrawProp cluster) {
-    return point.getX() > cluster.getLeftBorder() && point.getX() < cluster.getRightBorder()
-        && point.getY() > cluster.getUpBorder() && point.getY() < cluster.getDownBorder();
+    return point.getX() > cluster.getLeftBorder()
+        && point.getX() < cluster.getRightBorder()
+        && point.getY() > cluster.getUpBorder()
+        && point.getY() < cluster.getDownBorder();
   }
 
-  private static boolean crossesInterior(FlatPoint from, FlatPoint to,
-                                         Box cluster) {
+  private static boolean inside(DNode node, ClusterDrawProp cluster) {
+    return node.getX() > cluster.getLeftBorder()
+        && node.getX() < cluster.getRightBorder()
+        && node.getY() > cluster.getUpBorder()
+        && node.getY() < cluster.getDownBorder();
+  }
+
+  private static boolean crossesInterior(FlatPoint from, FlatPoint to, Box cluster) {
     double epsilon = 1e-6;
     double left = cluster.getLeftBorder() + epsilon;
     double right = cluster.getRightBorder() - epsilon;
@@ -278,8 +298,7 @@ final class ClusterAwareBoxGuide {
     double dx = to.getX() - from.getX();
     double dy = to.getY() - from.getY();
     double[] p = {-dx, dx, -dy, dy};
-    double[] q = {from.getX() - left, right - from.getX(),
-        from.getY() - top, bottom - from.getY()};
+    double[] q = {from.getX() - left, right - from.getX(), from.getY() - top, bottom - from.getY()};
     double enter = 0;
     double leave = 1;
     for (int i = 0; i < p.length; i++) {
@@ -305,14 +324,19 @@ final class ClusterAwareBoxGuide {
   private static List<RouterBox> copy(List<RouterBox> boxes) {
     List<RouterBox> copy = new ArrayList<>(boxes.size());
     for (RouterBox box : boxes) {
-      copy.add(new RouterBox(box.getLeftBorder(), box.getRightBorder(),
-                             box.getUpBorder(), box.getDownBorder(), box.getNode()));
+      copy.add(
+          new RouterBox(
+              box.getLeftBorder(),
+              box.getRightBorder(),
+              box.getUpBorder(),
+              box.getDownBorder(),
+              box.getNode()));
     }
     return copy;
   }
 
-  private static Map<Cluster, EndpointRole> clusterRoles(DNode from, DNode to,
-                                                         DrawGraph drawGraph) {
+  private static Map<Cluster, EndpointRole> clusterRoles(
+      DNode from, DNode to, DrawGraph drawGraph) {
     Map<Cluster, EndpointRole> roles = new HashMap<>();
     addAncestors(from.getContainer(), drawGraph.getGraphviz(), roles, EndpointRole.SOURCE);
     addAncestors(to.getContainer(), drawGraph.getGraphviz(), roles, EndpointRole.TARGET);
@@ -320,8 +344,11 @@ final class ClusterAwareBoxGuide {
     return roles;
   }
 
-  private static void addAncestors(GraphContainer container, Graphviz graphviz,
-                                   Map<Cluster, EndpointRole> roles, EndpointRole role) {
+  private static void addAncestors(
+      GraphContainer container,
+      Graphviz graphviz,
+      Map<Cluster, EndpointRole> roles,
+      EndpointRole role) {
     GraphContainer current = container;
     while (current != null && current != graphviz) {
       if (current.isCluster()) {
@@ -331,8 +358,8 @@ final class ClusterAwareBoxGuide {
     }
   }
 
-  private static List<Integer> affectedBoxes(List<RouterBox> boxes, ClusterDrawProp cluster,
-                                             DNode from, DNode to, EndpointRole role) {
+  private static List<Integer> affectedBoxes(
+      List<RouterBox> boxes, ClusterDrawProp cluster, DNode from, DNode to, EndpointRole role) {
     List<Integer> affected = new ArrayList<>();
     for (int i = 0; i < boxes.size(); i++) {
       RouterBox box = boxes.get(i);
@@ -340,19 +367,27 @@ final class ClusterAwareBoxGuide {
           || (role == EndpointRole.TARGET && box.getNode() == to)) {
         continue;
       }
-      if (overlap(box.getLeftBorder(), box.getRightBorder(),
-                  cluster.getLeftBorder(), cluster.getRightBorder())
-          && overlap(box.getUpBorder(), box.getDownBorder(),
-                     cluster.getUpBorder(), cluster.getDownBorder())) {
+      if (overlap(
+              box.getLeftBorder(), box.getRightBorder(),
+              cluster.getLeftBorder(), cluster.getRightBorder())
+          && overlap(
+              box.getUpBorder(),
+              box.getDownBorder(),
+              cluster.getUpBorder(),
+              cluster.getDownBorder())) {
         affected.add(i);
       }
     }
     return affected;
   }
 
-  private static boolean preferLowSide(List<RouterBox> boxes, List<Integer> affected,
-                                       ClusterDrawProp cluster, DNode from, DNode to,
-                                       boolean horizontal) {
+  private static boolean preferLowSide(
+      List<RouterBox> boxes,
+      List<Integer> affected,
+      ClusterDrawProp cluster,
+      DNode from,
+      DNode to,
+      boolean horizontal) {
     double reference = 0;
     int count = 0;
     for (Integer index : affected) {
@@ -373,13 +408,12 @@ final class ClusterAwareBoxGuide {
     return reference <= center;
   }
 
-  private static boolean inside(DNode node, ClusterDrawProp cluster) {
-    return node.getX() > cluster.getLeftBorder() && node.getX() < cluster.getRightBorder()
-        && node.getY() > cluster.getUpBorder() && node.getY() < cluster.getDownBorder();
-  }
-
-  private static boolean restrict(List<RouterBox> boxes, List<Integer> affected,
-                                  ClusterDrawProp cluster, boolean horizontal, boolean lowSide) {
+  private static boolean restrict(
+      List<RouterBox> boxes,
+      List<Integer> affected,
+      ClusterDrawProp cluster,
+      boolean horizontal,
+      boolean lowSide) {
     if (affected.isEmpty()) {
       return false;
     }
@@ -434,11 +468,14 @@ final class ClusterAwareBoxGuide {
     for (int i = 0; i + 1 < boxes.size(); i++) {
       RouterBox current = boxes.get(i);
       RouterBox next = boxes.get(i + 1);
-      boolean overlap = horizontal
-          ? overlap(current.getUpBorder(), current.getDownBorder(),
-                    next.getUpBorder(), next.getDownBorder())
-          : overlap(current.getLeftBorder(), current.getRightBorder(),
-                    next.getLeftBorder(), next.getRightBorder());
+      boolean overlap =
+          horizontal
+              ? overlap(
+                  current.getUpBorder(), current.getDownBorder(),
+                  next.getUpBorder(), next.getDownBorder())
+              : overlap(
+                  current.getLeftBorder(), current.getRightBorder(),
+                  next.getLeftBorder(), next.getRightBorder());
       if (!overlap) {
         return false;
       }
@@ -446,8 +483,8 @@ final class ClusterAwareBoxGuide {
     return true;
   }
 
-  private static void rollbackSplit(List<RouterBox> boxes, List<RouterBox> before,
-                                    Map<RouterBox, Set<Cluster>> restrictions) {
+  private static void rollbackSplit(
+      List<RouterBox> boxes, List<RouterBox> before, Map<RouterBox, Set<Cluster>> restrictions) {
     for (RouterBox box : boxes) {
       if (!containsIdentity(before, box)) {
         restrictions.remove(box);
@@ -466,10 +503,14 @@ final class ClusterAwareBoxGuide {
     return false;
   }
 
-  private static List<Integer> splitAffected(List<RouterBox> boxes, ClusterDrawProp cluster,
-                                             DNode tail, DNode head, EndpointRole role,
-                                             boolean horizontal,
-                                             Map<RouterBox, Set<Cluster>> restrictions) {
+  private static List<Integer> splitAffected(
+      List<RouterBox> boxes,
+      ClusterDrawProp cluster,
+      DNode tail,
+      DNode head,
+      EndpointRole role,
+      boolean horizontal,
+      Map<RouterBox, Set<Cluster>> restrictions) {
     if (horizontal) {
       splitAt(boxes, cluster.getLeftBorder() - CLEARANCE, true, restrictions);
       splitAt(boxes, cluster.getRightBorder() + CLEARANCE, true, restrictions);
@@ -480,8 +521,11 @@ final class ClusterAwareBoxGuide {
     return affectedBoxes(boxes, cluster, tail, head, role);
   }
 
-  private static void splitAt(List<RouterBox> boxes, double position, boolean horizontal,
-                              Map<RouterBox, Set<Cluster>> restrictions) {
+  private static void splitAt(
+      List<RouterBox> boxes,
+      double position,
+      boolean horizontal,
+      Map<RouterBox, Set<Cluster>> restrictions) {
     for (int i = 0; i < boxes.size(); i++) {
       RouterBox box = boxes.get(i);
       // Endpoint boxes anchor a real node, so they must stay whole.
@@ -493,12 +537,14 @@ final class ClusterAwareBoxGuide {
       if (position - low < CLEARANCE || high - position < CLEARANCE) {
         continue;
       }
-      RouterBox lead = horizontal
-          ? new RouterBox(low, position, box.getUpBorder(), box.getDownBorder(), null)
-          : new RouterBox(box.getLeftBorder(), box.getRightBorder(), low, position, null);
-      RouterBox trail = horizontal
-          ? new RouterBox(position, high, box.getUpBorder(), box.getDownBorder(), null)
-          : new RouterBox(box.getLeftBorder(), box.getRightBorder(), position, high, null);
+      RouterBox lead =
+          horizontal
+              ? new RouterBox(low, position, box.getUpBorder(), box.getDownBorder(), null)
+              : new RouterBox(box.getLeftBorder(), box.getRightBorder(), low, position, null);
+      RouterBox trail =
+          horizontal
+              ? new RouterBox(position, high, box.getUpBorder(), box.getDownBorder(), null)
+              : new RouterBox(box.getLeftBorder(), box.getRightBorder(), position, high, null);
       // Both halves inherit whatever the replaced station already had to avoid.
       Set<Cluster> inherited = restrictions.remove(box);
       if (inherited != null) {
@@ -511,18 +557,20 @@ final class ClusterAwareBoxGuide {
     }
   }
 
-  private static boolean canRestrict(RouterBox box, ClusterDrawProp cluster,
-                                     boolean horizontal, boolean lowSide) {
+  private static boolean canRestrict(
+      RouterBox box, ClusterDrawProp cluster, boolean horizontal, boolean lowSide) {
     DNode node = box.getNode();
     if (horizontal) {
-      double wall = lowSide ? cluster.getUpBorder() - CLEARANCE
-          : cluster.getDownBorder() + CLEARANCE;
-      return lowSide ? wall >= box.getUpBorder() && (node == null || node.getY() <= wall)
+      double wall =
+          lowSide ? cluster.getUpBorder() - CLEARANCE : cluster.getDownBorder() + CLEARANCE;
+      return lowSide
+          ? wall >= box.getUpBorder() && (node == null || node.getY() <= wall)
           : wall <= box.getDownBorder() && (node == null || node.getY() >= wall);
     }
-    double wall = lowSide ? cluster.getLeftBorder() - CLEARANCE
-        : cluster.getRightBorder() + CLEARANCE;
-    return lowSide ? wall >= box.getLeftBorder() && (node == null || node.getX() <= wall)
+    double wall =
+        lowSide ? cluster.getLeftBorder() - CLEARANCE : cluster.getRightBorder() + CLEARANCE;
+    return lowSide
+        ? wall >= box.getLeftBorder() && (node == null || node.getX() <= wall)
         : wall <= box.getRightBorder() && (node == null || node.getX() >= wall);
   }
 
@@ -542,10 +590,12 @@ final class ClusterAwareBoxGuide {
 
     private final Set<ClusterObstacle> candidates;
 
-    private ClusterRoute(List<RouterBox> boxes, Set<ClusterDrawProp> avoided,
-                         Map<Cluster, EndpointRole> roles,
-                         Map<RouterBox, Set<Cluster>> restrictions,
-                         Set<ClusterObstacle> candidates) {
+    private ClusterRoute(
+        List<RouterBox> boxes,
+        Set<ClusterDrawProp> avoided,
+        Map<Cluster, EndpointRole> roles,
+        Map<RouterBox, Set<Cluster>> restrictions,
+        Set<ClusterObstacle> candidates) {
       this.boxes = boxes;
       this.avoided = avoided;
       this.roles = roles;

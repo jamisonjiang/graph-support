@@ -17,28 +17,21 @@
 package org.graphper.api.attributes;
 
 /**
- * Enumeration representing the initialization position algorithms for
- * Force-Directed Placement (FDP) graph layout.
- * <p>
- * These algorithms determine the initial positions of nodes in the layout.
- * </p>
+ * Enumeration representing the initialization position algorithms for Force-Directed Placement
+ * (FDP) graph layout.
+ *
+ * <p>These algorithms determine the initial positions of nodes in the layout.
  *
  * @author Jamison Jiang
  */
 public enum InitPos {
 
-  /**
-   * Initializes nodes in a grid pattern.
-   */
+  /** Initializes nodes in a grid pattern. */
   GRID,
 
-  /**
-   * Arranges nodes in a circular pattern.
-   */
+  /** Arranges nodes in a circular pattern. */
   CIRCLE,
 
-  /**
-   * Distributes nodes in sectors.
-   */
+  /** Distributes nodes in sectors. */
   SECTOR;
 }

@@ -30,8 +30,10 @@ import org.graphper.draw.LineDrawProp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.util.Asserts;
 
+/** Reserves self-loop clearance by ordering and routing endpoint pairs around node ports. */
 public class PortNodeSizeExpander extends NodeSizeExpander {
 
+  /** Orders the node's self-loops and calculates their paths and occupied bounds. */
   public PortNodeSizeExpander(DrawGraph drawGraph, ANode node) {
     Asserts.nullArgument(node, "node");
     Asserts.illegalArgument(node.isVirtual(), "Node is virtual node");
@@ -50,8 +52,8 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     selfLinePoints(drawGraph, nodeDrawProp, lines);
   }
 
-  private void selfLinePoints(DrawGraph drawGraph, NodeDrawProp nodeDrawProp,
-                              TreeSet<SelfLine> lines) {
+  private void selfLinePoints(
+      DrawGraph drawGraph, NodeDrawProp nodeDrawProp, TreeSet<SelfLine> lines) {
     double interval = minSelfInterval(node);
     Map<Port, Double> axisDistRecord = null;
     Map<Float, Double> tempAxisDistRecord = null;
@@ -63,21 +65,25 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
         if (otherDistRecord == null) {
           otherDistRecord = new HashMap<>(2);
         }
-        double len = axisAccumulator(otherDistRecord, selfLine.tailPoint, selfLine.tailPoint,
-                                     interval, selfLine, isHorizontalPort(selfLine.directionPort));
+        double len =
+            axisAccumulator(
+                otherDistRecord,
+                selfLine.tailPoint,
+                selfLine.tailPoint,
+                interval,
+                selfLine,
+                isHorizontalPort(selfLine.directionPort));
         double x = selfLine.directionPort.horOffset(node);
         double y = selfLine.directionPort.verOffset(node);
         addPoint(lineDrawProp, selfLine.tailPoint);
         if (x == node.getX()) {
-          addPoint(lineDrawProp,
-                   new FlatPoint(selfLine.tailPoint.getX(),
-                                 y < node.getY() ? y - len : y + len)
-          );
+          addPoint(
+              lineDrawProp,
+              new FlatPoint(selfLine.tailPoint.getX(), y < node.getY() ? y - len : y + len));
         } else {
-          addPoint(lineDrawProp,
-                   new FlatPoint(x < node.getX() ? x - len : x + len,
-                                 selfLine.tailPoint.getY())
-          );
+          addPoint(
+              lineDrawProp,
+              new FlatPoint(x < node.getX() ? x - len : x + len, selfLine.tailPoint.getY()));
         }
         addLabel(lineDrawProp, 1);
         continue;
@@ -85,8 +91,10 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
 
       Port tailNearestPort = selfLine.tailNearestPort;
       Port headNearestPort = selfLine.headNearestPort;
-      int n = Math.min(portDist(tailNearestPort, headNearestPort, true),
-                       portDist(tailNearestPort, headNearestPort, false));
+      int n =
+          Math.min(
+              portDist(tailNearestPort, headNearestPort, true),
+              portDist(tailNearestPort, headNearestPort, false));
 
       if (n <= 1) {
         if (tempAxisDistRecord == null) {
@@ -95,8 +103,8 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
 
         float axisNo = (float) (tailNearestPort.getNo() + headNearestPort.getNo()) / 2;
         boolean isHorizontal = n == 1 || isHorizontalPort(tailNearestPort);
-        double len = axisAccumulator(tempAxisDistRecord, axisNo, axisNo,
-                                     interval, selfLine, isHorizontal);
+        double len =
+            axisAccumulator(tempAxisDistRecord, axisNo, axisNo, interval, selfLine, isHorizontal);
         FlatPoint point = getAdjPortPoint(node, len, tailNearestPort, headNearestPort);
 
         addPoint(lineDrawProp, selfLine.tailPoint);
@@ -140,8 +148,9 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
         if (axisDistRecord == null) {
           axisDistRecord = new HashMap<>(4);
         }
-        double len = axisAccumulator(axisDistRecord, port, midPort, interval,
-                                     selfLine, isHorizontalPort(port));
+        double len =
+            axisAccumulator(
+                axisDistRecord, port, midPort, interval, selfLine, isHorizontalPort(port));
 
         FlatPoint point = PortHelper.notFlipEndPoint(null, port, nodeDrawProp, node);
 
@@ -149,8 +158,8 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
           center = new FlatPoint(node.getX(), node.getY());
         }
         double d = FlatPoint.twoFlatPointDistance(point, center);
-        FlatPoint flatPoint = Vectors.add(center, Vectors
-            .multiple(Vectors.sub(point, center), (d + len) / d));
+        FlatPoint flatPoint =
+            Vectors.add(center, Vectors.multiple(Vectors.sub(point, center), (d + len) / d));
         if (port == midPort) {
           labelIdx = lineDrawProp.size();
         }
@@ -174,10 +183,12 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
       LineAttrs lineAttrs = lineDrawProp.lineAttrs();
       Port tailPort = FlipShifterStrategy.movePort(drawGraph, lineAttrs.getTailPort());
 
-      FlatPoint tailPoint = PortHelper.getPortPoint(node, lineAttrs.getTailCell(),
-                                                    lineAttrs.getTailPort(), drawGraph);
-      FlatPoint headPoint = PortHelper.getPortPoint(node, lineAttrs.getHeadCell(),
-                                                    lineAttrs.getHeadPort(), drawGraph);
+      FlatPoint tailPoint =
+          PortHelper.getPortPoint(
+              node, lineAttrs.getTailCell(), lineAttrs.getTailPort(), drawGraph);
+      FlatPoint headPoint =
+          PortHelper.getPortPoint(
+              node, lineAttrs.getHeadCell(), lineAttrs.getHeadPort(), drawGraph);
 
       Port tailNearestPort = null;
       Port headNearestPort = null;
@@ -212,24 +223,22 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
       }
 
       lines.add(
-          new SelfLine(i, selfLine, tailPoint,
-                       headPoint, tailNearestPort,
-                       headNearestPort, directionPort)
-      );
+          new SelfLine(
+              i, selfLine, tailPoint, headPoint, tailNearestPort, headNearestPort, directionPort));
     }
     return lines;
   }
 
-  private FlatPoint getAdjPortPoint(ANode node, double len,
-                                    Port tailNearestPort,
-                                    Port headNearestPort) {
+  private FlatPoint getAdjPortPoint(
+      ANode node, double len, Port tailNearestPort, Port headNearestPort) {
     double tx = tailNearestPort.horOffset(node);
     double ty = tailNearestPort.verOffset(node);
     double hx = headNearestPort.horOffset(node);
     double hy = headNearestPort.verOffset(node);
 
     FlatPoint point;
-    // Simplify the middle position between the two port points of shape, use the middle coordinates instead
+    // Simplify the middle position between the two port points of shape, use the middle coordinates
+    // instead
     if (tx == hx) {
       point = new FlatPoint(tx < node.getX() ? tx - len : tx + len, (ty + hy) / 2);
     } else {
@@ -238,8 +247,13 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     return point;
   }
 
-  private <T> double axisAccumulator(Map<T, Double> accumulatorMap, T key, T labelKey,
-                                     double interval, SelfLine selfLine, boolean horizontal) {
+  private <T> double axisAccumulator(
+      Map<T, Double> accumulatorMap,
+      T key,
+      T labelKey,
+      double interval,
+      SelfLine selfLine,
+      boolean horizontal) {
     Double length = accumulatorMap.get(key);
     length = length == null ? interval : length + interval;
     double t = length;
@@ -273,10 +287,14 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
       return 1;
     }
 
-    int d1 = Math.min(portDist(left.tailNearestPort, left.headNearestPort, true),
-                      portDist(left.tailNearestPort, left.headNearestPort, false));
-    int d2 = Math.min(portDist(right.tailNearestPort, right.headNearestPort, true),
-                      portDist(right.tailNearestPort, right.headNearestPort, false));
+    int d1 =
+        Math.min(
+            portDist(left.tailNearestPort, left.headNearestPort, true),
+            portDist(left.tailNearestPort, left.headNearestPort, false));
+    int d2 =
+        Math.min(
+            portDist(right.tailNearestPort, right.headNearestPort, true),
+            portDist(right.tailNearestPort, right.headNearestPort, false));
 
     int no = Double.compare(d1, d2);
     return no != 0 ? no : Integer.compare(left.selfLineNo, right.selfLineNo);
@@ -339,17 +357,19 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
     FlatPoint center = new FlatPoint(node.getX(), node.getY());
 
     if (point.getX() == node.getX()) {
-      labelCenter = new FlatPoint(point.getX(), point.getY() < node.getY()
-          ? point.getY() - halfHeight
-          : point.getY() + halfHeight);
+      labelCenter =
+          new FlatPoint(
+              point.getX(),
+              point.getY() < node.getY() ? point.getY() - halfHeight : point.getY() + halfHeight);
     } else if (point.getY() == node.getY()) {
-      labelCenter = new FlatPoint(point.getX() < node.getX()
-                                      ? point.getX() - halfWidth
-                                      : point.getX() + halfWidth, point.getY());
+      labelCenter =
+          new FlatPoint(
+              point.getX() < node.getX() ? point.getX() - halfWidth : point.getX() + halfWidth,
+              point.getY());
     } else {
       double d = FlatPoint.twoFlatPointDistance(point, center);
-      labelCenter = Vectors.add(center, Vectors
-          .multiple(Vectors.sub(point, center), (d + halfHeight) / d));
+      labelCenter =
+          Vectors.add(center, Vectors.multiple(Vectors.sub(point, center), (d + halfHeight) / d));
     }
 
     line.setLabelCenter(labelCenter);
@@ -379,9 +399,14 @@ public class PortNodeSizeExpander extends NodeSizeExpander {
 
     private final Port directionPort;
 
-    public SelfLine(int selfLineNo, LineDrawProp line, FlatPoint tailPoint,
-                    FlatPoint headPoint, Port tailNearestPort,
-                    Port headNearestPort, Port directionPort) {
+    public SelfLine(
+        int selfLineNo,
+        LineDrawProp line,
+        FlatPoint tailPoint,
+        FlatPoint headPoint,
+        Port tailNearestPort,
+        Port headNearestPort,
+        Port directionPort) {
       this.selfLineNo = selfLineNo;
       this.line = line;
       this.tailPoint = tailPoint;

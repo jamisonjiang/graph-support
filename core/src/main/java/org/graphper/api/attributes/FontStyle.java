@@ -10,29 +10,19 @@ import org.graphper.util.CollectionUtils;
  */
 public enum FontStyle implements Style {
 
-  /**
-   * Makes the text appear in bold.
-   */
+  /** Makes the text appear in bold. */
   BOLD,
 
-  /**
-   * Makes the text appear in italics.
-   */
+  /** Makes the text appear in italics. */
   ITALIC,
 
-  /**
-   * Draws a line above the text.
-   */
+  /** Draws a line above the text. */
   OVERLINE,
 
-  /**
-   * Draws a line under the text.
-   */
+  /** Draws a line under the text. */
   UNDERLINE,
 
-  /**
-   * Draws a line through the middle of the text.
-   */
+  /** Draws a line through the middle of the text. */
   STRIKETHROUGH;
 
   /**
@@ -58,7 +48,7 @@ public enum FontStyle implements Style {
   /**
    * Determines whether a target {@link FontStyle} is present in the provided array.
    *
-   * @param target     the {@code FontStyle} to look for
+   * @param target the {@code FontStyle} to look for
    * @param fontStyles zero or more font styles to search
    * @return {@code true} if {@code target} is found; {@code false} otherwise
    */
@@ -77,7 +67,7 @@ public enum FontStyle implements Style {
   /**
    * Determines whether a target {@link FontStyle} is present in the provided collection.
    *
-   * @param target     the {@code FontStyle} to look for
+   * @param target the {@code FontStyle} to look for
    * @param fontStyles a collection of font styles to search
    * @return {@code true} if {@code target} is found; {@code false} otherwise
    */

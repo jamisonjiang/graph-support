@@ -26,8 +26,12 @@ import java.util.Map;
 import java.util.Objects;
 import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.Assemble;
+import org.graphper.api.FloatLabel;
 import org.graphper.api.Html.LabelTag;
 import org.graphper.api.Html.Table;
+import org.graphper.api.Line;
+import org.graphper.api.LineAttrs;
+import org.graphper.api.Node;
 import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.layout.HtmlConvertor;
@@ -36,10 +40,6 @@ import org.graphper.layout.LabelAttributes;
 import org.graphper.layout.dot.RouterBox;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.graphper.api.FloatLabel;
-import org.graphper.api.Line;
-import org.graphper.api.LineAttrs;
-import org.graphper.api.Node;
 
 /**
  * Line's rendering description object.
@@ -87,6 +87,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private Map<FloatLabel, Assemble> floatAssembles;
 
+  /** Creates line drawing properties and converts its HTML-like labels. */
   public LineDrawProp(Line line, LineAttrs lineAttrs, DrawGraph drawGraph) {
     Asserts.nullArgument(line, "line");
     Asserts.nullArgument(lineAttrs, "lineAttrs");
@@ -102,8 +103,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
    *
    * <p>Every owner of an html label in a graph must answer something different here: the scope is
    * the fallback identity of the generated cells, used whenever the author's own id is missing or
-   * already owned by something else - see
-   * {@link org.graphper.layout.HtmlConvertor#toAssemble(Table, String, LabelIdSpace)}. A line is
+   * already owned by something else - see {@link
+   * org.graphper.layout.HtmlConvertor#toAssemble(Table, String, LabelIdSpace)}. A line is
    * registered with the {@link DrawGraph} immediately after it is constructed, so the number of
    * lines already registered is this line's own sequence number, in the same order the engine
    * numbers lines.
@@ -151,6 +152,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return super.add(point);
   }
 
+  /** Records a floating label's center when both arguments are present. */
   public void addFloatLabelCenter(FloatLabel floatLabel, FlatPoint center) {
     if (floatLabel == null || center == null) {
       return;
@@ -206,6 +208,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     this.sameHeadPoint = sameHeadPoint;
   }
 
+  /** Returns the shared endpoint for the given incident node, or null if unavailable. */
   public FlatPoint sameEndpoint(Node node) {
     if (node == line.tail()) {
       return sameTailPoint;
@@ -342,6 +345,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return isHeadStart;
   }
 
+  /** Records whether the path starts at the head node, ignoring a null node. */
   public void setIsHeadStart(Node node) {
     if (node == null) {
       return;
@@ -349,6 +353,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     this.isHeadStart = node == getLine().head();
   }
 
+  /** Returns the explicit label assembly or the converted HTML-like label assembly. */
   public Assemble getAssemble() {
     if (lineAttrs.getAssemble() != null) {
       return lineAttrs.getAssemble();
@@ -356,6 +361,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return assemble;
   }
 
+  /** Returns the floating label assemblies, or an empty iterable if none exist. */
   public Iterable<Assemble> getFloatAssembles() {
     if (floatAssembles == null) {
       return Collections.emptyList();
@@ -363,6 +369,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
     return floatAssembles.values();
   }
 
+  /** Returns the assembly for a floating label, or null if none exists. */
   public Assemble getFloatAssemble(FloatLabel floatLabel) {
     if (floatAssembles == null || floatLabel == null) {
       return null;
@@ -387,8 +394,8 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
       Assemble floatLabelAssemble = floatLabel.getAssemble();
       if (floatLabelAssemble == null) {
         // Each float label is a label of its own and needs a scope of its own.
-        floatLabelAssemble = convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag(),
-                                               scope + "::f" + i);
+        floatLabelAssemble =
+            convertToAssemble(floatLabel.getTable(), floatLabel.getLabelTag(), scope + "::f" + i);
       }
 
       if (floatLabelAssemble == null) {
@@ -404,8 +411,7 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
 
   private Assemble convertToAssemble(Table table, LabelTag labelTag, String scope) {
     if (table != null) {
-      return HtmlConvertor.toAssemble(table, scope,
-                                      drawGraph.getGraphvizDrawProp().labelIdSpace());
+      return HtmlConvertor.toAssemble(table, scope, drawGraph.getGraphvizDrawProp().labelIdSpace());
     }
     Double fontSize = lineAttrs.getFontSize();
     fontSize = fontSize != null ? fontSize : 0;
@@ -428,38 +434,58 @@ public class LineDrawProp extends ArrayList<FlatPoint> implements Serializable {
       return false;
     }
     LineDrawProp that = (LineDrawProp) o;
-    return isBesselCurve == that.isBesselCurve &&
-        Objects.equals(line, that.line) &&
-        Objects.equals(start, that.start) &&
-        Objects.equals(end, that.end) &&
-        Objects.equals(labelCenter, that.labelCenter) &&
-        Objects.equals(arrowHead, that.arrowHead) &&
-        Objects.equals(arrowTail, that.arrowTail) &&
-        Objects.equals(lineAttrs, that.lineAttrs) &&
-        Objects.equals(id, that.id) &&
-        Objects.equals(routerBoxes, that.routerBoxes);
+    return isBesselCurve == that.isBesselCurve
+        && Objects.equals(line, that.line)
+        && Objects.equals(start, that.start)
+        && Objects.equals(end, that.end)
+        && Objects.equals(labelCenter, that.labelCenter)
+        && Objects.equals(arrowHead, that.arrowHead)
+        && Objects.equals(arrowTail, that.arrowTail)
+        && Objects.equals(lineAttrs, that.lineAttrs)
+        && Objects.equals(id, that.id)
+        && Objects.equals(routerBoxes, that.routerBoxes);
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hash(super.hashCode(), line, start, end, labelCenter,
-              arrowHead, arrowTail, lineAttrs, id, isBesselCurve, routerBoxes);
+    return Objects.hash(
+        super.hashCode(),
+        line,
+        start,
+        end,
+        labelCenter,
+        arrowHead,
+        arrowTail,
+        lineAttrs,
+        id,
+        isBesselCurve,
+        routerBoxes);
   }
 
   @Override
   public String toString() {
-    return "LineDrawProp{" +
-        "line=" + line +
-        ", start=" + start +
-        ", end=" + end +
-        ", labelCenter=" + labelCenter +
-        ", arrowHead=" + arrowHead +
-        ", arrowTail=" + arrowTail +
-        ", lineAttrs=" + lineAttrs +
-        ", id='" + id + '\'' +
-        ", isBesselCurve=" + isBesselCurve +
-        ", routerBoxes=" + routerBoxes +
-        '}';
+    return "LineDrawProp{"
+        + "line="
+        + line
+        + ", start="
+        + start
+        + ", end="
+        + end
+        + ", labelCenter="
+        + labelCenter
+        + ", arrowHead="
+        + arrowHead
+        + ", arrowTail="
+        + arrowTail
+        + ", lineAttrs="
+        + lineAttrs
+        + ", id='"
+        + id
+        + '\''
+        + ", isBesselCurve="
+        + isBesselCurve
+        + ", routerBoxes="
+        + routerBoxes
+        + '}';
   }
 }

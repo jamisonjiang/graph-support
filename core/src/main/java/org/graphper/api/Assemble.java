@@ -29,10 +29,11 @@ import org.graphper.util.Asserts;
  * graph by specifying the size of a parent container, and then manually setting the offset position
  * of the cell relative to the container. The position of the specified parent container in the
  * graph is generally each The position of the label of this element. It works as follows:
+ *
  * <ul>
  *   <li>Manually set a size for the container containing the label;
- *   <li>The algorithm will automatically set a position for this label container,
- *   which is the position of various labels in graph;
+ *   <li>The algorithm will automatically set a position for this label container, which is the
+ *       position of various labels in graph;
  *   <li>Then use this label container as a reference to set the coordinates of the node;
  * </ul>
  *
@@ -42,8 +43,7 @@ public class Assemble implements Serializable {
 
   private static final long serialVersionUID = 8476339759307801893L;
 
-  private Assemble() {
-  }
+  private Assemble() {}
 
   private double width;
 
@@ -138,28 +138,19 @@ public class Assemble implements Serializable {
     return new AssembleBuilder();
   }
 
-  /**
-   * {@link Assemble} builder, used to build a {@link Assemble}.
-   */
+  /** {@link Assemble} builder, used to build a {@link Assemble}. */
   public static class AssembleBuilder {
 
-    /**
-     * Root box width
-     */
+    /** Root box width. */
     private double width;
 
-    /**
-     * Root box height
-     */
+    /** Root box height. */
     private double height;
 
-    /**
-     * All cells in root container
-     */
+    /** All cells in root container. */
     private volatile LinkedHashMap<Node, CellPos> cells;
 
-    private AssembleBuilder() {
-    }
+    private AssembleBuilder() {}
 
     /**
      * Set the width of the Assembler, this width is used as an absolute width instead of the
@@ -195,7 +186,7 @@ public class Assemble implements Serializable {
      *
      * @param horOffset horizontal offset of cell
      * @param verOffset vertical offset of cell
-     * @param cell      The cell that is set to enter assemble
+     * @param cell The cell that is set to enter assemble
      * @return assemble builder
      * @throws NullPointerException set null cell
      */
@@ -213,12 +204,12 @@ public class Assemble implements Serializable {
      *
      * @param horOffset horizontal offset of cell
      * @param verOffset vertical offset of cell
-     * @param id        owner-local cell id
-     * @param cell      cell node
+     * @param id owner-local cell id
+     * @param cell cell node
      * @return assemble builder
      */
-    public synchronized AssembleBuilder addCell(double horOffset, double verOffset, String id,
-                                                Node cell) {
+    public synchronized AssembleBuilder addCell(
+        double horOffset, double verOffset, String id, Node cell) {
       Asserts.nullArgument(cell, "Cell");
       if (cells == null) {
         cells = new LinkedHashMap<>();

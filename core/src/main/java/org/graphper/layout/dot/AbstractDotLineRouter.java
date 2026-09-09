@@ -35,6 +35,7 @@ import org.graphper.layout.LineRouter;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 
+/** Shared edge-routing support for ranked layouts, including parallel edges and arrow bounds. */
 public abstract class AbstractDotLineRouter extends LineClip implements LineRouter {
 
   protected static final double LABEL_NODE_SIDE_MIN_DISTANCE = 10;
@@ -63,9 +64,8 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
             continue;
           }
 
-          if (line.isParallelMerge() && (!line.isSameRank() || (line.isSameRank()
-              && isAdj(line.from(), line.to())))
-          ) {
+          if (line.isParallelMerge()
+              && (!line.isSameRank() || (line.isSameRank() && isAdj(line.from(), line.to())))) {
             parallelLineHandle(line);
             continue;
           }
@@ -91,7 +91,7 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
   /**
    * The consumption action of the node when drawing the line.
    *
-   * @param node   node
+   * @param node node
    * @param attach draw line attachment
    * @return True - continue draw line, False - consume next node
    */
@@ -102,22 +102,21 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
   /**
    * The consumption action of the line.
    *
-   * @param line   line
+   * @param line line
    * @param attach draw line attachment
    */
-  protected void lineConsumer(DLine line, Object attach) {
-  }
+  protected void lineConsumer(DLine line, Object attach) {}
 
   /**
    * According to the shape object of the specified coordinates and size, cut the specified bessel
    * curve to ensure that the curve fits the specified shape.
    *
    * @param shapePosition shape position information
-   * @param bezierCurve   the curve to be clipped
+   * @param bezierCurve the curve to be clipped
    * @return curve after clip
    */
-  public static ThirdOrderBezierCurve besselCurveClipShape(ShapePosition shapePosition,
-                                                           ThirdOrderBezierCurve bezierCurve) {
+  public static ThirdOrderBezierCurve besselCurveClipShape(
+      ShapePosition shapePosition, ThirdOrderBezierCurve bezierCurve) {
     Asserts.nullArgument(shapePosition, "shapePosition");
     Asserts.nullArgument(shapePosition.shapeProp(), "shapePosition.nodeShape()");
     Asserts.nullArgument(bezierCurve, "bezierCurve");
@@ -157,20 +156,18 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
         out = (in + out) / 2;
       }
 
-    } while (FlatPoint.twoFlatPointDistance(Curves.besselEquationCalc(in, points),
-                                            Curves.besselEquationCalc(out, points))
+    } while (FlatPoint.twoFlatPointDistance(
+            Curves.besselEquationCalc(in, points), Curves.besselEquationCalc(out, points))
         > CLIP_DIST_ERROR);
 
     return Curves.divideThirdBesselCurve(in, v4In, bezierCurve);
   }
 
-
-
   /**
    * If the line is cut by multiple virtual nodes, consume each virtual line segment through
    * lineSegmentConsumer.
    *
-   * @param line     line
+   * @param line line
    * @param consumer line consumer
    */
   protected void lineSegmentConsumer(DLine line, Consumer<DLine> consumer) {
@@ -207,23 +204,29 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
     return current == largeRankIndexNode;
   }
 
-  // ----------------------------------------------------- static method -----------------------------------------------------
+  // ----------------------------------------------------- static method
+  // -----------------------------------------------------
 
+  /** Creates circular clipping bounds centered on an arrow endpoint. */
   public static ShapePosition newArrowShapePosition(FlatPoint point, double arrowSize) {
     Asserts.nullArgument(point, "point");
-    return new DefaultShapePosition(point.getX(), point.getY(),
-                                    arrowSize * 2, arrowSize * 2,
-                                    NodeShapeEnum.CIRCLE);
+    return new DefaultShapePosition(
+        point.getX(), point.getY(), arrowSize * 2, arrowSize * 2, NodeShapeEnum.CIRCLE);
   }
 
-  // --------------------------------------------- Abstract DotLinesHandlerFactory ---------------------------------------------
+  // --------------------------------------------- Abstract DotLinesHandlerFactory
+  // ---------------------------------------------
 
+  /** Creates a router and supplies its drawing graph, rank data, and graph proxy. */
   public abstract static class AbstractDotLineRouterFactory<T extends AbstractDotLineRouter>
       extends DotLineRouterFactory<T> {
 
     @Override
-    public T newInstance(DrawGraph drawGraph, DotDigraph dotDigraph, RankContent rankContent,
-                         EdgeDedigraph<DNode, DLine> digraphProxy) {
+    public T newInstance(
+        DrawGraph drawGraph,
+        DotDigraph dotDigraph,
+        RankContent rankContent,
+        EdgeDedigraph<DNode, DLine> digraphProxy) {
       Asserts.nullArgument(drawGraph, "drawGraph");
       Asserts.nullArgument(dotDigraph, "dotDigraph");
       Asserts.nullArgument(rankContent, "rankContent");
@@ -240,5 +243,4 @@ public abstract class AbstractDotLineRouter extends LineClip implements LineRout
 
     protected abstract T newInstance();
   }
-
 }

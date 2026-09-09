@@ -39,11 +39,10 @@ public abstract class AbstractFontSelector implements FontSelector {
 
   private LinkedHashSet<String> allAvailableFonts;
 
-  protected AbstractFontSelector() {
-  }
-  
+  protected AbstractFontSelector() {}
+
   private volatile boolean loaded = false;
-  
+
   protected void possiblyLoad() {
     if (loaded) {
       return;
@@ -78,8 +77,8 @@ public abstract class AbstractFontSelector implements FontSelector {
    */
   @Override
   public String defaultFont() {
-   possiblyLoad();
-   return defaultFont;
+    possiblyLoad();
+    return defaultFont;
   }
 
   /**
@@ -111,8 +110,7 @@ public abstract class AbstractFontSelector implements FontSelector {
   }
 
   private void initFontComparator() {
-    ServiceLoader<FontOrder> fontComparatorServiceLoader = ServiceLoader
-        .load(FontOrder.class);
+    ServiceLoader<FontOrder> fontComparatorServiceLoader = ServiceLoader.load(FontOrder.class);
     for (FontOrder comparator : fontComparatorServiceLoader) {
       fontOrder = comparator;
     }
@@ -131,5 +129,4 @@ public abstract class AbstractFontSelector implements FontSelector {
     this.allAvailableFonts = new LinkedHashSet<>(orderFonts);
     this.defaultFont = orderFonts.get(0);
   }
-
 }

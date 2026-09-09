@@ -2,11 +2,11 @@
 
 [![Java](https://img.shields.io/badge/Java-8%2B-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](https://maven.apache.org/)
-[![Version](https://img.shields.io/badge/version-1.5.3-blue.svg)](https://github.com/jamisonjiang/graph-support/releases)
+[![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](https://github.com/jamisonjiang/graph-support/releases)
 [![License](https://img.shields.io/badge/License-Apache--2.0-green.svg)](LICENSE)
 
-graph-support is a Java implementation of the Graphviz workflow: build or parse a graph, calculate
-its layout, and render it without installing a native Graphviz binary.
+graph-support is a Java graph layout and visualization library. Build graphs with a fluent API or
+parse DOT source, calculate their layout, and render diagrams without a native Graphviz installation.
 
 It can be used as a Java library, a DOT parser, a command-line renderer, or a desktop DOT editor.
 
@@ -18,11 +18,11 @@ It can be used as a Java library, a DOT parser, a command-line renderer, or a de
 - Flexible edge routing with configurable paths, endpoints, labels, and arrow shapes
 - Vector, raster, and document output, including SVG, PNG, JPEG, TIFF, GIF, and PDF
 - Layout-only geometry access for applications that provide their own rendering pipeline
-- Command-line and desktop authoring tools, with Java 8+ support and no native Graphviz dependency
+- Command-line rendering and an interactive desktop DOT editor
 
 ## Quick Start
 
-Current version: **1.5.3**.
+Current version: **1.5.4**.
 
 For graphs created with the Java API:
 
@@ -30,7 +30,7 @@ For graphs created with the Java API:
 <dependency>
   <groupId>org.graphper</groupId>
   <artifactId>graph-support-core</artifactId>
-  <version>1.5.3</version>
+  <version>1.5.4</version>
 </dependency>
 ```
 
@@ -40,7 +40,7 @@ For applications that parse DOT source:
 <dependency>
   <groupId>org.graphper</groupId>
   <artifactId>graph-support-dot</artifactId>
-  <version>1.5.3</version>
+  <version>1.5.4</version>
 </dependency>
 ```
 
@@ -51,8 +51,7 @@ Requirements:
 
 ### Build a Graph in Java
 
-This complete example creates a styled workflow, applies reusable defaults, adds a labeled edge,
-and writes the result as SVG.
+Create a workflow and export it as SVG:
 
 ```java
 import java.io.IOException;
@@ -96,15 +95,18 @@ public class OrderWorkflow {
 }
 ```
 
-Other output formats only require changing `FileType`. TIFF uses Apache Batik and PDF uses Apache
-FOP; the CLI distribution already packages its rendering dependencies.
+Select other output formats through `FileType`. Core layout and SVG generation are independent of
+optional raster and PDF backends; available formats depend on the runtime and rendering dependencies.
+The CLI bundles Batik and FOP. TIFF additionally requires an ImageIO TIFF writer, which default
+Java 8 runtimes do not provide.
+
+External images require explicit permission. See [image configuration](docs/node/Image.md) and
+[conversion security](docs/SVG%20Conversion%20Security.md) when using images or untrusted input.
 
 ## DOT and Rich Content
 
-DOT input supports the same layout and rendering pipeline as the Java API. HTML-like labels can
-combine tables, cell spans, colors, font styles, links, tooltips, alignment, and multiline text.
-The example below also uses clusters and styled edges, so it represents a real dashboard component
-rather than a collection of isolated tag snippets.
+DOT input uses the same layout and rendering pipeline as the Java API. Clusters express groups,
+while HTML-like labels support structured content such as tables, styled text, and links.
 
 ```dot
 digraph ServiceHealth {
@@ -117,26 +119,13 @@ digraph ServiceHealth {
     style="rounded,dashed"
 
     gateway [label=<
-      <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="7"
-             COLOR="#CBD5E1" BGCOLOR="#FFFFFF">
-        <TR>
-          <TD COLSPAN="2" BGCOLOR="#312E81" FONTCOLOR="#FFFFFF">
-            <B>API GATEWAY</B>
-          </TD>
-        </TR>
-        <TR><TD ALIGN="LEFT">Requests</TD><TD>12,480 / min</TD></TR>
-        <TR><TD ALIGN="LEFT">Latency p95</TD><TD><FONT COLOR="#0284C7">142 ms</FONT></TD></TR>
-        <TR><TD ALIGN="LEFT">Status</TD><TD><FONT COLOR="#10B981"><B>HEALTHY</B></FONT></TD></TR>
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="7">
+        <TR><TD COLSPAN="2" BGCOLOR="#E0E7FF"><B>API Gateway</B></TD></TR>
+        <TR><TD>Latency p95</TD><TD>142 ms</TD></TR>
+        <TR><TD>Status</TD><TD><FONT COLOR="#059669">Healthy</FONT></TD></TR>
       </TABLE>
     >]
-
-    orders [label=<
-      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8"
-             COLOR="#99F6E4" BGCOLOR="#F0FDFA">
-        <TR><TD><B>ORDER SERVICE</B></TD></TR>
-        <TR><TD><FONT POINT-SIZE="9" COLOR="#0F766E">8 instances · all ready</FONT></TD></TR>
-      </TABLE>
-    >]
+    orders [shape="box" label="Order service"]
   }
 
   gateway -> orders [label="route" color="#6366F1" penwidth="1.6"]
@@ -169,37 +158,18 @@ java -jar graph-support-cli.jar input.dot -o output -Tpng
 # DOT string to SVG
 java -jar graph-support-cli.jar -s "digraph { a -> b -> c }" -o graph -Tsvg
 
-# Select a layout engine
-java -jar graph-support-cli.jar input.dot -o output -Tsvg -Kdotq
-
-# Open the desktop editor
-java -jar graph-support-cli.jar ui
-
 # Show all options
 java -jar graph-support-cli.jar -h
 ```
 
 ## Desktop DOT Studio
 
-The CLI JAR includes an optional desktop editor. It runs entirely in process and uses graph-support
-itself for parsing, layout, and SVG generation.
-
-Key features:
-
-- Live and manual DOT-to-SVG rendering
-- Syntax highlighting, folding, line numbers, bracket matching, and find
-- Completion for keywords, attributes, values, and graph/subgraph templates
-- Attribute snippets such as `label = ""`, with the caret placed inside the value
-- Paired brackets and context-aware two-space indentation
-- Inline syntax-error squiggles that do not move the caret or selection
-- Draggable split view, SVG pan, wheel/trackpad zoom, Fit, and live zoom percentage
-- DOT open/save plus SVG and PNG export
-
-Build and launch the UI from the repository root:
+The CLI JAR includes a desktop editor with live graph preview, syntax highlighting and completion,
+error feedback, and SVG/PNG export. It uses graph-support's own layout engine and requires a
+graphical desktop environment.
 
 ```bash
-mvn -pl cli -am package
-java -jar cli/target/graph-support-cli.jar ui
+java -jar graph-support-cli.jar ui
 ```
 
 ## Layout and Rendering
@@ -217,34 +187,16 @@ Available layout engines:
 For custom rendering, obtain the calculated draw model instead of an image:
 
 ```java
-import org.graphper.api.Graphviz;
-import org.graphper.api.attributes.Layout;
-import org.graphper.draw.DrawGraph;
-import org.graphper.draw.ExecuteException;
-import org.graphper.draw.LineDrawProp;
-import org.graphper.draw.NodeDrawProp;
+DrawGraph drawing = Layout.DOT.getLayoutEngine().layout(graph);
 
-public class LayoutInspector {
-
-  public static void inspect(Graphviz graph) throws ExecuteException {
-    DrawGraph drawGraph = Layout.DOT.getLayoutEngine().layout(graph);
-
-    for (NodeDrawProp node : drawGraph.nodes()) {
-      System.out.printf("node=%s x=%.2f y=%.2f%n",
-                        node.getNode().nodeAttrs().getLabel(), node.getX(), node.getY());
-    }
-
-    for (LineDrawProp line : drawGraph.lines()) {
-      System.out.println(line.isBesselCurve() ? "Bezier edge" : "Polyline edge");
-    }
-  }
+for (NodeDrawProp node : drawing.nodes()) {
+  System.out.printf("x=%.2f y=%.2f%n", node.getX(), node.getY());
 }
 ```
 
 ## Gallery
 
-These examples are rendered by graph-support 1.5.3 and sized as compact previews so more of the
-feature set is visible at a glance.
+Examples of graph-support's layout and rendering capabilities (rendered with version 1.5.3):
 
 <table>
   <tr>
@@ -319,6 +271,9 @@ More examples are available under [`docs`](docs) and [`test`](test).
 
 ## Build and Test
 
+Build from the repository root. Maven runs static checks and tests as part of the build;
+tests run headless by default. See [Static Checks](config/checkstyle/README.md) for contributor rules.
+
 ```bash
 git clone https://github.com/jamisonjiang/graph-support.git
 cd graph-support
@@ -329,13 +284,12 @@ mvn clean install
 # Build only the runnable CLI and its dependencies
 mvn -pl cli -am package
 
-# Run UI, DOT, core, and CLI tests required by the desktop editor
-mvn -pl ui,cli -am test
 ```
 
 ## Documentation and Support
 
 - [Documentation](docs)
+- [Node shapes](docs/node/Shape.md) and [arrow shapes](docs/edge/ArrowHead.md)
 - [Release notes](https://github.com/jamisonjiang/graph-support/releases)
 - [Issue tracker](https://github.com/jamisonjiang/graph-support/issues)
 

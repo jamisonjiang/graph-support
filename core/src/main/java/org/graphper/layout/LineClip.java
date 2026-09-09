@@ -53,6 +53,7 @@ import org.graphper.util.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Clips routed edges against endpoint shapes and positions arrows and floating labels. */
 public abstract class LineClip extends LineHandler {
 
   private static final Logger log = LoggerFactory.getLogger(LineClip.class);
@@ -62,8 +63,8 @@ public abstract class LineClip extends LineHandler {
   private static final FlatPoint FLOAT_LABEL_DOWN_OFFSET = new UnmodifyFlatPoint(0.5, 0.5);
 
   /**
-   * Endpoint labels collected by the batch that is currently running, {@code null} when
-   * {@link #setFloatLabel(LineDrawProp)} is called outside a batch.
+   * Endpoint labels collected by the batch that is currently running, {@code null} when {@link
+   * #setFloatLabel(LineDrawProp)} is called outside a batch.
    */
   private List<ExternalLabelPlacer.Placement> endpointLabelSink;
 
@@ -71,36 +72,32 @@ public abstract class LineClip extends LineHandler {
    * The arrow setting of the endpoint of the line segment, it is necessary to specify the axis
    * length and axis direction of the arrow and the position of the axis end point.
    *
-   * @param headAxisEnd  head arrow axis end point
-   * @param headAxisDir  head arrow direction
-   * @param tailAxisEnd  tail arrow axis end point
-   * @param tailAxisDir  tail arrow direction
-   * @param arrowSize    arrow size
+   * @param headAxisEnd head arrow axis end point
+   * @param headAxisDir head arrow direction
+   * @param tailAxisEnd tail arrow axis end point
+   * @param tailAxisDir tail arrow direction
+   * @param arrowSize arrow size
    * @param lineDrawProp path properties
    */
-  protected void lineArrowSite(FlatPoint headAxisEnd, FlatPoint headAxisDir,
-                               FlatPoint tailAxisEnd, FlatPoint tailAxisDir,
-                               double arrowSize, LineDrawProp lineDrawProp) {
+  protected void lineArrowSite(
+      FlatPoint headAxisEnd,
+      FlatPoint headAxisDir,
+      FlatPoint tailAxisEnd,
+      FlatPoint tailAxisDir,
+      double arrowSize,
+      LineDrawProp lineDrawProp) {
     Asserts.nullArgument(lineDrawProp, "lineDrawProp");
 
     if (headAxisEnd != null && headAxisDir != null) {
       lineDrawProp.setArrowHead(
           new ArrowDrawProp(
-              true,
-              calcArrowLinkPoint(headAxisEnd, arrowSize, headAxisDir),
-              headAxisEnd
-          )
-      );
+              true, calcArrowLinkPoint(headAxisEnd, arrowSize, headAxisDir), headAxisEnd));
     }
 
     if (tailAxisEnd != null && tailAxisDir != null) {
       lineDrawProp.setArrowTail(
           new ArrowDrawProp(
-              false,
-              calcArrowLinkPoint(tailAxisEnd, arrowSize, tailAxisDir),
-              tailAxisEnd
-          )
-      );
+              false, calcArrowLinkPoint(tailAxisEnd, arrowSize, tailAxisDir), tailAxisEnd));
     }
   }
 
@@ -110,24 +107,25 @@ public abstract class LineClip extends LineHandler {
    * start and end points based on node or cluster boundaries and handles scenarios like self-loops
    * and directional lines.
    *
-   * <p>The clipping process involves the following steps:</p>
+   * <p>The clipping process involves the following steps:
+   *
    * <ul>
    *   <li>Determine whether the line requires clipping at the start or end based on its attributes
-   *       and the nodes it connects.</li>
-   *   <li>Clip the line against the boundaries of the relevant node or cluster.</li>
-   *   <li>Adjust arrow positions and sizes as needed for the clipped path.</li>
-   *   <li>Handle scenarios where no valid path exists, ensuring appropriate arrow handling.</li>
+   *       and the nodes it connects.
+   *   <li>Clip the line against the boundaries of the relevant node or cluster.
+   *   <li>Adjust arrow positions and sizes as needed for the clipped path.
+   *   <li>Handle scenarios where no valid path exists, ensuring appropriate arrow handling.
    * </ul>
    *
-   * @param path             the current line path to be clipped
-   * @param pathClip         the clipping utility handling node and cluster boundaries
-   * @param noPathDirection  the fallback direction when no valid path exists
-   * @param lineDrawProp     the properties of the line being processed, including start and end nodes
-   * @throws NullPointerException     if {@code pathClip} or {@code lineDrawProp} is {@code null}
+   * @param path the current line path to be clipped
+   * @param pathClip the clipping utility handling node and cluster boundaries
+   * @param noPathDirection the fallback direction when no valid path exists
+   * @param lineDrawProp the properties of the line being processed, including start and end nodes
+   * @throws NullPointerException if {@code pathClip} or {@code lineDrawProp} is {@code null}
    * @throws IllegalArgumentException if required nodes for the line are missing in the layout
    */
-  protected void clipProcess(LineDrawProp path, PathClip pathClip,
-                             FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
+  protected void clipProcess(
+      LineDrawProp path, PathClip pathClip, FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
     Asserts.nullArgument(pathClip, "pathClip");
     Asserts.nullArgument(lineDrawProp, "lineDrawProp");
 
@@ -149,10 +147,8 @@ public abstract class LineClip extends LineHandler {
       if (!isSelfLine) {
         ANode node = layoutGraph.getNode(from);
         Asserts.illegalArgument(node == null, "Can not found from node of line prop");
-        clusterDrawProp = findLineEndPointCluster(
-            node.getContainer(),
-            getCompoundId(lineAttrs, !reversal)
-        );
+        clusterDrawProp =
+            findLineEndPointCluster(node.getContainer(), getCompoundId(lineAttrs, !reversal));
       }
 
       if (clusterDrawProp != null) {
@@ -169,10 +165,8 @@ public abstract class LineClip extends LineHandler {
         if (!isSelfLine) {
           ANode node = layoutGraph.getNode(to);
           Asserts.illegalArgument(node == null, "Can not found to node of line prop");
-          clusterDrawProp = findLineEndPointCluster(
-              node.getContainer(),
-              getCompoundId(lineAttrs, reversal)
-          );
+          clusterDrawProp =
+              findLineEndPointCluster(node.getContainer(), getCompoundId(lineAttrs, reversal));
         }
 
         if (clusterDrawProp != null) {
@@ -195,8 +189,9 @@ public abstract class LineClip extends LineHandler {
       List<FlatPoint> nodeClippedPath = new ArrayList<>(path);
 
       if (fromArrowNeed) {
-        path = pathClip
-            .fromArrowClip(getClipSize(arrowSize, lineAttrs, lineDrawProp.isHeadStart()), path);
+        path =
+            pathClip.fromArrowClip(
+                getClipSize(arrowSize, lineAttrs, lineDrawProp.isHeadStart()), path);
       }
 
       if (pathClip.isNull(path)) {
@@ -206,8 +201,9 @@ public abstract class LineClip extends LineHandler {
       }
 
       if (toArrowNeed) {
-        path = pathClip
-            .toArrowClip(getClipSize(arrowSize, lineAttrs, !lineDrawProp.isHeadStart()), path);
+        path =
+            pathClip.toArrowClip(
+                getClipSize(arrowSize, lineAttrs, !lineDrawProp.isHeadStart()), path);
       }
 
       if (pathClip.isNull(path)) {
@@ -245,10 +241,10 @@ public abstract class LineClip extends LineHandler {
    * overriding that single-argument method still intercepts the batch.
    *
    * @param lineDrawProp the line whose float labels are being resolved
-   * @param placements   sink collecting the endpoint labels of the current batch
+   * @param placements sink collecting the endpoint labels of the current batch
    */
-  final void setFloatLabel(LineDrawProp lineDrawProp,
-                           List<ExternalLabelPlacer.Placement> placements) {
+  final void setFloatLabel(
+      LineDrawProp lineDrawProp, List<ExternalLabelPlacer.Placement> placements) {
     List<ExternalLabelPlacer.Placement> previous = this.endpointLabelSink;
     this.endpointLabelSink = placements;
     try {
@@ -284,8 +280,8 @@ public abstract class LineClip extends LineHandler {
     ExternalLabelPlacer.place(drawGraph, standalone);
   }
 
-  private void collectFloatLabels(LineDrawProp lineDrawProp,
-                                  List<ExternalLabelPlacer.Placement> placements) {
+  private void collectFloatLabels(
+      LineDrawProp lineDrawProp, List<ExternalLabelPlacer.Placement> placements) {
     if (lineDrawProp == null) {
       return;
     }
@@ -299,39 +295,37 @@ public abstract class LineClip extends LineHandler {
       return;
     }
 
-    double[] labelLength = floatLabels.length > 1 ? new double[]{-1} : null;
+    double[] labelLength = floatLabels.length > 1 ? new double[] {-1} : null;
     for (FloatLabel floatLabel : floatLabels) {
       FlatPoint startPoint;
       FlatPoint offset = floatLabel.getOffset();
       NodeDrawProp endpoint = null;
       if (floatLabel.getTend() == null) {
         if (lineDrawProp.isBesselCurve()) {
-          startPoint = curveGetFloatLabelStart(
-              labelLength,
-              floatLabel.getLengthRatio(),
-              lineDrawProp
-          );
+          startPoint =
+              curveGetFloatLabelStart(labelLength, floatLabel.getLengthRatio(), lineDrawProp);
         } else {
-          startPoint = straightGetFloatLabelStart(
-              labelLength,
-              floatLabel.getLengthRatio(),
-              lineDrawProp
-          );
+          startPoint =
+              straightGetFloatLabelStart(labelLength, floatLabel.getLengthRatio(), lineDrawProp);
         }
       } else {
         Tend tend = floatLabel.getTend();
         if (tend == Tend.TAIL) {
-          startPoint = lineDrawProp.isHeadStart()
-              ? lineDrawProp.get(lineDrawProp.size() - 1) : lineDrawProp.get(0);
+          startPoint =
+              lineDrawProp.isHeadStart()
+                  ? lineDrawProp.get(lineDrawProp.size() - 1)
+                  : lineDrawProp.get(0);
           endpoint = drawGraph.getNodeDrawProp(lineDrawProp.getLine().tail());
         } else {
-          startPoint = lineDrawProp.isHeadStart()
-              ? lineDrawProp.get(0) : lineDrawProp.get(lineDrawProp.size() - 1);
+          startPoint =
+              lineDrawProp.isHeadStart()
+                  ? lineDrawProp.get(0)
+                  : lineDrawProp.get(lineDrawProp.size() - 1);
           endpoint = drawGraph.getNodeDrawProp(lineDrawProp.getLine().head());
         }
 
-        offset = getFloatLabelLeftOffset(endpoint, lineDrawProp, startPoint, offset,
-                                        tend == Tend.TAIL);
+        offset =
+            getFloatLabelLeftOffset(endpoint, lineDrawProp, startPoint, offset, tend == Tend.TAIL);
       }
 
       FlatPoint labelSize;
@@ -342,8 +336,7 @@ public abstract class LineClip extends LineHandler {
           continue;
         }
 
-        labelSize = FontUtils.measure(label, lineAttrs.getFontName(),
-                                      floatLabel.getFontSize(), 0);
+        labelSize = FontUtils.measure(label, lineAttrs.getFontName(), floatLabel.getFontSize(), 0);
         if (Objects.equals(labelSize, Vectors.ZERO)) {
           continue;
         }
@@ -354,8 +347,9 @@ public abstract class LineClip extends LineHandler {
       if (startPoint != null) {
         FlatPoint center = floatPointCenter(startPoint, labelSize, offset);
         if (floatLabel.getTend() != null) {
-          placements.add(new ExternalLabelPlacer.Placement(lineDrawProp, floatLabel, startPoint,
-                                                           center, labelSize, assemble, endpoint));
+          placements.add(
+              new ExternalLabelPlacer.Placement(
+                  lineDrawProp, floatLabel, startPoint, center, labelSize, assemble, endpoint));
           continue;
         }
 
@@ -373,13 +367,17 @@ public abstract class LineClip extends LineHandler {
     }
   }
 
-  private FlatPoint getFloatLabelLeftOffset(NodeDrawProp node, LineDrawProp lineDrawProp,
-                                            FlatPoint start, FlatPoint offset, boolean isTail) {
+  private FlatPoint getFloatLabelLeftOffset(
+      NodeDrawProp node,
+      LineDrawProp lineDrawProp,
+      FlatPoint start,
+      FlatPoint offset,
+      boolean isTail) {
     Box nodeBox = node;
     LineAttrs lineAttrs = lineDrawProp.lineAttrs();
     if (node.getCell() != null) {
-      Cell cell = node.getCell().getCellById(
-          isTail ? lineAttrs.getTailCell() : lineAttrs.getHeadCell());
+      Cell cell =
+          node.getCell().getCellById(isTail ? lineAttrs.getTailCell() : lineAttrs.getHeadCell());
       if (cell != null) {
         nodeBox = cell.getCellBox(node);
       }
@@ -390,18 +388,17 @@ public abstract class LineClip extends LineHandler {
       return pointOffset;
     }
 
-    return new FlatPoint(offset.getHeight() + pointOffset.getHeight(),
-                         offset.getWidth() + pointOffset.getWidth());
+    return new FlatPoint(
+        offset.getHeight() + pointOffset.getHeight(), offset.getWidth() + pointOffset.getWidth());
   }
 
   protected boolean needClip(Line line, LineAttrs lineAttrs, Node node) {
     return needClip(line, lineAttrs, node, null);
   }
 
-  protected boolean needClip(Line line, LineAttrs lineAttrs,
-                             Node node, Boolean isHead) {
+  protected boolean needClip(Line line, LineAttrs lineAttrs, Node node, Boolean isHead) {
     if (isHead == null) {
-      if (Objects.equals(line.head() , node) && !needClip(true, lineAttrs)) {
+      if (Objects.equals(line.head(), node) && !needClip(true, lineAttrs)) {
         return false;
       }
 
@@ -425,9 +422,8 @@ public abstract class LineClip extends LineHandler {
     }
   }
 
-
-  protected ClusterDrawProp findLineEndPointCluster(GraphContainer graphContainer,
-                                                    String clusterId) {
+  protected ClusterDrawProp findLineEndPointCluster(
+      GraphContainer graphContainer, String clusterId) {
     if (StringUtils.isEmpty(clusterId)) {
       return null;
     }
@@ -522,22 +518,35 @@ public abstract class LineClip extends LineHandler {
     return arrowSize * arrowShape.getClipRatio();
   }
 
-  // ---------------------------------------------------------------- private method ----------------------------------------------------------------
+  // ---------------------------------------------------------------- private method
+  // ----------------------------------------------------------------
   private FlatPoint calcFloatLabelOffset(FlatPoint endPoint, Box box) {
     double leftBorder = box.getLeftBorder();
     double rightBorder = box.getRightBorder();
     double upBorder = box.getUpBorder();
     double downBorder = box.getDownBorder();
 
-    if (Vectors.inAngle(box.getX(), box.getY(), leftBorder,
-                        upBorder, leftBorder, downBorder,
-                        endPoint.getX(), endPoint.getY())) {
+    if (Vectors.inAngle(
+        box.getX(),
+        box.getY(),
+        leftBorder,
+        upBorder,
+        leftBorder,
+        downBorder,
+        endPoint.getX(),
+        endPoint.getY())) {
       return FLOAT_LABEL_LEFT_OFFSET;
     }
 
-    if (Vectors.inAngle(box.getX(), box.getY(), leftBorder,
-                        downBorder, rightBorder, downBorder,
-                        endPoint.getX(), endPoint.getY())) {
+    if (Vectors.inAngle(
+        box.getX(),
+        box.getY(),
+        leftBorder,
+        downBorder,
+        rightBorder,
+        downBorder,
+        endPoint.getX(),
+        endPoint.getY())) {
       return FLOAT_LABEL_DOWN_OFFSET;
     }
 
@@ -550,10 +559,7 @@ public abstract class LineClip extends LineHandler {
     if (ValueUtils.approximate(dist, 0)) {
       return point;
     }
-    return Vectors.add(
-        point,
-        Vectors.multiple(dirVector, (dist - arrowSize) / dist)
-    );
+    return Vectors.add(point, Vectors.multiple(dirVector, (dist - arrowSize) / dist));
   }
 
   private void arrowSet(FlatPoint f, FlatPoint t, boolean isTail, LineDrawProp lineDrawProp) {
@@ -561,13 +567,15 @@ public abstract class LineClip extends LineHandler {
       if (log.isDebugEnabled()) {
         log.debug(
             "Found that the arrow end point and arrow direction point of the arrow are equal, "
-                + "and the arrow setting has been skipped, arrow end {}, arrow direction {}", f, t);
+                + "and the arrow setting has been skipped, arrow end {}, arrow direction {}",
+            f,
+            t);
       }
       return;
     }
 
-    double arrowSize = getClipSize(getArrowSize(lineDrawProp.lineAttrs()),
-                                   lineDrawProp.lineAttrs(), !isTail);
+    double arrowSize =
+        getClipSize(getArrowSize(lineDrawProp.lineAttrs()), lineDrawProp.lineAttrs(), !isTail);
     if (isTail) {
       lineArrowSite(null, null, f, t, arrowSize, lineDrawProp);
     } else {
@@ -575,8 +583,13 @@ public abstract class LineClip extends LineHandler {
     }
   }
 
-  private void noPathArrowSet(Line line, boolean reversal, FlatPoint f, FlatPoint t,
-                              FlatPoint noPathDirection, LineDrawProp lineDrawProp) {
+  private void noPathArrowSet(
+      Line line,
+      boolean reversal,
+      FlatPoint f,
+      FlatPoint t,
+      FlatPoint noPathDirection,
+      LineDrawProp lineDrawProp) {
     if ((haveTailArrow(line) && !reversal) || (haveHeadArrow(line) && reversal)) {
       arrowSet(f, noPathDirection == null ? t : noPathDirection, !reversal, lineDrawProp);
     }
@@ -591,8 +604,9 @@ public abstract class LineClip extends LineHandler {
       return new FlatPoint(startPoint.getX(), startPoint.getY());
     }
 
-    return new FlatPoint(startPoint.getX() + labelSize.getWidth() * offset.getWidth(),
-                         startPoint.getY() + labelSize.getHeight() * offset.getHeight());
+    return new FlatPoint(
+        startPoint.getX() + labelSize.getWidth() * offset.getWidth(),
+        startPoint.getY() + labelSize.getHeight() * offset.getHeight());
   }
 
   private ShapePosition getClipShapePosition(LineDrawProp line, NodeDrawProp node, boolean isTail) {
@@ -618,8 +632,11 @@ public abstract class LineClip extends LineHandler {
     }
 
     FlatPoint cellCenter = cell.getCenter(node);
-    return new DefaultShapePosition(cellCenter.getX(), cellCenter.getY(),
-                                    cell.getHeight(), cell.getWidth(),
-                                    NodeShapeEnum.RECT);
+    return new DefaultShapePosition(
+        cellCenter.getX(),
+        cellCenter.getY(),
+        cell.getHeight(),
+        cell.getWidth(),
+        NodeShapeEnum.RECT);
   }
 }

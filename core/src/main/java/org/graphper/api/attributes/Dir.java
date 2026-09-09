@@ -26,23 +26,15 @@ import org.graphper.api.Graphviz;
  */
 public enum Dir {
 
-  /**
-   * The directed line from T to H, draw as <tt>T -&gt; H</tt>.
-   */
+  /** The directed line from T to H, draw as <tt>T -&gt; H</tt>. */
   FORWARD,
 
-  /**
-   * The directed line from T to H, draw as <tt>T &lt;- H</tt>.
-   */
+  /** The directed line from T to H, draw as <tt>T &lt;- H</tt>. */
   BACK,
 
-  /**
-   * The directed line from T to H, draw as <tt>T &lt;-&gt; H</tt>.
-   */
+  /** The directed line from T to H, draw as <tt>T &lt;-&gt; H</tt>. */
   BOTH,
 
-  /**
-   * The directed line from T to H, draw as <tt>T - H</tt>.
-   */
+  /** The directed line from T to H, draw as <tt>T - H</tt>. */
   NONE;
 }

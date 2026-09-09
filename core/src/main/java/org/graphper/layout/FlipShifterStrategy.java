@@ -39,15 +39,11 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
 
   private final DrawGraph drawGraph;
 
+  /** Creates a rank-direction shifter and transforms the graph's drawing range. */
   public FlipShifterStrategy(DrawGraph drawGraph) {
     Asserts.nullArgument(drawGraph, "drawGraph");
     this.drawGraph = drawGraph;
     flipDrawGraphRange();
-  }
-
-  @Override
-  public void movePoint(FlatPoint point) {
-    movePoint(drawGraph, point);
   }
 
   @Override
@@ -101,13 +97,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
 
   // --------------------------------------- static method  ---------------------------------------
 
-  public static Port movePort(DrawGraph drawGraph, Port port) {
-    if (port == null) {
-      return null;
-    }
-    return movePort(port, drawGraph);
-  }
-
+  /** Finds the original port whose rank-direction transformation yields the supplied port. */
   public static Port backPort(Port port, DrawGraph drawGraph) {
     if (port == null || notNeedMove(drawGraph)) {
       return port;
@@ -120,6 +110,15 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     return port;
   }
 
+  /** Transforms a port for the graph's rank direction, preserving null. */
+  public static Port movePort(DrawGraph drawGraph, Port port) {
+    if (port == null) {
+      return null;
+    }
+    return movePort(port, drawGraph);
+  }
+
+  /** Maps a compass port to the graph's rank direction. */
   public static Port movePort(Port port, DrawGraph drawGraph) {
     if (port == null || notNeedMove(drawGraph)) {
       return port;
@@ -193,6 +192,12 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     return port;
   }
 
+  @Override
+  public void movePoint(FlatPoint point) {
+    movePoint(drawGraph, point);
+  }
+
+  /** Transforms a point in place using the graph's rank direction and drawing limits. */
   public static void movePoint(DrawGraph drawGraph, FlatPoint point) {
     if (point == null || notNeedMove(drawGraph)) {
       return;
@@ -219,6 +224,7 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     }
   }
 
+  /** Applies the inverse rank-direction transformation within the supplied box. */
   public static void movePointOpposite(DrawGraph drawGraph, Box box, FlatPoint point) {
     if (point == null || box == null || notNeedMove(drawGraph)) {
       return;
@@ -249,7 +255,9 @@ public class FlipShifterStrategy extends AbstractShifterStrategy {
     moveRectangle(drawGraph, drawGraph.getMaxX(), drawGraph.getMaxY(), rectangle);
   }
 
-  public static void moveRectangle(DrawGraph drawGraph, Double maxX, Double maxY, Rectangle rectangle) {
+  /** Transforms rectangle bounds in place using explicit or rectangle-derived limits. */
+  public static void moveRectangle(
+      DrawGraph drawGraph, Double maxX, Double maxY, Rectangle rectangle) {
     if (rectangle == null || notNeedMove(drawGraph)) {
       return;
     }

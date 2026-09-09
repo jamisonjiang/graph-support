@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.graphper.layout;
 
 import org.graphper.api.NodeAttrs;
@@ -27,8 +28,7 @@ import org.graphper.def.FlatPoint;
  */
 public final class ShapeSizeUtils {
 
-  private ShapeSizeUtils() {
-  }
+  private ShapeSizeUtils() {}
 
   /** Applies the Graphviz {@code regular=true} final size policy. */
   public static void applyRegular(NodeAttrs attrs, NodeShape shape, FlatPoint size) {

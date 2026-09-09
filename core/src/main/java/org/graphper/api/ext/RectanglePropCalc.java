@@ -19,6 +19,7 @@ package org.graphper.api.ext;
 import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 
+/** Calculates container dimensions and containment for rectangles. */
 public class RectanglePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 5056940900129881225L;

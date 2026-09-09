@@ -30,13 +30,13 @@ import org.graphper.draw.svg.SvgBrush;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.util.CollectionUtils;
 
+/** Renders regular polygon node and cluster outlines in SVG. */
 public class RegularShapeRender extends CustomizeShapeRender {
 
   @Override
   public void drawNodeSvg(SvgBrush nodeBrush, NodeDrawProp nodeDrawProp) {
     NodeShape nodeShape = nodeDrawProp.nodeAttrs().getShape();
-    RegularPolylinePropCalc shapePropCalc =
-        (RegularPolylinePropCalc) nodeShape.getShapePropCalc();
+    RegularPolylinePropCalc shapePropCalc = (RegularPolylinePropCalc) nodeShape.getShapePropCalc();
     draw(nodeDrawProp, nodeBrush, shapePropCalc);
   }
 
@@ -48,7 +48,8 @@ public class RegularShapeRender extends CustomizeShapeRender {
     draw(clusterDrawProp, clusterBrush, shapePropCalc);
   }
 
-  private void draw(ContainerDrawProp box, SvgBrush svgBrush, RegularPolylinePropCalc shapePropCalc) {
+  private void draw(
+      ContainerDrawProp box, SvgBrush svgBrush, RegularPolylinePropCalc shapePropCalc) {
     List<FlatPoint> points = shapePropCalc.calcPoints(box);
     if (CollectionUtils.isEmpty(points)) {
       return;
@@ -61,7 +62,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
     path[path.length - 2] = path[0];
     path[path.length - 1] = path[1];
-    SvgEditor.polygonShape(box,svgBrush, path);
+    SvgEditor.polygonShape(box, svgBrush, path);
   }
 
   @Override
@@ -69,6 +70,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     return NodeShapeEnum.REGULAR_POLYLINE.getName();
   }
 
+  /** Registers the regular polygon renderer for pentagons. */
   public static class PentagonShapeRender extends RegularShapeRender {
 
     @Override
@@ -77,6 +79,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
   }
 
+  /** Registers the regular polygon renderer for configurable polygons. */
   public static class PolygonShapeRender extends RegularShapeRender {
 
     @Override
@@ -85,6 +88,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
   }
 
+  /** Registers the regular polygon renderer for hexagons. */
   public static class HexagonShapeRender extends RegularShapeRender {
 
     @Override
@@ -93,6 +97,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
   }
 
+  /** Registers the regular polygon renderer for septagons. */
   public static class SeptagonShapeRender extends RegularShapeRender {
 
     @Override
@@ -101,6 +106,7 @@ public class RegularShapeRender extends CustomizeShapeRender {
     }
   }
 
+  /** Registers the regular polygon renderer for octagons. */
   public static class OctagonShapeRender extends RegularShapeRender {
 
     @Override

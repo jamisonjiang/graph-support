@@ -19,6 +19,7 @@ package org.graphper.layout.fdp;
 import org.graphper.draw.NodeDrawProp;
 import org.graphper.layout.ANode;
 
+/** A force-directed layout node with accumulated attraction, repulsion, and displacement. */
 public class FNode extends ANode {
 
   private static final long serialVersionUID = 6123993374954612168L;

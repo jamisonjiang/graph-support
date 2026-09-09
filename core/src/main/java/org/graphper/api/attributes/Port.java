@@ -28,7 +28,6 @@ import org.graphper.util.Asserts;
  * @author Jamison Jiang
  */
 public enum Port implements PortPosition {
-
   CENTER(-1, "c", new RatioPortPosition(0, 0)),
 
   WEST(0, "w", new RatioPortPosition(-0.5, 0)),
@@ -77,6 +76,7 @@ public enum Port implements PortPosition {
     return this == Port.WEST || this == Port.NORTH || this == Port.EAST || this == Port.SOUTH;
   }
 
+  /** Returns the preceding compass port, wrapping around the compass. */
   public Port pre() {
     if (no == 0) {
       return valueOf(maxNo() - 1);
@@ -84,6 +84,7 @@ public enum Port implements PortPosition {
     return valueOf(no - 1);
   }
 
+  /** Returns the following compass port, wrapping around the compass. */
   public Port next() {
     if (no == maxNo() - 1) {
       return valueOf(0);
@@ -95,9 +96,11 @@ public enum Port implements PortPosition {
     return values().length - 1;
   }
 
+  /** Returns the compass port with the specified number. */
   public static Port valueOf(int no) {
-    Asserts.illegalArgument(no < 0 || no >= Port.values().length,
-                            "Port no must between 0 and " + (Port.values().length - 1));
+    Asserts.illegalArgument(
+        no < 0 || no >= Port.values().length,
+        "Port no must between 0 and " + (Port.values().length - 1));
     return Port.values()[no + 1];
   }
 
@@ -109,6 +112,7 @@ public enum Port implements PortPosition {
     return portPosition.getyRatio();
   }
 
+  /** Returns the port with the specified code, or {@code null} when no code matches. */
   public static Port valueOfCode(String code) {
     for (Port port : values()) {
       if (Objects.equals(port.code, code)) {

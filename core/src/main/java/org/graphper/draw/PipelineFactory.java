@@ -18,21 +18,18 @@ package org.graphper.draw;
 
 import java.util.List;
 
+/** Creates editor pipeline triggers for graph elements. */
 public interface PipelineFactory {
 
   <B extends Brush, T extends NodeEditor<B>> NodePipelineTrigger<B, T> nodeExecutePipeline(
-      List<T> editors, DrawGraph graphviz
-  );
+      List<T> editors, DrawGraph graphviz);
 
   <B extends Brush, T extends LineEditor<B>> LinePipelineTrigger<B, T> lineExecutePipeline(
-      List<T> editors, DrawGraph graphviz
-  );
+      List<T> editors, DrawGraph graphviz);
 
   <B extends Brush, T extends ClusterEditor<B>> ClusterPipelineTrigger<B, T> clusterExecutePipeline(
-      List<T> editors, DrawGraph graphviz
-  );
+      List<T> editors, DrawGraph graphviz);
 
   <B extends Brush, T extends GraphEditor<B>> GraphPipelineTrigger<B, T> graphExecutePipeline(
-      List<T> editors, DrawGraph graphviz
-  );
+      List<T> editors, DrawGraph graphviz);
 }

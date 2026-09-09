@@ -22,14 +22,13 @@ import org.graphper.util.Asserts;
 import org.graphper.util.ValueUtils;
 
 /**
- * Calculation rules for various vectors
+ * Calculation rules for various vectors.
  *
  * @author Jamison Jiang
  */
 public class Vectors {
 
-  private Vectors() {
-  }
+  private Vectors() {}
 
   public static final FlatPoint ZERO = new UnmodifyFlatPoint(0, 0);
 
@@ -56,7 +55,7 @@ public class Vectors {
    * with subtraction. Returns a value equal to {@link #ZERO} if distance between two points is 0.
    *
    * @param subtrahend the subtrahend vector
-   * @param minuend    the minuend vector
+   * @param minuend the minuend vector
    * @return unit vector of specified direction
    * @throws NullPointerException subtrahend or minuend is null
    */
@@ -72,7 +71,7 @@ public class Vectors {
    * Two-dimensional vector subtraction.
    *
    * @param subtrahend the subtrahend vector
-   * @param minuend    the minuend vector
+   * @param minuend the minuend vector
    * @return vector after subtraction
    * @throws NullPointerException subtrahend or minuend is null
    */
@@ -85,7 +84,7 @@ public class Vectors {
   /**
    * Two-dimensional vector addition.
    *
-   * @param added   the added vector
+   * @param added the added vector
    * @param summand the summand vector
    * @return vector after addition
    * @throws NullPointerException added or summand is null
@@ -99,7 +98,7 @@ public class Vectors {
   /**
    * Two-dimensional vector multiplication.
    *
-   * @param multiplier   multiplier
+   * @param multiplier multiplier
    * @param multiplicand multiplicand
    * @return vector after multiplication
    * @throws NullPointerException multiplier or multiplicand is null
@@ -132,7 +131,7 @@ public class Vectors {
   /**
    * Vector coordinates multiplied by a specified multiple.
    *
-   * @param vector   the vector
+   * @param vector the vector
    * @param multiple the multiple
    * @return multiplied vector
    * @throws NullPointerException null vector
@@ -147,9 +146,9 @@ public class Vectors {
    *
    * @param p1 line point
    * @param p2 line point
-   * @param y  the ordinate of the solution point
+   * @param y the ordinate of the solution point
    * @return The abscissa of the solution point
-   * @throws NullPointerException     the null point
+   * @throws NullPointerException the null point
    * @throws IllegalArgumentException the vertical coordinates of the two vertices are equal
    */
   public static double linerFuncGetX(FlatPoint p1, FlatPoint p2, double y) {
@@ -164,14 +163,14 @@ public class Vectors {
    *
    * @param startX the abscissa of the vertex of the line segment
    * @param startY the ordinate of the solution point
-   * @param endX   the abscissa of the vertex of the line segment
-   * @param endY   the ordinate of the solution point
-   * @param y      The ordinate of the solution point
+   * @param endX the abscissa of the vertex of the line segment
+   * @param endY the ordinate of the solution point
+   * @param y The ordinate of the solution point
    * @return The abscissa of the solution point
    * @throws IllegalArgumentException the vertical coordinates of the two vertices are equal
    */
-  public static double linerFuncGetX(double startX, double startY, double endX, double endY,
-                                     double y) {
+  public static double linerFuncGetX(
+      double startX, double startY, double endX, double endY, double y) {
     Asserts.illegalArgument(startY == endY, "There are countless solutions to linear equations");
 
     if (startX == endX) {
@@ -190,9 +189,9 @@ public class Vectors {
    *
    * @param p1 line point
    * @param p2 line point*
-   * @param x  The abscissa of the solution point
+   * @param x The abscissa of the solution point
    * @return The ordinate of the solution point
-   * @throws NullPointerException     the null point
+   * @throws NullPointerException the null point
    * @throws IllegalArgumentException the vertical coordinates of the two vertices are equal
    */
   public static double linerFuncGetY(FlatPoint p1, FlatPoint p2, double x) {
@@ -208,14 +207,14 @@ public class Vectors {
    *
    * @param startX the abscissa of the vertex of the line segment
    * @param startY the ordinate of the solution point
-   * @param endX   the abscissa of the vertex of the line segment
-   * @param endY   the ordinate of the solution point
-   * @param x      The abscissa of the solution point
+   * @param endX the abscissa of the vertex of the line segment
+   * @param endY the ordinate of the solution point
+   * @param x The abscissa of the solution point
    * @return The ordinate of the solution point
    * @throws IllegalArgumentException the vertical coordinates of the two vertices are equal
    */
-  public static double linerFuncGetY(double startX, double startY, double endX, double endY,
-                                     double x) {
+  public static double linerFuncGetY(
+      double startX, double startY, double endX, double endY, double x) {
     Asserts.illegalArgument(startX == endX, "There are countless solutions to linear equations");
 
     if (startY == endY) {
@@ -238,10 +237,11 @@ public class Vectors {
    * @param line2P2 line2 endpoint
    * @return the intersection of two line segments
    * @throws IllegalArgumentException linear have empty point
-   * @throws UnfeasibleException      two linear equations have no common solution
+   * @throws UnfeasibleException two linear equations have no common solution
    */
-  public static FlatPoint lineInters(FlatPoint line1P1, FlatPoint line1P2, FlatPoint line2P1,
-                                     FlatPoint line2P2) throws UnfeasibleException {
+  public static FlatPoint lineInters(
+      FlatPoint line1P1, FlatPoint line1P2, FlatPoint line2P1, FlatPoint line2P2)
+      throws UnfeasibleException {
     Asserts.illegalArgument(
         line1P1 == null || line1P2 == null || line2P1 == null || line2P2 == null,
         "The line segment description is incomplete and there are null points");
@@ -288,19 +288,17 @@ public class Vectors {
   /**
    * Calculates the shortest distance from a given point to a line defined by two points.
    *
-   * @param point  the point from which to calculate the distance, not null
+   * <p>This method checks if the line is approximately vertical or horizontal, simplifying the
+   * calculation of the distance. If neither case applies, the method calculates the perpendicular
+   * line from the point to the line and computes the intersection to find the shortest distance. If
+   * an intersection cannot be determined, it returns 0.
+   *
+   * @param point the point from which to calculate the distance, not null
    * @param lineP1 the first point defining the line, not null
    * @param lineP2 the second point defining the line, not null
    * @return the shortest distance from {@code point} to the line defined by {@code lineP1} and
-   * {@code lineP2}
+   *     {@code lineP2}
    * @throws NullPointerException if {@code point}, {@code lineP1}, or {@code lineP2} is null
-   *                              <p>
-   *                              This method checks if the line is approximately vertical or
-   *                              horizontal, simplifying the calculation of the distance. If
-   *                              neither case applies, the method calculates the perpendicular line
-   *                              from the point to the line and computes the intersection to find
-   *                              the shortest distance. If an intersection cannot be determined, it
-   *                              returns 0.
    */
   public static double disToLine(FlatPoint point, FlatPoint lineP1, FlatPoint lineP2) {
     Objects.requireNonNull(point);
@@ -333,8 +331,8 @@ public class Vectors {
    * points.
    *
    * @param corner corner point
-   * @param p1     edge vector of the corner
-   * @param p2     edge vector of the corner
+   * @param p1 edge vector of the corner
+   * @param p2 edge vector of the corner
    * @param target detected target point
    * @return <tt>true</tt> if the point in angle
    * @throws NullPointerException have any null point
@@ -344,8 +342,15 @@ public class Vectors {
     Asserts.nullArgument(p1, "edge vector point of corner");
     Asserts.nullArgument(p2, "edge vector point of corner");
     Asserts.nullArgument(target, "target");
-    return inAngle(corner.getX(), corner.getY(), p1.getX(), p1.getY(),
-                   p2.getX(), p2.getY(), target.getX(), target.getY());
+    return inAngle(
+        corner.getX(),
+        corner.getY(),
+        p1.getX(),
+        p1.getY(),
+        p2.getX(),
+        p2.getY(),
+        target.getX(),
+        target.getY());
   }
 
   /**
@@ -354,20 +359,27 @@ public class Vectors {
    *
    * @param cornerX x-coordinate of corner point
    * @param cornerY y-coordinate of corner point
-   * @param p1x     x-coordinate edge vector of the corner
-   * @param p1y     y-coordinate edge vector of the corner
-   * @param p2x     x-coordinate edge vector of the corner
-   * @param p2y     y-coordinate edge vector of the corner
-   * @param testX   x-coordinate of detected point
-   * @param testY   y-coordinate of detected point
+   * @param p1x x-coordinate edge vector of the corner
+   * @param p1y y-coordinate edge vector of the corner
+   * @param p2x x-coordinate edge vector of the corner
+   * @param p2y y-coordinate edge vector of the corner
+   * @param testX x-coordinate of detected point
+   * @param testY y-coordinate of detected point
    * @return <tt>true</tt> if the point in angle
    */
-  public static boolean inAngle(double cornerX, double cornerY, double p1x, double p1y, double p2x,
-                                double p2y, double testX, double testY) {
-    return onLineDown(cornerX, cornerY, p1x, p1y, testX, testY) == onLineDown(cornerX, cornerY, p1x,
-                                                                              p1y, p2x, p2y)
-        && onLineDown(cornerX, cornerY, p2x, p2y, testX, testY) == onLineDown(cornerX, cornerY, p2x,
-                                                                              p2y, p1x, p1y);
+  public static boolean inAngle(
+      double cornerX,
+      double cornerY,
+      double p1x,
+      double p1y,
+      double p2x,
+      double p2y,
+      double testX,
+      double testY) {
+    return onLineDown(cornerX, cornerY, p1x, p1y, testX, testY)
+            == onLineDown(cornerX, cornerY, p1x, p1y, p2x, p2y)
+        && onLineDown(cornerX, cornerY, p2x, p2y, testX, testY)
+            == onLineDown(cornerX, cornerY, p2x, p2y, p1x, p1y);
   }
 
   /**
@@ -394,9 +406,8 @@ public class Vectors {
 
   // ----------------------------------- private method -----------------------------------
 
-  private static boolean onLineDown(double startX, double startY,
-                                    double endX, double endY,
-                                    double targetX, double targetY) {
+  private static boolean onLineDown(
+      double startX, double startY, double endX, double endY, double targetX, double targetY) {
     if (startX == endX && startY == endY) {
       return false;
     }

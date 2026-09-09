@@ -19,6 +19,7 @@ package org.graphper.draw;
 import java.util.Collections;
 import java.util.List;
 
+/** Applies a graph editor pipeline to the graph drawing properties. */
 public class GraphPipelineTrigger<B extends Brush, T extends GraphEditor<B>>
     extends AbstractPipelineTrigger<GraphvizDrawProp, B, T, GraphPipelineTrigger<B, T>> {
 

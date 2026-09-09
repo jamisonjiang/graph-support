@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Applies a cluster editor pipeline to the graph's clusters. */
 public class ClusterPipelineTrigger<B extends Brush, T extends ClusterEditor<B>>
     extends AbstractPipelineTrigger<ClusterDrawProp, B, T, ClusterPipelineTrigger<B, T>> {
 

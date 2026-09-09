@@ -50,9 +50,9 @@ public interface Dedigraph<V> extends Digraph<V> {
   /**
    * Returns the number of vertex neighbors. Returns 0 if the vertex does not exist in the graph.
    *
-   * <p>For bidirectional directed graphs, degree indicates all neighbor nodes (sum of in-degree 
-   * and out-degree). This is different from single-direction directed graphs where degree 
-   * indicates the out-degree only.
+   * <p>For bidirectional directed graphs, degree indicates all neighbor nodes (sum of in-degree and
+   * out-degree). This is different from single-direction directed graphs where degree indicates the
+   * out-degree only.
    *
    * @param v vertex to be queried
    * @return degree of this vertex in current graph (in-degree + out-degree)

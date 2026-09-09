@@ -39,13 +39,17 @@ class RoundedRouter extends CurveFitBoxRouter {
     List<ThroughPoint> throughPoints = throughParam.throughPoints;
     LineDrawProp lineDrawProp = throughParam.lineDrawProp;
 
-    connectWithRoundedCorner(lineDrawProp, throughParam.fromPortPoints,
-                             throughParam.toPortPoints, throughPoints,
-                              curves -> fixBox(throughParam.lineRouterBoxes, curves),
-                              throughParam.preserveWaypoints);
+    connectWithRoundedCorner(
+        lineDrawProp,
+        throughParam.fromPortPoints,
+        throughParam.toPortPoints,
+        throughPoints,
+        curves -> fixBox(throughParam.lineRouterBoxes, curves),
+        throughParam.preserveWaypoints);
   }
 
-  // --------------------------------------------- RoundedHandlerFactory ---------------------------------------------
+  // --------------------------------------------- RoundedHandlerFactory
+  // ---------------------------------------------
 
   static class RoundedRouterFactory extends AbstractDotLineRouterFactory<RoundedRouter> {
 

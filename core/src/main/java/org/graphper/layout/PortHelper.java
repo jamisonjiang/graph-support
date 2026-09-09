@@ -42,22 +42,16 @@ import org.graphper.util.Asserts;
  */
 public class PortHelper {
 
-  private PortHelper() {
-  }
+  private PortHelper() {}
 
-  public static FlatPoint getPortPoint(ANode node, Port port) {
-    if (port == null) {
-      return new FlatPoint(node.getX(), node.getY());
-    }
-    return new FlatPoint(node.getX() + port.horOffset(node), node.getY() + port.verOffset(node));
-  }
-
-  public static Port getLineEndPointPort(NodeDrawProp node, LineDrawProp line, DrawGraph drawGraph) {
+  public static Port getLineEndPointPort(
+      NodeDrawProp node, LineDrawProp line, DrawGraph drawGraph) {
     return getLineEndPointPort(node, line, drawGraph, true);
   }
 
-  public static Port getLineEndPointPort(NodeDrawProp node, LineDrawProp line,
-                                         DrawGraph drawGraph, boolean needMove) {
+  /** Resolves the node's endpoint port, optionally transforming it for the rank direction. */
+  public static Port getLineEndPointPort(
+      NodeDrawProp node, LineDrawProp line, DrawGraph drawGraph, boolean needMove) {
     if (node == null || line == null || drawGraph == null) {
       return null;
     }
@@ -81,22 +75,30 @@ public class PortHelper {
     return null;
   }
 
-  public static PortPoint getPortPoint(LineDrawProp line, ANode node,
-                                       DrawGraph drawGraph) {
-    return getPortPoint(line, node, drawGraph, true);
+  public static PortPoint getPortPointWithoutClip(
+      LineDrawProp line, ANode node, DrawGraph drawGraph) {
+    return getPortPoint(line, node, drawGraph, false);
   }
 
-  public static PortPoint getPortPointWithoutClip(LineDrawProp line, ANode node,
-                                                  DrawGraph drawGraph) {
-    return getPortPoint(line, node, drawGraph, false);
+  /** Returns the port position on the node, or its center when no port is specified. */
+  public static FlatPoint getPortPoint(ANode node, Port port) {
+    if (port == null) {
+      return new FlatPoint(node.getX(), node.getY());
+    }
+    return new FlatPoint(node.getX() + port.horOffset(node), node.getY() + port.verOffset(node));
+  }
+
+  public static PortPoint getPortPoint(LineDrawProp line, ANode node, DrawGraph drawGraph) {
+    return getPortPoint(line, node, drawGraph, true);
   }
 
   public static PortPoint getPortPoint(ANode node, String cellId, Port port, DrawGraph drawGraph) {
     return endPoint(true, cellId, port, node.getNode(), drawGraph, node);
   }
 
-  public static PortPoint getPortPoint(LineDrawProp line, ANode node, DrawGraph drawGraph,
-                                       boolean portClipNode) {
+  /** Resolves the line endpoint, honoring shared endpoints, cell ports, and optional clipping. */
+  public static PortPoint getPortPoint(
+      LineDrawProp line, ANode node, DrawGraph drawGraph, boolean portClipNode) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
 
@@ -115,6 +117,7 @@ public class PortHelper {
     return endPoint(portClipNode, cellId, port, node.getNode(), drawGraph, node);
   }
 
+  /** Returns the cell identifier associated with this node's endpoint of the line. */
   public static String getCellId(ANode node, LineDrawProp lineDrawProp) {
     String cellId = null;
     if (node.getNode() == lineDrawProp.getLine().tail()) {
@@ -126,8 +129,16 @@ public class PortHelper {
     return cellId;
   }
 
-  public static PortPoint endPoint(boolean portClipNode, String cellId, Port port,
-                                   Node node, DrawGraph drawGraph, ShapePosition shapePosition) {
+  /**
+   * Resolves a cell or node port in the target rank direction, optionally clipping to its shape.
+   */
+  public static PortPoint endPoint(
+      boolean portClipNode,
+      String cellId,
+      Port port,
+      Node node,
+      DrawGraph drawGraph,
+      ShapePosition shapePosition) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(shapePosition, "shapePosition");
 
@@ -135,7 +146,8 @@ public class PortHelper {
     Asserts.nullArgument(nodeDrawProp, "nodeDrawProp");
 
     /*
-     * 1.The flipped shapePosition needs to be changed back to the shape before flipping. e.g.: LR -> TB
+     * 1.The flipped shapePosition needs to be changed back to the shape before flipping.
+     * e.g.: LR -> TB
      * 2.Use the original shapePosition to calculate the portPoint.
      * 3.Need to flip the portPoint to target Rankdir. e.g.: TB -> LR
      */
@@ -161,25 +173,32 @@ public class PortHelper {
     if (cell != null) {
       // Cell center point need the original node box to calculated.
       Rectangle cellRect = cell.getCellBox(shapePosition);
-      DefaultShapePosition cellShapePos = new DefaultShapePosition(
-          cellRect.getX(), cellRect.getY(), cell.getHeight(), cell.getWidth(), cell.getShape()
-      );
-      cellRect = getNodeBoxWithRankdir(shapePosition.getRightBorder(),
-                                       shapePosition.getDownBorder(),
-                                       drawGraph, cellShapePos);
+      DefaultShapePosition cellShapePos =
+          new DefaultShapePosition(
+              cellRect.getX(), cellRect.getY(), cell.getHeight(), cell.getWidth(), cell.getShape());
+      cellRect =
+          getNodeBoxWithRankdir(
+              shapePosition.getRightBorder(),
+              shapePosition.getDownBorder(),
+              drawGraph,
+              cellShapePos);
 
-      portPoint = new PortPoint(
-          cellRect.getX() + port.horOffset(cellRect),
-          cellRect.getY() + port.verOffset(cellRect), true, port
-      );
+      portPoint =
+          new PortPoint(
+              cellRect.getX() + port.horOffset(cellRect),
+              cellRect.getY() + port.verOffset(cellRect),
+              true,
+              port);
       rectangle = cellRect;
       shapeProp = cell.getShape() != null ? cell.getShape() : NodeShapeEnum.RECT;
     } else {
       // Calculate the original port point coordinate
-      portPoint = new PortPoint(
-          rectangle.getX() + port.horOffset(rectangle),
-          rectangle.getY() + port.verOffset(rectangle), true, port
-      );
+      portPoint =
+          new PortPoint(
+              rectangle.getX() + port.horOffset(rectangle),
+              rectangle.getY() + port.verOffset(rectangle),
+              true,
+              port);
     }
 
     if (nodeCenter(portPoint, rectangle) || !portClipNode || shapeProp.in(rectangle, portPoint)) {
@@ -198,8 +217,8 @@ public class PortHelper {
       topHeight = rectangle.getHeight() / 2;
     }
 
-    FlatPoint center = new FlatPoint(rectangle.getLeftBorder() + leftWidth,
-                                     rectangle.getUpBorder() + topHeight);
+    FlatPoint center =
+        new FlatPoint(rectangle.getLeftBorder() + leftWidth, rectangle.getUpBorder() + topHeight);
 
     FlatPoint p = straightLineClipShape(rectangle, shapeProp, center, portPoint);
     FlipShifterStrategy.movePointOpposite(drawGraph, shapePosition, p);
@@ -212,13 +231,13 @@ public class PortHelper {
   }
 
   public static Rectangle getNodeBoxWithRankdir(DrawGraph drawGraph, ShapePosition shapePosition) {
-    return getNodeBoxWithRankdir(shapePosition.getRightBorder(),
-                                 shapePosition.getDownBorder(),
-                                 drawGraph, shapePosition);
+    return getNodeBoxWithRankdir(
+        shapePosition.getRightBorder(), shapePosition.getDownBorder(), drawGraph, shapePosition);
   }
 
-  public static Rectangle getNodeBoxWithRankdir(double maxX, double maxY, DrawGraph drawGraph,
-                                                ShapePosition shapePosition) {
+  /** Copies the shape bounds and transforms them using the supplied reflection limits. */
+  public static Rectangle getNodeBoxWithRankdir(
+      double maxX, double maxY, DrawGraph drawGraph, ShapePosition shapePosition) {
     Rectangle rectangle = new Rectangle();
     rectangle.setUpBorder(shapePosition.getUpBorder());
     rectangle.setDownBorder(shapePosition.getDownBorder());
@@ -230,8 +249,9 @@ public class PortHelper {
     return rectangle;
   }
 
-  public static FlatPoint notFlipEndPoint(String cellId, Port port, NodeDrawProp node,
-                                          ShapePosition shapePosition) {
+  /** Resolves and clips an endpoint without applying a rank-direction transformation. */
+  public static FlatPoint notFlipEndPoint(
+      String cellId, Port port, NodeDrawProp node, ShapePosition shapePosition) {
     Asserts.nullArgument(node, "nodeDrawProp");
     Asserts.nullArgument(shapePosition, "shapePosition");
 
@@ -251,15 +271,19 @@ public class PortHelper {
 
     if (cell != null) {
       FlatPoint cellCenter = cell.getCenter(shapePosition);
-      shapePosition = new DefaultShapePosition(cellCenter.getX(), cellCenter.getY(),
-                                               cell.getHeight(), cell.getWidth(),
-                                               NodeShapeEnum.RECT);
+      shapePosition =
+          new DefaultShapePosition(
+              cellCenter.getX(),
+              cellCenter.getY(),
+              cell.getHeight(),
+              cell.getWidth(),
+              NodeShapeEnum.RECT);
     }
 
-    FlatPoint portPoint = new FlatPoint(
-        shapePosition.getX() + port.horOffset(shapePosition),
-        shapePosition.getY() + port.verOffset(shapePosition)
-    );
+    FlatPoint portPoint =
+        new FlatPoint(
+            shapePosition.getX() + port.horOffset(shapePosition),
+            shapePosition.getY() + port.verOffset(shapePosition));
     if (Objects.equals(portPoint.getX(), shapePosition.getX())
         && Objects.equals(portPoint.getY(), shapePosition.getY())) {
       return portPoint;
@@ -273,6 +297,7 @@ public class PortHelper {
     return straightLineClipShape(shapePosition, point, portPoint);
   }
 
+  /** Computes an endpoint ordering value from its cell offset and transformed port. */
   public static double portCompareNo(LineDrawProp line, ANode node, DrawGraph drawGraph) {
     Asserts.nullArgument(node, "node");
     Asserts.nullArgument(drawGraph, "drawGraph");
@@ -305,6 +330,7 @@ public class PortHelper {
     return compareNo;
   }
 
+  /** An endpoint position carrying its port and whether it is explicitly attached. */
   public static class PortPoint extends FlatPoint {
 
     private static final long serialVersionUID = 1628364834247941307L;
@@ -312,6 +338,7 @@ public class PortHelper {
 
     private final Port port;
 
+    /** Creates an endpoint position with its attachment metadata. */
     public PortPoint(double height, double width, boolean havePort, Port port) {
       super(height, width);
       this.havePort = havePort;

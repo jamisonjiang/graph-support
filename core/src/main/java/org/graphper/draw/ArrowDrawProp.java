@@ -35,6 +35,7 @@ public class ArrowDrawProp implements Serializable {
 
   private final boolean isHead;
 
+  /** Creates a head or tail arrow with the supplied symmetry axis endpoints. */
   public ArrowDrawProp(boolean isHead, FlatPoint axisBegin, FlatPoint axisEnd) {
     Asserts.nullArgument(axisBegin, "axisBegin");
     Asserts.nullArgument(axisEnd, "axisEnd");
@@ -72,9 +73,6 @@ public class ArrowDrawProp implements Serializable {
 
   @Override
   public String toString() {
-    return "ArrowDrawProp{" +
-        "axisBegin=" + axisBegin +
-        ", axisEnd=" + axisEnd +
-        '}';
+    return "ArrowDrawProp{" + "axisBegin=" + axisBegin + ", axisEnd=" + axisEnd + '}';
   }
 }
