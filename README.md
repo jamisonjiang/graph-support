@@ -2,7 +2,7 @@
 
 [![Java](https://img.shields.io/badge/Java-8%2B-orange.svg)](https://adoptium.net/)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](https://maven.apache.org/)
-[![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](https://github.com/jamisonjiang/graph-support/releases)
+[![Version](https://img.shields.io/badge/version-1.5.5-blue.svg)](https://github.com/jamisonjiang/graph-support/releases)
 [![License](https://img.shields.io/badge/License-Apache--2.0-green.svg)](LICENSE)
 
 graph-support is a Java graph layout and visualization library. Build graphs with a fluent API or
@@ -22,7 +22,7 @@ It can be used as a Java library, a DOT parser, a command-line renderer, or a de
 
 ## Quick Start
 
-Current version: **1.5.4**.
+Current version: **1.5.5**.
 
 For graphs created with the Java API:
 
@@ -30,7 +30,7 @@ For graphs created with the Java API:
 <dependency>
   <groupId>org.graphper</groupId>
   <artifactId>graph-support-core</artifactId>
-  <version>1.5.4</version>
+  <version>1.5.5</version>
 </dependency>
 ```
 
@@ -40,7 +40,7 @@ For applications that parse DOT source:
 <dependency>
   <groupId>org.graphper</groupId>
   <artifactId>graph-support-dot</artifactId>
-  <version>1.5.4</version>
+  <version>1.5.5</version>
 </dependency>
 ```
 
