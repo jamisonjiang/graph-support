@@ -60,8 +60,7 @@ import org.graphper.util.ClassUtils;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
 import org.graphper.util.GraphvizUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Layout engine common template.
@@ -70,7 +69,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractLayoutEngine implements LayoutEngine {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractLayoutEngine.class);
+  private static final Log log = Log.getLogger(AbstractLayoutEngine.class);
 
   /** Node default attribute value map. */
   private static final Map<String, Object> DEFAULT_NODE_ATTRS_MAP;

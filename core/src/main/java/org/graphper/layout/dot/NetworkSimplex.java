@@ -29,8 +29,7 @@ import org.graphper.layout.Mark;
 import org.graphper.layout.dot.RankContent.RankNode;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * The network simplex method iterates to minimize the sum of the rank spanning and weight of the
@@ -51,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 class NetworkSimplex {
 
-  private static final Logger log = LoggerFactory.getLogger(NetworkSimplex.class);
+  private static final Log log = Log.getLogger(NetworkSimplex.class);
 
   private RankContent rankContent;
 

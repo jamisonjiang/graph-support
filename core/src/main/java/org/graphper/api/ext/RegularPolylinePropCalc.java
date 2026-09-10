@@ -30,15 +30,14 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.UnfeasibleException;
 import org.graphper.def.Vectors;
 import org.graphper.util.Asserts;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /** Calculates regular polygon vertices, container dimensions, and containment. */
 public class RegularPolylinePropCalc implements ShapePropCalc, Serializable {
 
   private static final long serialVersionUID = 8672914749052162330L;
 
-  private static final Logger log = LoggerFactory.getLogger(RegularPolylinePropCalc.class);
+  private static final Log log = Log.getLogger(RegularPolylinePropCalc.class);
 
   private int side = 4;
 

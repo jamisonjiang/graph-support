@@ -24,7 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -75,9 +77,41 @@ class CoreResilienceTest {
       assertTrue(loader.attempted.stream().anyMatch(name -> name.startsWith("java.awt.")));
       assertTrue(loader.attempted.contains("android.graphics.Rect"));
       assertFalse(loader.attempted.stream().anyMatch(name -> name.startsWith("javax.")));
+      assertTrue(loader.attempted.contains("org.slf4j.Logger"));
+      assertFalse(loader.attempted.stream().anyMatch(name -> name.startsWith("java.util.logging.")));
       assertArrayEquals(new double[]{50, 40}, (double[]) invoke(loader, "measure"));
       assertArrayEquals(new String[]{"Times New Roman", "Times New Roman", "Viewer Font", "false"},
           (String[]) invoke(loader, "fonts"));
+    }
+  }
+
+  @Test
+  void rejectedImageWarningsReachStderrWithoutDumpingThePayload() throws Throwable {
+    String previousLogging = System.getProperty("graphper.logging.enabled");
+    System.setProperty("graphper.logging.enabled", "true");
+    PrintStream previous = System.err;
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    try (IsolatedLoader loader = new IsolatedLoader();
+         PrintStream capture = new PrintStream(bytes, true, "UTF-8")) {
+      // Avoid counting font-provider diagnostics as image warnings.
+      invoke(loader, "measure");
+      System.setErr(capture);
+      String svg = (String) invoke(loader, "rejectedImage");
+      assertFalse(svg.contains("<image"));
+      String warning = bytes.toString("UTF-8");
+      assertTrue(warning.contains("[warn] org.graphper.draw.svg.node.NodeImageEditor"), warning);
+      assertTrue(warning.contains("logo"), warning);
+      assertTrue(warning.contains("space is still reserved"), warning);
+      assertTrue(warning.contains("maxImageBytes"), warning);
+      assertTrue(warning.contains("chars)"), warning);
+      assertTrue(warning.length() < 1000, warning);
+    } finally {
+      System.setErr(previous);
+      if (previousLogging == null) {
+        System.clearProperty("graphper.logging.enabled");
+      } else {
+        System.setProperty("graphper.logging.enabled", previousLogging);
+      }
     }
   }
 
@@ -210,11 +244,12 @@ class CoreResilienceTest {
       attempted.add(name);
       if ((denyDesktop && (name.startsWith("java.awt.") || name.startsWith("javax.")))
           || name.startsWith("android.") || name.startsWith("org.apache.batik.")
-          || name.startsWith("org.apache.fop.")) {
+          || name.startsWith("org.apache.fop.") || name.startsWith("org.slf4j.")
+          || name.startsWith("java.util.logging.")) {
         throw new ClassNotFoundException("Optional API denied: " + name);
       }
       // Never delegate core APIs to the parent: doing so would test its unrestricted runtime.
-      // JDK, JUnit and logging APIs remain parent-loaded; fixture results use only JDK types.
+      // Available JDK and JUnit APIs remain parent-loaded; fixture results use only JDK types.
       if (name.startsWith("org.graphper.") || name.startsWith("org.apache_gs.")) {
         Class<?> loaded = findLoadedClass(name);
         if (loaded == null) {

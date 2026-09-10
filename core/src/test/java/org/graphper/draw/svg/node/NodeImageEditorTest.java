@@ -51,9 +51,12 @@ class NodeImageEditorTest {
 
   private org.apache.log4j.Logger editorLogger;
   private Level originalLevel;
+  private String previousLogging;
 
   @BeforeEach
   void captureWarnings() {
+    previousLogging = System.getProperty("graphper.logging.enabled");
+    System.setProperty("graphper.logging.enabled", "true");
     editorLogger = org.apache.log4j.Logger.getLogger(NodeImageEditor.class);
     originalLevel = editorLogger.getLevel();
     editorLogger.setLevel(Level.WARN);
@@ -62,6 +65,11 @@ class NodeImageEditorTest {
 
   @AfterEach
   void releaseWarnings() {
+    if (previousLogging == null) {
+      System.clearProperty("graphper.logging.enabled");
+    } else {
+      System.setProperty("graphper.logging.enabled", previousLogging);
+    }
     editorLogger.removeAppender(appender);
     editorLogger.setLevel(originalLevel);
   }

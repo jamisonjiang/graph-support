@@ -25,13 +25,11 @@ import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import java.util.TreeMap;
 import org.graphper.layout.EnvStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Discovers optional platform providers without making their dependencies core requirements. */
 public final class OptionalProviders {
 
-  private static final Logger log = LoggerFactory.getLogger(OptionalProviders.class);
+  private static final Log log = Log.getLogger(OptionalProviders.class);
 
   private OptionalProviders() {}
 

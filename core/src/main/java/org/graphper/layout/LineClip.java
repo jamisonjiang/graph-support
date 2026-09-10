@@ -49,14 +49,13 @@ import org.graphper.layout.Cell.RootCell;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.FontUtils;
+import org.graphper.util.Log;
 import org.graphper.util.ValueUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Clips routed edges against endpoint shapes and positions arrows and floating labels. */
 public abstract class LineClip extends LineHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(LineClip.class);
+  private static final Log log = Log.getLogger(LineClip.class);
 
   private static final FlatPoint FLOAT_LABEL_LEFT_OFFSET = new UnmodifyFlatPoint(-0.5, -0.5);
   private static final FlatPoint FLOAT_LABEL_RIGHT_OFFSET = new UnmodifyFlatPoint(-0.5, 0.5);

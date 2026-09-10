@@ -22,7 +22,7 @@
 
   <groupId>org.graphper</groupId>
   <artifactId>graph-support</artifactId>
-  <version>1.5.4</version>
+  <version>1.5.5</version>
   <packaging>pom</packaging>
 
   <name>${project.artifactId}</name>
@@ -58,7 +58,7 @@
     <connection>scm:git:https://github.com/jamisonjiang/graph-support</connection>
     <developerConnection>scm:git:https://github.com/jamisonjiang/graph-support</developerConnection>
     <url>https://github.com/jamisonjiang/graph-support</url>
-    <tag>v1.5.4</tag>
+    <tag>v1.5.5</tag>
   </scm>
 
   <issueManagement>

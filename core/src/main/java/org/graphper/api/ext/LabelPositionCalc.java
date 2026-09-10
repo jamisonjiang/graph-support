@@ -19,15 +19,14 @@ package org.graphper.api.ext;
 import java.io.Serializable;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.Asserts;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /** Computes a label center coordinate for an alignment within a rectangle. */
 public abstract class LabelPositionCalc implements Serializable {
 
   private static final long serialVersionUID = -7315061356667594850L;
 
-  private static final Logger log = LoggerFactory.getLogger(LabelPositionCalc.class);
+  private static final Log log = Log.getLogger(LabelPositionCalc.class);
 
   /** Validates the bounds and label size, then computes the aligned center coordinate. */
   public double centerPos(FlatPoint upperLeft, FlatPoint lowerRight, FlatPoint labelSize) {

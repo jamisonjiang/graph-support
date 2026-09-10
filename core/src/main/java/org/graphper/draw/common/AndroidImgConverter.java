@@ -37,8 +37,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.ClassUtils;
 import org.graphper.util.FontUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Implementation of {@link SvgConverter} to convert SVG elements into Android Bitmap images. This
@@ -50,7 +49,7 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("unchecked")
 public class AndroidImgConverter implements SvgConverter, SvgConstants {
 
-  private static final Logger log = LoggerFactory.getLogger(AndroidImgConverter.class);
+  private static final Log log = Log.getLogger(AndroidImgConverter.class);
 
   private static Class<?> PATH;
   private static Class<?> COLOR;

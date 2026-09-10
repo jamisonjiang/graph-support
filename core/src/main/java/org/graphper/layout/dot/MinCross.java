@@ -53,8 +53,7 @@ import org.graphper.layout.dot.RootCrossRank.ExpandInfoProvider;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
 import org.graphper.util.EnvProp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Minimize intersections between edges by the median method.
@@ -63,7 +62,7 @@ import org.slf4j.LoggerFactory;
  */
 class MinCross {
 
-  private static final Logger log = LoggerFactory.getLogger(MinCross.class);
+  private static final Log log = Log.getLogger(MinCross.class);
 
   private static final double CONVERGENCE = 0.995D;
 

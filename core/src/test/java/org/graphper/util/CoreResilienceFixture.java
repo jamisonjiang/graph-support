@@ -23,6 +23,7 @@ import org.graphper.api.FileType;
 import org.graphper.api.GraphResource;
 import org.graphper.api.Graphviz;
 import org.graphper.api.Node;
+import org.graphper.api.SecurityPolicy;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.api.attributes.Layout;
 import org.graphper.def.FlatPoint;
@@ -65,6 +66,16 @@ public class CoreResilienceFixture {
   public static double[] measure() {
     FlatPoint size = FontUtils.measure("hello\nworld", null, 20, 0);
     return new double[]{size.getWidth(), size.getHeight()};
+  }
+
+  public static String rejectedImage() throws Exception {
+    StringBuilder image = new StringBuilder("data:image/png;base64,");
+    for (int i = 0; i < 200; i++) {
+      image.append("QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB");
+    }
+    return Graphviz.digraph()
+        .securityPolicy(SecurityPolicy.builder().maxImageBytes(16).build())
+        .addNode(Node.builder().id("logo").image(image.toString()).build()).build().toSvgStr();
   }
 
   public static String[] fonts() {

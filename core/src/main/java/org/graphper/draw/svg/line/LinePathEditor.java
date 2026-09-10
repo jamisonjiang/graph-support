@@ -29,13 +29,12 @@ import org.graphper.draw.svg.SvgConstants;
 import org.graphper.draw.svg.SvgEditor;
 import org.graphper.layout.LabelLines;
 import org.graphper.util.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /** Converts routed edge geometry into SVG paths. */
 public class LinePathEditor implements LineEditor<SvgBrush>, SvgConstants {
 
-  private static final Logger log = LoggerFactory.getLogger(LinePathEditor.class);
+  private static final Log log = Log.getLogger(LinePathEditor.class);
 
   @Override
   public boolean edit(LineDrawProp lineDrawProp, SvgBrush brush) {

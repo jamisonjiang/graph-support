@@ -32,13 +32,12 @@ import org.graphper.def.FlatPoint;
 import org.graphper.def.Vectors;
 import org.graphper.draw.LineDrawProp;
 import org.graphper.util.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /** Utilities for curve control points, self-loop paths, and floating-label positions. */
 public class LineHelper {
 
-  private static final Logger log = LoggerFactory.getLogger(LineHelper.class);
+  private static final Log log = Log.getLogger(LineHelper.class);
 
   private LineHelper() {}
 

@@ -24,13 +24,12 @@ import org.graphper.draw.NodeDrawProp;
 import org.graphper.draw.NodeEditor;
 import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgBrush;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /** Adds positioned images to SVG nodes. */
 public class NodeImageEditor extends AbstractNodeShapeEditor implements NodeEditor<SvgBrush> {
 
-  private static final Logger log = LoggerFactory.getLogger(NodeImageEditor.class);
+  private static final Log log = Log.getLogger(NodeImageEditor.class);
 
   /** Keeps a rejected data URI from filling the log with base64. */
   private static final int MAX_LOGGED_REFERENCE_LENGTH = 120;

@@ -41,9 +41,8 @@ import org.graphper.layout.OrthoVisGraph.GridVertex;
 import org.graphper.layout.PortHelper.PortPoint;
 import org.graphper.util.Asserts;
 import org.graphper.util.CollectionUtils;
+import org.graphper.util.Log;
 import org.graphper.util.ValueUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Abstract implementation of an orthogonal edge router for graph layouts. This class provides
@@ -64,7 +63,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractOrthogonalRouter extends LineClip {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractOrthogonalRouter.class);
+  private static final Log log = Log.getLogger(AbstractOrthogonalRouter.class);
 
   private static final int LEFT = 0;
   private static final int RIGHT = 1;

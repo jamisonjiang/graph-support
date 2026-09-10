@@ -21,12 +21,11 @@ import java.util.Objects;
 import java.util.Set;
 import org.graphper.draw.DrawGraph;
 import org.graphper.layout.Mark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 class Acyclic extends Mark<DNode> {
 
-  private static final Logger log = LoggerFactory.getLogger(Acyclic.class);
+  private static final Log log = Log.getLogger(Acyclic.class);
 
   private final DotDigraph digraph;
 

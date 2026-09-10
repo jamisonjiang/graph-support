@@ -33,8 +33,7 @@ import org.graphper.draw.DrawGraph;
 import org.graphper.draw.FailInitResourceException;
 import org.graphper.draw.svg.Document;
 import org.graphper.util.ClassUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Implementation of {@link SvgConverter} that uses Apache Batik to convert SVG documents into
@@ -47,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BatikImgConverter implements SvgConverter {
 
-  private static final Logger log = LoggerFactory.getLogger(BatikImgConverter.class);
+  private static final Log log = Log.getLogger(BatikImgConverter.class);
 
   private static final String T_IN_C = "org.apache.batik.transcoder.TranscoderInput";
   private static final String T_OUT_C = "org.apache.batik.transcoder.TranscoderOutput";

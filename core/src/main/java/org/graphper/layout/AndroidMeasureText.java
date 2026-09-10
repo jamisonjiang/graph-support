@@ -22,8 +22,7 @@ import org.apache_gs.commons.lang3.StringUtils;
 import org.graphper.api.attributes.FontStyle;
 import org.graphper.def.FlatPoint;
 import org.graphper.util.ClassUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Implementation of {@link MeasureText} and {@link FontSelector} for measuring text dimensions on
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AndroidMeasureText implements MeasureText, FontSelector {
 
-  private static final Logger log = LoggerFactory.getLogger(AndroidMeasureText.class);
+  private static final Log log = Log.getLogger(AndroidMeasureText.class);
 
   private static Class<?> RECT;
   private static Class<?> TEXT_PAIN;

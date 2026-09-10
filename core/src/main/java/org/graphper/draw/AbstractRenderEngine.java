@@ -21,8 +21,7 @@ import org.graphper.api.Graphviz;
 import org.graphper.api.attributes.Layout;
 import org.graphper.layout.LayoutEngine;
 import org.graphper.util.Asserts;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Abstract rendering engine.
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractRenderEngine implements RenderEngine {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractRenderEngine.class);
+  private static final Log log = Log.getLogger(AbstractRenderEngine.class);
 
   @Override
   public GraphResource render(Graphviz graphviz, Object attach) throws ExecuteException {

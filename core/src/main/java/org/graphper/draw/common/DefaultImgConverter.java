@@ -54,8 +54,7 @@ import org.graphper.draw.svg.Element;
 import org.graphper.draw.svg.SvgConstants;
 import org.graphper.util.EnvProp;
 import org.graphper.util.FontUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.graphper.util.Log;
 
 /**
  * Default implementation of {@link SvgConverter} to convert SVG elements into image files. This
@@ -66,7 +65,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultImgConverter implements SvgConverter, SvgConstants {
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultImgConverter.class);
+  private static final Log log = Log.getLogger(DefaultImgConverter.class);
 
   /**
    * Returns the priority order of this converter. If local image converter is used, returns the
